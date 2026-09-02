@@ -1752,7 +1752,7 @@
             ? 'Azure neural voice is ready. Preview any voice before joining.'
             : 'Using the calm male Agora fallback. Add Azure Speech credentials to enable these Hindi voice previews.';
         const voiceChip = $('#room-voice-chip');
-        if (voiceChip) voiceChip.textContent = `${state.language} · ${({ madhur: 'Madhur', aarav: 'Aarav', kunal: 'Kunal' })[state.voice] || 'Male guide'}`;
+        if (voiceChip) voiceChip.textContent = `${state.language} · ${state.voiceProvider === 'azure' ? (({ madhur: 'Madhur', aarav: 'Aarav', kunal: 'Kunal' })[state.voice] || 'Male guide') : 'Onyx fallback'}`;
         const connectionChip = $('#room-connection-chip');
         if (connectionChip) {
           const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' && state.agentConnected ? 'live' : 'connecting';
