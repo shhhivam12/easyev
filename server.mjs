@@ -322,7 +322,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
       failureMessage: 'I had trouble responding. Please try that once more.',
       maxHistory: 15,
       params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
-      ...(mcpUrl ? { mcpServers: [{ name: 'easyev_decision_tools', url: mcpUrl, transport: 'streamable_http' }] } : {}),
+      ...(mcpUrl ? { mcpServers: [{ name: 'easyev-decision-tools', url: mcpUrl, transport: 'streamable_http' }] } : {}),
     }))
     .withTts(tts);
 
