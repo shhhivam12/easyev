@@ -12,6 +12,7 @@ import {
   ExpiresIn,
   OpenAI,
   OpenAITTS,
+  MicrosoftTTS,
 } from 'agora-agents';
 
 const ROOT = resolve(import.meta.dirname);
@@ -30,6 +31,17 @@ if (!APP_ID || !APP_CERTIFICATE) {
   console.error('Missing AGORA_APP_ID or AGORA_APP_CERTIFICATE in .env');
   process.exit(1);
 }
+
+const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
+const AZURE_SPEECH_REGION = process.env.AZURE_SPEECH_REGION?.trim();
+const AZURE_SPEECH_READY = Boolean(AZURE_SPEECH_KEY && AZURE_SPEECH_REGION);
+const VOICES = Object.freeze({
+  madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
+  aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
+  kunal: { id: 'kunal', name: 'Kunal', voiceName: 'hi-IN-KunalNeural', description: 'Clear, conversational Hindi' },
+});
+const mapCache = new Map();
+const voicePreviewCache = new Map();
 
 const bootstraps = new Map();
 const sessions = new Map();
@@ -61,10 +73,104 @@ function json(res, status, payload) {
 
 function safeMessage(error, fallback) {
   const message = error instanceof Error ? error.message : String(error || fallback);
-  return message
-    .replaceAll(APP_ID, '[app-id]')
-    .replaceAll(APP_CERTIFICATE, '[secret]')
+  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY]
+    .filter(Boolean)
+    .reduce((safe, secret) => safe.replaceAll(secret, '[secret]'), message)
     .slice(0, 600);
+}
+
+function selectedVoice(value) {
+  return VOICES[String(value || '').toLowerCase()] || VOICES.madhur;
+}
+
+function xmlEscape(value) {
+  return String(value).replace(/[<>&'"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[character]);
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const toRadians = (value) => value * Math.PI / 180;
+  const radius = 6371;
+  const dLat = toRadians(lat2 - lat1);
+  const dLon = toRadians(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) * Math.sin(dLon / 2) ** 2;
+  return radius * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function fetchNearbyCharging(lat, lng, radius) {
+  const roundedKey = `${lat.toFixed(3)}:${lng.toFixed(3)}:${radius}`;
+  const cached = mapCache.get(roundedKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.payload;
+  const query = `[out:json][timeout:18];nwr(around:${radius},${lat},${lng})["amenity"="charging_station"];out center tags;`;
+  const providers = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+  let data = null;
+  let lastError = null;
+  for (const provider of providers) {
+    try {
+      const response = await fetch(provider, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/1.0' },
+        body: new URLSearchParams({ data: query }),
+        signal: AbortSignal.timeout(18_000),
+      });
+      if (!response.ok) throw new Error(`Charging map provider returned ${response.status}`);
+      data = await response.json();
+      break;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!data) throw lastError || new Error('Live charging data is temporarily unavailable.');
+  const stations = (Array.isArray(data.elements) ? data.elements : []).map((item) => {
+    const stationLat = Number(item.lat ?? item.center?.lat);
+    const stationLng = Number(item.lon ?? item.center?.lon);
+    if (!Number.isFinite(stationLat) || !Number.isFinite(stationLng)) return null;
+    const tags = item.tags || {};
+    return {
+      id: `${item.type}-${item.id}`,
+      name: tags.name || tags.operator || 'Public charging station',
+      operator: tags.operator || 'Operator not listed',
+      lat: stationLat,
+      lng: stationLng,
+      distanceKm: Number(haversineKm(lat, lng, stationLat, stationLng).toFixed(1)),
+      capacity: tags.capacity || 'Not listed',
+      sockets: Object.keys(tags).filter((key) => key.startsWith('socket:') && tags[key] !== 'no').map((key) => key.slice(7).replaceAll('_', ' ')).slice(0, 4),
+      openingHours: tags.opening_hours || 'Hours not listed',
+      access: tags.access || 'Access not listed',
+      fee: tags.fee || 'Fee not listed',
+    };
+  }).filter(Boolean).sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 24);
+  const payload = { center: { lat, lng }, radius, stations, source: 'OpenStreetMap contributors via Overpass', fetchedAt: new Date().toISOString() };
+  mapCache.set(roundedKey, { expiresAt: Date.now() + 10 * 60 * 1000, payload });
+  return payload;
+}
+
+async function azureVoicePreview(voice, language) {
+  if (!AZURE_SPEECH_READY) throw new Error('Azure Speech is not configured on this server.');
+  const selected = selectedVoice(voice);
+  const phrase = language === 'English'
+    ? 'Hello, I am your EasyEV guide. Let us find an electric vehicle that fits your life.'
+    : language === 'Hindi'
+      ? 'नमस्ते, मैं आपका ईज़ी ईवी गाइड हूँ। आइए आपकी ज़रूरत के हिसाब से सही इलेक्ट्रिक वाहन चुनते हैं।'
+      : 'नमस्ते, मैं आपका EasyEV guide हूँ। आइए आपकी daily travel के लिए सही EV fit चुनते हैं।';
+  const cacheKey = `${selected.id}:${language}`;
+  if (voicePreviewCache.has(cacheKey)) return voicePreviewCache.get(cacheKey);
+  const locale = language === 'English' ? 'en-IN' : 'hi-IN';
+  const ssml = `<speak version="1.0" xml:lang="${locale}"><voice name="${selected.voiceName}"><prosody rate="-4%">${xmlEscape(phrase)}</prosody></voice></speak>`;
+  const response = await fetch(`https://${AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+    method: 'POST',
+    headers: {
+      'Ocp-Apim-Subscription-Key': AZURE_SPEECH_KEY,
+      'Content-Type': 'application/ssml+xml',
+      'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+      'User-Agent': 'EasyEV-Hackathon',
+    },
+    body: ssml,
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!response.ok) throw new Error(`Azure Speech preview returned ${response.status}`);
+  const audio = Buffer.from(await response.arrayBuffer());
+  voicePreviewCache.set(cacheKey, audio);
+  return audio;
 }
 
 async function readJson(req) {
@@ -115,7 +221,7 @@ Your job is to discover their use case, daily distance, budget, charging access,
 Keep most spoken answers to two or three short sentences. Ask at most one useful follow-up question per turn. Pronounce numbers and units naturally for India. If uncertain, say so. Never pressure the shopper or claim that EasyEV has completed an external action.`;
 }
 
-function createAgentSession({ channel, uid, category, language }) {
+function createAgentSession({ channel, uid, category, language, voice }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const greeting = language === 'Hindi'
     ? 'नमस्ते! मैं आपकी EasyEV गाइड हूँ। आप रोज़ कितनी दूरी तय करते हैं, और EV से क्या ज़रूरत पूरी करना चाहते हैं?'
@@ -124,13 +230,17 @@ function createAgentSession({ channel, uid, category, language }) {
       : 'नमस्ते! मैं आपकी EasyEV guide हूँ। अपनी daily travel need बताइए, फिर हम सही EV fit साथ में compare करेंगे।';
   const recognitionLanguage = language === 'English' ? 'en-IN' : 'hi-IN';
   const speechInstructions = language === 'Hindi'
-    ? 'Speak in a natural, friendly Indian Hindi accent. Use clear contemporary Hindi, gentle pace, short pauses, and pronounce EV terms as Indian speakers do.'
+    ? 'Speak in a calm Indian male Hindi voice. Use clear contemporary Hindi, a confident gentle pace, short pauses, and natural Indian pronunciation for EV terms.'
     : language === 'Hinglish'
-      ? 'Speak in a natural Indian Hinglish accent. Blend Hindi and English smoothly, with a warm female advisor tone, moderate pace, and crisp EV terminology.'
-      : 'Speak in a warm, confident Indian English accent at a moderate pace, like a helpful automotive advisor.';
+      ? 'Speak in a calm Indian male Hinglish voice. Blend Hindi and English naturally, with a grounded advisory tone, brisk response cadence, and crisp EV terminology.'
+      : 'Speak in a calm, confident Indian male English voice at a natural conversational pace, like a trusted automotive advisor.';
   const stt = language === 'English'
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: ['EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बजट', 'स्कूटर', 'थ्री व्हीलर', 'test drive'] });
+
+  const tts = AZURE_SPEECH_READY
+    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1 : 0.96 })
+    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.04 : 0.98 });
 
   const agent = new Agent({
     client,
@@ -144,11 +254,11 @@ function createAgentSession({ channel, uid, category, language }) {
         speech_threshold: 0.5,
         start_of_speech: {
           mode: 'vad',
-          vad_config: { interrupt_duration_ms: 160, prefix_padding_ms: 300 },
+          vad_config: { interrupt_duration_ms: 120, prefix_padding_ms: 240 },
         },
         end_of_speech: {
           mode: 'vad',
-          vad_config: { silence_duration_ms: 480 },
+          vad_config: { silence_duration_ms: 360 },
         },
       },
     },
@@ -166,14 +276,9 @@ function createAgentSession({ channel, uid, category, language }) {
       greetingMessage: greeting,
       failureMessage: 'I had trouble responding. Please try that once more.',
       maxHistory: 15,
-      params: { max_tokens: 700, temperature: 0.45, top_p: 0.9 },
+      params: { max_tokens: 320, temperature: 0.4, top_p: 0.9 },
     }))
-    .withTts(new OpenAITTS({
-      model: 'tts-1',
-      voice: 'nova',
-      instructions: speechInstructions,
-      speed: language === 'English' ? 0.98 : 0.92,
-    }));
+    .withTts(tts);
 
   return agent.createSession({
     channel,
@@ -215,8 +320,38 @@ async function handleApi(req, res, url) {
       agoraConfigured: true,
       mode: 'live',
       activeSessions: sessions.size,
-      speech: { hindiRecognition: 'Agora ARES hi-IN', voice: 'Agora-managed OpenAI tts-1' },
+      speech: {
+        hindiRecognition: 'Agora ARES hi-IN',
+        provider: AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',
+        voice: AZURE_SPEECH_READY ? VOICES.madhur.voiceName : 'onyx',
+        azureConfigured: AZURE_SPEECH_READY,
+      },
     });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/voice/options') {
+    return json(res, 200, { provider: AZURE_SPEECH_READY ? 'azure' : 'fallback', previewAvailable: AZURE_SPEECH_READY, voices: Object.values(VOICES) });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/voice/preview') {
+    const voice = selectedVoice(url.searchParams.get('voice'));
+    const language = normalizeChoice(url.searchParams.get('language'), ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const audio = await azureVoicePreview(voice.id, language);
+    res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Content-Length': audio.length, 'Cache-Control': 'private, max-age=3600', 'X-Content-Type-Options': 'nosniff' });
+    res.end(audio);
+    return true;
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/charging/nearby') {
+    const lat = Number(url.searchParams.get('lat'));
+    const lng = Number(url.searchParams.get('lng'));
+    const radius = Math.min(25_000, Math.max(1_000, Number(url.searchParams.get('radius')) || 10_000));
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) return json(res, 400, { error: 'Valid latitude and longitude are required.' });
+    try {
+      return json(res, 200, await fetchNearbyCharging(lat, lng, radius));
+    } catch {
+      return json(res, 200, { center: { lat, lng }, radius, stations: [], unavailable: true, error: 'Live charging data is temporarily unavailable. Please try again.' });
+    }
   }
 
   if (req.method === 'GET' && url.pathname === '/api/session/token') {
@@ -247,7 +382,8 @@ async function handleApi(req, res, url) {
     bootstraps.delete(body.bootstrapKey);
     const category = normalizeChoice(body.category, ['Electric car', 'Electric scooter', 'Electric 3-wheeler', 'Not sure'], 'Not sure');
     const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
-    const session = createAgentSession({ channel: pending.channel, uid: pending.uid, category, language });
+    const voice = selectedVoice(body.voice).id;
+    const session = createAgentSession({ channel: pending.channel, uid: pending.uid, category, language, voice });
     const agentId = await session.start();
     const key = randomUUID();
     sessions.set(key, { key, agentId, session, channel: pending.channel, uid: pending.uid, createdAt: Date.now(), expiresAt: Date.now() + TOKEN_TTL_SECONDS * 1000, stopping: false });
@@ -289,6 +425,8 @@ function serveFile(res, path, cache = false) {
     '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
     '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.webp': 'image/webp',
   }[extname(fullPath)] || 'application/octet-stream';
   res.writeHead(200, {
     'Content-Type': mime,
@@ -312,6 +450,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
+    if (/^\/assets\/[a-z0-9-]+\.(?:png|webp)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));

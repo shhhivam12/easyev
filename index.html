@@ -397,7 +397,8 @@
     .journey-cta span { margin-top: 5px; color: var(--muted); font-size: 11px; }
 
     /* Prejoin */
-    #prejoin-view { position: fixed; z-index: 100; inset: 0; align-items: center; justify-content: center; padding: 24px; background: rgba(2, 12, 6, .72); backdrop-filter: blur(12px); }
+    #prejoin-view { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(2, 12, 6, .72); backdrop-filter: blur(12px); }
+    .prejoin-backdrop { display: grid; place-items: center; width: 100%; height: 100%; }
     .prejoin-sheet { position: relative; width: min(760px, 100%); max-height: min(850px, calc(100vh - 40px)); overflow: auto; padding: 30px; color: var(--ink); border: 1px solid rgba(255,255,255,.75); border-radius: 26px; background: var(--paper); box-shadow: 0 35px 100px rgba(0,0,0,.34); animation: sheet-in .42s var(--ease-settle) both; }
     .sheet-close { position: absolute; top: 19px; right: 19px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--muted); border: 1px solid var(--line); border-radius: 50%; background: transparent; font-size: 20px; }
     .sheet-close:hover { color: var(--ink); background: var(--panel); }
@@ -624,6 +625,7 @@
     .prompt-strip__label { flex: 0 0 auto; color: rgba(255,255,255,.39); font-size: 10px; font-weight: 650; }
     .prompt-chip { flex: 0 0 auto; min-height: 36px; padding: 0 13px; color: rgba(255,255,255,.69); border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius-pill); background: rgba(255,255,255,.05); font-size: 10px; font-weight: 620; }
     .prompt-chip:hover { color: var(--green-bright); border-color: rgba(85,242,123,.45); background: rgba(85,242,123,.08); }
+    .prompt-chip:disabled { cursor: wait; opacity: .42; }
     .prompt-drawer { position: fixed; z-index: 80; right: 20px; bottom: 93px; width: min(430px, calc(100% - 40px)); padding: 17px; color: var(--ink); border: 1px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 24px 70px rgba(0,0,0,.35); }
     .prompt-drawer__top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
     .prompt-drawer__top strong { font-size: 13px; font-weight: 700; }
@@ -650,6 +652,7 @@
     .outcome-topline::before { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); content: ''; }
     .outcome-shell h1 { max-width: 660px; margin: 18px 0 12px; color: var(--white); font-size: clamp(38px, 5.2vw, 65px); font-weight: 520; letter-spacing: -.06em; line-height: .98; }
     .outcome-shell > p { max-width: 560px; margin: 0; color: rgba(255,255,255,.57); font-size: 15px; line-height: 1.45; }
+    .outcome-heading p { max-width: 560px; margin: 0; color: rgba(255,255,255,.57); font-size: 15px; line-height: 1.45; }
     .outcome-grid { display: grid; grid-template-columns: .92fr 1.08fr; gap: 14px; margin-top: 34px; }
     .outcome-card { min-width: 0; padding: 22px; border: 1px solid rgba(255,255,255,.13); border-radius: 19px; background: rgba(255,255,255,.06); }
     .outcome-card h2 { margin: 0 0 17px; color: var(--white); font-size: 15px; font-weight: 680; }
@@ -671,6 +674,64 @@
     .outcome-button:hover { background: var(--green-bright); }
     .outcome-button--secondary { color: var(--white); border: 1px solid rgba(255,255,255,.2); background: transparent; }
     .outcome-button--secondary:hover { color: var(--forest); background: var(--white); }
+
+    /* Clay guide, voice picker and live agentic map */
+    .hero-guide-visual { position: relative; align-self: end; width: 132px; height: 184px; margin: -9px 0 -21px -6px; filter: drop-shadow(0 16px 20px rgba(0,0,0,.3)); object-fit: contain; object-position: center bottom; }
+    .preview-guide { width: 64px; height: 76px; margin: 3px auto 1px; object-fit: contain; filter: drop-shadow(0 8px 10px rgba(0,0,0,.25)); }
+    .agent-clay-shell { position: relative; display: grid; place-items: end center; width: 100%; height: 116px; margin-top: 15px; overflow: hidden; }
+    .agent-clay { display: block; width: min(210px, 74%); height: 122px; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 12px 14px rgba(0,0,0,.34)); transition: opacity .16s ease, transform .2s ease; }
+    .participant-tile--ai[data-mode="thinking"] .agent-clay { transform: scale(.97) translateY(2px); }
+    .participant-tile--ai[data-mode="speaking"] .agent-clay { transform: scale(1.02); }
+    .agent-live-pulse { position: absolute; right: calc(50% - 85px); bottom: 15px; width: 12px; height: 12px; border: 2px solid #0a150e; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px rgba(85,242,123,.15); }
+    .participant-tile--ai .ai-wave { position: absolute; z-index: 3; right: 17px; bottom: 17px; margin: 0; }
+    .participant-tile--ai .ai-state { position: absolute; z-index: 3; bottom: 14px; left: 16px; margin: 0; padding: 5px 8px; border-radius: 99px; background: rgba(4,19,9,.72); backdrop-filter: blur(7px); }
+    .voice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .voice-option { display: grid; grid-template-columns: 34px minmax(0,1fr) auto; gap: 9px; align-items: center; min-height: 64px; padding: 9px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; background: var(--white); text-align: left; }
+    .voice-option[aria-pressed="true"] { border-color: var(--green-deep); background: var(--mint); box-shadow: inset 0 0 0 1px rgba(22,191,83,.2); }
+    .voice-avatar { display: grid; place-items: center; width: 34px; height: 34px; color: var(--forest); border-radius: 50%; background: var(--green); font-size: 11px; font-weight: 800; }
+    .voice-copy strong, .voice-copy small { display: block; }
+    .voice-copy strong { font-size: 12px; }
+    .voice-copy small { margin-top: 2px; color: var(--muted); font-size: 9px; line-height: 1.25; }
+    .voice-preview-button { display: grid; place-items: center; width: 32px; height: 32px; color: var(--forest); border: 1px solid var(--line); border-radius: 50%; background: var(--panel); font-size: 12px; }
+    .voice-preview-button:hover { border-color: var(--green-deep); }
+    .voice-preview-button:disabled { cursor: wait; opacity: .55; }
+    .voice-status { display: block; margin-top: 7px; color: var(--muted); font-size: 10px; line-height: 1.35; }
+    .map-layout { display: grid; grid-template-columns: minmax(0,1.5fr) minmax(210px,.7fr); gap: 14px; margin-top: 18px; }
+    .map-shell { position: relative; min-height: 318px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #dce5dc; }
+    .map-canvas { position: absolute; inset: 0; overflow: hidden; background: #dce5dc; }
+    .map-tile { position: absolute; width: 256px; height: 256px; max-width: none; user-select: none; -webkit-user-drag: none; }
+    .map-marker { position: absolute; z-index: 4; display: grid; place-items: center; width: 30px; height: 30px; color: #fff; border: 3px solid #fff; border-radius: 50% 50% 50% 10%; background: var(--green-deep); box-shadow: 0 5px 13px rgba(4,35,15,.28); transform: translate(-50%,-100%) rotate(-45deg); }
+    .map-marker span { transform: rotate(45deg); font-size: 11px; font-weight: 800; }
+    .map-marker.is-selected { z-index: 5; background: var(--forest); box-shadow: 0 0 0 5px rgba(85,242,123,.35), 0 6px 18px rgba(4,35,15,.4); }
+    .map-user { position: absolute; z-index: 4; width: 18px; height: 18px; border: 4px solid #fff; border-radius: 50%; background: #2074d4; box-shadow: 0 0 0 5px rgba(32,116,212,.2); transform: translate(-50%,-50%); }
+    .map-controls { position: absolute; z-index: 7; top: 10px; right: 10px; display: grid; gap: 5px; }
+    .map-control { display: grid; place-items: center; width: 35px; height: 35px; color: var(--ink); border: 1px solid rgba(0,0,0,.12); border-radius: 9px; background: rgba(255,255,255,.94); box-shadow: 0 3px 10px rgba(0,0,0,.12); font-size: 17px; font-weight: 700; }
+    .map-attribution { position: absolute; z-index: 7; right: 6px; bottom: 5px; padding: 2px 4px; color: #4c5b50; background: rgba(255,255,255,.82); font-size: 8px; }
+    .map-attribution a { color: inherit; text-decoration: underline; }
+    .map-loading { position: absolute; z-index: 8; inset: 0; display: grid; place-items: center; padding: 25px; background: rgba(242,247,243,.9); text-align: center; }
+    .map-loading strong, .map-loading span { display: block; }
+    .map-loading strong { font-size: 14px; }
+    .map-loading span { margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .station-list { display: grid; align-content: start; gap: 8px; max-height: 318px; overflow: auto; padding-right: 2px; }
+    .station-card { width: 100%; padding: 11px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 12px; background: var(--white); text-align: left; }
+    .station-card:hover, .station-card[aria-pressed="true"] { border-color: var(--green-deep); background: var(--mint); }
+    .station-card strong, .station-card span, .station-card small { display: block; }
+    .station-card strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .station-card span { margin-top: 4px; color: var(--green-deep); font-size: 10px; font-weight: 700; }
+    .station-card small { margin-top: 3px; color: var(--muted); font-size: 9px; line-height: 1.3; }
+    .map-intro-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .map-disclosure { margin: 11px 0 0; color: var(--muted-2); font-size: 9px; line-height: 1.4; }
+    .station-detail { display: grid; gap: 8px; margin-top: 13px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--panel); }
+    .station-detail strong { font-size: 12px; }
+    .station-detail-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: 9px; }
+    .station-detail-row b { color: var(--ink-2); font-weight: 650; text-align: right; }
+    .station-directions { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; margin-top: 2px; color: var(--forest); border-radius: 99px; background: var(--green); font-size: 10px; font-weight: 750; }
+    .action-pack { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 9px; margin-top: 16px; }
+    .action-pack button { min-height: 66px; padding: 11px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 13px; background: var(--white); font-size: 10px; font-weight: 720; line-height: 1.3; text-align: left; }
+    .action-pack button:hover { border-color: var(--green-deep); background: var(--mint); }
+    .action-pack button span { display: block; margin-bottom: 8px; color: var(--green-deep); font-size: 17px; }
+    .outcome-heading { display: grid; grid-template-columns: minmax(0,1fr) 150px; gap: 20px; align-items: end; }
+    .outcome-guide { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 15px 18px rgba(0,0,0,.35)); }
 
     /* Motion */
     @keyframes nav-in { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
@@ -698,6 +759,8 @@
       .site-nav .nav-cta { display: none; }
       .hero { grid-template-columns: 1fr; gap: 36px; width: min(680px, calc(100% - 40px)); min-height: auto; padding: 102px 0 64px; }
       .hero-live-card { width: min(520px, 100%); }
+      .map-layout { grid-template-columns: 1fr; }
+      .station-list { grid-template-columns: repeat(2, minmax(0,1fr)); max-height: 210px; }
       .journey-heading { grid-template-columns: 1fr; gap: 20px; }
       .journey-heading > p { grid-column: auto; }
       .journey-grid { grid-template-columns: repeat(2, 1fr); }
@@ -740,7 +803,8 @@
       .journey-grid strong { margin-top: 34px; }
       .journey-cta { align-items: stretch; flex-direction: column; }
       .journey-cta .button--primary { width: 100%; }
-      #prejoin-view { align-items: end; padding: 0; }
+      #prejoin-view { place-items: end stretch; padding: 0; }
+      .prejoin-backdrop { place-items: end stretch; }
       .prejoin-sheet { width: 100%; max-height: 94svh; padding: 25px 17px 20px; border-radius: 24px 24px 0 0; }
       .prejoin-sheet h2 { margin-right: 45px; font-size: 33px; }
       .category-grid { grid-template-columns: repeat(2, 1fr); }
@@ -748,6 +812,7 @@
       .category-tile svg { width: 45px; height: 39px; margin-bottom: 10px; }
       .segmented { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
       .segment { min-width: 0; padding: 0 8px; }
+      .voice-grid { grid-template-columns: 1fr; }
       .camera-setup { grid-template-columns: 111px 1fr; gap: 12px; padding: 11px; }
       .camera-preview { width: 111px; height: 83px; }
       .camera-setup__copy p { font-size: 11px; }
@@ -768,6 +833,11 @@
       .participant-tile { min-height: 120px; padding: 11px; border-radius: 16px; }
       .participant-tile__label { font-size: 10px; }
       .participant-tile--ai .participant-tile__label { top: 11px; left: 11px; right: 11px; }
+      .agent-clay-shell { height: 91px; margin-top: 17px; }
+      .agent-clay { width: min(150px, 88%); height: 96px; }
+      .agent-live-pulse { right: 15px; bottom: 18px; width: 10px; height: 10px; }
+      .participant-tile--ai .ai-wave { right: 9px; bottom: 10px; }
+      .participant-tile--ai .ai-state { bottom: 8px; left: 8px; max-width: calc(100% - 53px); overflow: hidden; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
       .ai-orb { width: 53px; height: 53px; margin-top: 11px; }
       .ai-orb::before { inset: -6px; }
       .ai-orb::after { inset: -12px; }
@@ -821,6 +891,10 @@
       .estimate-card { padding: 15px; }
       .estimate-card__value { font-size: 28px; }
       .booking-confirmed { margin-top: 13px; }
+      .action-pack { grid-template-columns: 1fr; }
+      .action-pack button { min-height: 52px; }
+      .map-shell { min-height: 280px; }
+      .station-list { grid-template-columns: 1fr; max-height: 210px; }
       .context-sidebar { border-radius: 16px; padding: 10px; }
       .sidebar-panel { padding: 16px 4px 3px; }
       .sidebar-panel h3 { font-size: 16px; }
@@ -836,6 +910,9 @@
       #outcome-view { align-items: start; padding: 52px 17px 28px; }
       .outcome-shell h1 { margin-top: 15px; font-size: 46px; }
       .outcome-shell > p { font-size: 14px; }
+      .outcome-heading p { font-size: 14px; }
+      .outcome-heading { grid-template-columns: minmax(0,1fr) 92px; }
+      .outcome-guide { width: 92px; height: 112px; }
       .outcome-grid { grid-template-columns: 1fr; gap: 10px; margin-top: 26px; }
       .outcome-card { padding: 17px; }
       .outcome-actions-row { display: grid; }
@@ -894,8 +971,8 @@
         <aside class="hero-live-card" aria-label="EasyEV live consultation preview">
           <div class="hero-live-card__top"><span><i aria-hidden="true"></i> EasyEV Live</span><strong>Agora voice connected</strong></div>
           <div class="hero-live-card__voice">
-            <div class="hero-live-orb" aria-hidden="true"><span></span></div>
-            <div><small>AI GUIDE · HINGLISH</small><p>“Aapki daily travel need bataiye—phir hum सही EV fit compare करेंगे।”</p></div>
+            <img class="hero-guide-visual" src="/assets/clay-guide-hero-v2.webp" alt="EasyEV clay guide holding an electric car and charger">
+            <div><small>YOUR LIVE AI EV GUIDE</small><p>“अपनी daily travel बताइए—मैं options compare करूँगा, charging map खोलूँगा और next step तैयार करूँगा।”</p></div>
           </div>
           <div class="hero-passport">
             <p>YOUR DECISION PASSPORT</p>
@@ -903,7 +980,7 @@
             <div><span>Charging</span><strong>Fit checked</strong></div>
             <div><span>Next action</span><strong>You stay in control</strong></div>
           </div>
-          <div class="hero-live-card__footer"><span>Live voice</span><span>Visual comparisons</span><span>Local actions</span></div>
+          <div class="hero-live-card__footer"><span>Live Agora voice</span><span>Real charging map</span><span>Actions with confirmation</span></div>
         </aside>
       </div>
 
@@ -918,7 +995,7 @@
             <div class="preview-people">
               <div class="preview-tile">
                 <div class="preview-tile__label">EasyEV AI Guide</div>
-                <div class="preview-orb" aria-hidden="true"></div>
+                <img class="preview-guide" src="/assets/clay-guide-presenting.webp" alt="" aria-hidden="true">
                 <div class="preview-tile__status">Listening to you</div>
               </div>
               <div class="preview-tile">
@@ -1003,6 +1080,28 @@
             </div>
           </section>
 
+          <section class="setup-section" aria-labelledby="voice-setup-label">
+            <p class="setup-label" id="voice-setup-label">AI guide voice <span>Calm male Hindi voices</span></p>
+            <div class="voice-grid" id="voice-selector" role="group" aria-label="AI guide voice">
+              <div class="voice-option" data-voice-option="madhur" aria-pressed="true">
+                <button class="voice-avatar" type="button" data-voice="madhur" aria-label="Select Madhur voice">M</button>
+                <button class="voice-copy" type="button" data-voice="madhur"><strong>Madhur</strong><small>Warm and grounded</small></button>
+                <button class="voice-preview-button" type="button" data-preview-voice="madhur" aria-label="Preview Madhur voice">▶</button>
+              </div>
+              <div class="voice-option" data-voice-option="aarav" aria-pressed="false">
+                <button class="voice-avatar" type="button" data-voice="aarav" aria-label="Select Aarav voice">A</button>
+                <button class="voice-copy" type="button" data-voice="aarav"><strong>Aarav</strong><small>Calm and modern</small></button>
+                <button class="voice-preview-button" type="button" data-preview-voice="aarav" aria-label="Preview Aarav voice">▶</button>
+              </div>
+              <div class="voice-option" data-voice-option="kunal" aria-pressed="false">
+                <button class="voice-avatar" type="button" data-voice="kunal" aria-label="Select Kunal voice">K</button>
+                <button class="voice-copy" type="button" data-voice="kunal"><strong>Kunal</strong><small>Clear and conversational</small></button>
+                <button class="voice-preview-button" type="button" data-preview-voice="kunal" aria-label="Preview Kunal voice">▶</button>
+              </div>
+            </div>
+            <span class="voice-status" id="voice-status" role="status">Checking voice preview availability…</span>
+          </section>
+
           <section class="setup-section" aria-labelledby="camera-setup-label">
             <p class="setup-label" id="camera-setup-label">Camera preview <span>Optional</span></p>
             <div class="camera-setup">
@@ -1045,7 +1144,7 @@
           <div class="participant-strip">
             <div class="participant-tile participant-tile--ai" id="ai-participant-tile" data-mode="idle">
               <div class="participant-tile__label"><span>EasyEV AI Guide</span><span>AI</span></div>
-              <div class="ai-orb" aria-hidden="true"><div class="ai-orb__core"></div></div>
+              <div class="agent-clay-shell"><img class="agent-clay" id="agent-clay-image" src="/assets/clay-guide-presenting.webp" alt="EasyEV AI clay guide"><span class="agent-live-pulse" aria-hidden="true"></span></div>
               <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
               <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
             </div>
@@ -1099,6 +1198,7 @@
         <span class="prompt-strip__label">Try a view</span>
         <button class="prompt-chip" type="button" data-turn="compare">Compare options for my usage</button>
         <button class="prompt-chip" type="button" data-turn="charging">Show how home charging works</button>
+        <button class="prompt-chip" type="button" data-turn="map">Find nearby chargers</button>
         <button class="prompt-chip" type="button" data-turn="ownership">Estimate ownership cost</button>
         <button class="prompt-chip" type="button" data-turn="booking">Book a test drive</button>
       </div>
@@ -1121,9 +1221,10 @@
 
     <section id="outcome-view" class="view" hidden aria-hidden="true">
       <div class="outcome-shell">
-        <div class="outcome-topline">Consultation complete · EasyEV Live</div>
-        <h1 tabindex="-1" id="outcome-title">Your EV decision journey is ready</h1>
-        <p>EasyEV has preserved what changed during the conversation and the next action you selected.</p>
+        <div class="outcome-heading">
+          <div><div class="outcome-topline">Consultation complete · EasyEV Live</div><h1 tabindex="-1" id="outcome-title">Your EV decision journey is ready</h1><p>EasyEV has preserved what changed during the conversation and the next action you selected.</p></div>
+          <img class="outcome-guide" src="/assets/clay-guide-success-v2.webp" alt="EasyEV clay guide giving a thumbs-up">
+        </div>
         <div class="outcome-grid">
           <section class="outcome-card" aria-labelledby="outcome-passport-heading">
             <h2 id="outcome-passport-heading">Decision Passport summary</h2>
@@ -1169,6 +1270,9 @@
         captionsEnabled: true,
         cameraEnabled: false,
         language: 'Hinglish',
+        voice: 'madhur',
+        voiceProvider: 'checking',
+        voicePreviewAvailable: false,
         category: 'Not sure',
         elapsedSeconds: 0,
         stage: { type: 'welcome', payload: { title: "Let's find what fits your life", sourceStatus: 'illustrative' } },
@@ -1193,6 +1297,7 @@
         costModel: { dailyKm: 70, unitCost: 8, years: 5 },
         chargeProgress: 0,
         chargePlaying: false,
+        map: { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' },
         outcomeSaved: false
       });
 
@@ -1206,6 +1311,8 @@
       let prejoinReturnFocus = null;
       let promptReturnFocus = null;
       let toastTimer = null;
+      let currentPreviewAudio = null;
+      let mapRequestController = null;
       const PASSPORT_STORAGE_KEY = 'easyev-decision-passport-v1';
       const lifecycleTimers = new Set();
       const adapterTimers = new Set();
@@ -1265,7 +1372,7 @@
         return `${minutes}:${remainder}`;
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Options shaped around your usage', 'charging-demo': 'Make charging fit your routine', 'ownership-cost': 'See the ownership picture', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Options shaped around your usage', 'charging-demo': 'Make charging fit your routine', 'charging-map': 'Live chargers near you', 'ownership-cost': 'See the ownership picture', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Checking the best next view…', speaking: 'Speaking', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const networkLabel = () => {
         const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
@@ -1297,6 +1404,14 @@
           response: 'Home charging depends on parking access, electrical load and installation feasibility. I am showing the three checks you should confirm before choosing a vehicle around charging convenience.',
           thinkingMs: 600,
           speakMs: 3000
+        },
+        map: {
+          user: 'Find public charging stations near me on a live map.',
+          patch: { charging: 'Nearby public charging requested' },
+          stage: { type: 'charging-map', title: 'Live chargers near you', sourceStatus: 'Live OpenStreetMap data' },
+          response: 'I have opened the live charging map. Share your location when you are ready and I will look for nearby public charging points. Station details are live map data, but connector availability should still be verified before travelling.',
+          thinkingMs: 420,
+          speakMs: 2600
         },
         ownership: {
           user: 'Estimate ownership cost for me.',
@@ -1446,6 +1561,123 @@
         $$('[data-booking-slot]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.bookingSlot === state.booking.slot)));
         $$('[data-demo-type]').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.demoType === state.booking.demoType)));
       };
+      const mercatorPoint = (lat, lng, zoom) => {
+        const scale = 256 * (2 ** zoom);
+        const boundedLat = Math.max(-85.0511, Math.min(85.0511, lat));
+        const sin = Math.sin(boundedLat * Math.PI / 180);
+        return {
+          x: (lng + 180) / 360 * scale,
+          y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * scale
+        };
+      };
+      const renderMapCanvas = () => {
+        const canvas = $('#map-canvas');
+        if (!canvas || state.map.status !== 'ready' || !Number.isFinite(state.map.lat) || !Number.isFinite(state.map.lng)) return;
+        const width = canvas.clientWidth;
+        const height = canvas.clientHeight;
+        if (!width || !height) { window.requestAnimationFrame(renderMapCanvas); return; }
+        canvas.replaceChildren();
+        const zoom = state.map.zoom;
+        const tileCount = 2 ** zoom;
+        const center = mercatorPoint(state.map.lat, state.map.lng, zoom);
+        const minTileX = Math.floor((center.x - width / 2) / 256);
+        const maxTileX = Math.floor((center.x + width / 2) / 256);
+        const minTileY = Math.max(0, Math.floor((center.y - height / 2) / 256));
+        const maxTileY = Math.min(tileCount - 1, Math.floor((center.y + height / 2) / 256));
+        for (let tileX = minTileX; tileX <= maxTileX; tileX += 1) {
+          for (let tileY = minTileY; tileY <= maxTileY; tileY += 1) {
+            const image = document.createElement('img');
+            const wrappedX = ((tileX % tileCount) + tileCount) % tileCount;
+            image.className = 'map-tile';
+            image.alt = '';
+            image.draggable = false;
+            image.loading = 'eager';
+            image.src = `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${tileY}.png`;
+            image.style.left = `${tileX * 256 - center.x + width / 2}px`;
+            image.style.top = `${tileY * 256 - center.y + height / 2}px`;
+            canvas.append(image);
+          }
+        }
+        const user = document.createElement('span');
+        user.className = 'map-user';
+        user.style.left = `${width / 2}px`;
+        user.style.top = `${height / 2}px`;
+        user.setAttribute('aria-label', 'Your approximate location');
+        canvas.append(user);
+        state.map.stations.forEach((station, index) => {
+          const point = mercatorPoint(station.lat, station.lng, zoom);
+          const marker = document.createElement('button');
+          marker.type = 'button';
+          marker.className = `map-marker${station.id === state.map.selectedId ? ' is-selected' : ''}`;
+          marker.style.left = `${width / 2 + point.x - center.x}px`;
+          marker.style.top = `${height / 2 + point.y - center.y}px`;
+          marker.dataset.stationId = station.id;
+          marker.setAttribute('aria-label', `${station.name}, ${station.distanceKm} kilometres away`);
+          const label = document.createElement('span');
+          label.textContent = String(index + 1);
+          marker.append(label);
+          canvas.append(marker);
+        });
+        const controls = document.createElement('div');
+        controls.className = 'map-controls';
+        controls.innerHTML = '<button class="map-control" type="button" data-map-zoom="1" aria-label="Zoom map in">+</button><button class="map-control" type="button" data-map-zoom="-1" aria-label="Zoom map out">−</button>';
+        canvas.append(controls);
+        const attribution = document.createElement('span');
+        attribution.className = 'map-attribution';
+        attribution.innerHTML = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>';
+        canvas.append(attribution);
+      };
+      const selectedStation = () => state.map.stations.find((station) => station.id === state.map.selectedId) || state.map.stations[0] || null;
+      const requestNearbyChargers = () => {
+        if (!navigator.geolocation) {
+          state.map.status = 'error';
+          state.map.message = 'Location is not available in this browser.';
+          state.stageRevision += 1;
+          renderApp();
+          return;
+        }
+        state.map.status = 'locating';
+        state.map.message = 'Waiting for your location permission…';
+        state.stageRevision += 1;
+        renderApp();
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          if (state.view !== 'room' || state.stage.type !== 'charging-map') return;
+          state.map.lat = position.coords.latitude;
+          state.map.lng = position.coords.longitude;
+          state.map.status = 'loading';
+          state.map.message = 'Searching live public charging data…';
+          state.stageRevision += 1;
+          renderApp();
+          mapRequestController?.abort();
+          mapRequestController = new AbortController();
+          try {
+            const response = await fetch(`/api/charging/nearby?lat=${encodeURIComponent(state.map.lat)}&lng=${encodeURIComponent(state.map.lng)}&radius=10000`, { signal: mapRequestController.signal });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Charging data is unavailable.');
+            if (data.unavailable) throw new Error(data.error || 'Live charging data is temporarily unavailable.');
+            if (state.view !== 'room' || state.stage.type !== 'charging-map') return;
+            state.map.stations = Array.isArray(data.stations) ? data.stations : [];
+            state.map.selectedId = state.map.stations[0]?.id || '';
+            state.map.status = 'ready';
+            state.map.message = state.map.stations.length ? `${state.map.stations.length} public charging points found within 10 km` : 'No mapped charging points were found within 10 km.';
+            patchProfile({ charging: state.map.stations.length ? `${state.map.stations.length} mapped public chargers nearby` : 'No mapped chargers found within 10 km' });
+            markAction('charging', 'complete', `Live map checked · ${state.map.stations.length} mapped locations found`);
+            state.stageRevision += 1;
+            renderApp();
+          } catch (error) {
+            if (error?.name === 'AbortError') return;
+            state.map.status = 'error';
+            state.map.message = error?.message || 'Live charging data could not be loaded.';
+            state.stageRevision += 1;
+            renderApp();
+          }
+        }, (error) => {
+          state.map.status = 'error';
+          state.map.message = error.code === 1 ? 'Location permission was not granted. Nothing was shared.' : 'Your location could not be determined.';
+          state.stageRevision += 1;
+          renderApp();
+        }, { enableHighAccuracy: false, timeout: 10_000, maximumAge: 5 * 60 * 1000 });
+      };
       const renderStage = () => {
         const target = $('#stage-content');
         if (!target) return;
@@ -1460,11 +1692,20 @@
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Verified live catalog sources remain a separate marketplace-data integration.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
         } else if (type === 'charging-demo') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Make charging fit your routine')}</h3><p>Use this explainer to identify the questions a live advisor or electrician should verify.</p></div><div class="charging-layout"><div><div class="charging-visual"><div class="wallbox"><div class="wallbox__light"></div><div class="wallbox__line"></div></div><div class="charge-pulse" aria-hidden="true"></div><div class="charge-car">${carSvg}</div><div class="charging-visual__road"></div><span class="charging-label">home socket / wallbox → vehicle battery</span></div><div class="charging-controls"><button class="play-button" id="charge-play-button" type="button" aria-label="Play charging explainer" aria-pressed="${state.chargePlaying}">${state.chargePlaying ? 'Ⅱ' : '▶'}</button><div class="progress-track" aria-label="Charging explainer progress"><span id="charge-progress-fill" style="width:${state.chargeProgress}%"></span></div><span class="progress-time" id="charge-progress-time">${Math.round(state.chargeProgress)}%</span></div></div><div class="charging-checks"><div class="check-item"><span class="check-item__icon">1</span><div><strong>Parking access</strong><span>Where can the vehicle stay near a socket?</span></div></div><div class="check-item"><span class="check-item__icon">2</span><div><strong>Sanctioned load</strong><span>Can the electrical connection support charging?</span></div></div><div class="check-item"><span class="check-item__icon">3</span><div><strong>Installation feasibility</strong><span>What will the property and installer allow?</span></div></div></div></div>`;
+        } else if (type === 'charging-map') {
+          const station = selectedStation();
+          const busy = state.map.status === 'locating' || state.map.status === 'loading';
+          const stationCards = state.map.stations.length
+            ? state.map.stations.slice(0, 8).map((item, index) => `<button class="station-card" type="button" data-station-id="${escapeHtml(item.id)}" aria-pressed="${item.id === state.map.selectedId}"><strong>${index + 1}. ${escapeHtml(item.name)}</strong><span>${item.distanceKm} km away</span><small>${escapeHtml(item.operator)} · ${escapeHtml(item.capacity)} ports</small></button>`).join('')
+            : '<div class="station-detail"><strong>No mapped stations found</strong><span class="map-disclosure">Try again later or widen your search in your preferred maps app.</span></div>';
+          const detail = station ? `<div class="station-detail"><strong>${escapeHtml(station.name)}</strong><div class="station-detail-row"><span>Operator</span><b>${escapeHtml(station.operator)}</b></div><div class="station-detail-row"><span>Distance</span><b>${station.distanceKm} km</b></div><div class="station-detail-row"><span>Connectors</span><b>${escapeHtml(station.sockets.length ? station.sockets.join(', ') : 'Not listed')}</b></div><div class="station-detail-row"><span>Hours</span><b>${escapeHtml(station.openingHours)}</b></div><a class="station-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(station.lat + ',' + station.lng)}" target="_blank" rel="noopener noreferrer">Open directions ↗</a></div>` : '';
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Live chargers near you')}</h3><p>${escapeHtml(state.map.message || 'Use your approximate location to search public charging points from live OpenStreetMap data.')}</p></div>${state.map.status === 'idle' || state.map.status === 'error' ? `<div class="map-intro-actions"><button class="stage-action" type="button" data-map-action="locate">${state.map.status === 'error' ? 'Try location again' : 'Use my location'}</button></div><p class="map-disclosure">${state.map.status === 'error' ? escapeHtml(state.map.message) + ' ' : ''}Your location is used only for this search and is not stored by EasyEV. Station availability and connector status are not verified in real time.</p>` : `<div class="map-layout"><div class="map-shell"><div class="map-canvas" id="map-canvas" aria-label="Map of nearby charging stations"></div>${busy ? `<div class="map-loading" role="status"><div><strong>${state.map.status === 'locating' ? 'Waiting for location…' : 'Finding chargers…'}</strong><span>This usually takes a few seconds.</span></div></div>` : ''}</div><div><div class="station-list" aria-label="Nearby charging stations">${stationCards}</div>${detail}</div></div><p class="map-disclosure">Live map data © OpenStreetMap contributors. Distance is straight-line and does not confirm availability, compatibility, pricing or access.</p>`}`;
+          if (state.map.status === 'ready') window.requestAnimationFrame(renderMapCanvas);
         } else if (type === 'ownership-cost') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'See the ownership picture')}</h3><p>Change the assumptions. The result is an illustrative estimate, not a quote or a verified vehicle cost.</p></div><div class="cost-layout"><div class="cost-inputs"><div class="cost-field"><label for="daily-km-input">Daily kilometres</label><output id="daily-km-output" for="daily-km-input">${state.costModel.dailyKm} km</output><input id="daily-km-input" data-cost-input="dailyKm" type="range" min="5" max="180" step="5" value="${state.costModel.dailyKm}"></div><div class="cost-field"><label for="unit-cost-input">Electricity cost / unit</label><output id="unit-cost-output" for="unit-cost-input">₹${state.costModel.unitCost}</output><input id="unit-cost-input" data-cost-input="unitCost" type="range" min="3" max="20" step="1" value="${state.costModel.unitCost}"></div><div class="cost-field"><label for="years-input">Expected ownership</label><output id="years-output" for="years-input">${state.costModel.years} years</output><input id="years-input" data-cost-input="years" type="range" min="1" max="12" step="1" value="${state.costModel.years}"></div></div><div class="estimate-card"><p class="estimate-card__label">Illustrative estimate</p><div class="estimate-card__value" id="estimate-value">${formatIllustrativeCost()}</div><p class="estimate-card__copy">Estimated electricity spend over the selected ownership period.</p><p class="assumptions"><strong>Assumptions:</strong> 0.16 kWh per km, 365 travel days/year, no tariff changes, finance, maintenance or vehicle-specific data.</p></div></div>`;
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Pick an illustrative demo type and time. Confirmation stays inside this browser.</p></div>${confirmed ? `<div class="booking-confirmed">Demo booking saved locally · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No calendar, dealer or WhatsApp action was sent.</div>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">No calendar, dealer or WhatsApp action is sent by this local booking control.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Confirm demo booking</button></div>`}`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Choose a demo type and time. EasyEV prepares useful next steps, but you approve every action.</p></div>${confirmed ? `<div class="booking-confirmed">Action pack ready · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No dealer has been contacted.</div><div class="action-pack"><button type="button" data-agent-action="calendar"><span>▣</span>Add to calendar (.ics)</button><button type="button" data-agent-action="whatsapp"><span>↗</span>Open WhatsApp draft</button><button type="button" data-agent-action="passport"><span>↓</span>Download Decision Passport</button></div><p class="map-disclosure">Calendar and passport files are generated locally. WhatsApp opens a draft only; nothing is sent until you choose a contact and press send.</p>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">Your selection stays local until you confirm. No dealer is contacted.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Prepare my action pack</button></div>`}`;
         } else {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's keep exploring</h3><p>Try one of the suggested views to continue.</p></div>`;
         }
@@ -1502,8 +1743,16 @@
 
         $$('.category-tile').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.category === state.category)));
         $$('.segment').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.language === state.language)));
+        $$('[data-voice-option]').forEach((option) => option.setAttribute('aria-pressed', String(option.dataset.voiceOption === state.voice)));
+        $$('[data-preview-voice]').forEach((button) => { button.disabled = state.voiceProvider === 'checking' || !state.voicePreviewAvailable; });
+        const voiceStatus = $('#voice-status');
+        if (voiceStatus) voiceStatus.textContent = state.voiceProvider === 'checking'
+          ? 'Checking voice preview availability…'
+          : state.voicePreviewAvailable
+            ? 'Azure neural voice is ready. Preview any voice before joining.'
+            : 'Using the calm male Agora fallback. Add Azure Speech credentials to enable these Hindi voice previews.';
         const voiceChip = $('#room-voice-chip');
-        if (voiceChip) voiceChip.textContent = `${state.language} · Indian voice`;
+        if (voiceChip) voiceChip.textContent = `${state.language} · ${({ madhur: 'Madhur', aarav: 'Aarav', kunal: 'Kunal' })[state.voice] || 'Male guide'}`;
         const connectionChip = $('#room-connection-chip');
         if (connectionChip) {
           const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' && state.agentConnected ? 'live' : 'connecting';
@@ -1517,6 +1766,12 @@
         if (stageSourceElement) stageSourceElement.textContent = state.stage.payload.sourceStatus || 'Illustrative visual';
         const aiTile = document.getElementById('ai-participant-tile');
         if (aiTile) aiTile.dataset.mode = state.agentMode;
+        const clayGuide = $('#agent-clay-image');
+        if (clayGuide) {
+          const nextImage = state.agentMode === 'thinking' ? '/assets/clay-guide-thinking.webp' : '/assets/clay-guide-presenting.webp';
+          if (clayGuide.getAttribute('src') !== nextImage) clayGuide.setAttribute('src', nextImage);
+          clayGuide.alt = state.agentMode === 'thinking' ? 'EasyEV AI clay guide thinking' : 'EasyEV AI clay guide presenting';
+        }
         const aiState = $('#ai-state');
         if (aiState) aiState.textContent = agentStateLabel(state.agentMode);
         const elapsed = $('#room-elapsed');
@@ -1526,6 +1781,7 @@
           mic.setAttribute('aria-pressed', String(!state.muted));
           mic.disabled = state.callStatus !== 'live';
         }
+        $$('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
         const camera = $('#camera-control');
         if (camera) camera.setAttribute('aria-pressed', String(state.cameraEnabled));
         const captions = $('#captions-control');
@@ -1575,16 +1831,62 @@
       };
 
       const setView = (view) => { state.view = view; renderApp(); };
+      const stopVoicePreview = () => {
+        if (!currentPreviewAudio) return;
+        currentPreviewAudio.pause();
+        if (currentPreviewAudio.dataset.objectUrl) URL.revokeObjectURL(currentPreviewAudio.dataset.objectUrl);
+        currentPreviewAudio = null;
+      };
+      const loadVoiceOptions = async () => {
+        if (state.voiceProvider !== 'checking') return;
+        try {
+          const response = await fetch('/api/voice/options');
+          const data = await response.json();
+          state.voiceProvider = data.provider || 'fallback';
+          state.voicePreviewAvailable = Boolean(data.previewAvailable);
+        } catch {
+          state.voiceProvider = 'fallback';
+          state.voicePreviewAvailable = false;
+        }
+        renderApp();
+      };
+      const previewVoice = async (voice) => {
+        stopVoicePreview();
+        const status = $('#voice-status');
+        if (status) status.textContent = 'Loading a short voice preview…';
+        $$('[data-preview-voice]').forEach((button) => { button.disabled = true; });
+        try {
+          const response = await fetch(`/api/voice/preview?voice=${encodeURIComponent(voice)}&language=${encodeURIComponent(state.language)}`);
+          if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || 'Voice preview is unavailable.');
+          }
+          const objectUrl = URL.createObjectURL(await response.blob());
+          const audio = new Audio(objectUrl);
+          audio.dataset.objectUrl = objectUrl;
+          currentPreviewAudio = audio;
+          audio.addEventListener('ended', () => { if (currentPreviewAudio === audio) currentPreviewAudio = null; URL.revokeObjectURL(objectUrl); renderApp(); }, { once: true });
+          await audio.play();
+          if (status) status.textContent = `Playing ${({ madhur: 'Madhur', aarav: 'Aarav', kunal: 'Kunal' })[voice] || 'voice'} preview…`;
+        } catch (error) {
+          if (status) status.textContent = error?.message || 'Voice preview could not play.';
+          window.setTimeout(renderApp, 2800);
+        } finally {
+          $$('[data-preview-voice]').forEach((button) => { button.disabled = !state.voicePreviewAvailable; });
+        }
+      };
       const openPrejoin = () => {
         prejoinReturnFocus = document.activeElement && document.activeElement !== document.body ? document.activeElement : document.getElementById('hero-start-button');
         navOpen = false;
         $('#primary-navigation')?.classList.remove('is-open');
         $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
         setView('prejoin');
+        loadVoiceOptions();
         window.setTimeout(() => $('#prejoin-title')?.focus(), prefersReducedMotion() ? 0 : 50);
       };
       const closePrejoin = () => {
         if (state.view !== 'prejoin') return;
+        stopVoicePreview();
         setView('landing');
         if (prejoinReturnFocus && typeof prejoinReturnFocus.focus === 'function') window.setTimeout(() => prejoinReturnFocus.focus(), 0);
       };
@@ -1610,6 +1912,7 @@
           showToast(state.connectionError);
           return;
         }
+        stopVoicePreview();
         await adapter.leave();
         stopElapsedTimer();
         stopChargeTimer();
@@ -1634,6 +1937,7 @@
         state.costModel = { dailyKm: 70, unitCost: 8, years: 5 };
         state.chargeProgress = 0;
         state.chargePlaying = false;
+        state.map = { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' };
         state.outcomeSaved = false;
         state.interruptAvailable = false;
         state.selectedTab = 'passport';
@@ -1642,7 +1946,7 @@
         renderedStageRevision = -1;
         renderApp();
         try {
-          await adapter.join({ sessionId: state.sessionId, turnId: state.activeTurnId, category: state.category, language: state.language });
+          await adapter.join({ sessionId: state.sessionId, turnId: state.activeTurnId, category: state.category, language: state.language, voice: state.voice });
         } catch (error) {
           if (state.view !== 'room') return;
           state.callStatus = 'error';
@@ -1659,6 +1963,8 @@
         const leaving = activeAdapter()?.leave();
         stopElapsedTimer();
         stopChargeTimer();
+        mapRequestController?.abort();
+        mapRequestController = null;
         stopLocalCamera();
         state.agentMode = 'idle';
         state.interruptAvailable = false;
@@ -1682,11 +1988,16 @@
       };
       const showStage = (type, payload = {}) => {
         stopChargeTimer();
+        if (type !== 'charging-map') {
+          mapRequestController?.abort();
+          mapRequestController = null;
+        }
         state.chargePlaying = false;
         state.stage = { type, payload: { title: payload.title || stageTitle(type), sourceStatus: payload.sourceStatus || 'illustrative' } };
         state.stageRevision += 1;
         if (type === 'comparison') markAction('comparison', 'complete', 'Three fit profiles are ready to explore');
         if (type === 'charging-demo') markAction('charging', 'active', 'Confirm parking, load and installation feasibility');
+        if (type === 'charging-map') markAction('charging', 'active', 'Ready to search live public charging data with your permission');
         if (type === 'ownership-cost') markAction('requirements', 'complete', 'Usage assumptions captured for the illustrative model');
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
         renderApp();
@@ -1754,10 +2065,49 @@
           return;
         }
         state.booking.confirmed = true;
-        markAction('booking', 'complete', 'Demo booking saved locally; no external event was created');
+        markAction('booking', 'complete', 'Action pack prepared locally; no dealer has been contacted');
         state.stageRevision += 1;
         renderApp();
-        showToast('Demo booking saved locally. No external event was sent.');
+        showToast('Action pack prepared. You approve each next step.');
+      };
+      const bookingDate = () => {
+        const date = new Date();
+        if (state.booking.slot.startsWith('Tomorrow')) date.setDate(date.getDate() + 1);
+        if (state.booking.slot.startsWith('Saturday')) {
+          const days = (6 - date.getDay() + 7) % 7 || 7;
+          date.setDate(date.getDate() + days);
+        }
+        if (state.booking.slot.includes('4:30 PM')) date.setHours(16, 30, 0, 0);
+        else if (state.booking.slot.includes('10:30 AM')) date.setHours(10, 30, 0, 0);
+        else date.setHours(11, 0, 0, 0);
+        return date;
+      };
+      const icsTimestamp = (date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+      const downloadCalendarInvite = () => {
+        if (!state.booking.confirmed) return;
+        const start = bookingDate();
+        const end = new Date(start.getTime() + 45 * 60 * 1000);
+        const description = `EasyEV ${state.booking.demoType} planning reminder. This file was generated locally; it is not a dealer-confirmed appointment.`;
+        const calendar = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//EasyEV//Decision Passport//EN', 'CALSCALE:GREGORIAN', 'BEGIN:VEVENT', `UID:${Date.now()}@easyev.local`, `DTSTAMP:${icsTimestamp(new Date())}`, `DTSTART:${icsTimestamp(start)}`, `DTEND:${icsTimestamp(end)}`, 'SUMMARY:EasyEV test-drive planning reminder', `DESCRIPTION:${description}`, 'STATUS:TENTATIVE', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+        const url = URL.createObjectURL(new Blob([calendar], { type: 'text/calendar;charset=utf-8' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'EasyEV-test-drive-reminder.ics';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        markAction('booking', 'complete', 'Calendar reminder downloaded locally · dealer not contacted');
+        renderActions();
+        showToast('Calendar reminder downloaded. It is tentative, not dealer-confirmed.');
+      };
+      const openWhatsAppDraft = () => {
+        if (!state.booking.confirmed) return;
+        const message = `I am exploring an EV after an EasyEV consultation. Preferred step: ${state.booking.demoType}, ${state.booking.slot}. This is a request draft, not a confirmed booking.`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+        markAction('booking', 'complete', 'WhatsApp draft opened · nothing sent automatically');
+        renderActions();
+        showToast('WhatsApp draft opened. You choose the recipient and whether to send it.');
       };
       const decisionPassportSnapshot = () => ({
         version: 1,
@@ -1797,6 +2147,9 @@
       };
       const resetToLanding = () => {
         clearActiveTurn();
+        stopVoicePreview();
+        mapRequestController?.abort();
+        mapRequestController = null;
         activeAdapter()?.leave();
         stopElapsedTimer();
         stopChargeTimer();
@@ -1857,6 +2210,7 @@
       };
       const routePrompt = (text) => {
         const normalized = text.toLowerCase();
+        if (normalized.includes('nearby') || normalized.includes('station') || normalized.includes('charger near') || normalized.includes('live map') || normalized.includes('map')) return 'map';
         if (normalized.includes('compare') || normalized.includes('option') || normalized.includes('which')) return 'compare';
         if (normalized.includes('charge') || normalized.includes('charging') || normalized.includes('battery')) return 'charging';
         if (normalized.includes('cost') || normalized.includes('price') || normalized.includes('emi') || normalized.includes('finance')) return 'ownership';
@@ -1956,6 +2310,8 @@
         if (target.matches('[data-see-room]')) { window.setTimeout(() => { const preview = $('#room-preview'); preview?.classList.add('is-focused'); window.setTimeout(() => preview?.classList.remove('is-focused'), 1900); }, 350); return; }
         if (target.matches('[data-category]')) { state.category = target.dataset.category; renderApp(); return; }
         if (target.matches('[data-language]')) { state.language = target.dataset.language; renderApp(); return; }
+        if (target.matches('[data-voice]')) { state.voice = target.dataset.voice; stopVoicePreview(); renderApp(); return; }
+        if (target.matches('[data-preview-voice]')) { previewVoice(target.dataset.previewVoice); return; }
         if (target.id === 'enable-camera-button') { enableCameraPreview(); return; }
         if (target.id === 'join-demo-button') { joinConsultationRoom(); return; }
         if (target.matches('[data-turn]')) { runConsultationTurn(target.dataset.turn); return; }
@@ -1971,6 +2327,21 @@
         }
         if (target.matches('[data-stage-action="ownership"]')) { runConsultationTurn('ownership'); return; }
         if (target.matches('[data-stage-action="confirm-booking"]')) { completeBooking(); return; }
+        if (target.matches('[data-agent-action="calendar"]')) { downloadCalendarInvite(); return; }
+        if (target.matches('[data-agent-action="whatsapp"]')) { openWhatsAppDraft(); return; }
+        if (target.matches('[data-agent-action="passport"]')) { downloadDecisionPassport(); return; }
+        if (target.matches('[data-map-action="locate"]')) { requestNearbyChargers(); return; }
+        if (target.matches('[data-map-zoom]')) {
+          state.map.zoom = Math.max(10, Math.min(17, state.map.zoom + Number(target.dataset.mapZoom || 0)));
+          renderMapCanvas();
+          return;
+        }
+        if (target.matches('[data-station-id]')) {
+          state.map.selectedId = target.dataset.stationId;
+          state.stageRevision += 1;
+          renderApp();
+          return;
+        }
         if (target.matches('[data-booking-slot]')) { state.booking.slot = target.dataset.bookingSlot; markAction('booking', 'active', `Time selected: ${state.booking.slot}`); renderApp(); return; }
         if (target.matches('[data-demo-type]')) { state.booking.demoType = target.dataset.demoType; renderApp(); return; }
         if (target.matches('[data-control="interrupt"]')) { interruptAgent(); return; }
@@ -2013,6 +2384,15 @@
         if (nav && !nav.contains(event.target)) toggleMobileNav();
       });
       document.addEventListener('keydown', (event) => {
+        if (state.view === 'prejoin' && event.key === 'Tab') {
+          const focusable = $$('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])', $('.prejoin-sheet')).filter((element) => !element.hidden && element.offsetParent !== null);
+          if (focusable.length) {
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+            else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+          }
+        }
         if (event.key === 'Escape') {
           if (navOpen) { toggleMobileNav(); return; }
           if (state.view === 'prejoin') { closePrejoin(); return; }
@@ -2081,6 +2461,8 @@
       };
       window.addEventListener('pagehide', () => {
         clearActiveTurn();
+        stopVoicePreview();
+        mapRequestController?.abort();
         liveAdapter?.stopWithBeacon();
         activeAdapter()?.leave({ skipStop: true });
         stopElapsedTimer();

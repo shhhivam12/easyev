@@ -172,6 +172,7 @@ class AgoraAdapter {
         uid: this.uid,
         category: context.category,
         language: context.language,
+        voice: context.voice,
       });
       if (generation !== this.generation) {
         await postJson('/api/session/stop', { sessionKey: session.sessionKey }, { keepalive: true }).catch(() => {});
