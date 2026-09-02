@@ -1,0 +1,29 @@
+{
+  "name": "easyev-live",
+  "version": "1.0.0",
+  "private": true,
+  "description": "EasyEV AI-guided EV marketplace with Agora Conversational AI",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:client": "esbuild client/agora-client.js --bundle --format=iife --global-name=EasyEVAgoraBundle --outfile=agora-client.bundle.js --minify --legal-comments=none",
+    "build": "npm run build:client",
+    "start": "node server.mjs",
+    "dev": "npm run build:client && node server.mjs"
+  },
+  "dependencies": {
+    "agora-agent-client-toolkit": "1.2.0",
+    "agora-agents": "2.3.1",
+    "agora-rtc-sdk-ng": "4.24.3",
+    "agora-rtm": "2.2.3",
+    "agora-token": "2.0.5"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  },
+  "allowScripts": {
+    "esbuild@0.25.9": true
+  }
+}

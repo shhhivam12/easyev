@@ -379,6 +379,9 @@
     [data-tooltip]:focus-visible::after { opacity: 1; transform: translate(50%, 0); }
     .status-badge { display: inline-flex; align-items: center; gap: 6px; min-height: 26px; padding: 0 10px; color: rgba(255,255,255,.72); border: 1px solid rgba(255,255,255,.14); border-radius: var(--radius-pill); background: rgba(255,255,255,.06); font-size: 10px; font-weight: 650; white-space: nowrap; }
     .status-badge--green { color: var(--green-bright); border-color: rgba(85,242,123,.28); background: rgba(85,242,123,.1); }
+    .status-badge[data-state="connecting"] { color: #ffe9a8; border-color: rgba(255,222,121,.3); background: rgba(255,222,121,.1); }
+    .status-badge[data-state="live"] { color: var(--green-bright); border-color: rgba(85,242,123,.3); background: rgba(85,242,123,.1); }
+    .status-badge[data-state="error"] { color: #ffd0d0; border-color: rgba(255,112,112,.35); background: rgba(255,112,112,.1); }
 
     /* Room */
     #room-view { min-height: 100svh; height: 100svh; overflow-y: auto; overscroll-behavior: contain; color: var(--white); background: #0a150e; }
@@ -806,7 +809,7 @@
           <div class="room-preview__main">
             <div class="room-preview__top">
               <div class="preview-brand"><span class="preview-brand__dot" aria-hidden="true"></span>EasyEV Live</div>
-              <span class="preview-live">AI EV consultation · Demo mode</span>
+              <span class="preview-live">AI EV consultation · Agora live voice</span>
             </div>
             <div class="preview-people">
               <div class="preview-tile">
@@ -870,10 +873,10 @@
           </section>
 
           <section class="setup-section" aria-labelledby="language-setup-label">
-            <p class="setup-label" id="language-setup-label">Conversation language <span>Demo copy remains illustrative</span></p>
+            <p class="setup-label" id="language-setup-label">Conversation language <span>Used by the live AI guide</span></p>
             <div class="segmented" id="language-selector" role="group" aria-label="Conversation language">
               <button class="segment" type="button" data-language="English" aria-pressed="false">English</button>
-              <button class="segment" type="button" data-language="हिंदी" aria-pressed="false">हिंदी</button>
+              <button class="segment" type="button" data-language="Hindi" aria-pressed="false">हिंदी</button>
               <button class="segment" type="button" data-language="Hinglish" aria-pressed="true">Hinglish</button>
             </div>
           </section>
@@ -887,7 +890,7 @@
               </div>
               <div class="camera-setup__copy">
                 <strong>See yourself in the room</strong>
-                <p>Your camera stays off unless you explicitly enable this preview. Audio is never requested in demo mode.</p>
+                <p>Your camera stays off unless you explicitly enable this preview. Microphone access is requested only when you join.</p>
                 <button class="camera-button" id="enable-camera-button" type="button">Enable camera preview</button>
                 <span class="camera-status" id="camera-status" role="status">Camera is off by default.</span>
               </div>
@@ -895,8 +898,8 @@
           </section>
 
           <div class="prejoin-footer">
-            <p class="footnote">Demo mode uses illustrative vehicle content. Current prices and specifications must be verified before purchase.</p>
-            <button class="join-button" id="join-demo-button" type="button">Join demo consultation</button>
+            <p class="footnote">Voice is connected through Agora. Vehicle content and booking actions remain illustrative and must be verified before purchase.</p>
+            <button class="join-button" id="join-demo-button" type="button">Join live consultation</button>
           </div>
         </div>
       </div>
@@ -912,7 +915,7 @@
           <div class="room-title">EasyEV Live <span class="room-elapsed" id="room-elapsed">00:00</span></div>
         </div>
         <div class="room-topbar__center">AI EV consultation</div>
-        <div class="room-topbar__right"><span class="status-badge" id="room-language-chip">Hinglish</span><span class="status-badge">Demo mode</span></div>
+        <div class="room-topbar__right"><span class="status-badge" id="room-language-chip">Hinglish</span><span class="status-badge" id="room-connection-chip" data-state="connecting">Connecting to Agora</span></div>
       </header>
 
       <div class="room-layout">
@@ -933,7 +936,7 @@
           <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
             <header class="stage-header">
               <div class="stage-header__left"><p class="stage-kicker">Smart stage</p><h2 id="stage-title">Let's find what fits your life</h2></div>
-              <div class="stage-header__right"><span class="status-badge" id="stage-source">Demo · illustrative</span><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
+              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative visual</span><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
             </header>
             <span class="presented-label">Presented by EasyEV AI</span>
             <div class="stage-content" id="stage-content" aria-live="polite"></div>
@@ -954,7 +957,7 @@
           </section>
           <section class="sidebar-panel" id="transcript-panel" role="tabpanel" aria-labelledby="transcript-tab" hidden>
             <h3>Conversation transcript</h3>
-            <p class="sidebar-panel__copy">The demo keeps the important turns visible as you explore.</p>
+            <p class="sidebar-panel__copy">Live speech turns appear here as Agora delivers them.</p>
             <div class="transcript-list" id="transcript-content" aria-live="polite"></div>
           </section>
           <section class="sidebar-panel" id="actions-panel" role="tabpanel" aria-labelledby="actions-tab" hidden>
@@ -990,7 +993,7 @@
 
     <section id="outcome-view" class="view" hidden aria-hidden="true">
       <div class="outcome-shell">
-        <div class="outcome-topline">Consultation complete · Demo mode</div>
+        <div class="outcome-topline">Consultation complete · EasyEV Live</div>
         <h1 tabindex="-1" id="outcome-title">Your EV decision journey is ready</h1>
         <p>EasyEV has preserved what changed during the conversation and the next action you selected.</p>
         <div class="outcome-grid">
@@ -1006,12 +1009,13 @@
             <div class="outcome-actions" id="outcome-actions"></div>
           </section>
         </div>
-        <div class="status-card"><strong>MVP status:</strong> consultation logic and actions are simulated locally. Agora voice, verified catalog retrieval and real workflow integrations are the next milestone.</div>
-        <div class="outcome-actions-row"><button class="outcome-button" id="return-home-button" type="button">Return to EasyEV</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Reopen demo room</button></div>
+        <div class="status-card"><strong>Live status:</strong> voice and transcript transport use Agora Conversational AI. Vehicle comparisons, cost assumptions and booking actions remain clearly illustrative and local.</div>
+        <div class="outcome-actions-row"><button class="outcome-button" id="return-home-button" type="button">Return to EasyEV</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Start another consultation</button></div>
       </div>
     </section>
   </main>
 
+  <script src="/agora-client.bundle.js"></script>
   <script>
     (() => {
       'use strict';
@@ -1025,6 +1029,9 @@
       const createState = () => ({
         view: 'landing',
         callStatus: 'idle',
+        integrationMode: new URLSearchParams(window.location.search).get('demo') === '1' ? 'demo' : 'live',
+        connectionState: 'disconnected',
+        connectionError: '',
         agentMode: 'idle',
         muted: false,
         cameraEnabled: false,
@@ -1042,6 +1049,7 @@
           priority: 'Not shared'
         },
         transcript: [],
+        processedTranscriptIds: new Set(),
         actions: createInitialActions(),
         activeTurnId: 0,
         sessionId: 0,
@@ -1196,6 +1204,9 @@
         interrupt() { clearTimers(adapterTimers); }
       };
 
+      const liveAdapter = window.EasyEVAgoraBundle?.createAgoraAdapter?.() || null;
+      const activeAdapter = () => state.integrationMode === 'demo' ? demoAdapter : liveAdapter;
+
       const markAction = (id, status, detail) => {
         const action = state.actions.find((item) => item.id === id);
         if (action) { action.status = status; if (detail) action.detail = detail; }
@@ -1287,14 +1298,14 @@
           const selected = state.category;
           target.innerHTML = `<div class="stage-content__intro"><h3>Three paths, one clearer next step</h3><p>${selected === 'Not sure' ? 'I am still qualifying the right category, so every path stays open.' : `You started with ${escapeHtml(selected)}. We can still compare the trade-offs across the full market.`}</p></div><div class="decision-path"><div class="decision-node${selected === 'Electric car' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric car"><span class="decision-node__icon">${carSvg}</span><strong>Cars</strong><small>Family & comfort</small></button></div><div class="decision-node${selected === 'Electric scooter' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric scooter"><span class="decision-node__icon">${scooterSvg}</span><strong>Scooters</strong><small>Commute & agility</small></button></div><div class="decision-node${selected === 'Electric 3-wheeler' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric 3-wheeler"><span class="decision-node__icon">${threeWheelerSvg}</span><strong>3-wheelers</strong><small>Work & utility</small></button></div></div><p class="stage-note">${selected === 'Not sure' ? 'AI is still qualifying your fit across all three categories.' : 'Selected category is highlighted; the next view adds evidence and trade-offs.'}</p>`;
         } else if (type === 'comparison') {
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Live catalog sources will be connected in the Agora integration milestone.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Verified live catalog sources remain a separate marketplace-data integration.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
         } else if (type === 'charging-demo') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Make charging fit your routine')}</h3><p>Use this explainer to identify the questions a live advisor or electrician should verify.</p></div><div class="charging-layout"><div><div class="charging-visual"><div class="wallbox"><div class="wallbox__light"></div><div class="wallbox__line"></div></div><div class="charge-pulse" aria-hidden="true"></div><div class="charge-car">${carSvg}</div><div class="charging-visual__road"></div><span class="charging-label">home socket / wallbox → vehicle battery</span></div><div class="charging-controls"><button class="play-button" id="charge-play-button" type="button" aria-label="Play charging explainer" aria-pressed="${state.chargePlaying}">${state.chargePlaying ? 'Ⅱ' : '▶'}</button><div class="progress-track" aria-label="Charging explainer progress"><span id="charge-progress-fill" style="width:${state.chargeProgress}%"></span></div><span class="progress-time" id="charge-progress-time">${Math.round(state.chargeProgress)}%</span></div></div><div class="charging-checks"><div class="check-item"><span class="check-item__icon">1</span><div><strong>Parking access</strong><span>Where can the vehicle stay near a socket?</span></div></div><div class="check-item"><span class="check-item__icon">2</span><div><strong>Sanctioned load</strong><span>Can the electrical connection support charging?</span></div></div><div class="check-item"><span class="check-item__icon">3</span><div><strong>Installation feasibility</strong><span>What will the property and installer allow?</span></div></div></div></div>`;
         } else if (type === 'ownership-cost') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'See the ownership picture')}</h3><p>Change the assumptions. The result is an illustrative estimate, not a quote or a verified vehicle cost.</p></div><div class="cost-layout"><div class="cost-inputs"><div class="cost-field"><label for="daily-km-input">Daily kilometres</label><output id="daily-km-output" for="daily-km-input">${state.costModel.dailyKm} km</output><input id="daily-km-input" data-cost-input="dailyKm" type="range" min="5" max="180" step="5" value="${state.costModel.dailyKm}"></div><div class="cost-field"><label for="unit-cost-input">Electricity cost / unit</label><output id="unit-cost-output" for="unit-cost-input">₹${state.costModel.unitCost}</output><input id="unit-cost-input" data-cost-input="unitCost" type="range" min="3" max="20" step="1" value="${state.costModel.unitCost}"></div><div class="cost-field"><label for="years-input">Expected ownership</label><output id="years-output" for="years-input">${state.costModel.years} years</output><input id="years-input" data-cost-input="years" type="range" min="1" max="12" step="1" value="${state.costModel.years}"></div></div><div class="estimate-card"><p class="estimate-card__label">Illustrative estimate</p><div class="estimate-card__value" id="estimate-value">${formatIllustrativeCost()}</div><p class="estimate-card__copy">Estimated electricity spend over the selected ownership period.</p><p class="assumptions"><strong>Assumptions:</strong> 0.16 kWh per km, 365 travel days/year, no tariff changes, finance, maintenance or vehicle-specific data.</p></div></div>`;
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Pick an illustrative demo type and time. Confirmation stays inside this browser in MVP 0.</p></div>${confirmed ? `<div class="booking-confirmed">Demo booking saved locally · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No calendar, dealer or WhatsApp action was sent.</div>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">No calendar, dealer or WhatsApp action is sent by this prototype.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Confirm demo booking</button></div>`}`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Pick an illustrative demo type and time. Confirmation stays inside this browser.</p></div>${confirmed ? `<div class="booking-confirmed">Demo booking saved locally · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No calendar, dealer or WhatsApp action was sent.</div>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">No calendar, dealer or WhatsApp action is sent by this local booking control.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Confirm demo booking</button></div>`}`;
         } else {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's keep exploring</h3><p>Try one of the suggested views to continue.</p></div>`;
         }
@@ -1334,10 +1345,16 @@
         $$('.segment').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.language === state.language)));
         const langChip = $('#room-language-chip');
         if (langChip) langChip.textContent = state.language;
+        const connectionChip = $('#room-connection-chip');
+        if (connectionChip) {
+          const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' ? 'live' : 'connecting';
+          connectionChip.dataset.state = chipState;
+          connectionChip.textContent = state.integrationMode === 'demo' ? 'Offline demo' : chipState === 'live' ? 'Agora live' : chipState === 'error' ? 'Connection failed' : 'Connecting to Agora';
+        }
         const stageTitleElement = document.getElementById('stage-title');
         if (stageTitleElement) stageTitleElement.textContent = state.stage.payload.title || stageTitle(state.stage.type);
         const stageSourceElement = document.getElementById('stage-source');
-        if (stageSourceElement) stageSourceElement.textContent = state.stage.payload.sourceStatus || 'Demo · illustrative';
+        if (stageSourceElement) stageSourceElement.textContent = state.stage.payload.sourceStatus || 'Illustrative visual';
         const aiTile = document.getElementById('ai-participant-tile');
         if (aiTile) aiTile.dataset.mode = state.agentMode;
         const aiState = $('#ai-state');
@@ -1345,7 +1362,10 @@
         const elapsed = $('#room-elapsed');
         if (elapsed) elapsed.textContent = formatElapsedTime(state.elapsedSeconds);
         const mic = $('#mic-control');
-        if (mic) mic.setAttribute('aria-pressed', String(!state.muted));
+        if (mic) {
+          mic.setAttribute('aria-pressed', String(!state.muted));
+          mic.disabled = state.callStatus !== 'live';
+        }
         const camera = $('#camera-control');
         if (camera) camera.setAttribute('aria-pressed', String(state.cameraEnabled));
         const micIndicator = $('#room-mic-indicator');
@@ -1394,7 +1414,7 @@
       const clearActiveTurn = () => {
         state.activeTurnId += 1;
         clearTimers(lifecycleTimers);
-        demoAdapter.interrupt();
+        if (state.integrationMode === 'demo') demoAdapter.interrupt();
         state.interruptAvailable = false;
       };
       const startElapsedTimer = () => {
@@ -1406,16 +1426,25 @@
           if (elapsed) elapsed.textContent = formatElapsedTime(state.elapsedSeconds);
         }, 1000);
       };
-      const joinDemoRoom = () => {
-        demoAdapter.leave();
+      const joinConsultationRoom = async () => {
+        const adapter = activeAdapter();
+        if (!adapter) {
+          state.connectionError = 'The Agora client bundle did not load. Restart the EasyEV server and refresh.';
+          showToast(state.connectionError);
+          return;
+        }
+        await adapter.leave();
         stopElapsedTimer();
         stopChargeTimer();
         clearTimers(lifecycleTimers);
         state.view = 'room';
         state.callStatus = 'connecting';
+        state.connectionState = 'connecting';
+        state.connectionError = '';
         state.agentMode = 'idle';
         state.elapsedSeconds = 0;
         state.transcript = [];
+        state.processedTranscriptIds = new Set();
         state.actions = createInitialActions();
         state.stage = { type: 'welcome', payload: { title: "Let's find what fits your life", sourceStatus: 'illustrative' } };
         state.stageRevision += 1;
@@ -1431,13 +1460,22 @@
         state.activeTurnId += 1;
         renderedStageRevision = -1;
         renderApp();
-        demoAdapter.join({ sessionId: state.sessionId, turnId: state.activeTurnId, category: state.category, language: state.language });
+        try {
+          await adapter.join({ sessionId: state.sessionId, turnId: state.activeTurnId, category: state.category, language: state.language });
+        } catch (error) {
+          if (state.view !== 'room') return;
+          state.callStatus = 'error';
+          state.connectionState = 'disconnected';
+          state.connectionError = error?.message || 'Could not start the live Agora consultation.';
+          renderApp();
+          showToast(state.connectionError);
+        }
       };
-      const leaveRoom = () => {
+      const leaveRoom = async () => {
         if (state.view !== 'room') return;
         state.callStatus = 'ended';
         clearActiveTurn();
-        demoAdapter.leave();
+        const leaving = activeAdapter()?.leave();
         stopElapsedTimer();
         stopChargeTimer();
         stopLocalCamera();
@@ -1445,6 +1483,7 @@
         state.interruptAvailable = false;
         setView('outcome');
         window.setTimeout(() => $('#outcome-title')?.focus(), prefersReducedMotion() ? 0 : 50);
+        await leaving;
       };
       const setAgentMode = (mode) => { state.agentMode = mode; renderApp(); };
       const appendTranscript = (speaker, text, meta = {}) => {
@@ -1471,25 +1510,62 @@
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
         renderApp();
       };
-      const runDemoTurn = (turnName, options = {}) => {
+      const applyIntentVisualization = (turnName, text = '') => {
+        const turn = DEMO_TURNS[turnName];
+        if (!turn) return;
+        const patch = { ...(turn.patch || {}) };
+        const distance = String(text).match(/\b(\d{1,3})\s*(?:km|kilomet(?:re|er)s?)\b/i);
+        if (distance) patch.dailyDistance = `${distance[1]} km/day`;
+        if (/no (?:home |dedicated )?charg|cannot charge|can't charge|parking.*(?:no|not)/i.test(text)) patch.charging = 'No dedicated home charging';
+        if (Object.keys(patch).length) patchProfile(patch);
+        showStage(turn.stage.type, turn.stage);
+      };
+      const runConsultationTurn = (turnName, options = {}) => {
         if (state.view !== 'room' || state.callStatus !== 'live') return;
         const turn = DEMO_TURNS[turnName] || DEMO_TURNS.compare;
         clearActiveTurn();
         const turnId = state.activeTurnId;
         state.interruptAvailable = false;
-        demoAdapter.sendText(options.userText || turn.user, { sessionId: state.sessionId, turnId, turn, skipUser: Boolean(options.skipUser), initialDelay: options.initialDelay || 0 });
+        const text = options.userText || turn.user;
+        if (state.integrationMode === 'demo') {
+          demoAdapter.sendText(text, { sessionId: state.sessionId, turnId, turn, skipUser: Boolean(options.skipUser), initialDelay: options.initialDelay || 0 });
+          return;
+        }
+        if (!options.skipUser) appendTranscript('you', text, { turnId, localText: true });
+        applyIntentVisualization(turnName, text);
+        setAgentMode('thinking');
+        activeAdapter()?.sendText(text).catch((error) => {
+          if (!isCurrentSession(state.sessionId, turnId)) return;
+          setAgentMode('listening');
+          showToast(error?.message || 'The text prompt could not reach EasyEV AI.');
+        });
       };
-      const interruptAgent = (nextTurnName = 'charging') => {
+      const interruptAgent = async (nextTurnName = 'charging') => {
         if (!(state.agentMode === 'speaking' && state.interruptAvailable)) return;
         clearActiveTurn();
         state.agentMode = 'interrupted';
         state.interruptAvailable = false;
-        appendTranscript('you', 'Wait—charging is not available at home.', { interruption: true });
+        appendTranscript('you', 'Wait—charging is not available at home.', { interruption: true, localText: true });
         patchProfile({ charging: 'No dedicated home charging' });
         markAction('charging', 'active', 'Charging constraint added from your interruption');
         renderApp();
+        if (state.integrationMode === 'live') {
+          try {
+            await activeAdapter()?.interrupt();
+            if (state.view !== 'room' || state.callStatus !== 'live') return;
+            setAgentMode('thinking');
+            showStage('charging-demo', DEMO_TURNS.charging.stage);
+            await activeAdapter()?.sendText('Charging is not available at home. Please adapt your advice to that constraint.');
+          } catch (error) {
+            if (state.view === 'room') {
+              setAgentMode('listening');
+              showToast(error?.message || 'The interruption could not reach EasyEV AI.');
+            }
+          }
+          return;
+        }
         scheduleLifecycle(() => { if (state.view === 'room' && state.callStatus === 'live') setAgentMode('thinking'); }, 120);
-        scheduleLifecycle(() => { if (state.view === 'room' && state.callStatus === 'live') runDemoTurn(nextTurnName, { skipUser: true }); }, 500);
+        scheduleLifecycle(() => { if (state.view === 'room' && state.callStatus === 'live') runConsultationTurn(nextTurnName, { skipUser: true }); }, 500);
       };
       const completeBooking = () => {
         if (!state.booking.slot || !state.booking.demoType) {
@@ -1504,7 +1580,7 @@
       };
       const resetToLanding = () => {
         clearActiveTurn();
-        demoAdapter.leave();
+        activeAdapter()?.leave();
         stopElapsedTimer();
         stopChargeTimer();
         stopLocalCamera();
@@ -1515,23 +1591,7 @@
         $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
         setView('landing');
       };
-      const reopenRoom = () => {
-        state.view = 'room';
-        state.callStatus = 'connecting';
-        state.agentMode = 'idle';
-        state.elapsedSeconds = 0;
-        state.transcript = [];
-        state.actions = createInitialActions();
-        state.booking = { slot: '', demoType: '', confirmed: false };
-        state.profileFlash = new Set();
-        state.stage = { type: 'welcome', payload: { title: "Let's find what fits your life", sourceStatus: 'illustrative' } };
-        state.stageRevision += 1;
-        state.sessionId = ++sessionCounter;
-        state.activeTurnId += 1;
-        renderedStageRevision = -1;
-        renderApp();
-        demoAdapter.join({ sessionId: state.sessionId, turnId: state.activeTurnId, category: state.category, language: state.language });
-      };
+      const reopenRoom = () => joinConsultationRoom();
       const toggleChargePlayback = () => {
         if (state.stage.type !== 'charging-demo') return;
         state.chargePlaying = !state.chargePlaying;
@@ -1586,13 +1646,48 @@
         if (normalized.includes('book') || normalized.includes('test drive') || normalized.includes('demo') || normalized.includes('meeting')) return 'booking';
         return null;
       };
+      const syncLiveTranscript = (entries) => {
+        const incoming = Array.isArray(entries) ? entries.map((entry) => ({ ...entry, meta: { live: true, id: entry.id, status: entry.status } })) : [];
+        const localOnly = state.transcript.filter((entry) => entry.meta?.localText && !incoming.some((live) => live.speaker === entry.speaker && live.text === entry.text));
+        state.transcript = [...incoming, ...localOnly].sort((a, b) => a.timestamp - b.timestamp);
+        renderTranscript();
+        incoming.forEach((entry) => {
+          if (entry.speaker !== 'you' || entry.status === '0' || state.processedTranscriptIds.has(entry.id)) return;
+          state.processedTranscriptIds.add(entry.id);
+          const turn = routePrompt(entry.text);
+          if (turn) applyIntentVisualization(turn, entry.text);
+        });
+      };
       const handleAdapterEvent = (event) => {
         const payload = event.payload || {};
         if (event.type === 'CALL_STATUS' && payload.status === 'live' && isCurrentSession(payload.sessionId)) {
           state.callStatus = 'live';
+          state.connectionState = 'connected';
           markAction('requirements', 'active', 'Listening for how you travel');
           startElapsedTimer();
           renderApp();
+          return;
+        }
+        if (event.type === 'CALL_STATUS' && payload.status === 'connecting' && isCurrentSession(payload.sessionId)) {
+          state.callStatus = 'connecting';
+          state.connectionState = 'connecting';
+          renderApp();
+          return;
+        }
+        if (event.type === 'CONNECTION_STATE' && isCurrentSession(payload.sessionId)) {
+          state.connectionState = String(payload.state || '').toLowerCase();
+          renderApp();
+          return;
+        }
+        if (event.type === 'TRANSCRIPT_SYNC' && isCurrentSession(payload.sessionId)) {
+          syncLiveTranscript(payload.entries);
+          return;
+        }
+        if (event.type === 'ERROR') {
+          state.connectionError = payload.message || 'The live consultation reported an error.';
+          if (payload.recoverable === false) state.callStatus = 'error';
+          renderApp();
+          showToast(state.connectionError);
           return;
         }
         if (payload.turnId !== undefined && payload.turnId !== state.activeTurnId) return;
@@ -1604,6 +1699,7 @@
       };
 
       demoAdapter.onEvent(handleAdapterEvent);
+      liveAdapter?.onEvent(handleAdapterEvent);
 
       document.addEventListener('click', (event) => {
         if (event.target instanceof Element && event.target.classList.contains('prejoin-backdrop')) { closePrejoin(); return; }
@@ -1624,16 +1720,38 @@
         if (target.matches('[data-category]')) { state.category = target.dataset.category; renderApp(); return; }
         if (target.matches('[data-language]')) { state.language = target.dataset.language; renderApp(); return; }
         if (target.id === 'enable-camera-button') { enableCameraPreview(); return; }
-        if (target.id === 'join-demo-button') { joinDemoRoom(); return; }
-        if (target.matches('[data-turn]')) { runDemoTurn(target.dataset.turn); return; }
+        if (target.id === 'join-demo-button') { joinConsultationRoom(); return; }
+        if (target.matches('[data-turn]')) { runConsultationTurn(target.dataset.turn); return; }
         if (target.matches('[data-tab]')) { state.selectedTab = target.dataset.tab; renderApp(); return; }
-        if (target.matches('[data-stage-category]')) { state.category = target.dataset.stageCategory; patchProfile({ category: state.category }); showStage('category-map', { title: 'Which path fits your everyday?', sourceStatus: 'Demo · qualifying' }); return; }
-        if (target.matches('[data-stage-action="ownership"]')) { runDemoTurn('ownership'); return; }
+        if (target.matches('[data-stage-category]')) {
+          state.category = target.dataset.stageCategory;
+          patchProfile({ category: state.category });
+          showStage('category-map', { title: 'Which path fits your everyday?', sourceStatus: 'Illustrative · qualifying' });
+          if (state.integrationMode === 'live' && state.callStatus === 'live') {
+            activeAdapter()?.sendText(`I am interested in the ${state.category} category. Help me qualify whether it fits.`).catch((error) => showToast(error?.message || 'The category update could not reach EasyEV AI.'));
+          }
+          return;
+        }
+        if (target.matches('[data-stage-action="ownership"]')) { runConsultationTurn('ownership'); return; }
         if (target.matches('[data-stage-action="confirm-booking"]')) { completeBooking(); return; }
         if (target.matches('[data-booking-slot]')) { state.booking.slot = target.dataset.bookingSlot; markAction('booking', 'active', `Time selected: ${state.booking.slot}`); renderApp(); return; }
         if (target.matches('[data-demo-type]')) { state.booking.demoType = target.dataset.demoType; renderApp(); return; }
         if (target.matches('[data-control="interrupt"]')) { interruptAgent(); return; }
-        if (target.matches('[data-control="mic"]')) { state.muted = !state.muted; renderApp(); showToast(state.muted ? 'Microphone muted for this demo.' : 'Microphone is on in the interface only.'); return; }
+        if (target.matches('[data-control="mic"]')) {
+          const nextMuted = !state.muted;
+          if (state.integrationMode === 'demo') {
+            state.muted = nextMuted;
+            renderApp();
+            showToast(state.muted ? 'Microphone muted in offline demo mode.' : 'Microphone indicator restored in offline demo mode.');
+            return;
+          }
+          activeAdapter()?.setMuted(nextMuted).then(() => {
+            state.muted = nextMuted;
+            renderApp();
+            showToast(state.muted ? 'Microphone muted.' : 'Microphone is live.');
+          }).catch((error) => showToast(error?.message || 'The microphone could not be changed.'));
+          return;
+        }
         if (target.matches('[data-control="camera"]')) { toggleRoomCamera(); return; }
         if (target.matches('[data-control="text"]')) { openPromptDrawer(); return; }
         if (target.matches('[data-control="end"]')) { leaveRoom(); return; }
@@ -1668,10 +1786,19 @@
         input.value = '';
         closePromptDrawer();
         const turn = routePrompt(text);
-        if (turn) { runDemoTurn(turn, { userText: text }); return; }
+        if (turn) { runConsultationTurn(turn, { userText: text }); return; }
         clearActiveTurn();
         const turnId = state.activeTurnId;
-        appendTranscript('you', text, { freeform: true, turnId });
+        appendTranscript('you', text, { freeform: true, turnId, localText: true });
+        if (state.integrationMode === 'live') {
+          setAgentMode('thinking');
+          activeAdapter()?.sendText(text).catch((error) => {
+            if (!isCurrentSession(state.sessionId, turnId)) return;
+            setAgentMode('listening');
+            showToast(error?.message || 'The text prompt could not reach EasyEV AI.');
+          });
+          return;
+        }
         setAgentMode('speaking');
         scheduleLifecycle(() => { if (isCurrentSession(state.sessionId, turnId)) appendTranscript('ai', 'I have noted that. In this first prototype, try comparison, charging, ownership cost or booking to see the full EasyEV journey.'); }, 450);
         scheduleLifecycle(() => { if (isCurrentSession(state.sessionId, turnId)) setAgentMode('listening'); }, 2550);
@@ -1709,7 +1836,8 @@
       };
       window.addEventListener('pagehide', () => {
         clearActiveTurn();
-        demoAdapter.leave();
+        liveAdapter?.stopWithBeacon();
+        activeAdapter()?.leave({ skipStop: true });
         stopElapsedTimer();
         stopChargeTimer();
         stopLocalCamera();
