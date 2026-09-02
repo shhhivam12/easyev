@@ -11,7 +11,8 @@
     "build:client": "esbuild client/agora-client.js --bundle --format=iife --global-name=EasyEVAgoraBundle --outfile=agora-client.bundle.js --minify --legal-comments=none",
     "build": "npm run build:client",
     "start": "node server.mjs",
-    "dev": "npm run build:client && node server.mjs"
+    "dev": "npm run build:client && node server.mjs",
+    "verify:agentic": "node scripts/verify-agentic.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",

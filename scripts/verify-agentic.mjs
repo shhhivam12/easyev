@@ -1,0 +1,185 @@
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+
+const cdpPort = Number(process.env.CDP_PORT || 9225);
+const appUrl = process.env.EASYEV_URL || 'http://127.0.0.1:4173/';
+const artifacts = resolve('test-artifacts');
+await mkdir(artifacts, { recursive: true });
+
+const target = await fetch(`http://127.0.0.1:${cdpPort}/json/new?${encodeURIComponent(appUrl)}`, { method: 'PUT' }).then((response) => {
+  if (!response.ok) throw new Error(`Could not create Chrome test tab (${response.status})`);
+  return response.json();
+});
+const socket = new WebSocket(target.webSocketDebuggerUrl);
+const pending = new Map();
+const consoleErrors = [];
+const pageErrors = [];
+let messageId = 0;
+socket.addEventListener('message', (event) => {
+  const message = JSON.parse(event.data);
+  if (message.id) {
+    const item = pending.get(message.id);
+    if (!item) return;
+    pending.delete(message.id);
+    if (message.error) item.reject(new Error(message.error.message));
+    else item.resolve(message.result);
+    return;
+  }
+  if (message.method === 'Runtime.consoleAPICalled' && message.params.type === 'error') {
+    consoleErrors.push(message.params.args.map((item) => item.value || item.description || '').join(' '));
+  }
+  if (message.method === 'Runtime.exceptionThrown') pageErrors.push(message.params.exceptionDetails?.text || 'Uncaught exception');
+});
+await new Promise((resolveOpen, rejectOpen) => {
+  socket.addEventListener('open', resolveOpen, { once: true });
+  socket.addEventListener('error', rejectOpen, { once: true });
+});
+const send = (method, params = {}) => new Promise((resolveSend, rejectSend) => {
+  const id = ++messageId;
+  pending.set(id, { resolve: resolveSend, reject: rejectSend });
+  socket.send(JSON.stringify({ id, method, params }));
+});
+const evaluate = async (expression) => {
+  const result = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
+  if (result.exceptionDetails) throw new Error(result.exceptionDetails.text || 'Browser evaluation failed');
+  return result.result?.value;
+};
+const waitFor = async (expression, timeoutMs = 30_000, label = expression) => {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    if (await evaluate(expression)) return;
+    await new Promise((resolveWait) => setTimeout(resolveWait, 180));
+  }
+  const snapshot = await evaluate('({view:document.body.dataset.view,call:document.querySelector("#room-connection-chip")?.textContent,stage:document.querySelector("#stage-title")?.textContent,content:document.querySelector("#stage-content")?.innerText,rail:document.querySelector("#action-rail")?.innerText,toast:document.querySelector("#room-toast")?.textContent})').catch(() => null);
+  throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(snapshot)}`);
+};
+const click = (selector) => evaluate(`(() => { const node=document.querySelector(${JSON.stringify(selector)}); if (!node) throw new Error('Missing ${selector}'); node.click(); return true; })()`);
+const viewport = (width, height) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
+const screenshot = async (name) => {
+  const shot = await send('Page.captureScreenshot', { format: 'png', fromSurface: true });
+  await writeFile(resolve(artifacts, name), Buffer.from(shot.data, 'base64'));
+};
+
+const results = { prejoin: {}, live: {}, viewports: [], reducedMotion: {} };
+try {
+  await Promise.all([send('Page.enable'), send('Runtime.enable'), send('Network.enable')]);
+  await send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: artifacts, eventsEnabled: true }).catch(() => {});
+  await send('Browser.grantPermissions', { origin: new URL(appUrl).origin, permissions: ['geolocation', 'videoCapture', 'audioCapture'] }).catch(() => {});
+  await send('Emulation.setGeolocationOverride', { latitude: 28.6139, longitude: 77.209, accuracy: 35 }).catch(() => {});
+  await viewport(1280, 800);
+  await send('Page.navigate', { url: appUrl });
+  await waitFor('document.readyState === "complete"', 20_000, 'page load');
+  await waitFor('Boolean(window.EasyEVAgoraBundle)', 20_000, 'Agora browser bundle');
+  await click('#hero-start-button');
+  await waitFor('document.querySelector("#prejoin-view")?.hidden === false', 5000, 'pre-call screen');
+  await waitFor('document.querySelector("#join-demo-button")?.disabled === false', 20_000, 'backend readiness');
+  await waitFor('document.activeElement?.id === "prejoin-title"', 5000, 'pre-call focus');
+  results.prejoin.focus = true;
+  results.prejoin.centered = await evaluate('(() => { const r=document.querySelector(".prejoin-sheet").getBoundingClientRect(); return Math.abs((r.left+r.width/2)-innerWidth/2)<8; })()');
+  await click('[data-category="Electric car"]');
+  await click('[data-language="English"]');
+  await click('#enable-camera-button');
+  await waitFor('document.querySelector("#prejoin-video")?.hidden === false', 10_000, 'camera preview');
+  results.prejoin.camera = true;
+  await click('#join-demo-button');
+  await waitFor('document.querySelector("#room-view")?.hidden === false', 5000, 'live room');
+  await waitFor('document.querySelector("#room-connection-chip")?.textContent.startsWith("Agora live")', 45_000, 'Agora live');
+  await waitFor('document.querySelector("#room-connection-chip")?.textContent.includes("tools linked")', 15_000, 'tool SSE');
+  results.live.agora = true;
+  results.live.tools = true;
+
+  await click('[data-turn="compare"]');
+  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2', 12_000, 'verified comparison');
+  results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
+  await screenshot('easyev-agentic-comparison-desktop.png');
+
+  await click('#stage-pin-button');
+  const pinnedTitle = await evaluate('document.querySelector("#stage-title").textContent');
+  await click('[data-turn="ownership"]');
+  await waitFor('document.querySelector("#action-rail")?.innerText.includes("Result ready")', 10_000, 'queued ownership result');
+  results.live.pinHeld = pinnedTitle === await evaluate('document.querySelector("#stage-title").textContent');
+  await click('#stage-pin-button');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Ownership scenario"', 5000, 'unpin queued result');
+  results.live.ownership = await evaluate('({metrics:document.querySelectorAll(".metric-card").length,bars:document.querySelectorAll(".cost-bar").length,notice:document.querySelector(".tool-notice")?.textContent})');
+  await evaluate('(() => { const input=document.querySelector("[data-live-cost=\\"dailyKm\\"]"); input.value="95"; input.dispatchEvent(new Event("input",{bubbles:true})); })()');
+  await waitFor('document.querySelector("#passport-content")?.innerText.includes("95 km/day")', 8000, 'cost recalculation');
+  results.live.costRecalculated = true;
+
+  await click('[data-turn="map"]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Share location for this search"', 8000, 'location consent stage');
+  results.live.locationConsent = true;
+  await click('[data-map-action="locate"]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Charging points near you" && document.querySelectorAll(".station-card").length > 0', 12_000, 'charger result');
+  results.live.chargers = await evaluate('({count:document.querySelectorAll(".station-card").length,source:document.querySelector("#stage-source")?.textContent,disclosure:document.querySelector(".map-disclosure")?.textContent})');
+  await screenshot('easyev-agentic-map-desktop.png');
+
+  await click('[data-tool-prompt="snapshot"]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Optional visual readiness check"', 8000, 'snapshot consent stage');
+  results.live.snapshotConsent = await evaluate('document.querySelector("#stage-content")?.innerText.toLowerCase().includes("faces") && document.querySelector("#stage-content")?.innerText.toLowerCase().includes("deleted")');
+  await click('[data-snapshot-camera]');
+  await waitFor('Boolean(document.querySelector(".snapshot-preview"))', 5000, 'captured still preview');
+  results.live.snapshotUserOperated = true;
+  await click('[data-snapshot-clear]');
+
+  await click('[data-tool-prompt="report"]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Decision report ready"', 10_000, 'report stage');
+  results.live.report = await evaluate('({button:Boolean(document.querySelector("[data-download-report]")),sections:document.querySelector(".report-card")?.innerText})');
+
+  const roomViewports = [[1440,900],[1280,800],[768,1024],[390,844]];
+  for (const [width, height] of roomViewports) {
+    await viewport(width, height);
+    const layout = await evaluate('(() => { const stage=document.querySelector("#smart-stage").getBoundingClientRect(); const dock=document.querySelector(".call-dock").getBoundingClientRect(); return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,stageLeft:stage.left,stageRight:stage.right,dockLeft:dock.left,dockRight:dock.right}; })()');
+    results.viewports.push({ view: 'room', width, height, overflow: layout.scrollWidth > layout.width, stageFits: layout.stageLeft >= 0 && layout.stageRight <= layout.width, dockFits: layout.dockLeft >= 0 && layout.dockRight <= layout.width });
+    if (width === 390) await screenshot('easyev-agentic-room-mobile.png');
+  }
+
+  await viewport(1280, 800);
+  await click('#end-call-control');
+  await waitFor('document.querySelector("#outcome-view")?.hidden === false', 10_000, 'outcome');
+  await waitFor('document.activeElement?.id === "outcome-title"', 5000, 'outcome focus');
+  results.live.outcomeFocus = true;
+  results.live.cameraStopped = await evaluate('document.querySelector("#room-video")?.srcObject === null && document.querySelector("#prejoin-video")?.srcObject === null');
+  const elapsed = await evaluate('document.querySelector("#outcome-duration")?.textContent');
+  await new Promise((resolveWait) => setTimeout(resolveWait, 1200));
+  results.live.timerStopped = elapsed === await evaluate('document.querySelector("#outcome-duration")?.textContent');
+  const pdfsBefore = new Set((await readdir(artifacts)).filter((name) => name.endsWith('.pdf')));
+  await click('#download-report-button');
+  const downloadStarted = Date.now();
+  let newPdf = '';
+  while (Date.now() - downloadStarted < 8000 && !newPdf) {
+    await new Promise((resolveWait) => setTimeout(resolveWait, 250));
+    newPdf = (await readdir(artifacts)).find((name) => name.endsWith('.pdf') && !pdfsBefore.has(name)) || '';
+  }
+  results.live.reportAfterCall = Boolean(newPdf);
+
+  for (const [width, height] of [[1440,900],[1280,800],[768,1024],[390,844]]) {
+    await viewport(width, height);
+    await send('Page.navigate', { url: appUrl });
+    await waitFor('document.readyState === "complete"', 15_000, `landing ${width}x${height}`);
+    const layout = await evaluate('({width:innerWidth,scrollWidth:document.documentElement.scrollWidth,cta:Boolean(document.querySelector("#hero-start-button")?.offsetParent)})');
+    results.viewports.push({ view: 'landing', width, height, overflow: layout.scrollWidth > layout.width, cta: layout.cta });
+    if (width === 1440) await screenshot('easyev-agentic-landing-desktop.png');
+    if (width === 390) await screenshot('easyev-agentic-landing-mobile.png');
+  }
+
+  await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+  results.reducedMotion.matches = await evaluate('matchMedia("(prefers-reduced-motion: reduce)").matches');
+  results.reducedMotion.animationDuration = await evaluate('getComputedStyle(document.querySelector(".hero-guide-visual")).animationDuration');
+} finally {
+  try { await send('Page.close'); } catch {}
+  socket.close();
+}
+
+results.consoleErrors = consoleErrors;
+results.pageErrors = pageErrors;
+console.log(JSON.stringify(results, null, 2));
+
+const failed = !results.prejoin.focus || !results.prejoin.centered || !results.prejoin.camera ||
+  !results.live.agora || !results.live.tools || results.live.comparison?.cards !== 2 ||
+  results.live.comparison?.sources !== 2 || !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
+  !results.live.costRecalculated || !results.live.locationConsent || results.live.chargers?.count < 1 ||
+  !results.live.snapshotConsent || !results.live.snapshotUserOperated || !results.live.report?.button ||
+  !results.live.outcomeFocus || !results.live.cameraStopped || !results.live.timerStopped ||
+  results.viewports.some((item) => item.overflow || item.stageFits === false || item.dockFits === false || item.cta === false) ||
+  !results.reducedMotion.matches || consoleErrors.length || pageErrors.length;
+if (failed) process.exitCode = 1;
