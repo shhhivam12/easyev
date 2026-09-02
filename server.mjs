@@ -322,7 +322,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
       failureMessage: 'I had trouble responding. Please try that once more.',
       maxHistory: 15,
       params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
-      ...(mcpUrl ? { mcpServers: [{ name: 'easyev-decision-tools', url: mcpUrl, transport: 'streamable_http' }] } : {}),
+      ...(mcpUrl ? { mcpServers: [createAgoraMcpServer(mcpUrl)] } : {}),
     }))
     .withTts(tts);
 
@@ -334,6 +334,14 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
     expiresIn: ExpiresIn.hours(1),
     debug: false,
   });
+}
+
+function createAgoraMcpServer(endpoint) {
+  const server = { name: 'easyev-decision-tools', endpoint, transport: 'streamable_http' };
+  if (!/^[A-Za-z0-9.-]+$/.test(server.name) || !server.endpoint || server.transport !== 'streamable_http') {
+    throw new Error('Invalid Agora MCP server configuration');
+  }
+  return server;
 }
 
 function createRecord({ key, channel, uid, category, language, voice }) {
