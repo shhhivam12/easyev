@@ -7,10 +7,11 @@ import {
   AgoraClient,
   Agent,
   Area,
+  AresSTT,
   DeepgramSTT,
   ExpiresIn,
-  MiniMaxTTS,
   OpenAI,
+  OpenAITTS,
 } from 'agora-agents';
 
 const ROOT = resolve(import.meta.dirname);
@@ -97,22 +98,39 @@ function normalizeChoice(value, allowed, fallback) {
 }
 
 function agentInstructions({ category, language }) {
+  const languageStyle = language === 'Hindi'
+    ? 'Speak natural contemporary Hindi in Devanagari. Use common English EV terms only where Indian shoppers normally use them. Do not answer in romanized Hindi.'
+    : language === 'Hinglish'
+      ? 'Speak warm, natural Indian Hinglish. Use Devanagari for Hindi words and familiar English for EV, charging, range, budget, finance, test drive, and model names. Avoid a foreign accent or over-formal Hindi.'
+      : 'Speak clear Indian English with familiar Indian automotive vocabulary and a calm, unhurried pace.';
+
   return `You are EasyEV AI, a calm and practical voice guide for people in India choosing an electric car, scooter, or 3-wheeler.
 
 The shopper selected category: ${category}. Their preferred conversation language is ${language}.
 
+Language and voice style: ${languageStyle}
+
 Your job is to discover their use case, daily distance, budget, charging access, passenger or payload needs, and priorities. Help them compare fit dimensions and trade-offs. Do not invent live vehicle prices, range claims, subsidies, dealer availability, finance quotes, or booking confirmation. The comparison cards and ownership calculator in the web app are explicitly illustrative. Test-drive selections are stored only in the browser and are not sent to a dealer, calendar, or WhatsApp.
 
-Keep most spoken answers to two or three short sentences. Ask at most one useful follow-up question per turn. Match the selected language naturally; for Hinglish, use simple conversational Hindi written and spoken with common English EV terms. If uncertain, say so. Never pressure the shopper or claim that EasyEV has completed an external action.`;
+Keep most spoken answers to two or three short sentences. Ask at most one useful follow-up question per turn. Pronounce numbers and units naturally for India. If uncertain, say so. Never pressure the shopper or claim that EasyEV has completed an external action.`;
 }
 
 function createAgentSession({ channel, uid, category, language }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const greeting = language === 'Hindi'
-    ? 'Namaste! Main aapka EasyEV guide hoon. Aapki daily travel need kya hai?'
+    ? 'नमस्ते! मैं आपकी EasyEV गाइड हूँ। आप रोज़ कितनी दूरी तय करते हैं, और EV से क्या ज़रूरत पूरी करना चाहते हैं?'
     : language === 'English'
-      ? 'Hello! I am your EasyEV guide. What would you like your electric vehicle to solve?'
-      : 'Namaste! Main aapka EasyEV guide hoon. Aap apni daily travel need bataiye, phir hum sahi EV fit compare karenge.';
+      ? 'Hello! I am your EasyEV guide. Tell me about your daily travel, and we will find the EV that fits your life.'
+      : 'नमस्ते! मैं आपकी EasyEV guide हूँ। अपनी daily travel need बताइए, फिर हम सही EV fit साथ में compare करेंगे।';
+  const recognitionLanguage = language === 'English' ? 'en-IN' : 'hi-IN';
+  const speechInstructions = language === 'Hindi'
+    ? 'Speak in a natural, friendly Indian Hindi accent. Use clear contemporary Hindi, gentle pace, short pauses, and pronounce EV terms as Indian speakers do.'
+    : language === 'Hinglish'
+      ? 'Speak in a natural Indian Hinglish accent. Blend Hindi and English smoothly, with a warm female advisor tone, moderate pace, and crisp EV terminology.'
+      : 'Speak in a warm, confident Indian English accent at a moderate pace, like a helpful automotive advisor.';
+  const stt = language === 'English'
+    ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
+    : new AresSTT({ keywords: ['EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बजट', 'स्कूटर', 'थ्री व्हीलर', 'test drive'] });
 
   const agent = new Agent({
     client,
@@ -121,6 +139,7 @@ function createAgentSession({ channel, uid, category, language }) {
     failureMessage: 'I had trouble responding. Please try that once more.',
     maxHistory: 50,
     turnDetection: {
+      language: recognitionLanguage,
       config: {
         speech_threshold: 0.5,
         start_of_speech: {
@@ -136,12 +155,12 @@ function createAgentSession({ channel, uid, category, language }) {
     advancedFeatures: { enable_rtm: true, enable_tools: false },
     parameters: {
       audio_scenario: 'chorus',
-      data_channel: 'rtm',
+      data_channel: 'datastream',
       enable_error_message: true,
       enable_metrics: true,
     },
   })
-    .withStt(new DeepgramSTT({ model: 'nova-3', language: language === 'English' ? 'en' : 'hi' }))
+    .withStt(stt)
     .withLlm(new OpenAI({
       model: 'gpt-4o-mini',
       greetingMessage: greeting,
@@ -149,7 +168,12 @@ function createAgentSession({ channel, uid, category, language }) {
       maxHistory: 15,
       params: { max_tokens: 700, temperature: 0.45, top_p: 0.9 },
     }))
-    .withTts(new MiniMaxTTS({ model: 'speech_2_6_turbo', voiceId: 'English_captivating_female1' }));
+    .withTts(new OpenAITTS({
+      model: 'tts-1',
+      voice: 'nova',
+      instructions: speechInstructions,
+      speed: language === 'English' ? 0.98 : 0.92,
+    }));
 
   return agent.createSession({
     channel,
@@ -186,7 +210,13 @@ setInterval(pruneExpired, 60_000).unref();
 
 async function handleApi(req, res, url) {
   if (req.method === 'GET' && url.pathname === '/api/health') {
-    return json(res, 200, { ok: true, agoraConfigured: true, mode: 'live', activeSessions: sessions.size });
+    return json(res, 200, {
+      ok: true,
+      agoraConfigured: true,
+      mode: 'live',
+      activeSessions: sessions.size,
+      speech: { hindiRecognition: 'Agora ARES hi-IN', voice: 'Agora-managed OpenAI tts-1' },
+    });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/session/token') {
@@ -281,7 +311,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
-    if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js', true);
+    if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
@@ -304,4 +334,3 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`EasyEV Live is running at http://127.0.0.1:${PORT}`);
   console.log('Agora credentials loaded server-side; certificate is not exposed to the browser.');
 });
-

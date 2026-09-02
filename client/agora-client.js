@@ -55,6 +55,7 @@ class AgoraAdapter {
     this.appId = '';
     this.context = null;
     this.leaving = null;
+    this.levelTimer = null;
   }
 
   onEvent(handler) {
@@ -84,6 +85,12 @@ class AgoraAdapter {
       this.rtc.on('connection-state-change', (current) => {
         if (generation !== this.generation) return;
         this.emit('CONNECTION_STATE', { state: current, sessionId: context.sessionId });
+      });
+      this.rtc.on('network-quality', (stats) => {
+        if (generation !== this.generation) return;
+        const uplink = Number(stats?.uplinkNetworkQuality || 0);
+        const downlink = Number(stats?.downlinkNetworkQuality || 0);
+        this.emit('NETWORK_QUALITY', { uplink, downlink, sessionId: context.sessionId });
       });
       this.rtc.on('user-published', async (user, mediaType) => {
         if (generation !== this.generation || !this.rtc) return;
@@ -116,6 +123,11 @@ class AgoraAdapter {
       ]);
       if (generation !== this.generation) return;
       await this.rtc.publish([this.micTrack]);
+      this.levelTimer = window.setInterval(() => {
+        if (generation !== this.generation || !this.micTrack) return;
+        const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
+        this.emit('LOCAL_AUDIO_LEVEL', { level, sessionId: context.sessionId });
+      }, 180);
 
       try {
         this.ai = await AgoraVoiceAI.init({
@@ -215,6 +227,10 @@ class AgoraAdapter {
     this.sessionKey = '';
     ++this.generation;
     this.leaving = (async () => {
+      if (this.levelTimer) {
+        window.clearInterval(this.levelTimer);
+        this.levelTimer = null;
+      }
       if (sessionKey && !options.skipStop) {
         await postJson('/api/session/stop', { sessionKey }, { keepalive: true }).catch(() => {});
       }
@@ -235,6 +251,8 @@ class AgoraAdapter {
       this.uid = '';
       this.appId = '';
       this.context = null;
+      this.emit('LOCAL_AUDIO_LEVEL', { level: 0 });
+      this.emit('AGENT_CONNECTED', { connected: false });
     })().finally(() => { this.leaving = null; });
     return this.leaving;
   }
@@ -248,4 +266,3 @@ class AgoraAdapter {
 }
 
 export const createAgoraAdapter = () => new AgoraAdapter();
-

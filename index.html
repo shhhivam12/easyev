@@ -335,6 +335,67 @@
     .preview-passport-row strong { display: block; margin-top: 3px; color: #f6fff8; font-size: 11px; font-weight: 600; }
     .room-preview.is-focused { border-color: var(--green); box-shadow: var(--shadow-card), 0 0 0 6px rgba(85,242,123,.14), 0 0 80px rgba(85,242,123,.25); }
 
+    /* Landing experience */
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(370px, .74fr);
+      align-items: center;
+      gap: clamp(36px, 6vw, 92px);
+      width: min(1180px, calc(100% - 48px));
+      min-height: 660px;
+      margin: 0 auto;
+      padding: 104px 0 64px;
+      text-align: left;
+    }
+    .hero__eyebrow, .hero h1, .hero__copy, .hero__actions, .hero__trust { animation: none; }
+    .hero__content { max-width: 700px; }
+    .hero h1 { max-width: 730px; margin: 23px 0 22px; font-size: clamp(58px, 5.7vw, 86px); }
+    .hero__copy { max-width: 650px; margin: 0; font-size: 17px; }
+    .hero__actions { justify-content: flex-start; margin-top: 30px; }
+    .hero__proof { display: none; }
+    .button-live-dot { width: 7px; height: 7px; margin-right: 9px; border-radius: 50%; background: var(--forest); box-shadow: 0 0 0 4px rgba(4,35,15,.11); }
+    .hero__trust { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; color: var(--muted); font-size: 11px; font-weight: 620; animation: rise-in .75s .62s var(--ease-out) both; }
+    .hero__trust span { display: inline-flex; align-items: center; gap: 7px; }
+    .hero__trust span::before { color: var(--green-deep); content: '✓'; font-weight: 800; }
+    .hero-live-card { position: relative; overflow: hidden; padding: 19px; color: var(--white); border: 1px solid rgba(255,255,255,.13); border-radius: 28px; background: linear-gradient(150deg, #07140c, #12371e 74%, #1e5d31); box-shadow: 0 32px 75px rgba(4,35,15,.22); }
+    .hero-live-card::after { position: absolute; top: -70px; right: -70px; width: 180px; height: 180px; border-radius: 50%; background: rgba(85,242,123,.17); filter: blur(35px); content: ''; pointer-events: none; }
+    .hero-live-card__top { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 2px 17px; border-bottom: 1px solid rgba(255,255,255,.1); font-size: 11px; }
+    .hero-live-card__top span { display: inline-flex; align-items: center; gap: 7px; font-weight: 740; }
+    .hero-live-card__top i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .hero-live-card__top strong { color: rgba(255,255,255,.48); font-size: 9px; font-weight: 620; }
+    .hero-live-card__voice { position: relative; z-index: 1; display: grid; grid-template-columns: 82px 1fr; gap: 14px; align-items: center; min-height: 154px; padding: 21px 5px; }
+    .hero-live-orb { position: relative; display: grid; place-items: center; width: 68px; height: 68px; border: 1px solid rgba(85,242,123,.55); border-radius: 50%; background: radial-gradient(circle, rgba(131,255,157,.7) 0 12%, rgba(85,242,123,.12) 13% 43%, transparent 44%); box-shadow: 0 0 35px rgba(85,242,123,.2); }
+    .hero-live-orb::before { position: absolute; inset: -8px; border: 1px solid rgba(85,242,123,.18); border-radius: 50%; content: ''; animation: ring-breathe 2.6s ease-in-out infinite; }
+    .hero-live-orb span { width: 21px; height: 21px; border: 2px solid var(--green-bright); border-radius: 50%; }
+    .hero-live-card__voice small { color: var(--green); font-size: 8px; font-weight: 780; letter-spacing: .12em; }
+    .hero-live-card__voice p { margin: 7px 0 0; color: rgba(255,255,255,.85); font-size: 14px; line-height: 1.45; }
+    .hero-passport { position: relative; z-index: 1; padding: 16px; border: 1px solid rgba(255,255,255,.1); border-radius: 17px; background: rgba(0,0,0,.15); }
+    .hero-passport > p { margin: 0 0 8px; color: rgba(255,255,255,.38); font-size: 8px; font-weight: 760; letter-spacing: .13em; }
+    .hero-passport div { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 10px; }
+    .hero-passport div:last-child { border-bottom: 0; }
+    .hero-passport span { color: rgba(255,255,255,.45); }
+    .hero-passport strong { color: rgba(255,255,255,.86); font-weight: 650; text-align: right; }
+    .hero-live-card__footer { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+    .hero-live-card__footer span { padding: 6px 9px; color: rgba(255,255,255,.57); border: 1px solid rgba(255,255,255,.1); border-radius: 99px; font-size: 8px; font-weight: 650; }
+    .energy-band { margin-top: 0; }
+    .journey-section { padding: 104px max(24px, calc((100vw - 1180px) / 2)) 112px; color: var(--ink); background: var(--white); }
+    .journey-heading { display: grid; grid-template-columns: 1.15fr .85fr; gap: 28px 80px; align-items: end; }
+    .journey-heading > p { grid-column: 1 / -1; margin: 0; color: var(--green-deep); font-size: 10px; font-weight: 780; letter-spacing: .16em; }
+    .journey-heading h2 { margin: 0; max-width: 720px; font-size: clamp(36px, 4.4vw, 58px); font-weight: 540; letter-spacing: -.055em; line-height: 1.02; }
+    .journey-heading > span { color: var(--muted); font-size: 14px; line-height: 1.5; }
+    .journey-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 50px; }
+    .journey-grid article { min-height: 210px; padding: 19px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); }
+    .journey-grid article:nth-child(4) { color: var(--white); border-color: var(--forest); background: var(--forest); }
+    .journey-grid article > span { color: var(--green-deep); font-size: 10px; font-weight: 780; }
+    .journey-grid article:nth-child(4) > span { color: var(--green); }
+    .journey-grid strong { display: block; margin-top: 66px; font-size: 18px; font-weight: 680; letter-spacing: -.025em; }
+    .journey-grid p { margin: 9px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .journey-grid article:nth-child(4) p { color: rgba(255,255,255,.57); }
+    .journey-cta { display: flex; align-items: center; justify-content: space-between; gap: 26px; margin-top: 40px; padding: 23px 0 0; border-top: 1px solid var(--line); }
+    .journey-cta strong, .journey-cta span { display: block; }
+    .journey-cta strong { font-size: 14px; font-weight: 720; }
+    .journey-cta span { margin-top: 5px; color: var(--muted); font-size: 11px; }
+
     /* Prejoin */
     #prejoin-view { position: fixed; z-index: 100; inset: 0; align-items: center; justify-content: center; padding: 24px; background: rgba(2, 12, 6, .72); backdrop-filter: blur(12px); }
     .prejoin-sheet { position: relative; width: min(760px, 100%); max-height: min(850px, calc(100vh - 40px)); overflow: auto; padding: 30px; color: var(--ink); border: 1px solid rgba(255,255,255,.75); border-radius: 26px; background: var(--paper); box-shadow: 0 35px 100px rgba(0,0,0,.34); animation: sheet-in .42s var(--ease-settle) both; }
@@ -424,6 +485,12 @@
     .participant-tile--self .participant-tile__label { position: absolute; z-index: 2; right: 15px; bottom: 14px; left: 15px; }
     .participant-indicators { display: inline-flex; align-items: center; gap: 5px; }
     .participant-indicators span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.4); font-size: 11px; }
+    .participant-tile--self[data-speaking="true"] { border-color: rgba(85,242,123,.68); box-shadow: inset 0 0 0 1px rgba(85,242,123,.18), 0 0 25px rgba(85,242,123,.12); }
+    .participant-tile--self[data-speaking="true"] #room-mic-indicator { color: var(--forest); background: var(--green); box-shadow: 0 0 13px rgba(85,242,123,.5); }
+    .live-caption { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; min-height: 48px; padding: 12px 15px; color: var(--white); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: rgba(255,255,255,.055); }
+    .live-caption[hidden] { display: none; }
+    .live-caption__speaker { color: var(--green-bright); font-size: 10px; font-weight: 760; white-space: nowrap; }
+    .live-caption p { overflow: hidden; margin: 0; color: rgba(255,255,255,.8); font-size: 12px; line-height: 1.45; text-overflow: ellipsis; white-space: nowrap; }
     .smart-stage { position: relative; min-height: 465px; overflow: hidden; color: var(--ink); border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-lg); background: var(--paper); box-shadow: 0 22px 80px rgba(0,0,0,.16); transition: box-shadow .3s ease; }
     .smart-stage.stage-expanded { box-shadow: 0 0 0 3px rgba(85,242,123,.45), 0 22px 80px rgba(0,0,0,.26); }
     .stage-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 75px; padding: 15px 18px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.86); }
@@ -598,6 +665,7 @@
     .outcome-action.is-pending .outcome-action__dot { color: var(--amber); background: rgba(255,191,71,.13); }
     .status-card { margin-top: 14px; padding: 15px; color: rgba(255,255,255,.63); border: 1px solid rgba(255,191,71,.26); border-radius: 15px; background: rgba(255,191,71,.08); font-size: 11px; line-height: 1.45; }
     .status-card strong { color: #ffe3a9; font-weight: 720; }
+    .outcome-storage-status { margin: 14px 0 0 !important; color: rgba(255,255,255,.5) !important; font-size: 10px !important; }
     .outcome-actions-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 25px; }
     .outcome-button { min-height: 47px; padding: 0 18px; color: var(--forest); border-radius: var(--radius-pill); background: var(--green); font-size: 12px; font-weight: 750; }
     .outcome-button:hover { background: var(--green-bright); }
@@ -628,6 +696,11 @@
       .mobile-menu-button { display: inline-grid; place-items: center; width: 42px; height: 42px; color: var(--white); border: 1px solid rgba(255,255,255,.15); border-radius: 50%; background: transparent; }
       .mobile-menu-button svg { width: 18px; height: 18px; }
       .site-nav .nav-cta { display: none; }
+      .hero { grid-template-columns: 1fr; gap: 36px; width: min(680px, calc(100% - 40px)); min-height: auto; padding: 102px 0 64px; }
+      .hero-live-card { width: min(520px, 100%); }
+      .journey-heading { grid-template-columns: 1fr; gap: 20px; }
+      .journey-heading > p { grid-column: auto; }
+      .journey-grid { grid-template-columns: repeat(2, 1fr); }
       .room-preview { grid-template-columns: 1fr 190px; width: min(840px, calc(100vw - 42px)); }
       .room-layout { grid-template-columns: minmax(0, 1fr) 250px; width: min(100%, calc(100% - 24px)); }
       .stage-content { padding: 21px; }
@@ -639,13 +712,18 @@
       body.modal-open, body.room-open { overflow: hidden; }
       .site-nav { width: calc(100% - 24px); min-height: 54px; margin-top: 12px; padding-left: 10px; }
       .brand__wordmark { font-size: 15px; }
-      .hero { min-height: 460px; padding: 74px 20px 30px; }
-      .hero h1 { margin-top: 19px; font-size: clamp(49px, 14vw, 64px); letter-spacing: -.065em; }
+      .hero { display: grid; width: calc(100% - 34px); min-height: auto; padding: 86px 0 46px; text-align: left; }
+      .hero h1 { margin: 19px 0 18px; font-size: clamp(44px, 13vw, 60px); letter-spacing: -.065em; }
       .hero h1 br { display: none; }
       .hero__copy { font-size: 15px; }
-      .hero__actions { flex-direction: column; gap: 9px; margin-top: 24px; }
-      .button--primary { width: min(100%, 310px); }
-      .hero__proof { max-width: 300px; margin: 20px auto 0; font-size: 9px; line-height: 1.6; }
+      .hero__actions { align-items: flex-start; flex-direction: column; gap: 9px; margin-top: 24px; }
+      .hero .button--primary { width: 100%; }
+      .hero__trust { gap: 9px 15px; margin-top: 20px; font-size: 10px; }
+      .hero-live-card { width: 100%; padding: 15px; border-radius: 22px; }
+      .hero-live-card__top strong { display: none; }
+      .hero-live-card__voice { grid-template-columns: 65px 1fr; min-height: 130px; padding: 16px 2px; }
+      .hero-live-orb { width: 56px; height: 56px; }
+      .hero-live-card__voice p { font-size: 12px; }
       .energy-band { min-height: 540px; margin-top: 0; }
       .energy-band__caption { top: 30px; left: 20px; font-size: 9px; }
       .room-preview { display: block; width: calc(100% - 24px); min-height: 460px; margin-top: 88px; border-radius: 22px 22px 0 0; }
@@ -655,6 +733,13 @@
       .preview-tile { min-height: 106px; padding: 11px; }
       .preview-orb, .preview-avatar { width: 44px; height: 44px; margin-top: 11px; }
       .preview-stage h3 { font-size: 17px; }
+      .journey-section { padding: 72px 17px 78px; }
+      .journey-heading h2 { font-size: 38px; }
+      .journey-grid { grid-template-columns: 1fr; gap: 8px; margin-top: 33px; }
+      .journey-grid article { min-height: 150px; }
+      .journey-grid strong { margin-top: 34px; }
+      .journey-cta { align-items: stretch; flex-direction: column; }
+      .journey-cta .button--primary { width: 100%; }
       #prejoin-view { align-items: end; padding: 0; }
       .prejoin-sheet { width: 100%; max-height: 94svh; padding: 25px 17px 20px; border-radius: 24px 24px 0 0; }
       .prejoin-sheet h2 { margin-right: 45px; font-size: 33px; }
@@ -673,6 +758,7 @@
       .room-topbar__center { display: none; }
       .room-topbar__right { gap: 6px; }
       .room-topbar__right .status-badge { padding: 0 7px; font-size: 9px; }
+      .room-topbar__right #room-voice-chip { display: none; }
       .room-topbar__left { gap: 8px; }
       .room-title { margin-left: 0; font-size: 11px; }
       .room-elapsed { font-size: 10px; }
@@ -690,6 +776,8 @@
       .ai-state { margin-top: 5px; font-size: 9px; }
       .self-view__initials { width: 52px; height: 52px; font-size: 17px; }
       .participant-tile--self .participant-tile__label { right: 11px; bottom: 10px; left: 11px; }
+      .live-caption { grid-template-columns: 1fr; gap: 4px; min-height: 62px; padding: 10px 12px; }
+      .live-caption p { font-size: 11px; white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
       .smart-stage { min-height: 530px; border-radius: 17px; }
       .stage-header { align-items: flex-start; min-height: 73px; padding: 13px; }
       .stage-header h2 { max-width: 190px; font-size: 17px; white-space: normal; }
@@ -741,8 +829,8 @@
       .prompt-strip { width: calc(100% - 20px); margin-bottom: 7px; }
       .prompt-strip__label { display: none; }
       .prompt-chip { min-height: 36px; padding: 0 11px; font-size: 9px; }
-      .call-dock { bottom: 7px; margin-bottom: 7px; }
-      .call-control { min-width: 45px; min-height: 45px; }
+      .call-dock { bottom: 7px; max-width: calc(100% - 12px); gap: 6px; margin-bottom: 7px; padding: 6px; }
+      .call-control { min-width: 43px; min-height: 43px; }
       .prompt-drawer { right: 10px; bottom: 78px; width: calc(100% - 20px); }
       .room-toast { right: 10px; bottom: 76px; max-width: calc(100% - 20px); }
       #outcome-view { align-items: start; padding: 52px 17px 28px; }
@@ -792,15 +880,31 @@
 
       <div class="hero">
         <div class="hero__content">
-          <div class="hero__eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>INDIA'S AI EV MARKETPLACE</div>
-          <h1>Every EV choice,<br><span>made easier.</span></h1>
-          <p class="hero__copy">Compare electric cars, scooters and 3-wheelers with a multilingual AI guide that explains range, charging, finance and real ownership—then helps you take the next step.</p>
+          <div class="hero__eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>LIVE AI EV GUIDANCE FOR INDIA</div>
+          <h1>From EV confusion to a <span>confident next step.</span></h1>
+          <p class="hero__copy">Talk naturally in English, हिंदी or Hinglish. EasyEV turns your daily travel, budget and charging reality into a clear comparison across electric cars, scooters and 3-wheelers.</p>
           <div class="hero__actions">
-            <button class="button--primary" id="hero-start-button" type="button" data-open-prejoin>Start a live AI consultation</button>
-            <a class="text-link" href="#room-preview" id="see-room-link" data-see-room>See how the live room works</a>
+            <button class="button--primary" id="hero-start-button" type="button" data-open-prejoin><span class="button-live-dot" aria-hidden="true"></span>Start a live AI consultation</button>
+            <a class="text-link" href="#room-preview" id="see-room-link" data-see-room>See the experience</a>
           </div>
-          <p class="hero__proof">CARS · SCOOTERS · 3-WHEELERS · CHARGING · FINANCE</p>
+          <div class="hero__trust" aria-label="Consultation benefits">
+            <span>No sales pressure</span><span>Interrupt anytime</span><span>Camera optional</span>
+          </div>
         </div>
+        <aside class="hero-live-card" aria-label="EasyEV live consultation preview">
+          <div class="hero-live-card__top"><span><i aria-hidden="true"></i> EasyEV Live</span><strong>Agora voice connected</strong></div>
+          <div class="hero-live-card__voice">
+            <div class="hero-live-orb" aria-hidden="true"><span></span></div>
+            <div><small>AI GUIDE · HINGLISH</small><p>“Aapki daily travel need bataiye—phir hum सही EV fit compare करेंगे।”</p></div>
+          </div>
+          <div class="hero-passport">
+            <p>YOUR DECISION PASSPORT</p>
+            <div><span>Daily use</span><strong>Captured live</strong></div>
+            <div><span>Charging</span><strong>Fit checked</strong></div>
+            <div><span>Next action</span><strong>You stay in control</strong></div>
+          </div>
+          <div class="hero-live-card__footer"><span>Live voice</span><span>Visual comparisons</span><span>Local actions</span></div>
+        </aside>
       </div>
 
       <section class="energy-band" id="explore" aria-label="EasyEV Live product preview">
@@ -837,6 +941,24 @@
             <div class="preview-passport-row"><span>Charging</span><strong>To be explored</strong></div>
             <div class="preview-passport-row"><span>Next action</span><strong>Choose together</strong></div>
           </aside>
+        </div>
+      </section>
+
+      <section class="journey-section" id="how-it-works" aria-labelledby="journey-title">
+        <div class="journey-heading">
+          <p>ONE CONVERSATION. A COMPLETE BUYER JOURNEY.</p>
+          <h2 id="journey-title">Voice guidance that becomes a decision—and a next step.</h2>
+          <span>EasyEV keeps the shopper in control while turning conversation into useful, visible progress.</span>
+        </div>
+        <div class="journey-grid">
+          <article><span>01</span><strong>Discover</strong><p>Share your real commute, passengers, payload, budget and parking situation.</p></article>
+          <article><span>02</span><strong>Compare</strong><p>See category fit, trade-offs and questions that matter—not a sponsored winner.</p></article>
+          <article><span>03</span><strong>Plan</strong><p>Explore charging readiness and adjust transparent ownership-cost assumptions.</p></article>
+          <article><span>04</span><strong>Act</strong><p>Choose a test-drive step, keep your Decision Passport and continue when ready.</p></article>
+        </div>
+        <div class="journey-cta">
+          <div><strong>Ready to make your EV shortlist feel simpler?</strong><span>Usually takes a few minutes. Microphone access begins only after you join.</span></div>
+          <button class="button--primary" type="button" data-open-prejoin>Talk to EasyEV now</button>
         </div>
       </section>
     </section>
@@ -915,7 +1037,7 @@
           <div class="room-title">EasyEV Live <span class="room-elapsed" id="room-elapsed">00:00</span></div>
         </div>
         <div class="room-topbar__center">AI EV consultation</div>
-        <div class="room-topbar__right"><span class="status-badge" id="room-language-chip">Hinglish</span><span class="status-badge" id="room-connection-chip" data-state="connecting">Connecting to Agora</span></div>
+        <div class="room-topbar__right"><span class="status-badge" id="room-voice-chip">Hinglish · Indian voice</span><span class="status-badge" id="room-connection-chip" data-state="connecting">Connecting to Agora</span></div>
       </header>
 
       <div class="room-layout">
@@ -927,10 +1049,15 @@
               <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
               <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
             </div>
-            <div class="participant-tile participant-tile--self">
+            <div class="participant-tile participant-tile--self" id="self-participant-tile" data-speaking="false">
               <div class="self-view" id="room-self-view"><div class="self-view__initials" id="self-initials">EV</div><video id="room-video" autoplay playsinline muted hidden aria-label="Your camera preview"></video></div>
               <div class="participant-tile__label"><span>You</span><span class="participant-indicators"><span id="room-camera-indicator" aria-label="Camera off">⌁</span><span id="room-mic-indicator" aria-label="Microphone on">●</span></span></div>
             </div>
+          </div>
+
+          <div class="live-caption" id="live-caption" aria-live="polite">
+            <span class="live-caption__speaker" id="live-caption-speaker">EasyEV AI</span>
+            <p id="live-caption-text">Captions will appear when the conversation begins.</p>
           </div>
 
           <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
@@ -987,6 +1114,7 @@
         <button class="call-control" id="camera-control" type="button" aria-label="Toggle camera" aria-pressed="false" data-control="camera" data-tooltip="Camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 7h2l2-2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2l-2-2h-2"/><rect x="3" y="7" width="13" height="10" rx="2"/><circle cx="9.5" cy="12" r="2.5"/></svg></button>
         <button class="call-control call-control--interrupt" id="interrupt-control" type="button" aria-label="Interrupt AI" data-control="interrupt" data-tooltip="Interrupt AI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6v12M18 6v12"/></svg></button>
         <button class="call-control" id="text-control" type="button" aria-label="Open text prompt" data-control="text" data-tooltip="Open text prompt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H8l-4 4V5Z"/><path d="M8 9h8M8 12h5"/></svg></button>
+        <button class="call-control" id="captions-control" type="button" aria-label="Turn captions off" aria-pressed="true" data-control="captions" data-tooltip="Captions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M6.5 10.5h4M13.5 10.5h4M6.5 14h5M14.5 14h3"/></svg></button>
         <button class="call-control call-control--end" id="end-call-control" type="button" aria-label="End call" data-control="end" data-tooltip="End call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M7 8.5c-1.1 1.3-1.6 2.6-1.6 3.7 0 2.4 3.2 4.6 6.6 4.6s6.6-2.2 6.6-4.6c0-1.1-.5-2.4-1.6-3.7"/><path d="m8.3 9.1 1.5 2.2M15.7 9.1l-1.5 2.2"/></svg></button>
       </div>
     </section>
@@ -1010,7 +1138,8 @@
           </section>
         </div>
         <div class="status-card"><strong>Live status:</strong> voice and transcript transport use Agora Conversational AI. Vehicle comparisons, cost assumptions and booking actions remain clearly illustrative and local.</div>
-        <div class="outcome-actions-row"><button class="outcome-button" id="return-home-button" type="button">Return to EasyEV</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Start another consultation</button></div>
+        <p class="outcome-storage-status" id="outcome-storage-status" role="status">Your Decision Passport has not been saved beyond this session.</p>
+        <div class="outcome-actions-row"><button class="outcome-button" id="save-passport-button" type="button">Save passport on this device</button><button class="outcome-button outcome-button--secondary" id="download-passport-button" type="button">Download summary</button><button class="outcome-button outcome-button--secondary" id="return-home-button" type="button">Return home</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Start another</button></div>
       </div>
     </section>
   </main>
@@ -1032,8 +1161,12 @@
         integrationMode: new URLSearchParams(window.location.search).get('demo') === '1' ? 'demo' : 'live',
         connectionState: 'disconnected',
         connectionError: '',
+        agentConnected: false,
+        networkQuality: { uplink: 0, downlink: 0 },
+        localAudioLevel: 0,
         agentMode: 'idle',
         muted: false,
+        captionsEnabled: true,
         cameraEnabled: false,
         language: 'Hinglish',
         category: 'Not sure',
@@ -1059,7 +1192,8 @@
         booking: { slot: '', demoType: '', confirmed: false },
         costModel: { dailyKm: 70, unitCost: 8, years: 5 },
         chargeProgress: 0,
-        chargePlaying: false
+        chargePlaying: false,
+        outcomeSaved: false
       });
 
       let state = createState();
@@ -1072,6 +1206,7 @@
       let prejoinReturnFocus = null;
       let promptReturnFocus = null;
       let toastTimer = null;
+      const PASSPORT_STORAGE_KEY = 'easyev-decision-passport-v1';
       const lifecycleTimers = new Set();
       const adapterTimers = new Set();
 
@@ -1132,6 +1267,15 @@
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Options shaped around your usage', 'charging-demo': 'Make charging fit your routine', 'ownership-cost': 'See the ownership picture', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Checking the best next view…', speaking: 'Speaking', interrupted: 'Listening to you' }[mode] || 'Listening to you');
+      const networkLabel = () => {
+        const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
+        if (!values.length) return '';
+        const worst = Math.max(...values);
+        if (worst <= 2) return 'Strong';
+        if (worst === 3) return 'Good';
+        if (worst === 4) return 'Weak';
+        return 'Poor';
+      };
 
       const carSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M25 44h100l-7-21a7 7 0 0 0-7-5H39a7 7 0 0 0-7 5l-7 21Z"/><path d="M19 44h112v8H19zM42 18l8-11h50l8 11"/><circle cx="43" cy="52" r="7" fill="currentColor"/><circle cx="107" cy="52" r="7" fill="currentColor"/><path d="M54 26h42"/></svg>';
       const scooterSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="38" cy="52" r="9"/><circle cx="112" cy="52" r="9"/><path d="M38 52h42l18-34h18M80 52 67 22h25M98 18h12l9 7h-15"/></svg>';
@@ -1179,8 +1323,13 @@
         emit(type, payload = {}) { const event = eventEnvelope(type, payload); this.handlers.forEach((handler) => handler(event)); },
         async join(context) {
           this.leave();
-          const greeting = "Namaste! I'm your EasyEV guide. I can help you compare cars, scooters and 3-wheelers around how you actually travel—not just a brochure. What are you trying to solve?";
+          const greeting = context.language === 'Hindi'
+            ? 'नमस्ते! मैं आपकी EasyEV गाइड हूँ। आप रोज़ कितनी दूरी तय करते हैं, और EV से क्या ज़रूरत पूरी करना चाहते हैं?'
+            : context.language === 'English'
+              ? 'Hello! I am your EasyEV guide. Tell me about your daily travel, and we will find the EV that fits your life.'
+              : 'नमस्ते! मैं आपकी EasyEV guide हूँ। अपनी daily travel need बताइए, फिर हम सही EV fit साथ में compare करेंगे।';
           scheduleAdapter(() => { if (isCurrentSession(context.sessionId)) this.emit('CALL_STATUS', { status: 'live', sessionId: context.sessionId }); }, 820);
+          scheduleAdapter(() => { if (isCurrentSession(context.sessionId)) this.emit('AGENT_CONNECTED', { connected: true, sessionId: context.sessionId }); }, 840);
           scheduleAdapter(() => { if (isCurrentSession(context.sessionId, context.turnId)) this.emit('AGENT_STATE', { mode: 'speaking', turnId: context.turnId }); }, 900);
           scheduleAdapter(() => { if (isCurrentSession(context.sessionId, context.turnId)) this.emit('TRANSCRIPT_ADD', { speaker: 'ai', text: greeting, meta: { turnId: context.turnId } }); }, 930);
           scheduleAdapter(() => { if (isCurrentSession(context.sessionId, context.turnId)) this.emit('AGENT_STATE', { mode: 'listening', turnId: context.turnId }); }, 4300);
@@ -1221,9 +1370,19 @@
         const updated = $('#passport-updated');
         if (updated) updated.hidden = state.profileFlash.size === 0;
       };
+      const renderLiveCaption = () => {
+        const container = $('#live-caption');
+        const speaker = $('#live-caption-speaker');
+        const text = $('#live-caption-text');
+        if (container) container.hidden = !state.captionsEnabled;
+        const latest = state.transcript[state.transcript.length - 1];
+        if (speaker) speaker.textContent = latest?.speaker === 'you' ? 'You' : 'EasyEV AI';
+        if (text) text.textContent = latest?.text || 'Captions will appear when the conversation begins.';
+      };
       const renderTranscript = () => {
         const target = $('#transcript-content');
         if (!target) return;
+        renderLiveCaption();
         target.replaceChildren();
         if (!state.transcript.length) {
           const empty = document.createElement('p');
@@ -1343,13 +1502,14 @@
 
         $$('.category-tile').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.category === state.category)));
         $$('.segment').forEach((button) => button.setAttribute('aria-pressed', String(button.dataset.language === state.language)));
-        const langChip = $('#room-language-chip');
-        if (langChip) langChip.textContent = state.language;
+        const voiceChip = $('#room-voice-chip');
+        if (voiceChip) voiceChip.textContent = `${state.language} · Indian voice`;
         const connectionChip = $('#room-connection-chip');
         if (connectionChip) {
-          const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' ? 'live' : 'connecting';
+          const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' && state.agentConnected ? 'live' : 'connecting';
           connectionChip.dataset.state = chipState;
-          connectionChip.textContent = state.integrationMode === 'demo' ? 'Offline demo' : chipState === 'live' ? 'Agora live' : chipState === 'error' ? 'Connection failed' : 'Connecting to Agora';
+          const quality = networkLabel();
+          connectionChip.textContent = state.integrationMode === 'demo' ? 'Offline demo' : chipState === 'live' ? `Agora live${quality ? ` · ${quality}` : ''}` : chipState === 'error' ? 'Connection failed' : state.callStatus === 'live' ? 'AI joining…' : 'Connecting to Agora';
         }
         const stageTitleElement = document.getElementById('stage-title');
         if (stageTitleElement) stageTitleElement.textContent = state.stage.payload.title || stageTitle(state.stage.type);
@@ -1368,6 +1528,14 @@
         }
         const camera = $('#camera-control');
         if (camera) camera.setAttribute('aria-pressed', String(state.cameraEnabled));
+        const captions = $('#captions-control');
+        if (captions) {
+          captions.setAttribute('aria-pressed', String(state.captionsEnabled));
+          captions.setAttribute('aria-label', state.captionsEnabled ? 'Turn captions off' : 'Turn captions on');
+          captions.dataset.tooltip = state.captionsEnabled ? 'Turn captions off' : 'Turn captions on';
+        }
+        const selfTile = $('#self-participant-tile');
+        if (selfTile) selfTile.dataset.speaking = String(!state.muted && state.localAudioLevel > .035);
         const micIndicator = $('#room-mic-indicator');
         if (micIndicator) { micIndicator.textContent = state.muted ? '×' : '●'; micIndicator.setAttribute('aria-label', state.muted ? 'Microphone muted' : 'Microphone on'); }
         const cameraIndicator = $('#room-camera-indicator');
@@ -1384,6 +1552,13 @@
         if (prejoinAvatar) prejoinAvatar.hidden = Boolean(localStream);
         if (roomVideo) roomVideo.hidden = !(localStream && state.cameraEnabled);
         if (selfInitials) selfInitials.hidden = Boolean(localStream && state.cameraEnabled);
+        const liveCaption = $('#live-caption');
+        const captionSpeaker = $('#live-caption-speaker');
+        const captionText = $('#live-caption-text');
+        if (liveCaption) liveCaption.hidden = !state.captionsEnabled;
+        const latestCaption = state.transcript[state.transcript.length - 1];
+        if (captionSpeaker) captionSpeaker.textContent = latestCaption?.speaker === 'you' ? 'You' : 'EasyEV AI';
+        if (captionText) captionText.textContent = latestCaption?.text || 'Captions will appear when the conversation begins.';
         const tab = state.selectedTab;
         $$('[data-tab]').forEach((button) => button.setAttribute('aria-selected', String(button.dataset.tab === tab)));
         ['passport', 'transcript', 'actions'].forEach((panel) => { const element = $(`#${panel}-panel`); if (element) element.hidden = panel !== tab; });
@@ -1395,6 +1570,8 @@
         updateCostModelUI();
         syncBookingSelection();
         renderOutcome();
+        const storageStatus = $('#outcome-storage-status');
+        if (storageStatus) storageStatus.textContent = state.outcomeSaved ? 'Decision Passport saved locally on this device. No external service received it.' : 'Your Decision Passport has not been saved beyond this session.';
       };
 
       const setView = (view) => { state.view = view; renderApp(); };
@@ -1441,6 +1618,9 @@
         state.callStatus = 'connecting';
         state.connectionState = 'connecting';
         state.connectionError = '';
+        state.agentConnected = false;
+        state.networkQuality = { uplink: 0, downlink: 0 };
+        state.localAudioLevel = 0;
         state.agentMode = 'idle';
         state.elapsedSeconds = 0;
         state.transcript = [];
@@ -1454,6 +1634,7 @@
         state.costModel = { dailyKm: 70, unitCost: 8, years: 5 };
         state.chargeProgress = 0;
         state.chargePlaying = false;
+        state.outcomeSaved = false;
         state.interruptAvailable = false;
         state.selectedTab = 'passport';
         state.sessionId = ++sessionCounter;
@@ -1578,6 +1759,42 @@
         renderApp();
         showToast('Demo booking saved locally. No external event was sent.');
       };
+      const decisionPassportSnapshot = () => ({
+        version: 1,
+        savedAt: new Date().toISOString(),
+        language: state.language,
+        category: state.category,
+        duration: formatElapsedTime(state.elapsedSeconds),
+        lastView: state.stage.payload.title || stageTitle(state.stage.type),
+        profile: { ...state.profile },
+        booking: { ...state.booking },
+        costAssumptions: { ...state.costModel },
+        actions: state.actions.map((item) => ({ title: item.title, detail: item.detail, status: item.status })),
+        disclosure: 'Vehicle comparisons and cost assumptions are illustrative. Booking selections are local simulations; no calendar, dealer, or WhatsApp action was created.'
+      });
+      const saveDecisionPassport = () => {
+        try {
+          window.localStorage.setItem(PASSPORT_STORAGE_KEY, JSON.stringify(decisionPassportSnapshot()));
+          state.outcomeSaved = true;
+          renderApp();
+        } catch {
+          const status = $('#outcome-storage-status');
+          if (status) status.textContent = 'This browser blocked local storage, so the passport was not saved.';
+        }
+      };
+      const downloadDecisionPassport = () => {
+        const blob = new Blob([JSON.stringify(decisionPassportSnapshot(), null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'EasyEV-Decision-Passport.json';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 0);
+        const status = $('#outcome-storage-status');
+        if (status) status.textContent = 'Decision Passport downloaded. Nothing was sent to an external service.';
+      };
       const resetToLanding = () => {
         clearActiveTurn();
         activeAdapter()?.leave();
@@ -1679,6 +1896,26 @@
           renderApp();
           return;
         }
+        if (event.type === 'AGENT_CONNECTED' && isCurrentSession(payload.sessionId)) {
+          state.agentConnected = Boolean(payload.connected);
+          renderApp();
+          return;
+        }
+        if (event.type === 'NETWORK_QUALITY' && isCurrentSession(payload.sessionId)) {
+          state.networkQuality = { uplink: Number(payload.uplink || 0), downlink: Number(payload.downlink || 0) };
+          const chip = $('#room-connection-chip');
+          if (chip && state.callStatus === 'live' && state.agentConnected) {
+            const quality = networkLabel();
+            chip.textContent = `Agora live${quality ? ` · ${quality}` : ''}`;
+          }
+          return;
+        }
+        if (event.type === 'LOCAL_AUDIO_LEVEL' && isCurrentSession(payload.sessionId)) {
+          state.localAudioLevel = Number(payload.level || 0);
+          const selfTile = $('#self-participant-tile');
+          if (selfTile) selfTile.dataset.speaking = String(!state.muted && state.localAudioLevel > .035);
+          return;
+        }
         if (event.type === 'TRANSCRIPT_SYNC' && isCurrentSession(payload.sessionId)) {
           syncLiveTranscript(payload.entries);
           return;
@@ -1754,10 +1991,13 @@
         }
         if (target.matches('[data-control="camera"]')) { toggleRoomCamera(); return; }
         if (target.matches('[data-control="text"]')) { openPromptDrawer(); return; }
+        if (target.matches('[data-control="captions"]')) { state.captionsEnabled = !state.captionsEnabled; renderApp(); return; }
         if (target.matches('[data-control="end"]')) { leaveRoom(); return; }
         if (target.id === 'close-prompt-drawer') { closePromptDrawer(); return; }
         if (target.id === 'charge-play-button') { toggleChargePlayback(); return; }
         if (target.id === 'stage-expand-button') { const stage = $('#smart-stage'); const expanded = stage?.dataset.expanded === 'true'; if (stage) stage.dataset.expanded = String(!expanded); target.setAttribute('aria-expanded', String(!expanded)); target.setAttribute('aria-label', expanded ? 'Expand smart stage' : 'Collapse smart stage'); target.dataset.tooltip = expanded ? 'Expand stage' : 'Collapse stage'; return; }
+        if (target.id === 'save-passport-button') { saveDecisionPassport(); return; }
+        if (target.id === 'download-passport-button') { downloadDecisionPassport(); return; }
         if (target.id === 'return-home-button') { resetToLanding(); return; }
         if (target.id === 'reopen-room-button') { reopenRoom(); return; }
       });
@@ -1773,10 +2013,15 @@
         if (nav && !nav.contains(event.target)) toggleMobileNav();
       });
       document.addEventListener('keydown', (event) => {
-        if (event.key !== 'Escape') return;
-        if (navOpen) { toggleMobileNav(); return; }
-        if (state.view === 'prejoin') { closePrejoin(); return; }
-        if (!$('#prompt-drawer')?.hidden) { closePromptDrawer(); return; }
+        if (event.key === 'Escape') {
+          if (navOpen) { toggleMobileNav(); return; }
+          if (state.view === 'prejoin') { closePrejoin(); return; }
+          if (!$('#prompt-drawer')?.hidden) { closePromptDrawer(); return; }
+        }
+        if (state.view !== 'room' || event.altKey || event.ctrlKey || event.metaKey || event.target.matches('input, textarea, select, button')) return;
+        if (event.key.toLowerCase() === 'c') { state.captionsEnabled = !state.captionsEnabled; renderApp(); }
+        if (event.key.toLowerCase() === 't') openPromptDrawer();
+        if (event.key.toLowerCase() === 'm') $('#mic-control')?.click();
       });
       $('#prompt-form')?.addEventListener('submit', (event) => {
         event.preventDefault();
