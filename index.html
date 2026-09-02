@@ -733,6 +733,61 @@
     .outcome-heading { display: grid; grid-template-columns: minmax(0,1fr) 150px; gap: 20px; align-items: end; }
     .outcome-guide { width: 150px; height: 150px; object-fit: contain; filter: drop-shadow(0 15px 18px rgba(0,0,0,.35)); }
 
+    /* Agentic tool experiences */
+    .action-rail { display: flex; align-items: center; gap: 8px; min-height: 42px; overflow-x: auto; padding: 0 2px 2px; scrollbar-width: none; }
+    .action-rail::-webkit-scrollbar { display: none; }
+    .action-rail__label { flex: 0 0 auto; color: rgba(255,255,255,.4); font-size: 9px; font-weight: 760; letter-spacing: .12em; text-transform: uppercase; }
+    .tool-run { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; min-height: 34px; padding: 0 11px; color: rgba(255,255,255,.7); border: 1px solid rgba(255,255,255,.12); border-radius: var(--radius-pill); background: rgba(255,255,255,.05); font-size: 10px; font-weight: 650; }
+    .tool-run::before { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: rgba(255,255,255,.35); content: ''; }
+    .tool-run[data-phase="started"]::before { background: var(--amber); box-shadow: 0 0 0 4px rgba(255,191,71,.1); animation: ring-breathe 1.2s ease-in-out infinite; }
+    .tool-run[data-phase="completed"]::before { background: var(--green); box-shadow: 0 0 0 4px rgba(85,242,123,.08); }
+    .tool-run[data-phase="failed"]::before { background: var(--danger); }
+    .tool-run[data-phase="awaiting_input"]::before { background: var(--amber); }
+    .stage-pin { min-height: 36px; padding: 0 10px; color: var(--muted); border: 1px solid var(--line); border-radius: 10px; background: var(--white); font-size: 10px; font-weight: 700; }
+    .stage-pin[aria-pressed="true"] { color: var(--forest); border-color: var(--green-deep); background: var(--mint); }
+    .queued-result { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0 0; padding: 10px 12px; color: var(--forest); border: 1px solid rgba(85,242,123,.34); border-radius: 12px; background: rgba(85,242,123,.12); font-size: 10px; }
+    .tool-loading { display: grid; place-items: center; min-height: 300px; text-align: center; }
+    .tool-loading__orb { width: 48px; height: 48px; margin: 0 auto 17px; border: 2px solid var(--line); border-top-color: var(--green-deep); border-radius: 50%; animation: orbit-spin .8s linear infinite; }
+    .tool-loading strong { display: block; margin-bottom: 5px; color: var(--ink-2); font-size: 17px; }
+    .tool-loading span { color: var(--muted); font-size: 11px; }
+    .verified-comparison { display: grid; grid-template-columns: repeat(auto-fit, minmax(205px, 1fr)); gap: 11px; margin-top: 20px; }
+    .verified-vehicle { min-width: 0; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: var(--white); }
+    .verified-vehicle__media { position: relative; display: grid; place-items: center; height: 118px; overflow: hidden; color: var(--forest-2); background: linear-gradient(135deg, var(--mint), #f7fff9); }
+    .verified-vehicle__media img { width: 100%; height: 100%; object-fit: cover; }
+    .verified-vehicle__media svg { width: 130px; }
+    .verified-vehicle__body { padding: 13px; }
+    .verified-vehicle h4 { margin: 0 0 4px; color: var(--ink); font-size: 14px; }
+    .vehicle-rank { color: var(--green-deep); font-size: 9px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }
+    .fact-grid { display: grid; gap: 6px; margin: 11px 0; }
+    .fact-grid div { display: grid; grid-template-columns: .75fr 1.25fr; gap: 7px; color: var(--muted); font-size: 9px; }
+    .fact-grid strong { color: var(--ink-2); font-weight: 650; text-align: right; }
+    .source-link { color: var(--green-deep); font-size: 9px; font-weight: 690; text-decoration: underline; text-underline-offset: 2px; }
+    .media-credit { display: block; margin-top: 6px; color: var(--muted-2); font-size: 8px; line-height: 1.3; }
+    .tool-notice { margin: 14px 0 0; padding: 10px 12px; color: #604b1e; border: 1px solid #ead6a5; border-radius: 11px; background: #fff9eb; font-size: 10px; line-height: 1.4; }
+    .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 20px; }
+    .metric-card { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: var(--white); }
+    .metric-card span { display: block; color: var(--muted); font-size: 9px; }
+    .metric-card strong { display: block; margin-top: 6px; color: var(--ink); font-size: 18px; letter-spacing: -.04em; }
+    .cost-bars { display: grid; gap: 13px; margin-top: 20px; }
+    .cost-bar { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; gap: 9px; align-items: center; font-size: 10px; }
+    .cost-bar__track { height: 10px; overflow: hidden; border-radius: 9px; background: var(--line); }
+    .cost-bar__fill { display: block; height: 100%; border-radius: inherit; background: var(--green-deep); }
+    .cost-bar--fuel .cost-bar__fill { background: #d9a442; }
+    .assumption-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+    .assumption-chips span { padding: 6px 8px; color: var(--muted); border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--panel); font-size: 9px; }
+    .consent-card { max-width: 650px; margin-top: 22px; padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: var(--white); }
+    .consent-card h4 { margin: 0 0 7px; font-size: 14px; }
+    .consent-card p { margin: 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.45; }
+    .consent-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .snapshot-preview { width: min(270px, 100%); max-height: 180px; margin-top: 12px; border-radius: 12px; object-fit: contain; background: #eaf1ec; }
+    .readiness-list { display: grid; gap: 8px; margin-top: 18px; }
+    .readiness-list li { padding: 10px 12px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 11px; background: var(--white); font-size: 10px; line-height: 1.4; }
+    .report-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; margin-top: 24px; padding: 20px; border: 1px solid rgba(22,191,83,.28); border-radius: 17px; background: linear-gradient(135deg, var(--mint), #fff); }
+    .report-icon { display: grid; place-items: center; width: 52px; height: 52px; color: var(--forest); border-radius: 14px; background: var(--green); font-size: 21px; font-weight: 800; }
+    .report-card strong { display: block; font-size: 14px; }
+    .report-card span { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; }
+    .stage-file-input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+
     /* Motion */
     @keyframes nav-in { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes rise-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
@@ -917,6 +972,20 @@
       .outcome-card { padding: 17px; }
       .outcome-actions-row { display: grid; }
       .outcome-button { width: 100%; }
+      .action-rail { min-height: 37px; }
+      .action-rail__label { display: none; }
+      .tool-run { min-height: 32px; padding: 0 9px; font-size: 9px; }
+      .smart-stage { max-height: 68svh; overflow: auto; border-radius: 20px 20px 0 0; }
+      .verified-comparison { grid-template-columns: 1fr; }
+      .verified-vehicle { display: grid; grid-template-columns: 110px minmax(0, 1fr); }
+      .verified-vehicle__media { height: 100%; min-height: 145px; }
+      .metric-grid { grid-template-columns: repeat(2, 1fr); }
+      .cost-bar { grid-template-columns: 86px minmax(0, 1fr); }
+      .cost-bar > strong { grid-column: 2; }
+      .report-card { grid-template-columns: auto minmax(0, 1fr); }
+      .report-card .stage-action { grid-column: 1 / -1; }
+      .consent-actions { align-items: stretch; flex-direction: column; }
+      .consent-actions .stage-action, .consent-actions label { width: 100%; text-align: center; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1119,7 +1188,7 @@
           </section>
 
           <div class="prejoin-footer">
-            <p class="footnote">Voice is connected through Agora. Vehicle content and booking actions remain illustrative and must be verified before purchase.</p>
+            <p class="footnote" id="backend-ready-status" role="status">Waking backend… Join becomes available when Agora and the decision tools are ready.</p>
             <button class="join-button" id="join-demo-button" type="button">Join live consultation</button>
           </div>
         </div>
@@ -1159,10 +1228,15 @@
             <p id="live-caption-text">Captions will appear when the conversation begins.</p>
           </div>
 
+          <div class="action-rail" id="action-rail" aria-label="Live agent actions">
+            <span class="action-rail__label">Agent actions</span>
+            <span class="tool-run" data-phase="completed">Ready for your request</span>
+          </div>
+
           <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
             <header class="stage-header">
               <div class="stage-header__left"><p class="stage-kicker">Smart stage</p><h2 id="stage-title">Let's find what fits your life</h2></div>
-              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative visual</span><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
+              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative visual</span><button class="stage-pin" id="stage-pin-button" type="button" aria-label="Pin current result" aria-pressed="false">Pin</button><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
             </header>
             <span class="presented-label">Presented by EasyEV AI</span>
             <div class="stage-content" id="stage-content" aria-live="polite"></div>
@@ -1200,6 +1274,8 @@
         <button class="prompt-chip" type="button" data-turn="charging">Show how home charging works</button>
         <button class="prompt-chip" type="button" data-turn="map">Find nearby chargers</button>
         <button class="prompt-chip" type="button" data-turn="ownership">Estimate ownership cost</button>
+        <button class="prompt-chip" type="button" data-tool-prompt="snapshot">Check my charging setup</button>
+        <button class="prompt-chip" type="button" data-tool-prompt="report">Build decision report</button>
         <button class="prompt-chip" type="button" data-turn="booking">Book a test drive</button>
       </div>
 
@@ -1238,9 +1314,9 @@
             <div class="outcome-actions" id="outcome-actions"></div>
           </section>
         </div>
-        <div class="status-card"><strong>Live status:</strong> voice and transcript transport use Agora Conversational AI. Vehicle comparisons, cost assumptions and booking actions remain clearly illustrative and local.</div>
+        <div class="status-card"><strong>Live status:</strong> voice and transcripts use Agora. Verified catalog, charging, ownership and report results come from structured tools. Dealer, calendar, WhatsApp and booking actions remain simulated.</div>
         <p class="outcome-storage-status" id="outcome-storage-status" role="status">Your Decision Passport has not been saved beyond this session.</p>
-        <div class="outcome-actions-row"><button class="outcome-button" id="save-passport-button" type="button">Save passport on this device</button><button class="outcome-button outcome-button--secondary" id="download-passport-button" type="button">Download summary</button><button class="outcome-button outcome-button--secondary" id="return-home-button" type="button">Return home</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Start another</button></div>
+        <div class="outcome-actions-row"><button class="outcome-button" id="download-report-button" type="button">Download decision PDF</button><button class="outcome-button outcome-button--secondary" id="save-passport-button" type="button">Save passport on this device</button><button class="outcome-button outcome-button--secondary" id="download-passport-button" type="button">Download JSON summary</button><button class="outcome-button outcome-button--secondary" id="return-home-button" type="button">Return home</button><button class="outcome-button outcome-button--secondary" id="reopen-room-button" type="button">Start another</button></div>
       </div>
     </section>
   </main>
@@ -1254,12 +1330,20 @@
         { id: 'requirements', title: 'Requirements captured', detail: 'Waiting for the conversation to begin', status: 'pending' },
         { id: 'comparison', title: 'Comparison prepared', detail: 'A fit view will appear after your usage is clear', status: 'pending' },
         { id: 'charging', title: 'Charging questions identified', detail: 'Parking, load and installation checks are pending', status: 'pending' },
+        { id: 'ownership', title: 'Ownership scenario calculated', detail: 'Distance and tariff assumptions are pending', status: 'pending' },
+        { id: 'readiness', title: 'Visual readiness checked', detail: 'Optional one-time snapshot only', status: 'pending' },
+        { id: 'report', title: 'Decision report generated', detail: 'Build from the structured Passport when ready', status: 'pending' },
         { id: 'booking', title: 'Demo slot selected', detail: 'Choose a time and demo type when ready', status: 'pending' }
       ];
       const createState = () => ({
         view: 'landing',
         callStatus: 'idle',
         integrationMode: new URLSearchParams(window.location.search).get('demo') === '1' ? 'demo' : 'live',
+        backendReady: false,
+        backendPhase: 'Waking backend',
+        backendElapsedMs: 0,
+        toolsMode: 'unavailable',
+        toolsConnected: false,
         connectionState: 'disconnected',
         connectionError: '',
         agentConnected: false,
@@ -1277,6 +1361,14 @@
         elapsedSeconds: 0,
         stage: { type: 'welcome', payload: { title: "Let's find what fits your life", sourceStatus: 'illustrative' } },
         stageRevision: 0,
+        stagePinned: false,
+        pendingStage: null,
+        toolRuns: [],
+        processedToolEventIds: new Set(),
+        decisionPassport: null,
+        reportUrl: '',
+        reportReady: false,
+        snapshotPreview: '',
         profile: {
           category: 'Not selected',
           useCase: 'Discovering',
@@ -1294,7 +1386,7 @@
         selectedTab: 'passport',
         profileFlash: new Set(),
         booking: { slot: '', demoType: '', confirmed: false },
-        costModel: { dailyKm: 70, unitCost: 8, years: 5 },
+        costModel: { dailyKm: 70, unitCost: 8, years: 5, publicRate: 18, homeShare: 80 },
         chargeProgress: 0,
         chargePlaying: false,
         map: { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' },
@@ -1311,6 +1403,8 @@
       let prejoinReturnFocus = null;
       let promptReturnFocus = null;
       let toastTimer = null;
+      let backendReadyTimer = null;
+      let costRecalcTimer = null;
       let currentPreviewAudio = null;
       let mapRequestController = null;
       const PASSPORT_STORAGE_KEY = 'easyev-decision-passport-v1';
@@ -1372,8 +1466,9 @@
         return `${minutes}:${remainder}`;
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Options shaped around your usage', 'charging-demo': 'Make charging fit your routine', 'charging-map': 'Live chargers near you', 'ownership-cost': 'See the ownership picture', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
-      const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Checking the best next view…', speaking: 'Speaking', interrupted: 'Listening to you' }[mode] || 'Listening to you');
+      const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
+      const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Working on it…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const networkLabel = () => {
         const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
         if (!values.length) return '';
@@ -1478,12 +1573,41 @@
       const renderPassport = () => {
         const target = $('#passport-content');
         if (!target) return;
-        const fields = [
-          ['Category', 'category'], ['Use case', 'useCase'], ['Daily distance', 'dailyDistance'], ['Budget', 'budget'], ['Charging', 'charging'], ['Priority', 'priority']
+        const passport = state.decisionPassport;
+        const profile = passport?.profile || {};
+        const fields = passport ? [
+          ['Category', profile.category || state.profile.category],
+          ['Daily distance', profile.dailyKm ? `${profile.dailyKm} km/day` : state.profile.dailyDistance],
+          ['Priorities', profile.priorities?.length ? profile.priorities.join(', ') : state.profile.priority],
+          ['Shortlist', passport.shortlist?.length ? passport.shortlist.map((item) => item.name).join(', ') : 'Not prepared'],
+          ['Charging', profile.chargingAccess || 'Not discussed'],
+          ['Ownership', passport.ownership ? `${money(passport.ownership.results.annualSavings)} annual running savings estimate` : 'Not calculated'],
+          ['Readiness', passport.readiness ? (passport.readiness.rejected ? 'Image rejected and deleted' : 'Advisory checklist ready') : 'Not checked'],
+          ['Report', state.reportReady ? 'PDF ready' : 'Not generated']
+        ] : [
+          ['Category', state.profile.category], ['Use case', state.profile.useCase], ['Daily distance', state.profile.dailyDistance],
+          ['Budget', state.profile.budget], ['Charging', state.profile.charging], ['Priority', state.profile.priority]
         ];
-        target.innerHTML = fields.map(([label, key]) => `<div class="passport-row"><span class="passport-row__label">${label}</span><strong class="passport-row__value${state.profileFlash.has(key) ? ' is-updated' : ''}">${escapeHtml(state.profile[key])}</strong></div>`).join('');
+        target.innerHTML = fields.map(([label, value]) => `<div class="passport-row"><span class="passport-row__label">${escapeHtml(label)}</span><strong class="passport-row__value">${escapeHtml(value)}</strong></div>`).join('');
         const updated = $('#passport-updated');
-        if (updated) updated.hidden = state.profileFlash.size === 0;
+        if (updated) updated.hidden = !passport && state.profileFlash.size === 0;
+      };
+
+      const renderActionRail = () => {
+        const target = $('#action-rail');
+        if (!target) return;
+        const labels = {
+          compare_vehicles: 'Verified comparison',
+          find_nearby_chargers: 'Nearby chargers',
+          calculate_ownership: 'Ownership scenario',
+          analyze_readiness_snapshot: 'Visual readiness',
+          generate_decision_report: 'Decision report',
+          system: 'Decision tools'
+        };
+        const runs = state.toolRuns.slice(-5);
+        target.innerHTML = '<span class="action-rail__label">Agent actions</span>' + (runs.length
+          ? runs.map((run) => `<button class="tool-run" type="button" data-phase="${escapeHtml(run.phase)}" data-tool-run-id="${escapeHtml(run.toolRunId || '')}">${escapeHtml(run.message || labels[run.tool] || 'Working')}</button>`).join('')
+          : '<span class="tool-run" data-phase="completed">Ready for your request</span>');
       };
       const renderLiveCaption = () => {
         const container = $('#live-caption');
@@ -1636,6 +1760,44 @@
           renderApp();
           return;
         }
+        if (state.integrationMode === 'live') {
+          state.map.status = 'locating';
+          state.map.message = 'Waiting for your location permission…';
+          state.stageRevision += 1;
+          renderApp();
+          navigator.geolocation.getCurrentPosition(async (position) => {
+            if (state.view !== 'room') return;
+            state.map.lat = position.coords.latitude;
+            state.map.lng = position.coords.longitude;
+            state.map.status = 'loading';
+            state.map.message = 'Checking Open Charge Map, then OpenStreetMap if needed…';
+            state.stageRevision += 1;
+            renderApp();
+            try {
+              await activeAdapter()?.setContext({
+                location: {
+                  lat: state.map.lat,
+                  lng: state.map.lng,
+                  accuracy: position.coords.accuracy,
+                  consented: true
+                }
+              });
+              await activeAdapter()?.runTool('find_nearby_chargers', { radiusKm: 10 });
+            } catch (error) {
+              if (error?.name === 'AbortError') return;
+              state.map.status = 'error';
+              state.map.message = error?.message || 'Charging sources could not be checked.';
+              state.stageRevision += 1;
+              renderApp();
+            }
+          }, (error) => {
+            state.map.status = 'error';
+            state.map.message = error.code === 1 ? 'Location permission was not granted. Nothing was shared.' : 'Your location could not be determined.';
+            state.stageRevision += 1;
+            renderApp();
+          }, { enableHighAccuracy: false, timeout: 10_000, maximumAge: 5 * 60 * 1000 });
+          return;
+        }
         state.map.status = 'locating';
         state.map.message = 'Waiting for your location permission…';
         state.stageRevision += 1;
@@ -1683,15 +1845,34 @@
         if (!target) return;
         const payload = state.stage.payload || {};
         const type = state.stage.type;
-        if (type === 'welcome') {
+        if (type === 'tool-loading') {
+          target.innerHTML = `<div class="tool-loading" role="status"><div><div class="tool-loading__orb" aria-hidden="true"></div><strong>${escapeHtml(payload.message || 'Understanding your request')}</strong><span>EasyEV will present the result here as soon as the tool finishes.</span></div></div>`;
+        } else if (type === 'tool-error') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>This tool needs another try</h3><p>${escapeHtml(payload.message || 'The decision tool could not finish. Your call is still connected.')}</p></div><div class="consent-card"><h4>No result was invented</h4><p>Try asking again, change the request, or continue with another tool. Existing Passport data is unchanged.</p></div>`;
+        } else if (type === 'welcome') {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's find what fits your life</h3><p>We can start broad and narrow it down around how you actually travel.</p></div><div class="stage-category-grid"><button class="stage-category-card" type="button" data-stage-category="Electric car">${carSvg}<strong>Electric cars</strong><small>Family, comfort and longer journeys</small></button><button class="stage-category-card" type="button" data-stage-category="Electric scooter">${scooterSvg}<strong>Electric scooters</strong><small>Commutes, agility and easy parking</small></button><button class="stage-category-card" type="button" data-stage-category="Electric 3-wheeler">${threeWheelerSvg}<strong>Electric 3-wheelers</strong><small>Work, passengers and daily utility</small></button></div><p class="stage-note">The recommendation changes as your requirements change.</p>`;
         } else if (type === 'category-map') {
           const selected = state.category;
           target.innerHTML = `<div class="stage-content__intro"><h3>Three paths, one clearer next step</h3><p>${selected === 'Not sure' ? 'I am still qualifying the right category, so every path stays open.' : `You started with ${escapeHtml(selected)}. We can still compare the trade-offs across the full market.`}</p></div><div class="decision-path"><div class="decision-node${selected === 'Electric car' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric car"><span class="decision-node__icon">${carSvg}</span><strong>Cars</strong><small>Family & comfort</small></button></div><div class="decision-node${selected === 'Electric scooter' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric scooter"><span class="decision-node__icon">${scooterSvg}</span><strong>Scooters</strong><small>Commute & agility</small></button></div><div class="decision-node${selected === 'Electric 3-wheeler' || selected === 'Not sure' ? ' is-selected' : ''}"><button type="button" data-stage-category="Electric 3-wheeler"><span class="decision-node__icon">${threeWheelerSvg}</span><strong>3-wheelers</strong><small>Work & utility</small></button></div></div><p class="stage-note">${selected === 'Not sure' ? 'AI is still qualifying your fit across all three categories.' : 'Selected category is highlighted; the next view adds evidence and trade-offs.'}</p>`;
+        } else if (type === 'comparison' && Array.isArray(payload.vehicles)) {
+          const cards = payload.vehicles.map((item) => {
+            const ranking = payload.ranking?.find((entry) => entry.id === item.id);
+            const visual = item.media?.url
+              ? `<img src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} licensed vehicle photograph" loading="eager">`
+              : (item.category === 'Electric scooter' ? scooterSvg : item.category === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg);
+            const mediaCredit = item.media?.url
+              ? `<a class="media-credit" href="${escapeHtml(item.media.pageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.creator)} · ${escapeHtml(item.media.license)}</a>`
+              : '<span class="media-credit">Original EasyEV illustration · not the exact model</span>';
+            return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${item.media?.url ? 'Licensed photo' : 'Illustrative'}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div><div><span>Battery</span><strong>${escapeHtml(item.battery)}</strong></div><div><span>Charging</span><strong>${escapeHtml(item.charging)}</strong></div><div><span>Capacity</span><strong>${escapeHtml(item.capacity)}</strong></div><div><span>Warranty</span><strong>${escapeHtml(item.warranty)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div></article>`;
+          }).join('');
+          const missing = payload.missingFacts?.length ? `<div class="tool-notice"><strong>Needs clarification:</strong> ${escapeHtml(payload.missingFacts.join(' '))}</div>` : '';
+          target.innerHTML = `<div class="stage-content__intro"><h3>Verified options, compared around you</h3><p>${escapeHtml(payload.sourceNote || 'Every displayed fact keeps its source and verification date.')}</p></div><div class="verified-comparison">${cards}</div>${missing}<div class="comparison-foot"><p class="comparison-foot__note">Claimed range and indicative price vary by variant, test cycle, city and date. Recheck before purchase.</p><button class="stage-action" type="button" data-tool-direct="calculate_ownership">Calculate ownership</button></div>`;
         } else if (type === 'comparison') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Verified live catalog sources remain a separate marketplace-data integration.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
         } else if (type === 'charging-demo') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Make charging fit your routine')}</h3><p>Use this explainer to identify the questions a live advisor or electrician should verify.</p></div><div class="charging-layout"><div><div class="charging-visual"><div class="wallbox"><div class="wallbox__light"></div><div class="wallbox__line"></div></div><div class="charge-pulse" aria-hidden="true"></div><div class="charge-car">${carSvg}</div><div class="charging-visual__road"></div><span class="charging-label">home socket / wallbox → vehicle battery</span></div><div class="charging-controls"><button class="play-button" id="charge-play-button" type="button" aria-label="Play charging explainer" aria-pressed="${state.chargePlaying}">${state.chargePlaying ? 'Ⅱ' : '▶'}</button><div class="progress-track" aria-label="Charging explainer progress"><span id="charge-progress-fill" style="width:${state.chargeProgress}%"></span></div><span class="progress-time" id="charge-progress-time">${Math.round(state.chargeProgress)}%</span></div></div><div class="charging-checks"><div class="check-item"><span class="check-item__icon">1</span><div><strong>Parking access</strong><span>Where can the vehicle stay near a socket?</span></div></div><div class="check-item"><span class="check-item__icon">2</span><div><strong>Sanctioned load</strong><span>Can the electrical connection support charging?</span></div></div><div class="check-item"><span class="check-item__icon">3</span><div><strong>Installation feasibility</strong><span>What will the property and installer allow?</span></div></div></div></div>`;
+        } else if (type === 'location-permission') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Share location only for this search</h3><p>${escapeHtml(payload.message || 'EasyEV needs an approximate location to search public charging sources near you.')}</p></div><div class="consent-card"><h4>You stay in control</h4><p>The browser asks for permission. Coordinates are scoped to this consultation and are not included in the downloadable report. EasyEV never claims live stall availability unless a provider supplies it.</p><div class="consent-actions"><button class="stage-action" type="button" data-map-action="locate">Share approximate location</button><button class="stage-pin" type="button" data-location-decline>Not now</button></div></div>`;
         } else if (type === 'charging-map') {
           const station = selectedStation();
           const busy = state.map.status === 'locating' || state.map.status === 'loading';
@@ -1699,10 +1880,27 @@
             ? state.map.stations.slice(0, 8).map((item, index) => `<button class="station-card" type="button" data-station-id="${escapeHtml(item.id)}" aria-pressed="${item.id === state.map.selectedId}"><strong>${index + 1}. ${escapeHtml(item.name)}</strong><span>${item.distanceKm} km away</span><small>${escapeHtml(item.operator)} · ${escapeHtml(item.capacity)} ports</small></button>`).join('')
             : '<div class="station-detail"><strong>No mapped stations found</strong><span class="map-disclosure">Try again later or widen your search in your preferred maps app.</span></div>';
           const detail = station ? `<div class="station-detail"><strong>${escapeHtml(station.name)}</strong><div class="station-detail-row"><span>Operator</span><b>${escapeHtml(station.operator)}</b></div><div class="station-detail-row"><span>Distance</span><b>${station.distanceKm} km</b></div><div class="station-detail-row"><span>Connectors</span><b>${escapeHtml(station.sockets.length ? station.sockets.join(', ') : 'Not listed')}</b></div><div class="station-detail-row"><span>Hours</span><b>${escapeHtml(station.openingHours)}</b></div><a class="station-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(station.lat + ',' + station.lng)}" target="_blank" rel="noopener noreferrer">Open directions ↗</a></div>` : '';
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Live chargers near you')}</h3><p>${escapeHtml(state.map.message || 'Use your approximate location to search public charging points from live OpenStreetMap data.')}</p></div>${state.map.status === 'idle' || state.map.status === 'error' ? `<div class="map-intro-actions"><button class="stage-action" type="button" data-map-action="locate">${state.map.status === 'error' ? 'Try location again' : 'Use my location'}</button></div><p class="map-disclosure">${state.map.status === 'error' ? escapeHtml(state.map.message) + ' ' : ''}Your location is used only for this search and is not stored by EasyEV. Station availability and connector status are not verified in real time.</p>` : `<div class="map-layout"><div class="map-shell"><div class="map-canvas" id="map-canvas" aria-label="Map of nearby charging stations"></div>${busy ? `<div class="map-loading" role="status"><div><strong>${state.map.status === 'locating' ? 'Waiting for location…' : 'Finding chargers…'}</strong><span>This usually takes a few seconds.</span></div></div>` : ''}</div><div><div class="station-list" aria-label="Nearby charging stations">${stationCards}</div>${detail}</div></div><p class="map-disclosure">Live map data © OpenStreetMap contributors. Distance is straight-line and does not confirm availability, compatibility, pricing or access.</p>`}`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Charging points near you')}</h3><p>${escapeHtml(state.map.message || payload.availabilityNotice || 'Search public charging data with your consent.')}</p></div>${state.map.status === 'idle' || state.map.status === 'error' ? `<div class="map-intro-actions"><button class="stage-action" type="button" data-map-action="locate">${state.map.status === 'error' ? 'Try location again' : 'Use my location'}</button></div><p class="map-disclosure">${state.map.status === 'error' ? escapeHtml(state.map.message) + ' ' : ''}Your location is scoped to this consultation. Availability and connector status are not verified in real time.</p>` : `<div class="map-layout"><div class="map-shell"><div class="map-canvas" id="map-canvas" aria-label="Map of nearby charging stations"></div>${busy ? `<div class="map-loading" role="status"><div><strong>${state.map.status === 'locating' ? 'Waiting for location…' : 'Finding chargers…'}</strong><span>This usually takes a few seconds.</span></div></div>` : ''}</div><div><div class="station-list" aria-label="Nearby charging stations">${stationCards}</div>${detail}</div></div><p class="map-disclosure">${payload.fallback ? '<strong>Demo fallback data.</strong> ' : ''}Source: ${escapeHtml(payload.source || 'OpenStreetMap contributors')}; checked ${escapeHtml(payload.fetchedAt || 'this session')}. Distance is straight-line and does not confirm availability, compatibility, pricing or access.</p>`}`;
           if (state.map.status === 'ready') window.requestAnimationFrame(renderMapCanvas);
+        } else if (type === 'ownership-cost' && payload.results && payload.assumptions) {
+          const result = payload.results;
+          const assumption = payload.assumptions;
+          const maxTotal = Math.max(result.totalEv, result.totalFuel, 1);
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.vehicle?.name || 'Ownership scenario')}</h3><p>Deterministic calculation from the assumptions below. Say “make it 70 kilometres per day” or move a control to recalculate.</p></div><div class="metric-grid"><div class="metric-card"><span>Monthly EMI</span><strong>${money(result.monthlyEmi)}</strong></div><div class="metric-card"><span>Annual EV running</span><strong>${money(result.annualRunningEv)}</strong></div><div class="metric-card"><span>Annual fuel running</span><strong>${money(result.annualRunningFuel)}</strong></div><div class="metric-card"><span>${assumption.years}-year EV total</span><strong>${money(result.totalEv)}</strong></div><div class="metric-card"><span>${assumption.years}-year fuel total</span><strong>${money(result.totalFuel)}</strong></div><div class="metric-card"><span>Indicative break-even</span><strong>${result.breakEvenYears === null ? 'Not reached' : `${result.breakEvenYears} yr`}</strong></div></div><div class="cost-bars" aria-label="Five-year ownership comparison"><div class="cost-bar"><span>Electric vehicle</span><span class="cost-bar__track"><span class="cost-bar__fill" style="width:${Math.round(result.totalEv / maxTotal * 100)}%"></span></span><strong>${money(result.totalEv)}</strong></div><div class="cost-bar cost-bar--fuel"><span>Fuel comparison</span><span class="cost-bar__track"><span class="cost-bar__fill" style="width:${Math.round(result.totalFuel / maxTotal * 100)}%"></span></span><strong>${money(result.totalFuel)}</strong></div></div><div class="cost-layout"><div class="cost-inputs"><div class="cost-field"><label for="daily-km-input">Daily kilometres</label><output id="daily-km-output" for="daily-km-input">${assumption.dailyKm} km</output><input id="daily-km-input" data-live-cost="dailyKm" type="range" min="5" max="300" step="5" value="${assumption.dailyKm}"></div><div class="cost-field"><label for="unit-cost-input">Home electricity / kWh</label><output id="unit-cost-output" for="unit-cost-input">₹${assumption.electricityRate}</output><input id="unit-cost-input" data-live-cost="electricityRate" type="range" min="3" max="20" step="1" value="${assumption.electricityRate}"></div><div class="cost-field"><label for="public-rate-input">Public charging / kWh</label><output id="public-rate-output" for="public-rate-input">₹${assumption.publicChargingRate}</output><input id="public-rate-input" data-live-cost="publicChargingRate" type="range" min="8" max="40" step="1" value="${assumption.publicChargingRate}"></div></div><div><div class="estimate-card"><p class="estimate-card__label">Annual running saving</p><div class="estimate-card__value">${money(result.annualSavings)}</div><p class="estimate-card__copy">Compared only with the fuel assumptions shown—not a guaranteed saving.</p></div></div></div><div class="assumption-chips"><span>${assumption.annualKm.toLocaleString('en-IN')} km/year</span><span>${assumption.homeChargingSharePercent}% home charging</span><span>Petrol ₹${assumption.petrolPrice}/L</span><span>${assumption.petrolMileage} km/L</span><span>${assumption.annualInterest}% interest</span><span>${assumption.loanYears}-year loan</span></div><p class="tool-notice">${escapeHtml(payload.notice)}</p>`;
         } else if (type === 'ownership-cost') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'See the ownership picture')}</h3><p>Change the assumptions. The result is an illustrative estimate, not a quote or a verified vehicle cost.</p></div><div class="cost-layout"><div class="cost-inputs"><div class="cost-field"><label for="daily-km-input">Daily kilometres</label><output id="daily-km-output" for="daily-km-input">${state.costModel.dailyKm} km</output><input id="daily-km-input" data-cost-input="dailyKm" type="range" min="5" max="180" step="5" value="${state.costModel.dailyKm}"></div><div class="cost-field"><label for="unit-cost-input">Electricity cost / unit</label><output id="unit-cost-output" for="unit-cost-input">₹${state.costModel.unitCost}</output><input id="unit-cost-input" data-cost-input="unitCost" type="range" min="3" max="20" step="1" value="${state.costModel.unitCost}"></div><div class="cost-field"><label for="years-input">Expected ownership</label><output id="years-output" for="years-input">${state.costModel.years} years</output><input id="years-input" data-cost-input="years" type="range" min="1" max="12" step="1" value="${state.costModel.years}"></div></div><div class="estimate-card"><p class="estimate-card__label">Illustrative estimate</p><div class="estimate-card__value" id="estimate-value">${formatIllustrativeCost()}</div><p class="estimate-card__copy">Estimated electricity spend over the selected ownership period.</p><p class="assumptions"><strong>Assumptions:</strong> 0.16 kWh per km, 365 travel days/year, no tariff changes, finance, maintenance or vehicle-specific data.</p></div></div>`;
+        } else if (type === 'snapshot-request') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Inspect one still—only when you choose</h3><p>Useful for parking layout, a visible charging connector, or electrical-label text. This is advisory, never safety approval.</p></div><div class="consent-card"><h4>Privacy check before upload</h4><p>${escapeHtml(payload.disclosure || 'Do not include faces, people, identity documents, registration certificates, number plates or unrelated personal content. The image is deleted after analysis or cancellation.')}</p><div class="consent-actions"><label class="stage-action" for="snapshot-file-input">Choose a photo</label><input class="stage-file-input" id="snapshot-file-input" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><button class="stage-pin" type="button" data-snapshot-camera>Capture from my camera</button></div>${state.snapshotPreview ? `<img class="snapshot-preview" src="${state.snapshotPreview}" alt="Snapshot selected for readiness analysis"><div class="consent-actions"><button class="stage-action" type="button" data-snapshot-confirm>Consent and analyse this still</button><button class="stage-pin" type="button" data-snapshot-clear>Discard</button></div>` : ''}<p class="media-credit">Provider: Google Gemini when configured. Free-tier provider data-use terms apply. EasyEV stores only structured findings.</p></div>`;
+        } else if (type === 'snapshot-result') {
+          if (payload.rejected) {
+            target.innerHTML = `<div class="stage-content__intro"><h3>Image rejected and deleted</h3><p>${escapeHtml(payload.reason || 'The image may contain personal or unsupported content.')}</p></div><div class="tool-notice">No visual findings were stored. Try again with an empty parking area, connector close-up or fixed electrical label and no people or documents.</div>`;
+          } else {
+            const observations = (payload.observations || []).map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+            const questions = (payload.installerQuestions || []).map((item) => `<li><strong>Ask installer:</strong> ${escapeHtml(item)}</li>`).join('');
+            target.innerHTML = `<div class="stage-content__intro"><h3>Advisory readiness checklist</h3><p>The one-time image was deleted. Only these structured findings were kept in your Passport.</p></div><div class="metric-grid"><div class="metric-card"><span>Scene</span><strong>${escapeHtml(payload.sceneType || 'Not classified')}</strong></div><div class="metric-card"><span>Visible connector</span><strong>${escapeHtml(payload.visibleConnector || 'Not identified')}</strong></div><div class="metric-card"><span>Label OCR</span><strong>${escapeHtml(payload.electricalLabelText || 'No readable label')}</strong></div></div><ul class="readiness-list">${observations}${questions}</ul><p class="tool-notice">${escapeHtml((payload.limitations || []).join(' '))}</p>`;
+          }
+        } else if (type === 'report-ready') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Your decision report is ready</h3><p>Built from the same structured Passport, sources and deterministic calculations shown during this consultation.</p></div><div class="report-card"><span class="report-icon" aria-hidden="true">PDF</span><div><strong>${escapeHtml(payload.filename || 'EasyEV decision report')}</strong><span>${Array.isArray(payload.sections) ? escapeHtml(payload.sections.join(' · ')) : 'Buyer profile · comparison · cost · charging · readiness · next actions'}</span></div><button class="stage-action" type="button" data-download-report>Download PDF</button></div><p class="tool-notice">Dealer contact, calendar, WhatsApp and booking actions remain simulated. The report is decision support, not financial, electrical or safety certification.</p>`;
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Choose a demo type and time. EasyEV prepares useful next steps, but you approve every action.</p></div>${confirmed ? `<div class="booking-confirmed">Action pack ready · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No dealer has been contacted.</div><div class="action-pack"><button type="button" data-agent-action="calendar"><span>▣</span>Add to calendar (.ics)</button><button type="button" data-agent-action="whatsapp"><span>↗</span>Open WhatsApp draft</button><button type="button" data-agent-action="passport"><span>↓</span>Download Decision Passport</button></div><p class="map-disclosure">Calendar and passport files are generated locally. WhatsApp opens a draft only; nothing is sent until you choose a contact and press send.</p>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">Your selection stays local until you confirm. No dealer is contacted.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Prepare my action pack</button></div>`}`;
@@ -1758,7 +1956,21 @@
           const chipState = state.integrationMode === 'demo' ? 'demo' : state.callStatus === 'error' ? 'error' : state.callStatus === 'live' && state.agentConnected ? 'live' : 'connecting';
           connectionChip.dataset.state = chipState;
           const quality = networkLabel();
-          connectionChip.textContent = state.integrationMode === 'demo' ? 'Offline demo' : chipState === 'live' ? `Agora live${quality ? ` · ${quality}` : ''}` : chipState === 'error' ? 'Connection failed' : state.callStatus === 'live' ? 'AI joining…' : 'Connecting to Agora';
+          connectionChip.textContent = state.integrationMode === 'demo' ? 'Offline demo' : chipState === 'live' ? `Agora live${state.toolsConnected ? ' · tools linked' : ''}${quality ? ` · ${quality}` : ''}` : chipState === 'error' ? 'Connection failed' : state.callStatus === 'live' ? 'AI joining…' : 'Connecting to Agora';
+        }
+        const joinButton = $('#join-demo-button');
+        if (joinButton) {
+          joinButton.disabled = state.integrationMode === 'live' && !state.backendReady;
+          joinButton.textContent = state.integrationMode === 'demo' ? 'Join offline demo' : state.backendReady ? 'Join live consultation' : 'Waking EasyEV…';
+        }
+        const readyStatus = $('#backend-ready-status');
+        if (readyStatus) {
+          const elapsed = Math.max(0, Math.round(state.backendElapsedMs / 1000));
+          readyStatus.textContent = state.integrationMode === 'demo'
+            ? 'Offline demo mode is active. No live Agora or external tool call will run.'
+            : state.backendReady
+              ? `Ready · Agora voice and five decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`
+              : `${state.backendPhase} · ${elapsed}s elapsed. This is a real backend wake-up, not a countdown.`;
         }
         const stageTitleElement = document.getElementById('stage-title');
         if (stageTitleElement) stageTitleElement.textContent = state.stage.payload.title || stageTitle(state.stage.type);
@@ -1768,7 +1980,9 @@
         if (aiTile) aiTile.dataset.mode = state.agentMode;
         const clayGuide = $('#agent-clay-image');
         if (clayGuide) {
-          const nextImage = state.agentMode === 'thinking' ? '/assets/clay-guide-thinking.webp' : '/assets/clay-guide-presenting.webp';
+          const nextImage = state.agentMode === 'thinking' || state.agentMode === 'tool-running'
+            ? '/assets/clay-guide-thinking.webp'
+            : state.agentMode === 'success' ? '/assets/clay-guide-success-v2.webp' : '/assets/clay-guide-presenting.webp';
           if (clayGuide.getAttribute('src') !== nextImage) clayGuide.setAttribute('src', nextImage);
           clayGuide.alt = state.agentMode === 'thinking' ? 'EasyEV AI clay guide thinking' : 'EasyEV AI clay guide presenting';
         }
@@ -1818,9 +2032,15 @@
         const tab = state.selectedTab;
         $$('[data-tab]').forEach((button) => button.setAttribute('aria-selected', String(button.dataset.tab === tab)));
         ['passport', 'transcript', 'actions'].forEach((panel) => { const element = $(`#${panel}-panel`); if (element) element.hidden = panel !== tab; });
+        const pinButton = $('#stage-pin-button');
+        if (pinButton) {
+          pinButton.setAttribute('aria-pressed', String(state.stagePinned));
+          pinButton.textContent = state.stagePinned ? 'Pinned' : 'Pin';
+        }
         renderPassport();
         renderTranscript();
         renderActions();
+        renderActionRail();
         if (state.view === 'room' && renderedStageRevision !== state.stageRevision) renderStage();
         syncStageTransient();
         updateCostModelUI();
@@ -1849,6 +2069,32 @@
           state.voicePreviewAvailable = false;
         }
         renderApp();
+      };
+      const checkBackendReady = async () => {
+        if (state.integrationMode === 'demo') {
+          state.backendReady = true;
+          state.backendPhase = 'Offline demo ready';
+          renderApp();
+          return;
+        }
+        try {
+          const response = await fetch('/api/ready', { cache: 'no-store' });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'Backend is not ready.');
+          state.backendReady = Boolean(data.ready);
+          state.backendPhase = data.phase || (data.ready ? 'Ready' : 'Waking backend');
+          state.backendElapsedMs = Number(data.elapsedMs || 0);
+          state.toolsMode = data.mcpPublic ? 'agora-mcp' : 'local-bridge';
+        } catch {
+          state.backendReady = false;
+          state.backendPhase = 'Waking backend';
+          state.backendElapsedMs += 1000;
+        }
+        renderApp();
+        if (!state.backendReady) {
+          if (backendReadyTimer) window.clearTimeout(backendReadyTimer);
+          backendReadyTimer = window.setTimeout(checkBackendReady, 1000);
+        }
       };
       const previewVoice = async (voice) => {
         stopVoicePreview();
@@ -1882,6 +2128,7 @@
         $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
         setView('prejoin');
         loadVoiceOptions();
+        checkBackendReady();
         window.setTimeout(() => $('#prejoin-title')?.focus(), prefersReducedMotion() ? 0 : 50);
       };
       const closePrejoin = () => {
@@ -1912,6 +2159,11 @@
           showToast(state.connectionError);
           return;
         }
+        if (state.integrationMode === 'live' && !state.backendReady) {
+          showToast('EasyEV is still waking. Join will enable when the backend is genuinely ready.');
+          checkBackendReady();
+          return;
+        }
         stopVoicePreview();
         await adapter.leave();
         stopElapsedTimer();
@@ -1929,12 +2181,20 @@
         state.transcript = [];
         state.processedTranscriptIds = new Set();
         state.actions = createInitialActions();
+        state.toolRuns = [];
+        state.processedToolEventIds = new Set();
+        state.decisionPassport = null;
+        state.reportReady = false;
+        state.reportUrl = '';
+        state.stagePinned = false;
+        state.pendingStage = null;
+        state.snapshotPreview = '';
         state.stage = { type: 'welcome', payload: { title: "Let's find what fits your life", sourceStatus: 'illustrative' } };
         state.stageRevision += 1;
         state.profile = { category: state.category === 'Not sure' ? 'Not selected' : state.category, useCase: 'Discovering', dailyDistance: 'Not shared', budget: 'Not shared', charging: 'Not shared', priority: 'Not shared' };
         state.booking = { slot: '', demoType: '', confirmed: false };
         state.profileFlash = new Set();
-        state.costModel = { dailyKm: 70, unitCost: 8, years: 5 };
+        state.costModel = { dailyKm: 70, unitCost: 8, years: 5, publicRate: 18, homeShare: 80 };
         state.chargeProgress = 0;
         state.chargePlaying = false;
         state.map = { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' };
@@ -1960,6 +2220,7 @@
         if (state.view !== 'room') return;
         state.callStatus = 'ended';
         clearActiveTurn();
+        state.reportUrl = activeAdapter()?.getReportUrl?.() || state.reportUrl;
         const leaving = activeAdapter()?.leave();
         stopElapsedTimer();
         stopChargeTimer();
@@ -1971,6 +2232,10 @@
         setView('outcome');
         window.setTimeout(() => $('#outcome-title')?.focus(), prefersReducedMotion() ? 0 : 50);
         await leaving;
+        if (state.reportUrl) {
+          state.reportReady = true;
+          renderApp();
+        }
       };
       const setAgentMode = (mode) => { state.agentMode = mode; renderApp(); };
       const appendTranscript = (speaker, text, meta = {}) => {
@@ -1993,14 +2258,201 @@
           mapRequestController = null;
         }
         state.chargePlaying = false;
-        state.stage = { type, payload: { title: payload.title || stageTitle(type), sourceStatus: payload.sourceStatus || 'illustrative' } };
+        state.stage = { type, payload: { ...payload, title: payload.title || stageTitle(type), sourceStatus: payload.sourceStatus || 'EasyEV decision tool' } };
         state.stageRevision += 1;
         if (type === 'comparison') markAction('comparison', 'complete', 'Three fit profiles are ready to explore');
         if (type === 'charging-demo') markAction('charging', 'active', 'Confirm parking, load and installation feasibility');
         if (type === 'charging-map') markAction('charging', 'active', 'Ready to search live public charging data with your permission');
         if (type === 'ownership-cost') markAction('requirements', 'complete', 'Usage assumptions captured for the illustrative model');
+        if (type === 'ownership-cost' && state.integrationMode === 'live') markAction('ownership', 'complete', 'Deterministic scenario saved to the Passport');
+        if (type === 'snapshot-result') markAction('readiness', 'complete', 'One-time image deleted after advisory analysis');
+        if (type === 'report-ready') markAction('report', 'complete', 'Structured PDF is ready to download');
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
         renderApp();
+      };
+      const syncStructuredPassport = (passport) => {
+        if (!passport || typeof passport !== 'object') return;
+        state.decisionPassport = passport;
+        const profile = passport.profile || {};
+        patchProfile({
+          category: profile.category === 'Not sure' ? 'Exploring all categories' : (profile.category || state.profile.category),
+          dailyDistance: profile.dailyKm ? `${profile.dailyKm} km/day` : state.profile.dailyDistance,
+          charging: profile.chargingAccess || state.profile.charging,
+          priority: profile.priorities?.length ? profile.priorities.join(', ') : state.profile.priority
+        });
+      };
+      const sourceForTool = (tool, payload) => ({
+        compare_vehicles: 'Curated OEM sources',
+        find_nearby_chargers: payload?.fallback ? 'Demo fallback data' : (payload?.source || 'Live charging sources'),
+        calculate_ownership: 'Deterministic calculation',
+        analyze_readiness_snapshot: 'Optional Gemini analysis',
+        generate_decision_report: 'Structured Passport PDF'
+      }[tool] || 'EasyEV decision tool');
+      const stageTypeForTool = (stage) => stage === 'ownership' ? 'ownership-cost' : stage;
+      const presentToolStage = (stage, payload, tool) => {
+        const next = {
+          type: stageTypeForTool(stage),
+          payload: { ...payload, title: stageTitle(stageTypeForTool(stage)), sourceStatus: sourceForTool(tool, payload) }
+        };
+        if (state.stagePinned && !['tool-error'].includes(next.type)) {
+          state.pendingStage = next;
+          return false;
+        }
+        showStage(next.type, next.payload);
+        return true;
+      };
+      const updateToolRun = (event) => {
+        const existing = state.toolRuns.find((item) => item.toolRunId === event.toolRunId);
+        const message = event.phase === 'started'
+          ? event.payload?.message
+          : event.phase === 'completed' ? 'Result ready'
+            : event.phase === 'awaiting_input' ? 'Needs your permission'
+              : event.phase === 'uploaded' ? 'Still received'
+                : event.phase === 'failed' ? 'Needs another try'
+                  : event.phase === 'cancelled' ? 'Cancelled' : event.payload?.message;
+        if (existing) Object.assign(existing, { phase: event.phase, message, stage: event.stage, payload: event.payload });
+        else state.toolRuns.push({ toolRunId: event.toolRunId || event.eventId, tool: event.tool, phase: event.phase, message, stage: event.stage, payload: event.payload });
+        state.toolRuns = state.toolRuns.slice(-8);
+      };
+      const handleToolEvent = (toolEvent) => {
+        if (toolEvent.eventId && state.processedToolEventIds.has(toolEvent.eventId)) return;
+        if (toolEvent.eventId) state.processedToolEventIds.add(toolEvent.eventId);
+        updateToolRun(toolEvent);
+        const data = toolEvent.payload || {};
+        if (data.passport) syncStructuredPassport(data.passport);
+        const actionId = ({
+          compare_vehicles: 'comparison',
+          find_nearby_chargers: 'charging',
+          calculate_ownership: 'ownership',
+          analyze_readiness_snapshot: 'readiness',
+          generate_decision_report: 'report'
+        })[toolEvent.tool];
+        if (toolEvent.phase === 'started') {
+          if (actionId) markAction(actionId, 'active', data.message || 'EasyEV is working');
+          state.agentMode = 'tool-running';
+          if (!state.stagePinned) showStage('tool-loading', { title: stageTitle('tool-loading'), sourceStatus: 'Working now', message: data.message });
+        } else if (toolEvent.phase === 'completed' || toolEvent.phase === 'awaiting_input') {
+          if (actionId) markAction(actionId, toolEvent.phase === 'completed' ? 'complete' : 'active', toolEvent.phase === 'completed' ? 'Result saved to the Decision Passport' : 'Waiting for your explicit permission');
+          if (toolEvent.tool === 'find_nearby_chargers' && toolEvent.phase === 'completed') {
+            state.map = {
+              status: 'ready',
+              lat: Number(data.center?.lat),
+              lng: Number(data.center?.lng),
+              zoom: 13,
+              stations: Array.isArray(data.stations) ? data.stations : [],
+              selectedId: data.stations?.[0]?.id || '',
+              message: data.stations?.length ? `${data.stations.length} charging locations returned within ${data.radiusKm} km` : 'No public charging locations were returned.'
+            };
+          }
+          if (toolEvent.tool === 'calculate_ownership' && data.assumptions) {
+            state.costModel = {
+              dailyKm: data.assumptions.dailyKm,
+              unitCost: data.assumptions.electricityRate,
+              years: data.assumptions.years,
+              publicRate: data.assumptions.publicChargingRate,
+              homeShare: data.assumptions.homeChargingSharePercent
+            };
+          }
+          if (toolEvent.tool === 'generate_decision_report' && toolEvent.phase === 'completed') {
+            state.reportReady = true;
+            state.reportUrl = activeAdapter()?.getReportUrl?.() || '';
+          }
+          state.agentMode = toolEvent.phase === 'completed' ? 'success' : 'listening';
+          presentToolStage(toolEvent.stage, data, toolEvent.tool);
+          if (toolEvent.phase === 'completed') scheduleLifecycle(() => {
+            if (state.view === 'room' && state.agentMode === 'success') setAgentMode('listening');
+          }, 900);
+        } else if (toolEvent.phase === 'failed') {
+          if (actionId) markAction(actionId, 'pending', data.message || 'Tool needs another try');
+          state.agentMode = 'error';
+          presentToolStage('tool-error', data, toolEvent.tool);
+        } else if (toolEvent.phase === 'cancelled') {
+          if (actionId) markAction(actionId, 'pending', 'Cancelled when the conversation moved on');
+          if (!state.stagePinned) state.agentMode = 'listening';
+        }
+        renderApp();
+      };
+      const defaultCompareNames = () => state.category === 'Electric scooter'
+        ? ['Ather Rizta', 'TVS iQube']
+        : state.category === 'Electric 3-wheeler'
+          ? ['Mahindra Treo Plus', 'Bajaj RE E-TEC 9.0']
+          : ['Tata Punch.ev', 'MG Windsor EV'];
+      const runDirectTool = async (tool, args = {}, userText = '') => {
+        if (state.integrationMode !== 'live' || state.callStatus !== 'live') return;
+        if (userText) appendTranscript('you', userText, { localText: true, directTool: tool });
+        state.agentMode = 'tool-running';
+        renderApp();
+        try {
+          await activeAdapter()?.runTool(tool, args);
+        } catch (error) {
+          if (error?.name === 'AbortError') return;
+          state.agentMode = 'error';
+          showToast(error?.message || 'The decision tool could not finish.');
+          renderApp();
+        }
+      };
+      const toolForTurn = (turnName) => ({
+        compare: ['compare_vehicles', { vehicles: defaultCompareNames(), priorities: ['daily usability', 'running cost'] }],
+        map: ['find_nearby_chargers', { radiusKm: 10 }],
+        ownership: ['calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }]
+      }[turnName] || null);
+      const downloadStructuredReport = async () => {
+        if (!state.reportReady || !state.reportUrl) {
+          if (state.integrationMode === 'live' && state.callStatus === 'live') {
+            await runDirectTool('generate_decision_report', {}, 'Build my downloadable decision report.');
+          } else {
+            showToast('Generate the report during a live consultation first.');
+          }
+          return;
+        }
+        const link = document.createElement('a');
+        link.href = state.reportUrl;
+        link.download = 'EasyEV-decision-report.pdf';
+        document.body.append(link);
+        link.click();
+        link.remove();
+        showToast('Decision report download started.');
+      };
+      const compressImageFile = async (file) => {
+        if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) throw new Error('Choose a JPEG, PNG or WebP image.');
+        if (file.size > 15 * 1024 * 1024) throw new Error('Choose an image smaller than 15 MB.');
+        const bitmap = await createImageBitmap(file);
+        const scale = Math.min(1, 1280 / Math.max(bitmap.width, bitmap.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+        canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+        canvas.getContext('2d', { alpha: false }).drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+        bitmap.close();
+        return canvas.toDataURL('image/jpeg', .72);
+      };
+      const captureRoomStill = () => {
+        const video = $('#room-video');
+        if (!localStream || !video || !video.videoWidth) {
+          showToast('Turn on your camera first, or choose an existing photo.');
+          return;
+        }
+        const scale = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(video.videoWidth * scale);
+        canvas.height = Math.round(video.videoHeight * scale);
+        canvas.getContext('2d', { alpha: false }).drawImage(video, 0, 0, canvas.width, canvas.height);
+        state.snapshotPreview = canvas.toDataURL('image/jpeg', .72);
+        state.stageRevision += 1;
+        renderApp();
+      };
+      const submitSnapshot = async () => {
+        if (!state.snapshotPreview) return;
+        try {
+          state.agentMode = 'tool-running';
+          renderApp();
+          await activeAdapter()?.uploadSnapshot(state.snapshotPreview);
+          state.snapshotPreview = '';
+          await activeAdapter()?.runTool('analyze_readiness_snapshot', { focus: 'general' });
+        } catch (error) {
+          state.agentMode = 'error';
+          showToast(error?.message || 'The still image could not be analysed.');
+          renderApp();
+        }
       };
       const applyIntentVisualization = (turnName, text = '') => {
         const turn = DEMO_TURNS[turnName];
@@ -2023,8 +2475,20 @@
           demoAdapter.sendText(text, { sessionId: state.sessionId, turnId, turn, skipUser: Boolean(options.skipUser), initialDelay: options.initialDelay || 0 });
           return;
         }
+        if (state.toolsMode === 'local-bridge') {
+          const direct = toolForTurn(turnName);
+          if (direct) {
+            runDirectTool(direct[0], direct[1], options.skipUser ? '' : text);
+            return;
+          }
+          if (turnName === 'booking') {
+            if (!options.skipUser) appendTranscript('you', text, { turnId, localText: true });
+            showStage('booking', DEMO_TURNS.booking.stage);
+            appendTranscript('ai', 'This prototype can prepare a local test-drive action pack. No dealer, calendar or WhatsApp action happens without your click.', { localTool: true });
+            return;
+          }
+        }
         if (!options.skipUser) appendTranscript('you', text, { turnId, localText: true });
-        applyIntentVisualization(turnName, text);
         setAgentMode('thinking');
         activeAdapter()?.sendText(text).catch((error) => {
           if (!isCurrentSession(state.sessionId, turnId)) return;
@@ -2046,7 +2510,6 @@
             await activeAdapter()?.interrupt();
             if (state.view !== 'room' || state.callStatus !== 'live') return;
             setAgentMode('thinking');
-            showStage('charging-demo', DEMO_TURNS.charging.stage);
             await activeAdapter()?.sendText('Charging is not available at home. Please adapt your advice to that constraint.');
           } catch (error) {
             if (state.view === 'room') {
@@ -2222,12 +2685,6 @@
         const localOnly = state.transcript.filter((entry) => entry.meta?.localText && !incoming.some((live) => live.speaker === entry.speaker && live.text === entry.text));
         state.transcript = [...incoming, ...localOnly].sort((a, b) => a.timestamp - b.timestamp);
         renderTranscript();
-        incoming.forEach((entry) => {
-          if (entry.speaker !== 'you' || entry.status === '0' || state.processedTranscriptIds.has(entry.id)) return;
-          state.processedTranscriptIds.add(entry.id);
-          const turn = routePrompt(entry.text);
-          if (turn) applyIntentVisualization(turn, entry.text);
-        });
       };
       const handleAdapterEvent = (event) => {
         const payload = event.payload || {};
@@ -2274,6 +2731,21 @@
           syncLiveTranscript(payload.entries);
           return;
         }
+        if (event.type === 'TOOLS_STATUS' && isCurrentSession(payload.sessionId)) {
+          state.toolsMode = payload.mode || state.toolsMode;
+          state.toolsConnected = Boolean(payload.connected);
+          renderApp();
+          return;
+        }
+        if (event.type === 'PASSPORT_SYNC' && isCurrentSession(payload.sessionId)) {
+          syncStructuredPassport(payload.passport);
+          renderApp();
+          return;
+        }
+        if (event.type === 'TOOL_EVENT' && isCurrentSession(payload.sessionId)) {
+          handleToolEvent(payload);
+          return;
+        }
         if (event.type === 'ERROR') {
           state.connectionError = payload.message || 'The live consultation reported an error.';
           if (payload.recoverable === false) state.callStatus = 'error';
@@ -2315,6 +2787,19 @@
         if (target.id === 'enable-camera-button') { enableCameraPreview(); return; }
         if (target.id === 'join-demo-button') { joinConsultationRoom(); return; }
         if (target.matches('[data-turn]')) { runConsultationTurn(target.dataset.turn); return; }
+        if (target.matches('[data-tool-prompt]')) {
+          const kind = target.dataset.toolPrompt;
+          const text = kind === 'snapshot' ? 'Check one camera snapshot of my charging readiness.' : 'Build my downloadable decision report.';
+          if (state.toolsMode === 'local-bridge') {
+            runDirectTool(kind === 'snapshot' ? 'analyze_readiness_snapshot' : 'generate_decision_report', {}, text);
+          } else {
+            clearActiveTurn();
+            appendTranscript('you', text, { localText: true });
+            setAgentMode('thinking');
+            activeAdapter()?.sendText(text).catch((error) => showToast(error?.message || 'The request could not reach EasyEV AI.'));
+          }
+          return;
+        }
         if (target.matches('[data-tab]')) { state.selectedTab = target.dataset.tab; renderApp(); return; }
         if (target.matches('[data-stage-category]')) {
           state.category = target.dataset.stageCategory;
@@ -2326,11 +2811,25 @@
           return;
         }
         if (target.matches('[data-stage-action="ownership"]')) { runConsultationTurn('ownership'); return; }
+        if (target.matches('[data-tool-direct="calculate_ownership"]')) {
+          runDirectTool('calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }, 'Calculate ownership for the leading option.');
+          return;
+        }
         if (target.matches('[data-stage-action="confirm-booking"]')) { completeBooking(); return; }
         if (target.matches('[data-agent-action="calendar"]')) { downloadCalendarInvite(); return; }
         if (target.matches('[data-agent-action="whatsapp"]')) { openWhatsAppDraft(); return; }
         if (target.matches('[data-agent-action="passport"]')) { downloadDecisionPassport(); return; }
         if (target.matches('[data-map-action="locate"]')) { requestNearbyChargers(); return; }
+        if (target.matches('[data-location-decline]')) {
+          state.map.status = 'error';
+          state.map.message = 'Location was not shared. Nothing was stored.';
+          showStage('charging-map', { title: 'Charging search paused', sourceStatus: 'Permission not granted' });
+          return;
+        }
+        if (target.matches('[data-snapshot-camera]')) { captureRoomStill(); return; }
+        if (target.matches('[data-snapshot-confirm]')) { submitSnapshot(); return; }
+        if (target.matches('[data-snapshot-clear]')) { state.snapshotPreview = ''; state.stageRevision += 1; renderApp(); return; }
+        if (target.matches('[data-download-report]')) { downloadStructuredReport(); return; }
         if (target.matches('[data-map-zoom]')) {
           state.map.zoom = Math.max(10, Math.min(17, state.map.zoom + Number(target.dataset.mapZoom || 0)));
           renderMapCanvas();
@@ -2367,6 +2866,23 @@
         if (target.id === 'close-prompt-drawer') { closePromptDrawer(); return; }
         if (target.id === 'charge-play-button') { toggleChargePlayback(); return; }
         if (target.id === 'stage-expand-button') { const stage = $('#smart-stage'); const expanded = stage?.dataset.expanded === 'true'; if (stage) stage.dataset.expanded = String(!expanded); target.setAttribute('aria-expanded', String(!expanded)); target.setAttribute('aria-label', expanded ? 'Expand smart stage' : 'Collapse smart stage'); target.dataset.tooltip = expanded ? 'Expand stage' : 'Collapse stage'; return; }
+        if (target.id === 'stage-pin-button') {
+          state.stagePinned = !state.stagePinned;
+          if (!state.stagePinned && state.pendingStage) {
+            const pending = state.pendingStage;
+            state.pendingStage = null;
+            showStage(pending.type, pending.payload);
+          } else renderApp();
+          return;
+        }
+        if (target.matches('[data-tool-run-id]') && state.pendingStage) {
+          const pending = state.pendingStage;
+          state.pendingStage = null;
+          state.stagePinned = false;
+          showStage(pending.type, pending.payload);
+          return;
+        }
+        if (target.id === 'download-report-button') { downloadStructuredReport(); return; }
         if (target.id === 'save-passport-button') { saveDecisionPassport(); return; }
         if (target.id === 'download-passport-button') { downloadDecisionPassport(); return; }
         if (target.id === 'return-home-button') { resetToLanding(); return; }
@@ -2374,9 +2890,39 @@
       });
       document.addEventListener('input', (event) => {
         const input = event.target;
-        if (!input.matches('[data-cost-input]')) return;
-        state.costModel[input.dataset.costInput] = Number(input.value);
-        updateCostModelUI();
+        if (input.matches('[data-live-cost]')) {
+          const key = input.dataset.liveCost;
+          if (key === 'dailyKm') state.costModel.dailyKm = Number(input.value);
+          if (key === 'electricityRate') state.costModel.unitCost = Number(input.value);
+          if (key === 'publicChargingRate') state.costModel.publicRate = Number(input.value);
+          const output = input.closest('.cost-field')?.querySelector('output');
+          if (output) output.textContent = key === 'dailyKm' ? `${input.value} km` : `₹${input.value}`;
+          if (costRecalcTimer) window.clearTimeout(costRecalcTimer);
+          costRecalcTimer = window.setTimeout(() => runDirectTool('calculate_ownership', {
+            dailyKm: state.costModel.dailyKm,
+            years: state.costModel.years,
+            electricityRate: state.costModel.unitCost,
+            publicChargingRate: state.costModel.publicRate,
+            homeChargingShare: state.costModel.homeShare / 100
+          }), 320);
+          return;
+        }
+        if (input.matches('[data-cost-input]')) {
+          state.costModel[input.dataset.costInput] = Number(input.value);
+          updateCostModelUI();
+        }
+      });
+      document.addEventListener('change', async (event) => {
+        const input = event.target;
+        if (!input.matches('#snapshot-file-input')) return;
+        try {
+          state.snapshotPreview = await compressImageFile(input.files?.[0]);
+          state.stageRevision += 1;
+          renderApp();
+        } catch (error) {
+          state.snapshotPreview = '';
+          showToast(error?.message || 'The image could not be prepared.');
+        }
       });
       document.addEventListener('click', (event) => {
         if (!navOpen) return;
@@ -2411,7 +2957,7 @@
         input.value = '';
         closePromptDrawer();
         const turn = routePrompt(text);
-        if (turn) { runConsultationTurn(turn, { userText: text }); return; }
+        if (state.integrationMode === 'demo' && turn) { runConsultationTurn(turn, { userText: text }); return; }
         clearActiveTurn();
         const turnId = state.activeTurnId;
         appendTranscript('you', text, { freeform: true, turnId, localText: true });

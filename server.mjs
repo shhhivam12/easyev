@@ -39,7 +39,7 @@ if (!APP_ID || !APP_CERTIFICATE) {
 const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
 const AZURE_SPEECH_REGION = process.env.AZURE_SPEECH_REGION?.trim();
 const AZURE_SPEECH_READY = Boolean(AZURE_SPEECH_KEY && AZURE_SPEECH_REGION);
-const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL?.trim().replace(/\/$/, '') || '';
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
 const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
 const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
 const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes(32).toString('hex');
@@ -53,6 +53,7 @@ const voicePreviewCache = new Map();
 
 const bootstraps = new Map();
 const sessions = new Map();
+const completedSessions = new Map();
 const mcpTransports = new Map();
 const startup = { startedAt: Date.now(), phase: 'Waking backend', ready: false };
 const tools = new EasyEVToolEngine({
@@ -363,6 +364,15 @@ function createRecord({ key, channel, uid, category, language, voice }) {
 async function stopRecord(record) {
   if (!record || record.stopping) return;
   record.stopping = true;
+  if (!record.report) {
+    try { await tools.generateReport(record); } catch (error) { console.error('Final report generation failed:', safeMessage(error)); }
+  }
+  completedSessions.set(record.key, {
+    key: record.key,
+    report: record.report,
+    passport: tools.publicPassport(record),
+    expiresAt: Date.now() + 60 * 60 * 1000,
+  });
   tools.cancel(record, 'Consultation ended');
   record.closed = true;
   for (const client of record.sseClients) {
@@ -384,6 +394,7 @@ async function stopRecord(record) {
 function pruneExpired() {
   const now = Date.now();
   for (const [key, item] of bootstraps) if (item.expiresAt < now) bootstraps.delete(key);
+  for (const [key, item] of completedSessions) if (item.expiresAt < now) completedSessions.delete(key);
   for (const record of sessions.values()) {
     if (record.expiresAt < now) stopRecord(record).catch((error) => console.error('Session expiry cleanup failed:', safeMessage(error, 'cleanup failed')));
   }
@@ -434,9 +445,24 @@ async function handleMcp(req, res, url) {
 async function handleScopedSessionApi(req, res, url) {
   const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool)$/i);
   if (!match) return false;
+  const action = match[2];
+  if (req.method === 'GET' && action === 'report') {
+    const reportRecord = sessions.get(match[1]) || completedSessions.get(match[1]);
+    if (!reportRecord?.report || Date.now() - reportRecord.report.createdAt > 60 * 60 * 1000) {
+      return json(res, 404, { error: 'The decision report is not ready.' });
+    }
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Length': reportRecord.report.pdf.length,
+      'Content-Disposition': `attachment; filename="${reportRecord.report.filename}"`,
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    res.end(reportRecord.report.pdf);
+    return true;
+  }
   const record = requireSession(match[1], res);
   if (!record) return true;
-  const action = match[2];
 
   if (req.method === 'GET' && action === 'events') {
     res.writeHead(200, {
@@ -496,21 +522,6 @@ async function handleScopedSessionApi(req, res, url) {
     tools.cancel(record, 'Cancelled after interruption or navigation');
     try { if (record.session) await record.session.interrupt(); } catch {}
     return json(res, 200, { success: true });
-  }
-
-  if (req.method === 'GET' && action === 'report') {
-    if (!record.report || Date.now() - record.report.createdAt > 60 * 60 * 1000) {
-      return json(res, 404, { error: 'Generate the decision report first.' });
-    }
-    res.writeHead(200, {
-      'Content-Type': 'application/pdf',
-      'Content-Length': record.report.pdf.length,
-      'Content-Disposition': `attachment; filename="${record.report.filename}"`,
-      'Cache-Control': 'private, no-store',
-      'X-Content-Type-Options': 'nosniff',
-    });
-    res.end(record.report.pdf);
-    return true;
   }
 
   if (req.method === 'POST' && action === 'tool') {

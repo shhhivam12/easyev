@@ -342,7 +342,7 @@ export class EasyEVToolEngine {
         origin: '*',
       });
       const response = await fetch(`https://commons.wikimedia.org/w/api.php?${params}`, {
-        signal,
+        signal: AbortSignal.any([signal, AbortSignal.timeout(900)]),
         headers: { 'User-Agent': 'EasyEV-Hackathon/2.0' },
       });
       if (!response.ok) throw new Error(`Commons returned ${response.status}`);
@@ -429,7 +429,7 @@ export class EasyEVToolEngine {
     });
     if (this.openChargeMapKey) params.set('key', this.openChargeMapKey);
     const response = await fetch(`https://api.openchargemap.io/v3/poi/?${params}`, {
-      signal,
+      signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]),
       headers: { 'User-Agent': 'EasyEV-Hackathon/2.0' },
     });
     if (!response.ok) throw new Error(`Open Charge Map returned ${response.status}`);
@@ -461,7 +461,7 @@ export class EasyEVToolEngine {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/2.0' },
       body: new URLSearchParams({ data: query }),
-      signal,
+      signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]),
     });
     if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
     const data = await response.json();
@@ -675,7 +675,12 @@ export class EasyEVToolEngine {
         spoken: 'I can inspect one still image for parking layout, a visible connector, or an electrical label. Please use the on-screen capture control only if you consent; do not include people or documents.',
       };
     }
-    if (!this.geminiApiKey) throw new Error('Snapshot analysis is not configured on this server.');
+    if (!this.geminiApiKey) {
+      const unconfiguredSnapshot = record.pendingSnapshot;
+      record.pendingSnapshot = null;
+      unconfiguredSnapshot.buffer.fill(0);
+      throw new Error('Snapshot analysis is not configured on this server. The uploaded image was deleted.');
+    }
     const snapshot = record.pendingSnapshot;
     record.pendingSnapshot = null;
     try {
@@ -685,7 +690,7 @@ export class EasyEVToolEngine {
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          signal,
+          signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }, { inline_data: { mime_type: snapshot.mimeType, data: snapshot.buffer.toString('base64') } }] }],
             generationConfig: { temperature: 0.1, responseMimeType: 'application/json' },
