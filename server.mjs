@@ -1,8 +1,11 @@
 import http from 'node:http';
 import { readFileSync, existsSync, createReadStream } from 'node:fs';
 import { extname, resolve } from 'node:path';
-import { randomInt, randomUUID } from 'node:crypto';
+import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import agoraToken from 'agora-token';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import { EasyEVToolEngine, VEHICLES } from './decision-tools.mjs';
 import {
   AgoraClient,
   Agent,
@@ -20,7 +23,8 @@ const PORT = Number(process.env.PORT || 4173);
 const AGENT_UID = '123456';
 const TOKEN_TTL_SECONDS = 3600;
 const BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
-const BODY_LIMIT_BYTES = 32 * 1024;
+const BODY_LIMIT_BYTES = 48 * 1024;
+const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
 loadLocalEnv(resolve(ROOT, '.env'));
@@ -35,6 +39,10 @@ if (!APP_ID || !APP_CERTIFICATE) {
 const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
 const AZURE_SPEECH_REGION = process.env.AZURE_SPEECH_REGION?.trim();
 const AZURE_SPEECH_READY = Boolean(AZURE_SPEECH_KEY && AZURE_SPEECH_REGION);
+const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL?.trim().replace(/\/$/, '') || '';
+const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
+const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
+const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes(32).toString('hex');
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -45,6 +53,14 @@ const voicePreviewCache = new Map();
 
 const bootstraps = new Map();
 const sessions = new Map();
+const mcpTransports = new Map();
+const startup = { startedAt: Date.now(), phase: 'Waking backend', ready: false };
+const tools = new EasyEVToolEngine({
+  databaseUrl: process.env.DATABASE_URL?.trim(),
+  geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
+  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash',
+  openChargeMapKey: process.env.OPENCHARGEMAP_API_KEY?.trim(),
+});
 
 function loadLocalEnv(path) {
   if (!existsSync(path)) return;
@@ -73,7 +89,7 @@ function json(res, status, payload) {
 
 function safeMessage(error, fallback) {
   const message = error instanceof Error ? error.message : String(error || fallback);
-  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY]
+  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY, process.env.GEMINI_API_KEY, process.env.DATABASE_URL, MCP_SIGNING_SECRET]
     .filter(Boolean)
     .reduce((safe, secret) => safe.replaceAll(secret, '[secret]'), message)
     .slice(0, 600);
@@ -173,16 +189,37 @@ async function azureVoicePreview(voice, language) {
   return audio;
 }
 
-async function readJson(req) {
+async function readJson(req, limit = BODY_LIMIT_BYTES) {
   const chunks = [];
   let size = 0;
   for await (const chunk of req) {
     size += chunk.length;
-    if (size > BODY_LIMIT_BYTES) throw new Error('Request body is too large');
+    if (size > limit) {
+      const error = new Error('Request body is too large');
+      error.statusCode = 413;
+      throw error;
+    }
     chunks.push(chunk);
   }
   const text = Buffer.concat(chunks).toString('utf8').trim();
   return text ? JSON.parse(text) : {};
+}
+
+function signSessionToken(sessionKey) {
+  const expires = Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS;
+  const payload = `${sessionKey}.${expires}`;
+  const signature = createHmac('sha256', MCP_SIGNING_SECRET).update(payload).digest('base64url');
+  return `${payload}.${signature}`;
+}
+
+function verifySessionToken(token) {
+  const [sessionKey, expiresText, signature] = String(token || '').split('.');
+  if (!sessionKey || !expiresText || !signature || Number(expiresText) < Math.floor(Date.now() / 1000)) return null;
+  const expected = createHmac('sha256', MCP_SIGNING_SECRET).update(`${sessionKey}.${expiresText}`).digest();
+  let actual;
+  try { actual = Buffer.from(signature, 'base64url'); } catch { return null; }
+  if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+  return sessions.get(sessionKey) || null;
 }
 
 function createToken(channel, uid) {
@@ -210,24 +247,31 @@ function agentInstructions({ category, language }) {
       ? 'Speak warm, natural Indian Hinglish. Use Devanagari for Hindi words and familiar English for EV, charging, range, budget, finance, test drive, and model names. Avoid a foreign accent or over-formal Hindi.'
       : 'Speak clear Indian English with familiar Indian automotive vocabulary and a calm, unhurried pace.';
 
-  return `You are EasyEV AI, a calm and practical voice guide for people in India choosing an electric car, scooter, or 3-wheeler.
+  return `You are EasyEV AI, a fast, calm and practical voice guide for people in India choosing an electric car, scooter, or 3-wheeler.
 
 The shopper selected category: ${category}. Their preferred conversation language is ${language}.
 
 Language and voice style: ${languageStyle}
 
-Your job is to discover their use case, daily distance, budget, charging access, passenger or payload needs, and priorities. Help them compare fit dimensions and trade-offs. Do not invent live vehicle prices, range claims, subsidies, dealer availability, finance quotes, or booking confirmation. The comparison cards and ownership calculator in the web app are explicitly illustrative. Test-drive selections are stored only in the browser and are not sent to a dealer, calendar, or WhatsApp.
+You have five real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
+- compare_vehicles for comparisons, shortlists, pictures, specifications and rankings.
+- find_nearby_chargers for chargers, charging stations, maps and distance.
+- calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
+- analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
+- generate_decision_report for a report, PDF, summary or download.
 
-Keep most spoken answers to two or three short sentences. Ask at most one useful follow-up question per turn. Pronounce numbers and units naturally for India. If uncertain, say so. Never pressure the shopper or claim that EasyEV has completed an external action.`;
+Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool. Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
+
+Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
 
-function createAgentSession({ channel, uid, category, language, voice }) {
+function createAgentSession({ channel, uid, category, language, voice, mcpUrl }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const greeting = language === 'Hindi'
-    ? 'नमस्ते! मैं आपकी EasyEV गाइड हूँ। आप रोज़ कितनी दूरी तय करते हैं, और EV से क्या ज़रूरत पूरी करना चाहते हैं?'
+    ? 'नमस्ते! मैं आपका EasyEV गाइड हूँ। अपनी रोज़ की दूरी और ज़रूरत बताइए—मैं आपके सामने तुलना, खर्च और चार्जिंग विकल्प जाँच सकता हूँ।'
     : language === 'English'
-      ? 'Hello! I am your EasyEV guide. Tell me about your daily travel, and we will find the EV that fits your life.'
-      : 'नमस्ते! मैं आपकी EasyEV guide हूँ। अपनी daily travel need बताइए, फिर हम सही EV fit साथ में compare करेंगे।';
+      ? 'Hello! I am your EasyEV guide. Tell me about your daily travel—I can compare vehicles, calculate ownership and check charging options with you.'
+      : 'नमस्ते! मैं आपका EasyEV guide हूँ। अपनी daily travel need बताइए—मैं आपके सामने vehicles compare, cost calculate और charging options check कर सकता हूँ।';
   const recognitionLanguage = language === 'English' ? 'en-IN' : 'hi-IN';
   const speechInstructions = language === 'Hindi'
     ? 'Speak in a calm Indian male Hindi voice. Use clear contemporary Hindi, a confident gentle pace, short pauses, and natural Indian pronunciation for EV terms.'
@@ -262,7 +306,7 @@ function createAgentSession({ channel, uid, category, language, voice }) {
         },
       },
     },
-    advancedFeatures: { enable_rtm: true, enable_tools: false },
+    advancedFeatures: { enable_rtm: true, enable_tools: Boolean(mcpUrl) },
     parameters: {
       audio_scenario: 'chorus',
       data_channel: 'datastream',
@@ -276,7 +320,8 @@ function createAgentSession({ channel, uid, category, language, voice }) {
       greetingMessage: greeting,
       failureMessage: 'I had trouble responding. Please try that once more.',
       maxHistory: 15,
-      params: { max_tokens: 320, temperature: 0.4, top_p: 0.9 },
+      params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
+      ...(mcpUrl ? { mcpServers: [{ name: 'easyev_decision_tools', url: mcpUrl, transport: 'streamable_http' }] } : {}),
     }))
     .withTts(tts);
 
@@ -290,15 +335,48 @@ function createAgentSession({ channel, uid, category, language, voice }) {
   });
 }
 
+function createRecord({ key, channel, uid, category, language, voice }) {
+  return {
+    key,
+    channel,
+    uid,
+    category,
+    language,
+    voice,
+    agentId: null,
+    session: null,
+    createdAt: Date.now(),
+    expiresAt: Date.now() + TOKEN_TTL_SECONDS * 1000,
+    stopping: false,
+    closed: false,
+    turnGeneration: 0,
+    controllers: new Map(),
+    sseClients: new Set(),
+    events: [],
+    context: { location: null, assumptions: {} },
+    passport: tools.createPassport(category, language),
+    pendingSnapshot: null,
+    report: null,
+  };
+}
+
 async function stopRecord(record) {
   if (!record || record.stopping) return;
   record.stopping = true;
+  tools.cancel(record, 'Consultation ended');
+  record.closed = true;
+  for (const client of record.sseClients) {
+    try { client.end(); } catch {}
+  }
+  record.sseClients.clear();
   try {
-    await record.session.stop();
+    if (record.session) await record.session.stop();
   } catch (error) {
     const message = safeMessage(error, 'Unable to stop session').toLowerCase();
     if (!message.includes('404') && !message.includes('already') && !message.includes('not found')) throw error;
   } finally {
+    if (record.pendingSnapshot?.buffer) record.pendingSnapshot.buffer.fill(0);
+    record.report = null;
     sessions.delete(record.key);
   }
 }
@@ -313,19 +391,168 @@ function pruneExpired() {
 
 setInterval(pruneExpired, 60_000).unref();
 
+function requireSession(id, res) {
+  const record = sessions.get(id);
+  if (!record || record.closed) {
+    json(res, 404, { error: 'The consultation is no longer active.' });
+    return null;
+  }
+  return record;
+}
+
+async function handleMcp(req, res, url) {
+  const token = decodeURIComponent(url.pathname.slice('/mcp/'.length));
+  const record = verifySessionToken(token);
+  if (!record) return json(res, 401, { error: 'Invalid or expired EasyEV tool session.' });
+  const transportId = req.headers['mcp-session-id'];
+  if (req.method === 'POST') {
+    const body = await readJson(req, 256 * 1024);
+    let transport = transportId ? mcpTransports.get(`${token}:${transportId}`) : null;
+    if (!transport && isInitializeRequest(body)) {
+      const mcpServer = tools.createMcpServer(record);
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        enableJsonResponse: true,
+        onsessioninitialized: (id) => mcpTransports.set(`${token}:${id}`, transport),
+      });
+      transport.onclose = () => {
+        if (transport.sessionId) mcpTransports.delete(`${token}:${transport.sessionId}`);
+        mcpServer.close().catch(() => {});
+      };
+      await mcpServer.connect(transport);
+    }
+    if (!transport) return json(res, 400, { error: 'Start the MCP session with an initialize request.' });
+    await transport.handleRequest(req, res, body);
+    return true;
+  }
+  const transport = transportId ? mcpTransports.get(`${token}:${transportId}`) : null;
+  if (!transport) return json(res, 400, { error: 'Unknown MCP session.' });
+  await transport.handleRequest(req, res);
+  return true;
+}
+
+async function handleScopedSessionApi(req, res, url) {
+  const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool)$/i);
+  if (!match) return false;
+  const record = requireSession(match[1], res);
+  if (!record) return true;
+  const action = match[2];
+
+  if (req.method === 'GET' && action === 'events') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-store, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    res.write(`retry: 1200\nevent: ready\ndata: ${JSON.stringify({ sessionId: record.key, passport: tools.publicPassport(record) })}\n\n`);
+    for (const event of record.events.slice(-12)) {
+      res.write(`id: ${event.eventId}\nevent: tool-event\ndata: ${JSON.stringify(event)}\n\n`);
+    }
+    record.sseClients.add(res);
+    const keepAlive = setInterval(() => {
+      try { res.write(': keep-alive\n\n'); } catch {}
+    }, 15_000);
+    req.on('close', () => {
+      clearInterval(keepAlive);
+      record.sseClients.delete(res);
+    });
+    return true;
+  }
+
+  if (req.method === 'POST' && action === 'context') {
+    const body = await readJson(req);
+    if (body.location === null) {
+      record.context.location = null;
+    } else if (body.location) {
+      const lat = Number(body.location.lat);
+      const lng = Number(body.location.lng);
+      const accuracy = Number(body.location.accuracy || 0);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180 || body.location.consented !== true) {
+        return json(res, 400, { error: 'Explicitly consented valid location is required.' });
+      }
+      record.context.location = {
+        lat,
+        lng,
+        accuracy: Number.isFinite(accuracy) ? Math.round(accuracy) : 0,
+        consented: true,
+        receivedAt: new Date().toISOString(),
+      };
+    }
+    if (body.assumptions && typeof body.assumptions === 'object') {
+      record.context.assumptions = { ...record.context.assumptions, ...body.assumptions };
+    }
+    return json(res, 200, { success: true, locationStored: Boolean(record.context.location) });
+  }
+
+  if (req.method === 'POST' && action === 'snapshot') {
+    const body = await readJson(req, SNAPSHOT_BODY_LIMIT_BYTES);
+    if (body.consent !== true) return json(res, 400, { error: 'Explicit snapshot consent is required.' });
+    const result = tools.storeSnapshot(record, body.image);
+    return json(res, 200, { success: true, ...result });
+  }
+
+  if (req.method === 'POST' && action === 'cancel') {
+    tools.cancel(record, 'Cancelled after interruption or navigation');
+    try { if (record.session) await record.session.interrupt(); } catch {}
+    return json(res, 200, { success: true });
+  }
+
+  if (req.method === 'GET' && action === 'report') {
+    if (!record.report || Date.now() - record.report.createdAt > 60 * 60 * 1000) {
+      return json(res, 404, { error: 'Generate the decision report first.' });
+    }
+    res.writeHead(200, {
+      'Content-Type': 'application/pdf',
+      'Content-Length': record.report.pdf.length,
+      'Content-Disposition': `attachment; filename="${record.report.filename}"`,
+      'Cache-Control': 'private, no-store',
+      'X-Content-Type-Options': 'nosniff',
+    });
+    res.end(record.report.pdf);
+    return true;
+  }
+
+  if (req.method === 'POST' && action === 'tool') {
+    const body = await readJson(req);
+    if (!tools.definitions()[body.tool]) return json(res, 400, { error: 'Unknown tool.' });
+    const result = await tools.run(record, body.tool, body.args || {});
+    return json(res, 200, { success: true, result: result.structuredContent });
+  }
+
+  return json(res, 405, { error: 'Method not allowed' });
+}
+
 async function handleApi(req, res, url) {
-  if (req.method === 'GET' && url.pathname === '/api/health') {
+  const scoped = await handleScopedSessionApi(req, res, url);
+  if (scoped !== false) return scoped;
+  if (req.method === 'GET' && (url.pathname === '/api/health' || url.pathname === '/api/ready')) {
     return json(res, 200, {
       ok: true,
+      ready: startup.ready,
+      phase: startup.phase,
+      elapsedMs: Date.now() - startup.startedAt,
       agoraConfigured: true,
       mode: 'live',
       activeSessions: sessions.size,
+      mcpPublic: MCP_PUBLIC,
+      decisionTools: Object.keys(tools.definitions()),
+      database: tools.databaseMode,
+      databaseFallback: tools.databaseMode === 'ephemeral',
+      visionConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
       speech: {
         hindiRecognition: 'Agora ARES hi-IN',
         provider: AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',
         voice: AZURE_SPEECH_READY ? VOICES.madhur.voiceName : 'onyx',
         azureConfigured: AZURE_SPEECH_READY,
       },
+    });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/catalog') {
+    return json(res, 200, {
+      vehicles: VEHICLES.map(({ aliases, ...item }) => item),
+      sourceNote: 'Curated official-source catalog; prices and variants require rechecking.',
     });
   }
 
@@ -383,11 +610,34 @@ async function handleApi(req, res, url) {
     const category = normalizeChoice(body.category, ['Electric car', 'Electric scooter', 'Electric 3-wheeler', 'Not sure'], 'Not sure');
     const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
     const voice = selectedVoice(body.voice).id;
-    const session = createAgentSession({ channel: pending.channel, uid: pending.uid, category, language, voice });
-    const agentId = await session.start();
     const key = randomUUID();
-    sessions.set(key, { key, agentId, session, channel: pending.channel, uid: pending.uid, createdAt: Date.now(), expiresAt: Date.now() + TOKEN_TTL_SECONDS * 1000, stopping: false });
-    return json(res, 200, { sessionKey: key, agentId, state: 'RUNNING' });
+    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category, language, voice });
+    sessions.set(key, record);
+    const mcpUrl = MCP_PUBLIC ? `${MCP_BASE_URL}/${encodeURIComponent(signSessionToken(key))}` : null;
+    try {
+      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, category, language, voice, mcpUrl });
+      record.agentId = await record.session.start();
+      await tools.persistSession(record);
+      tools.emit(record, {
+        phase: 'ready',
+        stage: 'welcome',
+        payload: {
+          message: mcpUrl ? 'Five live decision tools connected' : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
+          passport: tools.publicPassport(record),
+        },
+      });
+      return json(res, 200, {
+        sessionKey: key,
+        agentId: record.agentId,
+        state: 'RUNNING',
+        toolsMode: mcpUrl ? 'agora-mcp' : 'local-bridge',
+        eventsUrl: `/api/sessions/${key}/events`,
+        reportUrl: `/api/sessions/${key}/report`,
+      });
+    } catch (error) {
+      sessions.delete(key);
+      throw error;
+    }
   }
 
   if (req.method === 'POST' && url.pathname === '/api/session/think') {
@@ -395,6 +645,7 @@ async function handleApi(req, res, url) {
     const record = sessions.get(body.sessionKey);
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 1200) : '';
     if (!record || !text) return json(res, 400, { error: 'Active session and text are required.' });
+    tools.cancel(record, 'New user intent');
     await record.session.think(text, { interruptable: true, metadata: { source: 'easyev-text-prompt' } });
     return json(res, 200, { success: true });
   }
@@ -403,6 +654,7 @@ async function handleApi(req, res, url) {
     const body = await readJson(req);
     const record = sessions.get(body.sessionKey);
     if (!record) return json(res, 404, { error: 'The consultation is no longer active.' });
+    tools.cancel(record, 'AI interrupted by user');
     await record.session.interrupt();
     return json(res, 200, { success: true });
   }
@@ -433,7 +685,7 @@ function serveFile(res, path, cache = false) {
     'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Permissions-Policy': 'camera=(self), microphone=(self)',
+    'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
   });
   createReadStream(fullPath).pipe(res);
   return true;
@@ -442,6 +694,10 @@ function serveFile(res, path, cache = false) {
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+    if (url.pathname.startsWith('/mcp/')) {
+      await handleMcp(req, res, url);
+      return;
+    }
     if (url.pathname.startsWith('/api/')) {
       const handled = await handleApi(req, res, url);
       if (handled !== false) return;
@@ -454,7 +710,7 @@ const server = http.createServer(async (req, res) => {
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
-    if (!res.headersSent) json(res, 500, { error: safeMessage(error, 'Request failed') });
+    if (!res.headersSent) json(res, Number(error?.statusCode) || 500, { error: safeMessage(error, 'Request failed') });
     else res.end();
   }
 });
@@ -462,6 +718,8 @@ const server = http.createServer(async (req, res) => {
 async function shutdown(signal) {
   console.log(`\n${signal}: closing ${sessions.size} active EasyEV consultation(s)...`);
   await Promise.allSettled([...sessions.values()].map(stopRecord));
+  await Promise.allSettled([...mcpTransports.values()].map((transport) => transport.close()));
+  await tools.close().catch(() => {});
   server.close(() => process.exit(0));
   setTimeout(() => process.exit(1), 5000).unref();
 }
@@ -469,7 +727,15 @@ async function shutdown(signal) {
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-server.listen(PORT, '127.0.0.1', () => {
+tools.initialize()
+  .catch((error) => console.error('Tool database initialization failed:', safeMessage(error)))
+  .finally(() => {
+    startup.ready = true;
+    startup.phase = MCP_PUBLIC ? 'Ready' : 'Connecting decision tools';
+  });
+
+server.listen(PORT, process.env.HOST || '0.0.0.0', () => {
   console.log(`EasyEV Live is running at http://127.0.0.1:${PORT}`);
+  console.log(`Decision tools: ${MCP_PUBLIC ? 'Agora MCP enabled' : 'local bridge; set PUBLIC_BASE_URL for Agora MCP'}.`);
   console.log('Agora credentials loaded server-side; certificate is not exposed to the browser.');
 });

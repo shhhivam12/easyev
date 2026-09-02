@@ -13,6 +13,7 @@ const postJson = async (url, payload, options = {}) => {
     body: JSON.stringify(payload),
     cache: 'no-store',
     keepalive: Boolean(options.keepalive),
+    signal: options.signal,
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
@@ -56,6 +57,10 @@ class AgoraAdapter {
     this.context = null;
     this.leaving = null;
     this.levelTimer = null;
+    this.events = null;
+    this.requests = new Set();
+    this.reportUrl = '';
+    this.toolsMode = 'unavailable';
   }
 
   onEvent(handler) {
@@ -179,13 +184,77 @@ class AgoraAdapter {
         return;
       }
       this.sessionKey = session.sessionKey;
+      this.reportUrl = session.reportUrl || `/api/sessions/${this.sessionKey}/report`;
+      this.toolsMode = session.toolsMode || 'local-bridge';
+      this.openEventStream(session.eventsUrl || `/api/sessions/${this.sessionKey}/events`, generation);
       this.emit('CALL_STATUS', { status: 'live', sessionId: context.sessionId });
+      this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: context.sessionId });
       this.emit('AGENT_STATE', { mode: 'listening', sessionId: context.sessionId });
     } catch (error) {
       this.emit('ERROR', { message: error.message || 'Could not start the live consultation.', recoverable: false, sessionId: context.sessionId });
       await this.leave({ skipStop: false });
       throw error;
     }
+  }
+
+  openEventStream(url, generation) {
+    try { this.events?.close(); } catch {}
+    this.events = new EventSource(url);
+    this.events.addEventListener('ready', (message) => {
+      if (generation !== this.generation) return;
+      const payload = JSON.parse(message.data || '{}');
+      this.emit('PASSPORT_SYNC', { passport: payload.passport || null, sessionId: this.context?.sessionId });
+    });
+    this.events.addEventListener('tool-event', (message) => {
+      if (generation !== this.generation) return;
+      try {
+        this.emit('TOOL_EVENT', { ...JSON.parse(message.data || '{}'), sessionId: this.context?.sessionId });
+      } catch {
+        this.emit('ERROR', { message: 'A decision-tool update could not be read.', recoverable: true });
+      }
+    });
+    this.events.onerror = () => {
+      if (generation === this.generation && this.sessionKey) {
+        this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: false, reconnecting: true, sessionId: this.context?.sessionId });
+      }
+    };
+    this.events.onopen = () => {
+      if (generation === this.generation) this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: this.context?.sessionId });
+    };
+  }
+
+  async scopedPost(action, payload, options = {}) {
+    if (!this.sessionKey) throw new Error('The live AI session is not ready.');
+    const controller = new AbortController();
+    this.requests.add(controller);
+    try {
+      return await postJson(`/api/sessions/${this.sessionKey}/${action}`, payload, { ...options, signal: controller.signal });
+    } finally {
+      this.requests.delete(controller);
+    }
+  }
+
+  async setContext(payload) {
+    return this.scopedPost('context', payload);
+  }
+
+  async runTool(tool, args = {}) {
+    return this.scopedPost('tool', { tool, args });
+  }
+
+  async uploadSnapshot(image) {
+    return this.scopedPost('snapshot', { consent: true, image });
+  }
+
+  getReportUrl() {
+    return this.reportUrl;
+  }
+
+  async cancelTools() {
+    if (!this.sessionKey) return;
+    for (const controller of this.requests) controller.abort();
+    this.requests.clear();
+    await postJson(`/api/sessions/${this.sessionKey}/cancel`, {}, { keepalive: true }).catch(() => {});
   }
 
   async renewToken(generation) {
@@ -214,6 +283,8 @@ class AgoraAdapter {
     try { track?.stop(); } catch {}
     this.emit('AGENT_STATE', { mode: 'interrupted', sessionId: this.context?.sessionId });
     this.emit('INTERRUPTION_READY', { ready: false, sessionId: this.context?.sessionId });
+    for (const controller of this.requests) controller.abort();
+    this.requests.clear();
     await postJson('/api/session/interrupt', { sessionKey: this.sessionKey });
     window.setTimeout(() => {
       if (track === this.remoteAudioTrack) {
@@ -228,6 +299,10 @@ class AgoraAdapter {
     this.sessionKey = '';
     ++this.generation;
     this.leaving = (async () => {
+      try { this.events?.close(); } catch {}
+      this.events = null;
+      for (const controller of this.requests) controller.abort();
+      this.requests.clear();
       if (this.levelTimer) {
         window.clearInterval(this.levelTimer);
         this.levelTimer = null;
@@ -252,6 +327,8 @@ class AgoraAdapter {
       this.uid = '';
       this.appId = '';
       this.context = null;
+      this.reportUrl = '';
+      this.toolsMode = 'unavailable';
       this.emit('LOCAL_AUDIO_LEVEL', { level: 0 });
       this.emit('AGENT_CONNECTED', { connected: false });
     })().finally(() => { this.leaving = null; });
@@ -260,6 +337,10 @@ class AgoraAdapter {
 
   stopWithBeacon() {
     if (!this.sessionKey) return;
+    try { this.events?.close(); } catch {}
+    this.events = null;
+    for (const controller of this.requests) controller.abort();
+    this.requests.clear();
     const body = new Blob([JSON.stringify({ sessionKey: this.sessionKey })], { type: 'application/json' });
     navigator.sendBeacon('/api/session/stop', body);
     this.sessionKey = '';

@@ -14,11 +14,15 @@
     "dev": "npm run build:client && node server.mjs"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "agora-agent-client-toolkit": "1.2.0",
     "agora-agents": "2.3.1",
     "agora-rtc-sdk-ng": "4.24.3",
     "agora-rtm": "2.2.3",
-    "agora-token": "2.0.5"
+    "agora-token": "2.0.5",
+    "pdfkit": "^0.20.2",
+    "pg": "^8.23.0",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "esbuild": "0.25.9"
