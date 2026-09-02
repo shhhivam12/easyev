@@ -16,6 +16,7 @@ export const VEHICLES = Object.freeze([
   vehicle('tata-nexon-ev', 'Tata Nexon.ev', 'Electric car', ['nexon ev', 'नेक्सॉन ईवी', 'tata nexon'], 12.49, 17.19, 489, '30–45 kWh', '40 min DC (10–80%, selected variants)', '8 years / 160,000 km battery and motor', '5 seats', 13.5, 'https://ev.tatamotors.com/nexon/ev.html', '2026-08-30'),
   vehicle('mg-windsor-ev', 'MG Windsor EV', 'Electric car', ['windsor ev', 'mg windsor', 'विंडसर ईवी'], 13.99, 18.39, 449, '38–52.9 kWh', '55 min DC (0–80%, selected variants)', '8 years / 160,000 km battery', '5 seats', 14.2, 'https://www.mgmotor.co.in/vehicles/windsor-ev', '2026-08-30'),
   vehicle('mahindra-xuv400', 'Mahindra XUV400', 'Electric car', ['xuv400', 'xuv 400', 'महिंद्रा एक्सयूवी 400'], 15.49, 19.39, 456, '34.5–39.4 kWh', '50 min DC (0–80%)', '8 years / 160,000 km battery', '5 seats', 14.5, 'https://www.mahindraelectricsuv.com/xuv400', '2026-08-30'),
+  vehicle('citroen-ec3x', 'Citroën ë-C3X', 'Electric car', ['citroen c3', 'citroen ec3', 'citroen e c3', 'citroen c3 ev', 'ec3', 'e-c3', 'e c3', 'ec3x', 'e-c3x', 'सिट्रोएन सी3', 'सिट्रोन सी3'], 12.76, 13.56, 320, '29.2 kWh', '57 min DC fast charging (published claim)', 'Manufacturer battery terms vary; verify selected variant', '5 seats', 13.3, 'https://www.citroen.in/ec3-electric-car', '2026-09-03'),
   vehicle('ather-rizta', 'Ather Rizta', 'Electric scooter', ['rizta', 'ather rizta', 'रिज़्टा'], 1.1, 1.49, 159, '2.9–3.7 kWh', 'Home charging; time varies by pack', '5 years / 60,000 km battery program conditions apply', '2 riders', 3.0, 'https://www.atherenergy.com/rizta', '2026-08-30'),
   vehicle('ather-450x', 'Ather 450X', 'Electric scooter', ['450x', 'ather 450x', 'एथर 450 एक्स'], 1.47, 1.57, 161, '2.9–3.7 kWh', 'Home charging; fast-network support varies', '5 years / 60,000 km battery program conditions apply', '2 riders', 3.2, 'https://www.atherenergy.com/450', '2026-08-30'),
   vehicle('tvs-iqube', 'TVS iQube', 'Electric scooter', ['iqube', 'i qube', 'tvs iqube', 'आईक्यूब'], 0.95, 1.85, 150, '2.2–5.3 kWh', 'Home charging; time varies by pack', '3 years / 50,000 km, variant terms apply', '2 riders', 3.0, 'https://www.tvsmotor.com/electric-scooters/tvs-iqube', '2026-08-30'),
@@ -44,7 +45,39 @@ function unique(items) {
 }
 
 function normalizeName(value) {
-  return cleanText(value, 100).toLowerCase().replace(/[^a-z0-9\u0900-\u097f]+/g, ' ').trim();
+  return cleanText(value, 100).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\u0900-\u097f]+/g, ' ').trim();
+}
+
+function unpackArgs(args) {
+  if (!args || typeof args !== 'object' || Array.isArray(args)) return {};
+  const nested = args.arguments || args.input || args.parameters;
+  return nested && typeof nested === 'object' && !Array.isArray(nested) ? { ...args, ...nested } : args;
+}
+
+function firstDefined(args, keys) {
+  for (const key of keys) if (args[key] !== undefined && args[key] !== null && args[key] !== '') return args[key];
+  return undefined;
+}
+
+function flexibleNumber(args, keys) {
+  const value = firstDefined(args, keys);
+  if (value === undefined) return undefined;
+  const number = Number(String(value).replace(/[^0-9.+-]/g, ''));
+  return Number.isFinite(number) ? number : undefined;
+}
+
+function comparisonNames(args) {
+  const input = unpackArgs(args);
+  const supplied = firstDefined(input, ['vehicles', 'vehicleNames', 'vehicle_names', 'models', 'query']);
+  const names = Array.isArray(supplied) ? supplied : supplied ? [supplied] : [];
+  for (const key of ['vehicle1', 'vehicle2', 'vehicle3', 'firstVehicle', 'secondVehicle', 'first_vehicle', 'second_vehicle']) {
+    if (input[key]) names.push(input[key]);
+  }
+  return names.flatMap((value) => String(value || '')
+    .replace(/^(?:please\s+)?(?:compare|show|display|check)\s+/i, '')
+    .split(/,|\b(?:vs\.?|versus|against|with|and|for)\b|(?:बनाम|और|के साथ|से तुलना)/i))
+    .map((value) => cleanText(value, 100))
+    .filter(Boolean);
 }
 
 function scoreVehicle(item, query) {
@@ -58,7 +91,7 @@ function scoreVehicle(item, query) {
 }
 
 function resolveVehicles(names, category) {
-  const requested = (Array.isArray(names) ? names : String(names || '').split(/,|\b(?:vs|versus|और|या)\b/i)).map((item) => cleanText(item, 100)).filter(Boolean);
+  const requested = (Array.isArray(names) ? names : String(names || '').split(/,|\b(?:vs\.?|versus|against|with|and|for)\b|(?:बनाम|और|के साथ|से तुलना)/i)).map((item) => cleanText(item, 100)).filter(Boolean);
   const resolved = [];
   const ambiguous = [];
   for (const query of requested.slice(0, 3)) {
@@ -232,35 +265,41 @@ export class EasyEVToolEngine {
   }
 
   definitions() {
+    const flexibleNumeric = z.union([z.number(), z.string()]).optional();
+    const flexibleTextList = z.union([z.array(z.string()), z.string()]).optional();
     return {
       compare_vehicles: {
-        description: 'Compare two or three Indian electric vehicles from the verified EasyEV catalog and update the Buyer Decision Passport. Use for compare, shortlist, choose, rank, picture or specification requests.',
+        description: 'Compare or visually present Indian electric vehicles from the verified EasyEV catalog and update the Buyer Decision Passport. Put every vehicle the buyer names into vehicles; two names produce a side-by-side comparison. Recognises Citroen C3/eC3/eC3X and Tata Punch EV.',
         inputSchema: {
-          vehicles: z.array(z.string()).min(1).max(3).describe('Spoken vehicle names'),
-          priorities: z.array(z.string()).max(5).optional().describe('Buyer priorities such as budget, range, comfort or payload'),
+          vehicles: flexibleTextList.describe('One vehicle name or a list of up to three spoken vehicle names'),
+          vehicle1: z.string().optional(),
+          vehicle2: z.string().optional(),
+          vehicle_names: flexibleTextList,
+          query: z.string().optional(),
+          priorities: flexibleTextList.describe('Buyer priorities such as budget, range, comfort or payload'),
         },
         run: this.compareVehicles.bind(this),
       },
       find_nearby_chargers: {
         description: 'Find public EV charging locations using only a location the buyer explicitly consented to share. Use for chargers, map, stations or distance. If location is absent, request it in the UI.',
-        inputSchema: { radiusKm: z.number().min(2).max(25).optional() },
+        inputSchema: { radiusKm: flexibleNumeric, radius_km: flexibleNumeric },
         run: this.findNearbyChargers.bind(this),
       },
       calculate_ownership: {
         description: 'Calculate deterministic EV purchase, EMI, electricity, service, fuel comparison, five-year total and break-even. Use for cost, savings, EMI, distance, tariff or changed assumptions.',
         inputSchema: {
           vehicle: z.string().optional(),
-          dailyKm: z.number().min(5).max(500).optional(),
-          years: z.number().min(1).max(10).optional(),
-          electricityRate: z.number().min(1).max(30).optional(),
-          publicChargingRate: z.number().min(1).max(50).optional(),
-          homeChargingShare: z.number().min(0).max(1).optional(),
-          petrolPrice: z.number().min(50).max(180).optional(),
-          petrolMileage: z.number().min(5).max(60).optional(),
-          downPaymentPercent: z.number().min(0).max(90).optional(),
-          annualInterest: z.number().min(0).max(24).optional(),
-          loanYears: z.number().min(1).max(7).optional(),
-          comparableFuelVehicleLakh: z.number().min(0.5).max(100).optional(),
+          dailyKm: flexibleNumeric, daily_km: flexibleNumeric,
+          years: flexibleNumeric,
+          electricityRate: flexibleNumeric, electricity_rate: flexibleNumeric,
+          publicChargingRate: flexibleNumeric, public_charging_rate: flexibleNumeric,
+          homeChargingShare: flexibleNumeric, home_charging_share: flexibleNumeric,
+          petrolPrice: flexibleNumeric, petrol_price: flexibleNumeric,
+          petrolMileage: flexibleNumeric, petrol_mileage: flexibleNumeric,
+          downPaymentPercent: flexibleNumeric, down_payment_percent: flexibleNumeric,
+          annualInterest: flexibleNumeric, annual_interest: flexibleNumeric,
+          loanYears: flexibleNumeric, loan_years: flexibleNumeric,
+          comparableFuelVehicleLakh: flexibleNumeric, comparable_fuel_vehicle_lakh: flexibleNumeric,
         },
         run: this.calculateOwnership.bind(this),
       },
@@ -369,8 +408,17 @@ export class EasyEVToolEngine {
   }
 
   async compareVehicles(record, args, signal) {
-    const { resolved, ambiguous } = resolveVehicles(args.vehicles, record.category);
-    const priorities = (Array.isArray(args.priorities) ? args.priorities : []).map((item) => cleanText(item, 60)).filter(Boolean).slice(0, 5);
+    const input = unpackArgs(args);
+    const requested = comparisonNames(input);
+    if (requested.length < 2) {
+      for (const item of record.passport.shortlist || []) {
+        if (requested.length >= 2) break;
+        if (!requested.some((name) => normalizeName(name) === normalizeName(item.name))) requested.push(item.name);
+      }
+    }
+    const { resolved, ambiguous } = resolveVehicles(requested, record.category);
+    const rawPriorities = firstDefined(input, ['priorities', 'priority']);
+    const priorities = (Array.isArray(rawPriorities) ? rawPriorities : rawPriorities ? String(rawPriorities).split(/,|\band\b|और/i) : []).map((item) => cleanText(item, 60)).filter(Boolean).slice(0, 5);
     const media = await Promise.all(resolved.map((item) => this.resolveLicensedMedia(item, signal)));
     const vehicles = resolved.map((item, index) => ({
       ...item,
@@ -412,7 +460,7 @@ export class EasyEVToolEngine {
       payload,
       spoken: ambiguous.length
         ? `I found ${vehicles.length} close matches, but please clarify ${ambiguous.join(', ')}.`
-        : `I compared ${vehicles.map((item) => item.name).join(' and ')} using sourced catalog facts. ${leader ? `${leader.name} leads for the priorities we have.` : ''}`,
+        : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
     };
   }
 
@@ -488,6 +536,7 @@ export class EasyEVToolEngine {
   }
 
   async findNearbyChargers(record, args, signal) {
+    args = unpackArgs(args);
     if (!record.context.location?.consented) {
       return {
         stage: 'location-permission',
@@ -497,7 +546,7 @@ export class EasyEVToolEngine {
       };
     }
     const { lat, lng, accuracy } = record.context.location;
-    const radiusKm = Math.min(25, Math.max(2, Number(args.radiusKm) || 10));
+    const radiusKm = Math.min(25, Math.max(2, flexibleNumber(args, ['radiusKm', 'radius_km', 'radius']) || 10));
     const key = `${lat.toFixed(3)}:${lng.toFixed(3)}:${radiusKm}`;
     const cached = chargerCache.get(key);
     let result = cached?.expiresAt > Date.now() ? cached.result : null;
@@ -551,27 +600,29 @@ export class EasyEVToolEngine {
       stage: 'charging-map',
       payload: result,
       spoken: result.stations.length
-        ? `I found ${result.stations.length} charging locations in the search area. The nearest returned result is ${result.stations[0].distanceKm} kilometres away, toward the ${result.stations[0].direction}. Please verify access before travelling.`
+        ? `The map is ready and centred on the location your browser shared. I found ${result.stations.length} charging locations; the nearest returned result is ${result.stations[0].distanceKm} kilometres away, toward the ${result.stations[0].direction}. Please verify access before travelling.`
         : 'The live providers did not return a charger in this search area. I have not invented a location.',
     };
   }
 
   async calculateOwnership(record, args) {
-    const item = resolveVehicles([args.vehicle || record.passport.shortlist[0]?.name], record.category).resolved[0];
+    args = unpackArgs(args);
+    const item = resolveVehicles([firstDefined(args, ['vehicle', 'vehicleName', 'vehicle_name']) || record.passport.shortlist[0]?.name], record.category).resolved[0];
     if (!item) throw new Error('Choose a vehicle before calculating ownership.');
-    const dailyKm = Math.min(500, Math.max(5, Number(args.dailyKm) || Number(record.passport.profile.dailyKm) || 40));
-    const years = Math.min(10, Math.max(1, Number(args.years) || 5));
-    const electricityRate = Math.min(30, Math.max(1, Number(args.electricityRate) || 8));
-    const publicRate = Math.min(50, Math.max(electricityRate, Number(args.publicChargingRate) || 18));
-    const homeShare = Math.min(1, Math.max(0, Number(args.homeChargingShare ?? 0.8)));
-    const petrolPrice = Math.min(180, Math.max(50, Number(args.petrolPrice) || 105));
+    const dailyKm = Math.min(500, Math.max(5, flexibleNumber(args, ['dailyKm', 'daily_km', 'kilometresPerDay', 'kilometers_per_day']) || Number(record.passport.profile.dailyKm) || 40));
+    const years = Math.min(10, Math.max(1, flexibleNumber(args, ['years', 'ownershipYears', 'ownership_years']) || 5));
+    const electricityRate = Math.min(30, Math.max(1, flexibleNumber(args, ['electricityRate', 'electricity_rate', 'unitCost', 'unit_cost']) || 8));
+    const publicRate = Math.min(50, Math.max(electricityRate, flexibleNumber(args, ['publicChargingRate', 'public_charging_rate']) || 18));
+    const homeShare = Math.min(1, Math.max(0, flexibleNumber(args, ['homeChargingShare', 'home_charging_share']) ?? 0.8));
+    const petrolPrice = Math.min(180, Math.max(50, flexibleNumber(args, ['petrolPrice', 'petrol_price']) || 105));
     const defaultMileage = item.category === 'Electric scooter' ? 45 : item.category === 'Electric 3-wheeler' ? 25 : 14;
-    const petrolMileage = Math.min(60, Math.max(5, Number(args.petrolMileage) || defaultMileage));
-    const downPaymentPercent = Math.min(90, Math.max(0, Number(args.downPaymentPercent) || 20));
-    const annualInterest = Math.min(24, Math.max(0, Number(args.annualInterest) || 9));
-    const loanYears = Math.min(7, Math.max(1, Number(args.loanYears) || 5));
+    const petrolMileage = Math.min(60, Math.max(5, flexibleNumber(args, ['petrolMileage', 'petrol_mileage']) || defaultMileage));
+    const downPaymentPercent = Math.min(90, Math.max(0, flexibleNumber(args, ['downPaymentPercent', 'down_payment_percent']) ?? 20));
+    const annualInterest = Math.min(24, Math.max(0, flexibleNumber(args, ['annualInterest', 'annual_interest']) ?? 9));
+    const loanYears = Math.min(7, Math.max(1, flexibleNumber(args, ['loanYears', 'loan_years']) || 5));
     const purchasePrice = ((item.priceMinLakh + item.priceMaxLakh) / 2) * 100000;
-    const baselinePurchase = Math.max(100000, Number(args.comparableFuelVehicleLakh) ? Number(args.comparableFuelVehicleLakh) * 100000 : purchasePrice * 0.82);
+    const comparableFuelVehicleLakh = flexibleNumber(args, ['comparableFuelVehicleLakh', 'comparable_fuel_vehicle_lakh']);
+    const baselinePurchase = Math.max(100000, comparableFuelVehicleLakh ? comparableFuelVehicleLakh * 100000 : purchasePrice * 0.82);
     const annualKm = dailyKm * 365;
     const blendedElectricityRate = electricityRate * homeShare + publicRate * (1 - homeShare);
     const annualCharging = annualKm * item.kwhPer100Km / 100 * blendedElectricityRate;
