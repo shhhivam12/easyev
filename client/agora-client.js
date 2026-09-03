@@ -6,6 +6,8 @@ import {
   TranscriptHelperMode,
 } from 'agora-agent-client-toolkit';
 
+AgoraRTC.setParameter('ENABLE_AUDIO_PTS_METADATA', true);
+
 const postJson = async (url, payload, options = {}) => {
   const response = await fetch(url, {
     method: 'POST',
@@ -481,5 +483,159 @@ class VehicleAgoraAdapter extends AgoraAdapter {
   }
 }
 
+class CompareDebateAdapter extends AgoraAdapter {
+  async joinDebate(context) {
+    await this.leave({ skipStop: false });
+    const generation = ++this.generation;
+    this.context = context;
+    this.emit('CALL_STATUS', { status: 'connecting', vehicleIdA: context.vehicleIdA, vehicleIdB: context.vehicleIdB });
+
+    try {
+      const tokenData = await getJson(`/api/debate-session/token?vehicleIdA=${encodeURIComponent(context.vehicleIdA || 'tata-punch-ev')}&vehicleIdB=${encodeURIComponent(context.vehicleIdB || 'tata-nexon-ev')}`);
+      if (generation !== this.generation) return;
+      this.appId = tokenData.appId;
+      this.channel = tokenData.channel;
+      this.uid = String(tokenData.uid);
+
+      this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      this.rtc.on('connection-state-change', (current) => {
+        if (generation !== this.generation) return;
+        this.emit('CONNECTION_STATE', { state: current });
+      });
+      this.rtc.on('network-quality', (stats) => {
+        if (generation !== this.generation) return;
+        const uplink = Number(stats?.uplinkNetworkQuality || 0);
+        const downlink = Number(stats?.downlinkNetworkQuality || 0);
+        this.emit('NETWORK_QUALITY', { uplink, downlink });
+      });
+      this.rtc.on('user-published', async (user, mediaType) => {
+        if (generation !== this.generation || !this.rtc) return;
+        try {
+          await this.rtc.subscribe(user, mediaType);
+          if (mediaType === 'audio' && user.audioTrack) {
+            this.remoteAudioTrack = user.audioTrack;
+            user.audioTrack.play();
+            this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now() });
+            this.emit('AGENT_CONNECTED', { connected: true });
+          }
+        } catch (error) {
+          this.emit('ERROR', { message: `Could not play debate audio: ${error.message || error}`, recoverable: true });
+        }
+      });
+      this.rtc.on('stream-message', (uid, stream) => {
+        if (generation !== this.generation) return;
+        try {
+          const raw = new TextDecoder('utf-8').decode(stream).toLowerCase();
+          if (raw.includes('option 2') || raw.includes('option-2')) {
+            this.emit('SPEAKER_SWITCH', { speaker: 'option 2' });
+          } else if (raw.includes('option 1') || raw.includes('option-1')) {
+            this.emit('SPEAKER_SWITCH', { speaker: 'option 1' });
+          }
+        } catch {}
+      });
+      this.rtc.on('user-left', () => {
+        if (generation === this.generation) this.emit('AGENT_CONNECTED', { connected: false });
+      });
+      this.rtc.on('token-privilege-will-expire', () => this.renewToken(generation));
+
+      this.rtm = new AgoraRTM.RTM(this.appId, this.uid);
+      await Promise.all([
+        this.rtm.login({ token: tokenData.token }).then(() => this.rtm.subscribe(this.channel)),
+        this.rtc.join(this.appId, this.channel, tokenData.token, Number(this.uid)),
+        AgoraRTC.createMicrophoneAudioTrack({
+          encoderConfig: 'speech_standard',
+          AEC: true,
+          ANS: true,
+          AGC: true,
+        }).then((track) => { this.micTrack = track; }),
+      ]);
+      if (generation !== this.generation) return;
+      if (this.micTrack) {
+        await this.rtc.publish([this.micTrack]);
+      }
+      this.levelTimer = window.setInterval(() => {
+        if (generation !== this.generation) return;
+        if (this.micTrack) {
+          const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
+          this.emit('LOCAL_AUDIO_LEVEL', { level });
+        }
+        if (this.remoteAudioTrack) {
+          const remoteLevel = Math.max(0, Math.min(1, Number(this.remoteAudioTrack.getVolumeLevel?.() || 0)));
+          this.emit('REMOTE_AUDIO_LEVEL', { level: remoteLevel });
+        }
+      }, 50);
+
+      try {
+        this.ai = await AgoraVoiceAI.init({
+          rtcEngine: this.rtc,
+          rtmConfig: { rtmEngine: this.rtm },
+          renderMode: TranscriptHelperMode.TEXT,
+          enableLog: false,
+        });
+        this.ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, (items) => {
+          if (generation !== this.generation) return;
+          const entries = items
+            .filter((item) => typeof item.text === 'string' && item.text.trim())
+            .map((item) => {
+              const text = item.text.trim();
+              const isUser = String(item.uid) === '0' || String(item.uid) === this.uid;
+              let speaker = isUser ? 'you' : 'ai-debate';
+              return {
+                id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+                speaker,
+                text,
+                timestamp: timestampMs(item._time),
+                status: String(item.status ?? ''),
+              };
+            });
+          this.emit('TRANSCRIPT_SYNC', { entries });
+        });
+        this.ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (_agentUid, event) => {
+          if (generation !== this.generation) return;
+          const mode = agentMode(event?.state);
+          this.emit('AGENT_STATE', { mode });
+          this.emit('INTERRUPTION_READY', { ready: mode === 'speaking' });
+        });
+        this.ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, (_agentUid, error) => {
+          this.emit('ERROR', normalizeAgentError(error, 'Signaling error in debate.'));
+        });
+        this.ai.on(AgoraVoiceAIEvents.AGENT_ERROR, (_agentUid, error) => {
+          this.emit('ERROR', normalizeAgentError(error, 'Debate arena agent encountered an issue.'));
+        });
+        this.ai.subscribeMessage(this.channel);
+      } catch {
+        this.emit('ERROR', { message: 'Debate audio connected.', recoverable: true });
+      }
+
+      const session = await postJson('/api/debate-session/start', {
+        bootstrapKey: tokenData.bootstrapKey,
+        channel: this.channel,
+        uid: this.uid,
+        vehicleIdA: context.vehicleIdA,
+        vehicleIdB: context.vehicleIdB,
+        language: context.language || 'Hinglish',
+        voice: context.voice || 'madhur',
+      });
+      if (generation !== this.generation) {
+        await postJson('/api/session/stop', { sessionKey: session.sessionKey }, { keepalive: true }).catch(() => {});
+        return;
+      }
+      this.sessionKey = session.sessionKey;
+      this.emit('CALL_STATUS', { status: 'live', vehicleA: session.vehicleA, vehicleB: session.vehicleB });
+      this.emit('AGENT_STATE', { mode: 'listening' });
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not start EV debate arena.', recoverable: false });
+      await this.leave({ skipStop: false });
+      throw error;
+    }
+  }
+
+  async sendUserDebateIntervention(text) {
+    if (!this.sessionKey) return;
+    await this.sendText(text);
+  }
+}
+
 export const createAgoraAdapter = () => new AgoraAdapter();
 export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
+export const createCompareDebateAdapter = () => new CompareDebateAdapter();
