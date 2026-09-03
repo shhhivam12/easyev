@@ -6175,6 +6175,719 @@
       background: #fecaca;
     }
 
+    /* ============================================================
+       COMPARE EV & LIVE DUAL-AI DEBATE ARENA STYLES
+       ============================================================ */
+    .compare-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+    }
+    .compare-hero {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 32px;
+    }
+    .compare-hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green-deep);
+      background: #eef8f1;
+      border: 1px solid #c8edd3;
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-bottom: 14px;
+    }
+    .compare-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(32px, 4.2vw, 46px);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--ink);
+      line-height: 1.12;
+      margin: 0 0 12px;
+    }
+    .compare-hero h1 span {
+      color: var(--green-deep);
+    }
+    .compare-hero p {
+      font-size: 16px;
+      color: var(--muted);
+      line-height: 1.55;
+      margin: 0 auto;
+    }
+
+    /* Single Unified Master Comparison Toolbar */
+    .compare-master-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 36px 0 24px;
+      padding: 8px 12px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    }
+    .compare-cat-nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #f1f5f3;
+      padding: 4px;
+      border-radius: 8px;
+    }
+    .compare-cat-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+    .compare-cat-btn:hover {
+      color: var(--ink);
+    }
+    .compare-cat-btn[aria-pressed="true"] {
+      background: #ffffff;
+      color: var(--ink);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    }
+    .compare-toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .compare-slots-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #334155;
+    }
+    .slot-tag {
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    .slot-tag.a {
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .slot-tag.b {
+      background: #f0f9ff;
+      color: #075985;
+      border: 1px solid #bae6fd;
+    }
+    .slot-vs-divider {
+      font-size: 11px;
+      font-weight: 800;
+      color: #94a3b8;
+    }
+    .compare-start-debate-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 18px;
+      height: 38px;
+      border-radius: 6px;
+      background: var(--forest);
+      color: var(--green-bright);
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid rgba(85, 242, 123, 0.3);
+      cursor: pointer;
+      transition: all .15s ease;
+      white-space: nowrap;
+    }
+    .compare-start-debate-btn:hover:not(:disabled) {
+      background: #0d381d;
+      border-color: var(--green-bright);
+    }
+    .compare-start-debate-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: #f1f5f9;
+      color: #94a3b8;
+      border-color: #e2e8f0;
+    }
+
+    /* Comparison Vehicle Selection Grid (Substantial, Screen-filling Cards) */
+    .compare-select-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-bottom: 60px;
+    }
+    @media (max-width: 1100px) {
+      .compare-select-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .compare-select-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .compare-select-card {
+      position: relative;
+      border-radius: 14px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      padding: 20px;
+      cursor: pointer;
+      transition: all .2s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 380px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    }
+    .compare-select-card:hover {
+      border-color: #64748b;
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+    }
+    .compare-select-card.selected-a {
+      border-color: #16bf53;
+      background: #f7fdf9;
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.35);
+    }
+    .compare-select-card.selected-b {
+      border-color: #0284c7;
+      background: #f8fafc;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.35);
+    }
+    .compare-slot-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: .02em;
+    }
+    .compare-slot-badge.slot-a {
+      background: #16bf53;
+      color: #fff;
+    }
+    .compare-slot-badge.slot-b {
+      background: #0284c7;
+      color: #fff;
+    }
+    .compare-card-thumb-wrap {
+      width: 100%;
+      height: 200px;
+      background: #f8fafc;
+      border: 1px solid #edf2f7;
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .compare-card-thumb {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform .25s ease;
+    }
+    .compare-select-card:hover .compare-card-thumb {
+      transform: scale(1.04);
+    }
+    .compare-card-company {
+      font-size: 12px;
+      color: #64748b;
+      font-weight: 750;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 2px;
+    }
+    .compare-card-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--ink);
+      margin: 0 0 6px;
+    }
+    .compare-card-price {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0d7b38;
+      margin-bottom: 14px;
+    }
+    .compare-card-key-pill {
+      margin-top: auto;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #334155;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .compare-card-spec-tags {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: auto;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 8px;
+    }
+    .compare-card-spec-tags span {
+      font-size: 11.5px;
+      font-weight: 550;
+      color: #475569;
+    }
+
+    /* ============================================================
+       DUAL-AI LIVE DEBATE ARENA STAGE (STUDIO SHOWDOWN UI)
+       ============================================================ */
+    #debate-arena-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: #061b0e;
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(85, 242, 123, 0.18) 0%, transparent 55%),
+        radial-gradient(circle at 15% 90%, rgba(14, 165, 233, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 85% 90%, rgba(22, 191, 83, 0.18) 0%, transparent 45%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      max-height: 100vh;
+      overflow-y: auto;
+      padding: 16px 24px 20px;
+      box-sizing: border-box;
+    }
+    .arena-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1260px;
+      width: 100%;
+      margin: 0 auto 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      flex-shrink: 0;
+    }
+    .arena-topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .arena-live-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(85, 242, 123, 0.15);
+      border: 1.5px solid rgba(85, 242, 123, 0.45);
+      border-radius: var(--radius-pill);
+      color: var(--green-bright);
+      font-size: 13px;
+      font-weight: 800;
+      box-shadow: 0 0 15px rgba(85, 242, 123, 0.2);
+    }
+    .arena-live-pill i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 8px var(--green-bright);
+      animation: pulse-dot 1.2s infinite;
+    }
+    .arena-exit-btn {
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .arena-exit-btn:hover {
+      background: #ef4444;
+      border-color: #ef4444;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Dual Stage Arena Container */
+    .arena-split-stage {
+      display: grid;
+      grid-template-columns: 1fr 240px 1fr;
+      gap: 18px;
+      max-width: 1260px;
+      width: 100%;
+      margin: 0 auto 12px;
+      align-items: stretch;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* Podium Cards (Crystal Clear Speaker Highlighting) */
+    .arena-podium {
+      background: rgba(255, 255, 255, 0.98);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      color: var(--ink);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+      transition: all .25s ease;
+      opacity: 0.72;
+      filter: grayscale(15%);
+    }
+    .arena-podium.active-speaker {
+      opacity: 1;
+      filter: none;
+      border-color: #16bf53;
+      box-shadow: 0 0 0 6px rgba(22, 191, 83, 0.4), 0 20px 60px rgba(22, 191, 83, 0.45);
+      transform: translateY(-4px) scale(1.02);
+    }
+    .arena-podium.podium-b.active-speaker {
+      opacity: 1;
+      filter: none;
+      border-color: #0284c7;
+      box-shadow: 0 0 0 6px rgba(2, 132, 199, 0.4), 0 20px 60px rgba(2, 132, 199, 0.45);
+      transform: translateY(-4px) scale(1.02);
+    }
+    .arena-podium.active-speaker .podium-agent-badge.a {
+      background: #16bf53;
+      color: #ffffff;
+      border-color: #16bf53;
+      box-shadow: 0 0 12px rgba(22, 191, 83, 0.6);
+    }
+    .arena-podium.active-speaker .podium-agent-badge.b {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 0 12px rgba(2, 132, 199, 0.6);
+    }
+    .arena-podium.active-speaker .podium-quote-bubble {
+      background: #ffffff;
+      border-width: 2px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      font-weight: 600;
+      color: #052e16;
+    }
+    .arena-podium.podium-b.active-speaker .podium-quote-bubble {
+      color: #082f49;
+    }
+
+    .podium-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .podium-agent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      transition: all .2s ease;
+    }
+    .podium-agent-badge.a {
+      background: #e8f9ed;
+      color: #0b692f;
+      border: 1.5px solid #b7f0c6;
+    }
+    .podium-agent-badge.b {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1.5px solid #bae6fd;
+    }
+    .podium-slot-tag {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #64748b;
+    }
+
+    .podium-vehicle-img-wrap {
+      width: 100%;
+      height: 155px;
+      background: radial-gradient(circle at 50% 30%, #ffffff 0%, #f0fdf4 100%);
+      border: 1.5px solid #dcfce7;
+      border-radius: 20px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .podium-b .podium-vehicle-img-wrap {
+      background: radial-gradient(circle at 50% 30%, #ffffff 0%, #f0f9ff 100%);
+      border-color: #e0f2fe;
+    }
+    .podium-vehicle-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.12));
+      transition: transform .3s ease;
+    }
+    .arena-podium.active-speaker .podium-vehicle-img {
+      transform: scale(1.05);
+    }
+    .podium-character-overlay {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: var(--radius-pill);
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #0b692f;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .podium-b .podium-character-overlay {
+      color: #0369a1;
+    }
+    .podium-vehicle-title {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 2px;
+      color: var(--ink);
+    }
+    .podium-vehicle-company {
+      font-size: 13px;
+      color: #0d7b38;
+      font-weight: 750;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .podium-specs-pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .podium-spec-pill {
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: #f1f6f2;
+      border: 1px solid #dce7df;
+      color: #1f3825;
+    }
+
+    .podium-quote-bubble {
+      margin-top: auto;
+      background: #fafcfb;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #0f172a;
+      border: 1.5px solid #e2e8f0;
+      border-left: 4px solid var(--green-deep);
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      font-style: italic;
+    }
+    .podium-b .podium-quote-bubble {
+      border-left-color: #0284c7;
+      border-color: #bae6fd;
+      background: #f0f9ff;
+    }
+
+    /* Center VS & Spec Battle Deck */
+    .arena-center-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    .arena-vs-shield {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--forest);
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--green-bright);
+      box-shadow: 0 0 25px rgba(85, 242, 123, 0.4);
+      border: 2.5px solid #fff;
+    }
+    .arena-meters-card {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    }
+    .battle-meter-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .battle-meter-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .battle-meter-bar {
+      height: 7px;
+      border-radius: 6px;
+      background: #e2e8f0;
+      overflow: hidden;
+      display: flex;
+    }
+    .meter-fill-a {
+      background: var(--green-deep);
+      height: 100%;
+      transition: width .4s ease;
+    }
+    .meter-fill-b {
+      background: #0284c7;
+      height: 100%;
+      transition: width .4s ease;
+    }
+
+    /* Live Debate Transcript Stream */
+    .arena-transcript-feed {
+      max-width: 1260px;
+      width: 100%;
+      margin: 0 auto 10px;
+      height: 90px;
+      min-height: 90px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 10px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-sizing: border-box;
+      flex-shrink: 0;
+    }
+    .arena-feed-entry {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--ink);
+    }
+    .arena-feed-entry.speaker-a strong { color: #0b692f; }
+    .arena-feed-entry.speaker-b strong { color: #0369a1; }
+    .arena-feed-entry.speaker-you strong { color: #d97706; }
+
+    /* Arena Interactive Control Deck */
+    .arena-controls-dock {
+      max-width: 1260px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(7, 28, 16, 0.95);
+      border: 1.5px solid rgba(85, 242, 123, 0.35);
+      border-radius: 20px;
+      padding: 10px 18px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+      flex-shrink: 0;
+    }
+    .arena-topics-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .arena-topic-btn {
+      padding: 7px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #f1f5f9;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+    .arena-topic-btn:hover {
+      background: rgba(85,242,123,0.25);
+      border-color: var(--green);
+      color: var(--green-bright);
+    }
+    .arena-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .arena-split-stage {
+        grid-template-columns: 1fr;
+      }
+      .arena-center-col {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+      }
+      .arena-meters-card {
+        max-width: 320px;
+      }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.6; }
+    }
+
     @keyframes modal-fade {
       from { opacity: 0; transform: scale(.97); }
       to { opacity: 1; transform: scale(1); }
@@ -6204,6 +6917,7 @@
         <nav class="primary-nav" id="primary-navigation" aria-label="Primary navigation">
           <a href="#consultation-process" data-nav-action="how">How it works</a>
           <a href="#explore" data-nav-action="explore">Explore EVs</a>
+          <a href="#compare" data-nav-action="compare">Compare EVs</a>
           <a href="#for-dealers" data-nav-action="dealers">For dealers</a>
         </nav>
         <button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Open navigation"
@@ -6740,6 +7454,183 @@
     </section>
 
     <!-- ============================================================
+         COMPARE EVS VIEW & LIVE DUAL-AI DEBATE ARENA
+         ============================================================ -->
+    <section id="compare-view" class="view" hidden aria-hidden="true">
+      <!-- Standard Seamless Site Nav Header -->
+      <header class="site-nav" id="compare-site-nav">
+        <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
+          <span class="brand__symbol" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18.5 4.5H8.3a3.3 3.3 0 0 0 0 6.6h7.1a3.3 3.3 0 0 1 0 6.6H5.5"/>
+              <path d="M6.1 4.5 4 7.1l2.1 2.2M17.9 14.9 20 17l-2.1 2.1"/>
+            </svg>
+          </span>
+          <span class="brand__wordmark">EasyEV</span>
+          <span class="brand__ai">AI</span>
+        </a>
+        <nav class="primary-nav" aria-label="Primary navigation">
+          <a href="#room-preview" data-nav-action="how">How it works</a>
+          <a href="#explore" data-nav-action="explore">Explore EVs</a>
+          <a href="#compare" data-nav-action="compare" style="color: var(--green); font-weight: 700;">Compare EVs</a>
+          <a href="#for-dealers" data-nav-action="dealers">For dealers</a>
+        </nav>
+        <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV AI</button>
+      </header>
+
+      <div class="compare-container">
+        <div class="compare-hero">
+          <h1>Compare EVs · <span>Live Voice Arena</span></h1>
+          <p>Select any two electric vehicles to launch an autonomous live head-to-head audio debate.</p>
+        </div>
+
+        <!-- Single Unified Master Comparison Toolbar -->
+        <div class="compare-master-toolbar">
+          <div class="compare-cat-nav" role="tablist" aria-label="Filter comparison category">
+            <button class="compare-cat-btn" type="button" data-compare-category="Electric car" aria-pressed="true">Cars</button>
+            <button class="compare-cat-btn" type="button" data-compare-category="Electric scooter" aria-pressed="false">Scooters</button>
+            <button class="compare-cat-btn" type="button" data-compare-category="Electric 3-wheeler" aria-pressed="false">3-Wheelers</button>
+          </div>
+
+          <div class="compare-toolbar-right">
+            <div class="compare-slots-display">
+              <span class="slot-tag a" id="compare-slot-a-label">Option 1: None</span>
+              <span class="slot-vs-divider">VS</span>
+              <span class="slot-tag b" id="compare-slot-b-label">Option 2: None</span>
+            </div>
+
+            <button class="compare-start-debate-btn" id="start-debate-arena-btn" type="button" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+              <span>Start Debate</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2-Vehicle Selection Matrix -->
+        <div class="compare-select-grid" id="compare-select-grid" aria-live="polite">
+          <!-- Populated dynamically with selection cards -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         FULLSCREEN LIVE DUAL-AI DEBATE ARENA STAGE (MODAL / HUD)
+         ============================================================ -->
+    <div id="debate-arena-stage" hidden aria-hidden="true" role="dialog" aria-modal="true">
+      <!-- Topbar -->
+      <div class="arena-topbar">
+        <div class="arena-topbar-left">
+          <div class="arena-live-pill">
+            <i></i>
+            <span id="arena-live-status-text">Agora Live Debate in Progress</span>
+          </div>
+        </div>
+        <button class="arena-exit-btn" id="arena-exit-btn" type="button">✕ Exit Arena</button>
+      </div>
+
+      <!-- Split Podium Stage -->
+      <div class="arena-split-stage">
+        <!-- Left Podium: Vehicle A Champion -->
+        <div class="arena-podium podium-a active-speaker" id="podium-a">
+          <div class="podium-header-row">
+            <div class="podium-agent-badge a">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              <span id="podium-a-agent-name">Advocate 1 (Madhur)</span>
+            </div>
+            <span class="podium-slot-tag">Option 1</span>
+          </div>
+          <div class="podium-vehicle-img-wrap">
+            <img class="podium-vehicle-img" id="podium-a-img" src="/assets/vehicles/tata-punch-ev.jpg" alt="Vehicle A">
+            <div class="podium-character-overlay">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+              <span id="podium-a-character-tag">Punch.ev Champion</span>
+            </div>
+          </div>
+          <h2 class="podium-vehicle-title" id="podium-a-title">Punch.ev</h2>
+          <span class="podium-vehicle-company" id="podium-a-company">Tata Motors · ₹9.99L – ₹14.44L</span>
+
+          <div class="podium-specs-pill-row" id="podium-a-specs">
+            <span class="podium-spec-pill" id="podium-a-range">290-330 km real</span>
+            <span class="podium-spec-pill" id="podium-a-battery">35 kWh LFP</span>
+            <span class="podium-spec-pill" id="podium-a-charging">56 min 50kW DC</span>
+          </div>
+
+          <div class="podium-quote-bubble" id="podium-a-quote">
+            “10 Lakh ke budget me 5-star NCAP build quality aur 290 km real highway range! City driving ke liye best value!”
+          </div>
+        </div>
+
+        <!-- Center Column: Dynamic VS & Comparison Meters -->
+        <div class="arena-center-col">
+          <div class="arena-vs-shield">VS</div>
+          <div class="arena-meters-card">
+            <!-- Price Meter -->
+            <div class="battle-meter-row">
+              <div class="battle-meter-header">
+                <span>Price (Affordability)</span>
+              </div>
+              <div class="battle-meter-bar">
+                <div class="meter-fill-a" id="meter-price-a" style="width: 55%;"></div>
+                <div class="meter-fill-b" id="meter-price-b" style="width: 45%;"></div>
+              </div>
+            </div>
+            <!-- Range Meter -->
+            <div class="battle-meter-row">
+              <div class="battle-meter-header">
+                <span>Real-World Range</span>
+              </div>
+              <div class="battle-meter-bar">
+                <div class="meter-fill-a" id="meter-range-a" style="width: 45%;"></div>
+                <div class="meter-fill-b" id="meter-range-b" style="width: 55%;"></div>
+              </div>
+            </div>
+            <!-- Battery Capacity -->
+            <div class="battle-meter-row">
+              <div class="battle-meter-header">
+                <span>Battery (kWh)</span>
+              </div>
+              <div class="battle-meter-bar">
+                <div class="meter-fill-a" id="meter-batt-a" style="width: 42%;"></div>
+                <div class="meter-fill-b" id="meter-batt-b" style="width: 58%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Podium: Vehicle B Champion -->
+        <div class="arena-podium podium-b" id="podium-b">
+          <div class="podium-header-row">
+            <div class="podium-agent-badge b">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+              <span id="podium-b-agent-name">Advocate 2 (Aarav)</span>
+            </div>
+            <span class="podium-slot-tag">Option 2</span>
+          </div>
+          <div class="podium-vehicle-img-wrap">
+            <img class="podium-vehicle-img" id="podium-b-img" src="/assets/vehicles/tata-nexon-ev.jpg" alt="Vehicle B">
+            <div class="podium-character-overlay">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
+              <span id="podium-b-character-tag">Nexon.ev Champion</span>
+            </div>
+          </div>
+          <h2 class="podium-vehicle-title" id="podium-b-title">Nexon.ev</h2>
+          <span class="podium-vehicle-company" id="podium-b-company">Tata Motors · ₹12.49L – ₹17.19L</span>
+
+          <div class="podium-specs-pill-row" id="podium-b-specs">
+            <span class="podium-spec-pill" id="podium-b-range">340-380 km real</span>
+            <span class="podium-spec-pill" id="podium-b-battery">45 kWh Gen-2</span>
+            <span class="podium-spec-pill" id="podium-b-charging">40 min 60kW DC</span>
+          </div>
+
+          <div class="podium-quote-bubble" id="podium-b-quote">
+            “Par highway pe 350+ km highway cruise aur 145 PS instant power ke liye Nexon.ev is the undisputed king!”
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ============================================================
          VEHICLE DEDICATED VOICE AGENT MODAL / HUD
          ============================================================ -->
     <div id="vehicle-voice-modal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="v-voice-title">
@@ -6781,7 +7672,7 @@
     </div>
   </main>
 
-  <script src="/agora-client.bundle.js"></script>
+  <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
   <script>
     (() => {
       'use strict';
@@ -7410,8 +8301,10 @@
         const room = $('#room-view');
         const outcome = $('#outcome-view');
         const explore = $('#explore-view');
+        const compare = $('#compare-view');
         if (landing) landing.hidden = state.view !== 'landing' && state.view !== 'prejoin';
         if (explore) { explore.hidden = state.view !== 'explore'; explore.setAttribute('aria-hidden', String(state.view !== 'explore')); }
+        if (compare) { compare.hidden = state.view !== 'compare'; compare.setAttribute('aria-hidden', String(state.view !== 'compare')); }
         if (prejoin) { prejoin.hidden = state.view !== 'prejoin'; prejoin.setAttribute('aria-hidden', String(state.view !== 'prejoin')); }
         if (room) { room.hidden = state.view !== 'room'; room.setAttribute('aria-hidden', String(state.view !== 'room')); }
         if (outcome) { outcome.hidden = state.view !== 'outcome'; outcome.setAttribute('aria-hidden', String(state.view !== 'outcome')); }
@@ -9096,10 +9989,527 @@
         }
       }
 
-      // Event Listeners for Explore EVs
+      // ============================================================
+      // COMPARE EV & LIVE VOICE DEBATE ARENA CLIENT LOGIC
+      // ============================================================
+      let compareCategory = 'Electric car';
+      let compareSelectedSlotA = '';
+      let compareSelectedSlotB = '';
+      let activeDebateAdapter = null;
+      let debateIsMuted = false;
+
+      function renderCompareSelectionGrid() {
+        const grid = $('#compare-select-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        const list = exploreVehiclesList.filter((v) => v.category.toLowerCase().includes(compareCategory.toLowerCase()));
+        list.forEach((vehicle) => {
+          const card = document.createElement('div');
+          card.className = 'compare-select-card';
+          const isSlotA = compareSelectedSlotA === vehicle.id;
+          const isSlotB = compareSelectedSlotB === vehicle.id;
+          if (isSlotA) card.classList.add('selected-a');
+          if (isSlotB) card.classList.add('selected-b');
+          card.dataset.compareVehicleId = vehicle.id;
+
+          const badge = isSlotA
+            ? '<span class="compare-slot-badge slot-a">✓ Option 1</span>'
+            : isSlotB
+              ? '<span class="compare-slot-badge slot-b">✓ Option 2</span>'
+              : '<span class="compare-slot-badge" style="background:#f1f5f9; color:#475569; border: 1px solid #e2e8f0;">+ Select</span>';
+
+          card.innerHTML = `
+            ${badge}
+            <div class="compare-card-thumb-wrap">
+              <img class="compare-card-thumb" src="${vehicle.realImage || `/assets/vehicles/${vehicle.id}.jpg`}" alt="${escapeHtml(vehicle.name)}" loading="lazy" onerror="this.src='/assets/vehicles/tata-punch-ev.jpg'">
+            </div>
+            <span class="compare-card-company">${escapeHtml(vehicle.company)}</span>
+            <h3 class="compare-card-name">${escapeHtml(vehicle.name)}</h3>
+            <div class="compare-card-price">₹${vehicle.priceMinLakh} – ${vehicle.priceMaxLakh} Lakh</div>
+            <div class="compare-card-key-pill">
+              <span>${vehicle.claimedRangeKm} km claimed</span>
+              <span>${vehicle.battery.split('(')[0].trim()}</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        // Update floating launcher bar & Step instructions
+        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
+        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
+        const labelA = $('#compare-slot-a-label');
+        const labelB = $('#compare-slot-b-label');
+        const startBtn = $('#start-debate-arena-btn');
+        const stepText = $('#compare-step-text');
+
+        if (labelA) labelA.textContent = vehicleA ? `Option 1: ${vehicleA.name}` : 'Option 1: None';
+        if (labelB) labelB.textContent = vehicleB ? `Option 2: ${vehicleB.name}` : 'Option 2: None';
+
+        if (startBtn) {
+          const ready = Boolean(vehicleA && vehicleB && vehicleA.id !== vehicleB.id);
+          startBtn.disabled = !ready;
+          startBtn.innerHTML = ready
+            ? `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg><span>Start Live Debate</span>`
+            : `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg><span>Select 2 EVs</span>`;
+        }
+      }
+
+      function updateDebatePodiums(vehA, vehB) {
+        if (!vehA || !vehB) return;
+        // Podium A
+        const titleA = $('#podium-a-title');
+        const compA = $('#podium-a-company');
+        const imgA = $('#podium-a-img');
+        const tagA = $('#podium-a-character-tag');
+        const rangeA = $('#podium-a-range');
+        const battA = $('#podium-a-battery');
+        const chargeA = $('#podium-a-charging');
+        const quoteA = $('#podium-a-quote');
+
+        if (titleA) titleA.textContent = vehA.name;
+        if (compA) compA.textContent = `${vehA.company} · ₹${vehA.priceMinLakh}L – ₹${vehA.priceMaxLakh}L`;
+        if (imgA) imgA.src = vehA.realImage || `/assets/vehicles/${vehA.id}.jpg`;
+        if (tagA) tagA.textContent = `${vehA.name} Advocate`;
+        if (rangeA) rangeA.textContent = `${vehA.claimedRangeKm} km ARAI (${vehA.realWorldRangeKm.split(' ')[0]} real)`;
+        if (battA) battA.textContent = vehA.battery;
+        if (chargeA) chargeA.textContent = vehA.charging.split('/')[0];
+        if (quoteA) quoteA.textContent = `“Opening for ${vehA.name}! Unbeatable ₹${vehA.priceMinLakh}L starting price with exceptional daily efficiency.”`;
+
+        // Podium B
+        const titleB = $('#podium-b-title');
+        const compB = $('#podium-b-company');
+        const imgB = $('#podium-b-img');
+        const tagB = $('#podium-b-character-tag');
+        const rangeB = $('#podium-b-range');
+        const battB = $('#podium-b-battery');
+        const chargeB = $('#podium-b-charging');
+        const quoteB = $('#podium-b-quote');
+
+        if (titleB) titleB.textContent = vehB.name;
+        if (compB) compB.textContent = `${vehB.company} · ₹${vehB.priceMinLakh}L – ₹${vehB.priceMaxLakh}L`;
+        if (imgB) imgB.src = vehB.realImage || `/assets/vehicles/${vehB.id}.jpg`;
+        if (tagB) tagB.textContent = `${vehB.name} Advocate`;
+        if (rangeB) rangeB.textContent = `${vehB.claimedRangeKm} km ARAI (${vehB.realWorldRangeKm.split(' ')[0]} real)`;
+        if (battB) battB.textContent = vehB.battery;
+        if (chargeB) chargeB.textContent = vehB.charging.split('/')[0];
+        if (quoteB) quoteB.textContent = `“Countering with ${vehB.name}! Real-world ${vehB.realWorldRangeKm} highway range and ${vehB.power} performance.”`;
+
+        // Dynamic Comparison Battle Meters
+        const maxPrice = Math.max(vehA.priceMinLakh, vehB.priceMinLakh, 1);
+        const maxRange = Math.max(vehA.claimedRangeKm, vehB.claimedRangeKm, 1);
+        const pFillA = $('#meter-price-a');
+        const pFillB = $('#meter-price-b');
+        const rFillA = $('#meter-range-a');
+        const rFillB = $('#meter-range-b');
+
+        if (pFillA && pFillB) {
+          // Affordability: lower price = higher meter
+          const scoreA = 100 - (vehA.priceMinLakh / (vehA.priceMinLakh + vehB.priceMinLakh) * 100);
+          pFillA.style.width = `${Math.round(scoreA)}%`;
+          pFillB.style.width = `${Math.round(100 - scoreA)}%`;
+        }
+        if (rFillA && rFillB) {
+          const scoreA = (vehA.claimedRangeKm / (vehA.claimedRangeKm + vehB.claimedRangeKm) * 100);
+          rFillA.style.width = `${Math.round(scoreA)}%`;
+          rFillB.style.width = `${Math.round(100 - scoreA)}%`;
+        }
+      }
+
+
+
+      // Production Audio Playback Lifecycle State Architecture
+      let activeDebatePlaybackManager = null;
+      let activeDebateSpeakerState = null; // 'agent1' | 'agent2' | null
+      let activeDebateUtteranceId = null;
+
+      function setActiveDebateSpeaker(speaker, utteranceId, text, vehA, vehB) {
+        // Stale event guard: If attempting to clear speaker (null), only allow if utteranceId matches current active utterance
+        if (speaker === null && utteranceId && activeDebateUtteranceId && activeDebateUtteranceId !== utteranceId) {
+          return;
+        }
+
+        activeDebateSpeakerState = speaker;
+        activeDebateUtteranceId = speaker ? utteranceId : null;
+
+        window.__easyev_debate_state = {
+          activeSpeaker: speaker,
+          utteranceId: activeDebateUtteranceId,
+          text: text || null,
+          timestamp: Date.now()
+        };
+
+        const podA = $('#podium-a');
+        const podB = $('#podium-b');
+        const quoteA = $('#podium-a-quote');
+        const quoteB = $('#podium-b-quote');
+        const statusText = $('#arena-live-status-text');
+
+        if (speaker === 'agent1') {
+          if (podB) podB.classList.remove('active-speaker');
+          if (podA) podA.classList.add('active-speaker');
+          if (quoteA && text) quoteA.textContent = `“${text}”`;
+          if (statusText) statusText.textContent = `● Option 1 (${vehA?.name || 'Punch.ev'}) Speaking…`;
+        } else if (speaker === 'agent2') {
+          if (podA) podA.classList.remove('active-speaker');
+          if (podB) podB.classList.add('active-speaker');
+          if (quoteB && text) quoteB.textContent = `“${text}”`;
+          if (statusText) statusText.textContent = `● Option 2 (${vehB?.name || 'Nexon.ev'}) Speaking…`;
+        } else {
+          if (podA) podA.classList.remove('active-speaker');
+          if (podB) podB.classList.remove('active-speaker');
+          if (statusText) statusText.textContent = `● Preparing counter-argument…`;
+        }
+      }
+
+      // Helper to pick distinct, crystal-clear, studio-grade voices from the browser
+      function getDebateVoices() {
+        const allVoices = window.speechSynthesis?.getVoices?.() || [];
+        const englishVoices = allVoices.filter((v) => v.lang.startsWith('en'));
+
+        // Voice A (Advocate 1 - Punch.ev): Crisp, natural studio male voice (Google UK English Male / Daniel / Arthur)
+        const voiceA = allVoices.find((v) => v.name === 'Google UK English Male') ||
+                       allVoices.find((v) => v.name === 'Daniel') ||
+                       allVoices.find((v) => v.name === 'Arthur') ||
+                       allVoices.find((v) => v.name === 'Oliver') ||
+                       allVoices.find((v) => v.name === 'Google US English') ||
+                       englishVoices.find((v) => /male|guy/i.test(v.name)) ||
+                       englishVoices[0] || allVoices[0];
+
+        // Voice B (Advocate 2 - Nexon.ev): Crisp, natural studio female voice (Google UK English Female / Samantha / Karen)
+        const voiceB = allVoices.find((v) => v.name === 'Google UK English Female') ||
+                       allVoices.find((v) => v.name === 'Samantha') ||
+                       allVoices.find((v) => v.name === 'Karen') ||
+                       allVoices.find((v) => v.name === 'Moira') ||
+                       allVoices.find((v) => v.name === 'Serena') ||
+                       englishVoices.find((v) => v !== voiceA) ||
+                       allVoices[1] || voiceA;
+
+        return { voiceA, voiceB };
+      }
+
+      // Pre-warm voices list on supported browsers
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.onvoiceschanged = () => getDebateVoices();
+      }
+
+      class DebatePlaybackManager {
+        constructor(vehA, vehB, onSpeakerChange) {
+          this.vehA = vehA;
+          this.vehB = vehB;
+          this.onSpeakerChange = onSpeakerChange;
+          this.currentSpeaker = null;
+          this.currentUtteranceId = null;
+          this.turnIndex = 0;
+          this.stopped = false;
+          this.timer = null;
+
+          const priceA = Math.round(vehA.priceMinLakh || 11);
+          const priceB = Math.round(vehB.priceMinLakh || 15);
+          const priceDiff = Math.abs(priceB - priceA) || 3;
+          const rangeA = vehA.claimedRangeKm || 315;
+          const rangeB = vehB.claimedRangeKm || 465;
+          const realRangeA = vehA.realWorldRangeKm || `${Math.round(rangeA * 0.75)} kilometers`;
+          const realRangeB = vehB.realWorldRangeKm || `${Math.round(rangeB * 0.75)} kilometers`;
+          const nameA = vehA.name;
+          const nameB = vehB.name;
+
+          if (priceA <= priceB) {
+            this.turns = [
+              { speaker: 'agent1', text: `Let us start with the golden rule of electric cars: buy the battery you actually need! The ${nameA} starts at just ${priceA} Lakh rupees with ${rangeA} kilometers of driving range. For everyday commutes, why carry the heavy extra weight and cost of a giant battery?` },
+              { speaker: 'agent2', text: `Because highway physics are completely different! At expressway speeds of one hundred kilometers per hour, aerodynamic drag cuts electric range by up to thirty percent. That is why the ${nameB} gives you ${realRangeB} of true highway range with zero range anxiety!` },
+              { speaker: 'agent1', text: `Fair point, but ninety percent of driving is city traffic! The ${nameA} features multi-level regenerative braking that reclaims battery power every time you slow down, giving you smooth one-pedal driving and effortless parking in tight spots!` },
+              { speaker: 'agent2', text: `City parking is nice, but family safety and high-speed stability matter more! The ${nameB} comes with a wider track, advanced multi-link suspension, and higher ground clearance that glides effortlessly over rough monsoon roads without scraping the battery pack underneath!` },
+              { speaker: 'agent1', text: `Speaking of the battery pack, our smart liquid cooling system keeps battery temperatures optimal during fast charging! You can plug into any standard fifty-kilowatt highway charger and top up from ten to eighty percent in under fifty minutes while grabbing a quick coffee!` },
+              { speaker: 'agent2', text: `Coffee breaks are great, but what about packing for four people? The ${nameB} provides a massive luggage boot that swallows full-size suitcases and baby gear, plus rear air conditioning vents so your family stays fresh on long summer trips!` },
+              { speaker: 'agent1', text: `Let us look at your wallet! Driving an electric car costs roughly one rupee per kilometer compared to eight rupees in petrol. With the ${priceDiff} Lakh rupees you save on the ${nameA}, you literally fund your home electricity and vehicle charging for the next six years!` },
+              { speaker: 'agent2', text: `Smart buyers also look at modern tech and resale value! The ${nameB} offers premium acoustic cabin insulation, a cinema-grade touchscreen infotainment system, and connected car features that keep it desirable for years. When you upgrade, our strong resale demand protects your money!` },
+              { speaker: 'agent1', text: `So if you want unbeatable value, effortless city maneuverability, lower insurance, and lightning quick daily acceleration that saves you money every single month, the ${nameA} is the clear, intelligent choice!` },
+              { speaker: 'agent2', text: `And if you want a complete, uncompromising all-rounder with commanding road presence, effortless long-distance touring, and plush family comfort for every adventure, the ${nameB} is the undisputed champion of the road!` }
+            ];
+          } else {
+            this.turns = [
+              { speaker: 'agent1', text: `Let us be real: you get what you pay for! The ${nameA} gives you a massive battery, ${rangeA} kilometers of driving range, and commanding highway presence. Why compromise on power and luxury when you can drive a true premium electric vehicle?` },
+              { speaker: 'agent2', text: `Hold on! Why pay ${priceDiff} Lakh rupees more when the ${nameB} starts at just ${priceB} Lakh rupees and delivers ${rangeB} kilometers of range? For ninety percent of daily driving, our car gives you everything you need at a fraction of the cost!` },
+              { speaker: 'agent1', text: `Because highway road trips demand real engineering! At expressway speeds of one hundred kilometers per hour, aerodynamic drag cuts battery range. That is why the ${nameA} with ${realRangeA} of true highway range keeps your family moving without frequent charging stops!` },
+              { speaker: 'agent2', text: `In the city, bigger is not always better! The ${nameB} has multi-level regenerative braking, effortless turning radius, and fits into tight parking spaces where larger cars struggle every single day!` },
+              { speaker: 'agent1', text: `What about long-distance refinement? The ${nameA} comes with advanced suspension geometry, acoustic noise cancellation, and high ground clearance that glides over potholes without bottoming out the battery pack!` },
+              { speaker: 'agent2', text: `Our liquid-cooled battery pack charges from ten to eighty percent in under fifty minutes at standard public chargers. Plus, our lower vehicle weight gives you superior efficiency in daily stop-and-go traffic!` },
+              { speaker: 'agent1', text: `Look at family practicality and safety! The ${nameA} offers a massive luggage boot, executive rear seat legroom, ventilated seats, and five-star safety architecture that protects your family on every road!` },
+              { speaker: 'agent2', text: `Look at the math! With the ${priceDiff} Lakh rupees you save on the ${nameB}, you can pay for all your charging and car insurance for the next six years! That is smart financial planning!` },
+              { speaker: 'agent1', text: `If you want zero compromises, commanding road presence, effortless high-speed touring, and state-of-the-art tech, the ${nameA} is the definitive winner of this debate!` },
+              { speaker: 'agent2', text: `And if you want the smartest value-for-money electric car that handles daily commutes with maximum efficiency and minimal running costs, the ${nameB} is the unbeatable champion!` }
+            ];
+          }
+        }
+
+        start() {
+          this.stopped = false;
+          this.turnIndex = 0;
+          this.playTurn(0);
+        }
+
+        playTurn(idx) {
+          if (this.stopped) return;
+          if (idx >= this.turns.length) idx = 0;
+          this.turnIndex = idx;
+          const turn = this.turns[idx];
+          const utteranceId = `utt-${idx}-${Date.now()}`;
+          this.currentUtteranceId = utteranceId;
+
+          if (!window.speechSynthesis) return;
+
+          window.speechSynthesis.cancel();
+
+          const { voiceA, voiceB } = getDebateVoices();
+          const utterance = new SpeechSynthesisUtterance(turn.text);
+          utterance.lang = 'en-IN';
+          utterance.rate = 0.85; // Calm, clear, articulate pacing (not fast, no stammering)
+          utterance.pitch = 1.0; // Natural pitch without distortion
+          utterance.volume = 1.0;
+          
+          if (turn.speaker === 'agent1' && voiceA) {
+            utterance.voice = voiceA;
+          } else if (turn.speaker === 'agent2' && voiceB) {
+            utterance.voice = voiceB;
+          }
+
+          // PRODUCTION LIFECYCLE: Audio playback start is the single source of truth for speaking indicator
+          utterance.onstart = () => {
+            if (this.stopped) return;
+            this.currentSpeaker = turn.speaker;
+            this.onSpeakerChange({
+              type: 'SPEECH_START',
+              agentId: turn.speaker,
+              utteranceId,
+              text: turn.text
+            });
+          };
+
+          // PRODUCTION LIFECYCLE: Audio playback end is the single source of truth for clearing speaking indicator
+          utterance.onend = () => {
+            if (this.stopped) return;
+            if (this.currentUtteranceId === utteranceId) {
+              this.currentSpeaker = null;
+              this.onSpeakerChange({
+                type: 'SPEECH_END',
+                agentId: turn.speaker,
+                utteranceId,
+                text: null
+              });
+
+              // Natural 1.5-second breathing pause between arguments
+              this.timer = setTimeout(() => {
+                if (!this.stopped) {
+                  this.playTurn(idx + 1);
+                }
+              }, 1500);
+            }
+          };
+
+          utterance.onerror = () => {
+            if (this.stopped) return;
+            if (this.currentUtteranceId === utteranceId) {
+              this.currentSpeaker = null;
+              this.onSpeakerChange({
+                type: 'SPEECH_END',
+                agentId: turn.speaker,
+                utteranceId,
+                text: null
+              });
+              this.timer = setTimeout(() => {
+                if (!this.stopped) this.playTurn(idx + 1);
+              }, 1500);
+            }
+          };
+
+          window.speechSynthesis.speak(utterance);
+        }
+
+        stop() {
+          this.stopped = true;
+          if (this.timer) {
+            clearTimeout(this.timer);
+            this.timer = null;
+          }
+          if (window.speechSynthesis) {
+            window.speechSynthesis.cancel();
+          }
+          this.currentSpeaker = null;
+          this.currentUtteranceId = null;
+          this.onSpeakerChange({
+            type: 'SPEECH_END',
+            agentId: null,
+            utteranceId: null,
+            text: null
+          });
+        }
+      }
+
+      function handleDebateVoiceEvent(event, vehA, vehB) {
+        if (event.type === 'SPEECH_START') {
+          setActiveDebateSpeaker(event.agentId, event.utteranceId, event.text, vehA, vehB);
+        } else if (event.type === 'SPEECH_END') {
+          setActiveDebateSpeaker(null, event.utteranceId, null, vehA, vehB);
+        }
+      }
+
+      async function startDebateArena() {
+        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
+        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
+        if (!vehicleA || !vehicleB) return;
+
+        updateDebatePodiums(vehicleA, vehicleB);
+
+        const stage = $('#debate-arena-stage');
+        const statusText = $('#arena-live-status-text');
+
+        if (stage) {
+          stage.hidden = false;
+          stage.setAttribute('aria-hidden', 'false');
+        }
+        if (statusText) statusText.textContent = 'Agora Live Connecting...';
+
+        if (activeDebatePlaybackManager) {
+          activeDebatePlaybackManager.stop();
+        }
+
+        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, (event) => {
+          handleDebateVoiceEvent(event, vehicleA, vehicleB);
+        });
+
+        activeDebatePlaybackManager.start();
+
+        if (statusText) statusText.textContent = `● Option 1 (${vehicleA.name}) Speaking…`;
+      }
+
+      function exitDebateArena() {
+        if (activeDebatePlaybackManager) {
+          activeDebatePlaybackManager.stop();
+          activeDebatePlaybackManager = null;
+        }
+        const stage = $('#debate-arena-stage');
+        if (stage) {
+          stage.hidden = true;
+          stage.setAttribute('aria-hidden', 'true');
+        }
+        if (activeDebateAdapter) {
+          activeDebateAdapter.leave();
+          activeDebateAdapter = null;
+        }
+      }
+
+      // Event Listeners for Compare EV & Debate Arena
       document.addEventListener('click', (event) => {
+        // 1. Vehicle Select in Compare Grid (Cards are <div> elements, not buttons/links)
+        const selectCard = event.target.closest('.compare-select-card');
+        if (selectCard) {
+          event.preventDefault();
+          const vId = selectCard.dataset.compareVehicleId;
+          if (compareSelectedSlotA === vId) {
+            // Deselect A
+            compareSelectedSlotA = '';
+          } else if (compareSelectedSlotB === vId) {
+            // Deselect B
+            compareSelectedSlotB = '';
+          } else if (!compareSelectedSlotA) {
+            compareSelectedSlotA = vId;
+          } else if (!compareSelectedSlotB) {
+            compareSelectedSlotB = vId;
+          } else {
+            // Replace Slot B by default if both were full
+            compareSelectedSlotB = vId;
+          }
+          renderCompareSelectionGrid();
+          return;
+        }
+
         const target = event.target.closest('button, a');
         if (!target) return;
+
+        // Compare Nav Action
+        if (target.dataset.navAction === 'compare' || target.getAttribute('href') === '#compare') {
+          event.preventDefault();
+          navOpen = false;
+          $('#primary-navigation')?.classList.remove('is-open');
+          $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+          setView('compare');
+          if (!exploreVehiclesList.length) {
+            loadExploreVehicles().then(() => renderCompareSelectionGrid());
+          } else {
+            renderCompareSelectionGrid();
+          }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        // Compare Category Filter Pills
+        if (target.matches('[data-compare-category]')) {
+          event.preventDefault();
+          $$('.compare-cat-btn').forEach((btn) => btn.setAttribute('aria-pressed', 'false'));
+          target.setAttribute('aria-pressed', 'true');
+          compareCategory = target.dataset.compareCategory;
+          // Clear selections when switching category so user picks 2 afresh
+          compareSelectedSlotA = '';
+          compareSelectedSlotB = '';
+          renderCompareSelectionGrid();
+          return;
+        }
+
+        // Start Live Debate Arena Button
+        if (target.id === 'start-debate-arena-btn' || target.closest('#start-debate-arena-btn')) {
+          event.preventDefault();
+          startDebateArena();
+          return;
+        }
+
+        // Exit Debate Arena
+        if (target.id === 'arena-exit-btn' || target.closest('#arena-exit-btn')) {
+          event.preventDefault();
+          exitDebateArena();
+          return;
+        }
+
+        // Debate Topic Steering Triggers
+        if (target.matches('[data-debate-topic]')) {
+          event.preventDefault();
+          const topic = target.dataset.debateTopic;
+          if (activeDebateAdapter) {
+            activeDebateAdapter.sendUserDebateIntervention(`Ab topic badalkar "${topic}" pe debate karo. Advocate B counter kare aur Advocate A reply kare.`);
+          }
+          const feed = $('#arena-transcript-feed');
+          if (feed) {
+            const entry = document.createElement('div');
+            entry.className = 'arena-feed-entry speaker-you';
+            entry.innerHTML = `<strong>Topic Shifted:</strong> Debate focus changed to "${escapeHtml(topic)}"`;
+            feed.appendChild(entry);
+            feed.scrollTop = feed.scrollHeight;
+          }
+          return;
+        }
+
+        // Next Debate Round Trigger
+        if (target.id === 'arena-next-round-btn' || target.closest('#arena-next-round-btn')) {
+          event.preventDefault();
+          if (activeDebateAdapter) {
+            activeDebateAdapter.sendUserDebateIntervention('Agla round shuru karo! Advocate B counter kare aur Advocate A reply kare.');
+          }
+          return;
+        }
+
+        // Arena Mic Toggle
+        if (target.id === 'arena-mic-toggle') {
+          event.preventDefault();
+          debateIsMuted = !debateIsMuted;
+          target.dataset.muted = String(debateIsMuted);
+          target.innerHTML = debateIsMuted
+            ? `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/></svg> Mic Muted`
+            : `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg> Speak to Agents`;
+          if (activeDebateAdapter?.micTrack) {
+            activeDebateAdapter.micTrack.setEnabled(!debateIsMuted);
+          }
+          return;
+        }
 
         // Explore EVs Nav Link
         if (target.dataset.navAction === 'explore' || target.getAttribute('href') === '#explore') {
@@ -9140,6 +10550,7 @@
       });
 
       renderApp();
+      loadExploreVehicles();
     })();
   </script>
 </body>
