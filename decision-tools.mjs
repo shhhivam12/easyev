@@ -149,12 +149,40 @@ function safeError(error) {
   return cleanText(error instanceof Error ? error.message : String(error || 'Tool failed'), 400);
 }
 
+export const REASON_LABELS = Object.freeze({
+  'explicit-request': 'Buyer asked to speak to a person',
+  'fleet-or-bulk': 'Fleet, bulk or corporate purchase',
+  'price-negotiation': 'Price, discount or exchange negotiation',
+  'finance-case': 'Loan, leasing or finance structuring',
+  'unresolved-objection': 'Objection the AI could not close',
+  'trust-or-complaint': 'Trust concern or complaint',
+  'ready-to-buy': 'High intent, ready to close',
+});
+
+const REASON_BRIEFS = Object.freeze({
+  'explicit-request': 'The buyer asked to speak with a human.',
+  'fleet-or-bulk': 'The buyer needs multiple vehicles and pricing the AI cannot quote.',
+  'price-negotiation': 'The buyer wants a negotiated price or exchange value.',
+  'finance-case': 'The buyer needs a finance structure the AI cannot commit to.',
+  'unresolved-objection': 'An objection remained open after the AI addressed it.',
+  'trust-or-complaint': 'The buyer raised a trust concern that needs a person.',
+  'ready-to-buy': 'The buyer is ready to move and needs a human to close.',
+});
+
+const HANDOFF_LINES = Object.freeze({
+  English: 'Let me bring in a human EasyEV specialist. They can already see everything we have covered, so you will not have to repeat yourself. Staying on the line with you.',
+  Hindi: 'मैं अभी एक EasyEV विशेषज्ञ को इसी कॉल में जोड़ रहा हूँ। उन्हें हमारी पूरी बातचीत पहले से दिख रही है, इसलिए आपको कुछ दोहराना नहीं पड़ेगा। लाइन पर बने रहिए।',
+  Hinglish: 'Main abhi ek human EasyEV specialist ko isi call par la raha hoon. Unhe hamari poori baat-cheet already dikh rahi hai, toh aapko kuch repeat nahi karna padega. Line par baney rahiye.',
+});
+
 export class EasyEVToolEngine {
-  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-2.0-flash', openChargeMapKey = '' } = {}) {
+  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-2.0-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null } = {}) {
+    this.onEscalation = onEscalation;
     this.databaseUrl = databaseUrl;
     this.geminiApiKey = geminiApiKey;
     this.geminiModel = geminiModel;
     this.openChargeMapKey = openChargeMapKey;
+    this.publicBaseUrl = publicBaseUrl.replace(/\/$/, '');
     this.db = null;
     this.databaseMode = 'initializing';
     this.databaseError = '';
@@ -211,6 +239,7 @@ export class EasyEVToolEngine {
       charging: null,
       ownership: null,
       readiness: null,
+      escalation: null,
       unanswered: [],
       nextActions: [],
       updatedAt: new Date().toISOString(),
@@ -327,6 +356,15 @@ export class EasyEVToolEngine {
         inputSchema: {},
         run: this.generateReport.bind(this),
       },
+      escalate_to_human: {
+        description: 'Bring a live human EasyEV specialist into this same voice call, carrying the full Buyer Passport and transcript. Use when the buyer asks for a person, manager, dealer or salesperson; when they want a fleet, bulk or corporate purchase; when they want to negotiate price, discount, exchange or a finance case you cannot quote; when an objection about trust, quality or a complaint stays unresolved after you have addressed it once; or when they are clearly ready to buy and need a human to close. Do not use this for questions the catalog, ownership calculator, charger search or report can answer.',
+        inputSchema: {
+          reason: z.enum(['explicit-request', 'fleet-or-bulk', 'price-negotiation', 'finance-case', 'unresolved-objection', 'trust-or-complaint', 'ready-to-buy']).optional().describe('Why a human is needed'),
+          summary: z.string().optional().describe('One or two sentences the human specialist should read before they speak, in English'),
+          urgency: z.enum(['standard', 'high']).optional(),
+        },
+        run: this.escalateToHuman.bind(this),
+      },
     };
   }
 
@@ -352,6 +390,7 @@ export class EasyEVToolEngine {
       calculate_ownership: 'Recalculating every assumption',
       analyze_readiness_snapshot: 'Preparing privacy-first image check',
       generate_decision_report: 'Building report from your Passport',
+      escalate_to_human: 'Paging a human EasyEV specialist',
     };
     this.emit(record, { tool: toolName, toolRunId, phase: 'started', stage: toolName, payload: { message: messages[toolName] } });
     this.persistRun(record, { toolRunId, tool: toolName, phase: 'started', payload: args }).catch(() => {});
@@ -812,6 +851,55 @@ export class EasyEVToolEngine {
     }
   }
 
+  async escalateToHuman(record, args) {
+    const input = unpackArgs(args);
+    const allowedReasons = ['explicit-request', 'fleet-or-bulk', 'price-negotiation', 'finance-case', 'unresolved-objection', 'trust-or-complaint', 'ready-to-buy'];
+    const rawReason = String(firstDefined(input, ['reason', 'escalationReason', 'escalation_reason']) || '').trim();
+    const reason = allowedReasons.includes(rawReason) ? rawReason : 'explicit-request';
+    const urgency = String(firstDefined(input, ['urgency']) || '').trim() === 'high' ? 'high' : 'standard';
+    const summary = String(firstDefined(input, ['summary', 'context', 'brief']) || '').trim().slice(0, 400)
+      || REASON_BRIEFS[reason];
+
+    if (record.escalation?.status === 'rep-joined') {
+      return {
+        stage: 'handoff',
+        payload: { ...record.passport.escalation, alreadyLive: true },
+        spoken: 'A human specialist is already on this call with us, so I will let them continue.',
+      };
+    }
+
+    const escalation = {
+      status: 'requested',
+      reason,
+      reasonLabel: REASON_LABELS[reason],
+      urgency,
+      summary,
+      handoffCode: record.handoffCode,
+      consoleUrl: this.publicBaseUrl ? `${this.publicBaseUrl}/rep?code=${record.handoffCode}` : `/rep?code=${record.handoffCode}`,
+      requestedAt: new Date().toISOString(),
+      joinedAt: null,
+      resolvedAt: null,
+      repName: '',
+    };
+    record.escalation = { ...record.escalation, ...escalation };
+    record.passport.escalation = { ...escalation };
+    record.passport.nextActions = unique([
+      ...record.passport.nextActions,
+      `A human EasyEV specialist was paged for: ${REASON_LABELS[reason]}.`,
+    ]);
+    try { this.onEscalation?.(record); } catch (error) { console.error('Escalation notification failed:', safeError(error)); }
+
+    return {
+      stage: 'handoff',
+      payload: {
+        ...escalation,
+        transcriptLines: record.transcript?.length || 0,
+        waitingMessage: 'Paging an available EasyEV specialist. They can see your full Passport before they speak.',
+      },
+      spoken: HANDOFF_LINES[record.language] || HANDOFF_LINES.Hinglish,
+    };
+  }
+
   async buildReport(record) {
     const passport = this.publicPassport(record);
     const document = new PDFDocument({
@@ -898,6 +986,16 @@ export class EasyEVToolEngine {
       }
     } else {
       document.fontSize(10).text('No optional camera snapshot was analysed.');
+    }
+
+    if (passport.escalation) {
+      heading('Human specialist handover');
+      line('Reason', passport.escalation.reasonLabel);
+      line('Brief given to specialist', passport.escalation.summary);
+      line('Requested', passport.escalation.requestedAt);
+      line('Specialist joined', passport.escalation.joinedAt || 'Not joined');
+      line('Specialist', passport.escalation.repName || 'Not recorded');
+      line('Handover completed', passport.escalation.resolvedAt || 'Call ended while escalated');
     }
 
     heading('Next actions and unanswered questions');

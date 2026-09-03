@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EasyEV Specialist Console</title>
+<style>
+  :root {
+    --bg: #0d1512;
+    --panel: #141f1a;
+    --panel-2: #1a2721;
+    --rule: #26332c;
+    --rule-2: #35473c;
+    --ink: #e4ede7;
+    --ink-2: #a3b4aa;
+    --ink-3: #74877d;
+    --accent: #45ce9a;
+    --accent-deep: #0f6e4d;
+    --warn: #dca53c;
+    --alert: #e9836c;
+    --font: "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font); font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; cursor: pointer; border: 0; }
+  button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hide { display: none !important; }
+
+  /* gate */
+  .gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+  .gate form { width: 100%; max-width: 380px; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 30px; }
+  .gate h1 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.01em; }
+  .gate p { margin: 0 0 22px; color: var(--ink-3); font-size: 13px; }
+  .gate input {
+    width: 100%; padding: 13px 15px; margin-bottom: 12px; background: var(--bg);
+    border: 1px solid var(--rule-2); border-radius: 7px; color: var(--ink);
+    font-family: var(--mono); font-size: 20px; letter-spacing: .22em; text-transform: uppercase; text-align: center;
+  }
+  .gate button { width: 100%; padding: 13px; background: var(--accent); color: #06231a; font-weight: 650; border-radius: 7px; }
+  .gate .err { color: var(--alert); font-size: 12.5px; min-height: 18px; margin: 10px 0 0; }
+
+  /* desk board */
+  .board { max-width: 1080px; margin: 0 auto; padding: 44px 24px 64px; }
+  .board-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding-bottom: 18px; border-bottom: 1px solid var(--rule); margin-bottom: 26px; }
+  .board-head h1 { margin: 0 0 5px; font-size: 25px; letter-spacing: -.02em; }
+  .board-head p { margin: 0; color: var(--ink-3); font-size: 13.5px; max-width: 46ch; }
+  .board-head-side { display: flex; align-items: center; gap: 14px; }
+  .linky { background: none; color: var(--ink-3); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; padding: 0; }
+  .linky:hover { color: var(--ink); }
+
+  .queue { display: grid; gap: 12px; }
+  .call {
+    display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: center;
+    background: var(--panel); border: 1px solid var(--rule); border-left: 3px solid var(--warn);
+    border-radius: 10px; padding: 17px 19px;
+  }
+  .call.taken { border-left-color: var(--rule-2); opacity: .62; }
+  .call.urgent { border-left-color: var(--alert); }
+  .call h3 { margin: 0 0 5px; font-size: 16.5px; font-weight: 650; letter-spacing: -.01em; }
+  .call .said { margin: 0 0 10px; color: var(--ink-2); font-size: 13.5px; max-width: 62ch; }
+  .call .facts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fact {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    border: 1px solid var(--rule-2); color: var(--ink-2); background: var(--panel-2);
+  }
+  .fact.hot { color: var(--alert); border-color: #4b2b23; }
+  .call .take { display: grid; gap: 8px; justify-items: end; }
+  .waited { font-family: var(--mono); font-size: 17px; color: var(--warn); font-variant-numeric: tabular-nums; }
+  .call.taken .waited { color: var(--ink-3); font-size: 12px; }
+  .take button { padding: 11px 18px; border-radius: 8px; background: var(--accent); color: #06231a; font-weight: 650; white-space: nowrap; }
+  .take button[disabled] { background: var(--panel-2); color: var(--ink-3); cursor: not-allowed; }
+  .board-empty { color: var(--ink-3); font-size: 14px; font-style: italic; padding: 34px 0; text-align: center; }
+  .fact:empty { display: none; }
+
+  /* A call landing in the queue is the moment the room should catch. */
+  .call.is-new { animation: land .55s cubic-bezier(.2,.8,.3,1) both, flare 2.4s ease-out .55s both; }
+  @keyframes land { from { opacity: 0; transform: translateY(-14px) scale(.985); } to { opacity: 1; transform: none; } }
+  @keyframes flare {
+    0%, 42% { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn), 0 0 34px -6px rgba(220,165,60,.55); }
+    100% { border-color: var(--rule); box-shadow: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { .call.is-new { animation: none; } }
+
+  /* Present mode: readable from the back of a room on a projector. */
+  :root[data-present="1"] .board { max-width: 1320px; padding-top: 34px; }
+  :root[data-present="1"] .board-head h1 { font-size: 34px; }
+  :root[data-present="1"] .board-head p { font-size: 16px; }
+  :root[data-present="1"] .call { padding: 24px 26px; gap: 26px; }
+  :root[data-present="1"] .call h3 { font-size: 23px; }
+  :root[data-present="1"] .call .said { font-size: 17.5px; max-width: 70ch; }
+  :root[data-present="1"] .fact { font-size: 14px; padding: 5px 11px; }
+  :root[data-present="1"] .waited { font-size: 26px; }
+  :root[data-present="1"] .take button { font-size: 17px; padding: 14px 24px; }
+  :root[data-present="1"] .chip { font-size: 14px; padding: 6px 13px; }
+  :root[data-present="1"] .board-empty { font-size: 18px; }
+  .keyform { max-width: 340px; margin: 30px auto 0; text-align: center; }
+  .keyform p { color: var(--ink-2); font-size: 13px; }
+  .keyform input { width: 100%; padding: 11px 13px; margin-bottom: 10px; background: var(--panel); border: 1px solid var(--rule-2); border-radius: 7px; color: var(--ink); font: inherit; }
+  .keyform button { width: 100%; padding: 11px; border-radius: 7px; background: var(--accent); color: #06231a; font-weight: 650; }
+
+  /* shell */
+  .shell { display: grid; grid-template-rows: auto 1fr; height: 100vh; }
+  .topbar {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--rule);
+  }
+  .brand { font-weight: 700; letter-spacing: -.01em; }
+  .brand small { display: block; font-weight: 400; font-size: 11px; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+  .chip {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase;
+    padding: 4px 9px; border-radius: 20px; border: 1px solid var(--rule-2); color: var(--ink-2);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+  .chip.live { color: var(--accent); border-color: var(--accent-deep); background: rgba(69,206,154,.1); }
+  .chip.wait { color: var(--warn); border-color: #4a3a18; background: rgba(220,165,60,.1); }
+  .pulse { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .chip.wait .pulse { animation: blink 1.1s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { .chip.wait .pulse { animation: none; } }
+  .topbar .spacer { margin-left: auto; }
+
+  .cols { display: grid; grid-template-columns: 340px 1fr 320px; gap: 1px; background: var(--rule); overflow: hidden; }
+  .cols > section { background: var(--bg); overflow-y: auto; padding: 18px 20px; }
+
+  h2.k {
+    margin: 0 0 12px; font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--ink-3); font-weight: 650;
+  }
+  h2.k + h2.k, section > h2.k:not(:first-child) { margin-top: 26px; }
+
+  /* brief */
+  .brief { border: 1px solid var(--rule-2); border-left: 3px solid var(--warn); border-radius: 8px; padding: 15px 16px; margin-bottom: 22px; background: var(--panel); }
+  .brief.joined { border-left-color: var(--accent); }
+  .brief .reason { font-size: 15.5px; font-weight: 650; margin: 0 0 7px; }
+  .brief .summary { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+  .brief .waited { margin: 11px 0 0; font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .04em; }
+
+  dl.kv { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 7px 14px; font-size: 13.5px; }
+  dl.kv dt { color: var(--ink-3); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase; padding-top: 2px; }
+  dl.kv dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+
+  ul.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  ul.list li {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 7px;
+    padding: 10px 12px; font-size: 13.5px;
+  }
+  ul.list li b { display: block; font-weight: 600; }
+  ul.list li span { color: var(--ink-3); font-size: 12px; }
+  .empty { color: var(--ink-3); font-size: 13px; font-style: italic; margin: 0; }
+
+  .figures { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .figures div { background: var(--panel); border: 1px solid var(--rule); border-radius: 7px; padding: 10px 12px; }
+  .figures span { display: block; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
+  .figures strong { font-size: 17px; font-variant-numeric: tabular-nums; letter-spacing: -.015em; }
+
+  /* transcript */
+  .stream { display: flex; flex-direction: column; gap: 11px; padding-bottom: 8px; }
+  .line { display: grid; grid-template-columns: 62px 1fr; gap: 12px; align-items: baseline; }
+  .who {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .09em; text-transform: uppercase;
+    font-weight: 600; padding-top: 3px;
+  }
+  .who.buyer { color: var(--accent); }
+  .who.ai { color: var(--ink-3); }
+  .who.rep { color: var(--warn); }
+  .line p { margin: 0; font-size: 14px; }
+  .line.ai p { color: var(--ink-2); }
+  .divider {
+    display: flex; align-items: center; gap: 10px; margin: 6px 0;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--warn);
+  }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--rule-2); }
+
+  /* actions */
+  .cta {
+    width: 100%; padding: 14px; border-radius: 8px; font-weight: 650; font-size: 14.5px;
+    background: var(--accent); color: #06231a;
+  }
+  .cta[disabled] { opacity: .45; cursor: not-allowed; }
+  .cta.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule-2); }
+  .cta.danger { background: transparent; color: var(--alert); border: 1px solid #4b2b23; }
+  .stack { display: grid; gap: 9px; }
+  textarea {
+    width: 100%; min-height: 78px; resize: vertical; padding: 10px 12px; background: var(--panel);
+    border: 1px solid var(--rule-2); border-radius: 7px; color: var(--ink); font: inherit; font-size: 13.5px;
+  }
+  .hint { color: var(--ink-3); font-size: 12px; margin: 0; }
+  .meter { height: 4px; border-radius: 3px; background: var(--rule); overflow: hidden; }
+  .meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .12s linear; }
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+    background: var(--panel-2); border: 1px solid var(--rule-2); color: var(--ink);
+    padding: 10px 16px; border-radius: 8px; font-size: 13px; box-shadow: 0 12px 30px rgba(0,0,0,.5);
+  }
+
+  @media (max-width: 1000px) {
+    .cols { grid-template-columns: 1fr; grid-template-rows: auto auto auto; overflow-y: auto; }
+    .shell { height: auto; min-height: 100vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="board" id="board">
+  <header class="board-head">
+    <div>
+      <h1>Specialist desk</h1>
+      <p id="board-sub">Calls waiting for a human. You will see the buyer's full context before you speak.</p>
+    </div>
+    <div class="board-head-side">
+      <span class="chip" id="desk-chip"><span class="pulse"></span><b id="desk-count">0 waiting</b></span>
+      <button class="linky" id="present-toggle">Present mode</button>
+      <button class="linky" id="show-gate">Enter a code instead</button>
+    </div>
+  </header>
+
+  <div id="queue" class="queue"></div>
+
+  <p class="board-empty" id="board-empty">
+    No one is waiting right now. This desk updates the moment a buyer asks for a person.
+  </p>
+
+  <form class="keyform hide" id="key-form">
+    <p>This desk is protected. Enter the desk access key.</p>
+    <input id="key-input" type="password" autocomplete="off" placeholder="Desk access key">
+    <button type="submit">Unlock desk</button>
+  </form>
+</div>
+
+<div class="gate hide" id="gate">
+  <form id="gate-form">
+    <h1>EasyEV Specialist Console</h1>
+    <p>Enter the handover code from the paged call. You will see the buyer's full context before you speak.</p>
+    <input id="code-input" maxlength="12" autocomplete="off" spellcheck="false" placeholder="XXXXXXXX" aria-label="Handover code">
+    <button type="submit">Open the call</button>
+    <button type="button" class="linky" id="back-to-board">Back to the desk</button>
+    <p class="err" id="gate-error" role="alert"></p>
+  </form>
+</div>
+
+<div class="shell hide" id="shell">
+  <div class="topbar">
+    <div class="brand">EasyEV<small>Specialist console</small></div>
+    <span class="chip" id="status-chip"><span class="pulse"></span><b id="status-text">Connecting</b></span>
+    <span class="chip">Code <b id="code-chip">—</b></span>
+    <span class="chip" id="lang-chip">Language <b id="lang-text">—</b></span>
+    <div class="spacer"></div>
+    <span class="chip" id="mic-chip">Mic <b id="mic-text">Not joined</b></span>
+  </div>
+
+  <div class="cols">
+    <section>
+      <h2 class="k">Why you were paged</h2>
+      <div class="brief" id="brief">
+        <p class="reason" id="brief-reason">Waiting for the AI to page you</p>
+        <p class="summary" id="brief-summary">This call has not been escalated yet. You can still join it.</p>
+        <p class="waited" id="brief-waited"></p>
+      </div>
+
+      <h2 class="k">Buyer profile</h2>
+      <dl class="kv" id="profile"></dl>
+
+      <h2 class="k">Verified shortlist</h2>
+      <ul class="list" id="shortlist"></ul>
+
+      <h2 class="k">Ownership numbers on screen</h2>
+      <div id="ownership"></div>
+
+      <h2 class="k">Charging context</h2>
+      <div id="charging"></div>
+    </section>
+
+    <section>
+      <h2 class="k">Live conversation</h2>
+      <div class="stream" id="stream"></div>
+    </section>
+
+    <section>
+      <h2 class="k">Take the call</h2>
+      <div class="stack" id="join-panel">
+        <input id="rep-name" placeholder="Your name" autocomplete="name"
+               style="padding:11px 13px;background:var(--panel);border:1px solid var(--rule-2);border-radius:7px;color:var(--ink);font:inherit;">
+        <button class="cta" id="join-button">Join the call</button>
+        <p class="hint">Your microphone opens only after you press this. The AI is muted the moment you join, and keeps transcribing underneath.</p>
+      </div>
+
+      <div class="stack hide" id="live-panel">
+        <div class="meter" aria-hidden="true"><i id="level"></i></div>
+        <button class="cta ghost" id="mute-button">Mute my microphone</button>
+        <h2 class="k" style="margin-top:18px">Hand back to the AI</h2>
+        <textarea id="handback-note" placeholder="What should the AI know? e.g. Agreed 8% exchange bonus, buyer wants Saturday delivery."></textarea>
+        <button class="cta danger" id="handback-button">Hand back and leave</button>
+        <p class="hint">Your note is written into the buyer's Passport and into the AI's instructions, so it picks up exactly where you left off.</p>
+      </div>
+
+      <h2 class="k" style="margin-top:26px">What the buyer is seeing</h2>
+      <ul class="list" id="stage-log"></ul>
+    </section>
+  </div>
+</div>
+
+<script src="/agora-client.bundle.js"></script>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const state = { code: '', handoff: null, passport: null, joined: false, muted: false, events: null, adapter: null, dividerShown: false, queueSignature: '', knownCodes: new Set() };
+
+  const toast = (message) => {
+    const node = document.createElement('div');
+    node.className = 'toast';
+    node.textContent = message;
+    document.body.appendChild(node);
+    setTimeout(() => node.remove(), 4200);
+  };
+
+  const api = async (path, options = {}) => {
+    const response = await fetch(path, {
+      cache: 'no-store',
+      ...options,
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(options.headers || {}),
+      },
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`);
+    return data;
+  };
+
+  /* ---------- rendering ---------- */
+
+  const relative = (iso) => {
+    if (!iso) return '';
+    const seconds = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+  };
+
+  function renderHandoff(handoff) {
+    if (!handoff) return;
+    state.handoff = handoff;
+    $('code-chip').textContent = handoff.handoffCode || state.code;
+    $('lang-text').textContent = handoff.language || '—';
+
+    const chip = $('status-chip');
+    const text = $('status-text');
+    chip.className = 'chip';
+    if (handoff.status === 'rep-joined') {
+      chip.classList.add('live');
+      text.textContent = state.joined ? 'You are on the call' : `${handoff.repName || 'A specialist'} is on the call`;
+    } else if (handoff.status === 'requested') {
+      chip.classList.add('wait');
+      text.textContent = 'Buyer is waiting for you';
+    } else if (handoff.status === 'resolved') {
+      text.textContent = 'Handed back to the AI';
+    } else {
+      text.textContent = 'Call in progress with the AI';
+    }
+
+    const brief = $('brief');
+    brief.classList.toggle('joined', handoff.status === 'rep-joined');
+    if (handoff.reasonLabel) {
+      $('brief-reason').textContent = handoff.reasonLabel + (handoff.urgency === 'high' ? ' · urgent' : '');
+      $('brief-summary').textContent = handoff.summary || '';
+    }
+    $('brief-waited').textContent = handoff.requestedAt && handoff.status === 'requested'
+      ? `Paged ${relative(handoff.requestedAt)} ago`
+      : handoff.joinedAt ? `Joined ${relative(handoff.joinedAt)} ago` : '';
+
+    if (handoff.status === 'rep-joined' && !state.joined) {
+      $('join-button').disabled = true;
+      $('join-button').textContent = 'Another specialist is on this call';
+    }
+  }
+
+  function renderPassport(passport) {
+    if (!passport) return;
+    state.passport = passport;
+    const profile = passport.profile || {};
+    $('profile').innerHTML = [
+      ['Looking for', profile.category],
+      ['Daily travel', profile.dailyKm ? `${profile.dailyKm} km` : 'Not discussed'],
+      ['Budget', profile.budgetLakh ? `₹${profile.budgetLakh} lakh` : 'Not discussed'],
+      ['Charging', profile.chargingAccess],
+      ['Priorities', (profile.priorities || []).join(', ')],
+    ].filter(([, value]) => value).map(([key, value]) => `<dt>${esc(key)}</dt><dd>${esc(value)}</dd>`).join('');
+
+    const shortlist = passport.shortlist || [];
+    $('shortlist').innerHTML = shortlist.length
+      ? shortlist.map((item) => `<li><b>${esc(item.name)}</b><span>${esc(item.category)} · verified ${esc(item.verifiedAt)}</span></li>`).join('')
+      : '<p class="empty">No shortlist built yet.</p>';
+
+    const ownership = passport.ownership;
+    $('ownership').innerHTML = ownership
+      ? `<div class="figures">
+          <div><span>Daily km assumed</span><strong>${esc(ownership.assumptions?.dailyKm ?? '—')}</strong></div>
+          <div><span>Vehicle</span><strong style="font-size:13px">${esc(ownership.vehicle?.name || '—')}</strong></div>
+          ${Object.entries(ownership.results || {}).slice(0, 4).map(([key, value]) =>
+            `<div><span>${esc(String(key).replace(/([A-Z])/g, ' $1').toLowerCase())}</span><strong>${esc(typeof value === 'number' ? value.toLocaleString('en-IN') : value)}</strong></div>`).join('')}
+        </div>`
+      : '<p class="empty">No ownership scenario run yet.</p>';
+
+    const charging = passport.charging;
+    $('charging').innerHTML = charging
+      ? `<p class="hint">${esc(charging.stations?.length || 0)} stations found · source ${esc(charging.source || 'unknown')}</p>`
+      : '<p class="empty">No charger search run yet.</p>';
+  }
+
+  function appendLines(entries) {
+    const stream = $('stream');
+    const wasNearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 120;
+    for (const entry of entries) {
+      if (!entry.text) continue;
+      const node = document.querySelector(`[data-line="${CSS.escape(entry.id)}"]`);
+      const label = entry.speaker === 'buyer' ? 'Buyer' : entry.speaker === 'rep' ? 'You' : 'AI';
+      if (node) {
+        node.querySelector('p').textContent = entry.text;
+        continue;
+      }
+      const line = document.createElement('div');
+      line.className = `line ${entry.speaker}`;
+      line.dataset.line = entry.id;
+      line.innerHTML = `<span class="who ${esc(entry.speaker)}">${label}</span><p></p>`;
+      line.querySelector('p').textContent = entry.text;
+      stream.appendChild(line);
+    }
+    if (wasNearBottom) stream.scrollTop = stream.scrollHeight;
+  }
+
+  function markHandoverInStream() {
+    if (state.dividerShown) return;
+    state.dividerShown = true;
+    const divider = document.createElement('div');
+    divider.className = 'divider';
+    divider.textContent = 'Human specialist joined';
+    $('stream').appendChild(divider);
+    $('stream').scrollTop = $('stream').scrollHeight;
+  }
+
+  function logStage(event) {
+    if (!event?.stage || event.phase === 'started') return;
+    const list = $('stage-log');
+    const item = document.createElement('li');
+    item.innerHTML = `<b>${esc(String(event.stage).replace(/-/g, ' '))}</b><span>${esc(new Date(event.timestamp || Date.now()).toLocaleTimeString())}</span>`;
+    list.prepend(item);
+    while (list.children.length > 12) list.lastElementChild.remove();
+  }
+
+  /* ---------- live wiring ---------- */
+
+  function openStream() {
+    state.events = new EventSource(`/api/handoff/${state.code}/events`);
+    state.events.addEventListener('ready', (message) => {
+      const payload = JSON.parse(message.data || '{}');
+      renderPassport(payload.passport);
+      renderHandoff(payload.handoff);
+      if (Array.isArray(payload.transcript)) appendLines(payload.transcript);
+    });
+    state.events.addEventListener('transcript', (message) => {
+      const payload = JSON.parse(message.data || '{}');
+      appendLines(payload.entries || []);
+    });
+    state.events.addEventListener('handoff', (message) => {
+      renderHandoff(JSON.parse(message.data || '{}'));
+    });
+    state.events.addEventListener('tool-event', (message) => {
+      const payload = JSON.parse(message.data || '{}');
+      if (payload.payload?.passport) renderPassport(payload.payload.passport);
+      logStage(payload);
+    });
+    state.events.onerror = () => { $('status-text').textContent = 'Reconnecting'; };
+  }
+
+  async function openConsole(code) {
+    const data = await api(`/api/handoff/${code}`);
+    state.code = code;
+    $('gate').classList.add('hide');
+    $('board').classList.add('hide');
+    $('shell').classList.remove('hide');
+    document.title = 'EasyEV Specialist Console';
+    renderPassport(data.passport);
+    renderHandoff(data.handoff);
+    appendLines(data.transcript || []);
+    if (data.handoff?.status === 'rep-joined') markHandoverInStream();
+    openStream();
+    setInterval(() => renderHandoff(state.handoff), 5000);
+  }
+
+  /* ---------- the desk queue ---------- */
+
+  const deskKey = () => { try { return localStorage.getItem('easyev-desk-key') || ''; } catch { return ''; } };
+
+  function renderQueue(waiting) {
+    const queue = $('queue');
+    $('board-empty').classList.toggle('hide', waiting.length > 0);
+    const count = waiting.filter((call) => call.status === 'requested').length;
+    $('desk-count').textContent = count === 1 ? '1 waiting' : `${count} waiting`;
+    $('desk-chip').className = count ? 'chip wait' : 'chip';
+    document.title = count ? `(${count}) Specialist desk · EasyEV` : 'EasyEV Specialist Console';
+
+    // Line counts tick constantly while people talk. Redrawing the whole board for
+    // that would make cards blink on a projector, so it is patched in place and
+    // left out of the signature that decides whether to redraw.
+    const signature = JSON.stringify(waiting.map((call) => [call.handoffCode, call.status, call.repName, call.urgency, call.reasonLabel, call.summary, call.dailyKm, call.budgetLakh, call.shortlist]));
+    if (signature === state.queueSignature) {
+      for (const call of waiting) {
+        const node = queue.querySelector(`[data-lines="${CSS.escape(call.handoffCode)}"]`);
+        if (node) node.textContent = call.transcriptLines ? `${call.transcriptLines} lines spoken` : '';
+      }
+      return;
+    }
+    state.queueSignature = signature;
+
+    const known = state.knownCodes;
+    queue.innerHTML = waiting.map((call) => {
+      const isNew = call.status === 'requested' && !known.has(call.handoffCode);
+      const taken = call.status === 'rep-joined';
+      const facts = [
+        call.language,
+        call.category,
+        call.dailyKm ? `${call.dailyKm} km/day` : '',
+        call.budgetLakh ? `₹${call.budgetLakh}L budget` : '',
+        call.chargingAccess && call.chargingAccess !== 'Not discussed' ? call.chargingAccess : '',
+        ...(call.shortlist || []),
+      ].filter(Boolean);
+      return `<article class="call ${taken ? 'taken' : ''} ${call.urgency === 'high' ? 'urgent' : ''} ${isNew ? 'is-new' : ''}">
+        <div>
+          <h3>${esc(call.reasonLabel || 'Buyer asked for a person')}</h3>
+          <p class="said">${esc(call.summary || '')}</p>
+          <div class="facts">${call.urgency === 'high' ? '<span class="fact hot">Urgent</span>' : ''}${facts.map((f) => `<span class="fact">${esc(f)}</span>`).join('')}<span class="fact" data-lines="${esc(call.handoffCode)}">${call.transcriptLines ? `${call.transcriptLines} lines spoken` : ''}</span></div>
+        </div>
+        <div class="take">
+          <span class="waited" data-since="${esc(call.requestedAt || '')}">${taken ? `With ${esc(call.repName || 'a specialist')}` : relative(call.requestedAt)}</span>
+          <button data-take="${esc(call.handoffCode)}" ${taken ? 'disabled' : ''}>${taken ? 'On the call' : 'Take this call'}</button>
+        </div>
+      </article>`;
+    }).join('');
+    for (const call of waiting) known.add(call.handoffCode);
+  }
+
+  async function pollQueue() {
+    try {
+      const key = deskKey();
+      const data = await api('/api/handoff/waiting', key ? { headers: { 'x-desk-key': key } } : {});
+      $('key-form').classList.add('hide');
+      $('queue').classList.remove('hide');
+      renderQueue(data.waiting || []);
+    } catch (error) {
+      if (/access key/i.test(error.message)) {
+        $('key-form').classList.remove('hide');
+        $('queue').classList.add('hide');
+        $('board-empty').classList.add('hide');
+      }
+    }
+  }
+
+  $('key-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    try { localStorage.setItem('easyev-desk-key', $('key-input').value.trim()); } catch {}
+    pollQueue();
+  });
+
+  $('queue').addEventListener('click', (event) => {
+    const button = event.target.closest('[data-take]');
+    if (!button) return;
+    openConsole(button.dataset.take).catch((error) => toast(error.message));
+  });
+
+  const setPresent = (on) => {
+    document.documentElement.dataset.present = on ? '1' : '';
+    $('present-toggle').textContent = on ? 'Exit present mode' : 'Present mode';
+    try { localStorage.setItem('easyev-present', on ? '1' : ''); } catch {}
+  };
+  $('present-toggle').addEventListener('click', () => {
+    setPresent(document.documentElement.dataset.present !== '1');
+  });
+  try { if (localStorage.getItem('easyev-present') === '1') setPresent(true); } catch {}
+
+  $('show-gate').addEventListener('click', () => {
+    $('board').classList.add('hide');
+    $('gate').classList.remove('hide');
+  });
+  $('back-to-board').addEventListener('click', () => {
+    $('gate').classList.add('hide');
+    $('board').classList.remove('hide');
+  });
+
+  $('gate-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const code = $('code-input').value.trim().toUpperCase();
+    if (!code) return;
+    $('gate-error').textContent = '';
+    try {
+      await openConsole(code);
+    } catch (error) {
+      $('gate-error').textContent = error.message;
+    }
+  });
+
+  $('join-button').addEventListener('click', async () => {
+    const button = $('join-button');
+    button.disabled = true;
+    button.textContent = 'Joining…';
+    try {
+      const credentials = await api(`/api/handoff/${state.code}/join`, {
+        method: 'POST',
+        body: JSON.stringify({ repName: $('rep-name').value.trim() }),
+      });
+      state.adapter = window.EasyEVAgoraBundle.createRepAdapter();
+      state.adapter.onEvent((event) => {
+        if (event.type === 'LOCAL_AUDIO_LEVEL') $('level').style.width = `${Math.round(event.payload.level * 100)}%`;
+        if (event.type === 'ERROR') toast(event.payload.message);
+      });
+      await state.adapter.join({
+        appId: credentials.appId,
+        token: credentials.token,
+        channel: credentials.channel,
+        uid: credentials.uid,
+        agentUid: credentials.agentUid,
+      });
+      state.joined = true;
+      $('join-panel').classList.add('hide');
+      $('live-panel').classList.remove('hide');
+      $('mic-text').textContent = 'Open';
+      markHandoverInStream();
+      renderHandoff(credentials.handoff);
+      toast('You are on the call. The AI is muted.');
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = 'Join the call';
+      toast(error.message);
+    }
+  });
+
+  $('mute-button').addEventListener('click', async () => {
+    try {
+      state.muted = !state.muted;
+      await state.adapter.setMuted(state.muted);
+      $('mute-button').textContent = state.muted ? 'Unmute my microphone' : 'Mute my microphone';
+      $('mic-text').textContent = state.muted ? 'Muted' : 'Open';
+    } catch (error) {
+      state.muted = !state.muted;
+      toast(error.message);
+    }
+  });
+
+  $('handback-button').addEventListener('click', async () => {
+    const button = $('handback-button');
+    button.disabled = true;
+    try {
+      await api(`/api/handoff/${state.code}/handback`, {
+        method: 'POST',
+        body: JSON.stringify({ note: $('handback-note').value.trim() }),
+      });
+      await state.adapter?.leave();
+      state.joined = false;
+      $('live-panel').classList.add('hide');
+      $('mic-text').textContent = 'Left';
+      toast('Handed back to the AI with your note.');
+    } catch (error) {
+      toast(error.message);
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (state.joined) navigator.sendBeacon(`/api/handoff/${state.code}/handback`, new Blob([JSON.stringify({ note: '' })], { type: 'application/json' }));
+  });
+
+  const params = new URLSearchParams(location.search);
+  const presetKey = params.get('key');
+  if (presetKey) { try { localStorage.setItem('easyev-desk-key', presetKey); } catch {} }
+
+  const preset = params.get('code');
+  if (preset) {
+    $('code-input').value = preset.toUpperCase();
+    openConsole(preset.trim().toUpperCase()).catch((error) => {
+      $('board').classList.add('hide');
+      $('gate').classList.remove('hide');
+      $('gate-error').textContent = error.message;
+    });
+  } else {
+    pollQueue();
+    setInterval(() => { if (!state.code) pollQueue(); }, 2500);
+    // Keep the wait timers honest between polls, so a judge watching the desk
+    // sees the seconds tick rather than jump.
+    setInterval(() => {
+      if (state.code) return;
+      document.querySelectorAll('.waited[data-since]').forEach((node) => {
+        const since = node.dataset.since;
+        if (since && !node.textContent.startsWith('With')) node.textContent = relative(since);
+      });
+    }, 1000);
+  }
+})();
+</script>
+</body>
+</html>
