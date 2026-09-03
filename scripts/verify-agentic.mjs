@@ -90,8 +90,18 @@ try {
 
   await click('[data-turn="compare"]');
   await waitFor('document.querySelectorAll(".verified-vehicle").length === 2', 12_000, 'verified comparison');
-  results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
+  results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,columns:document.querySelectorAll(".comparison-matrix thead th").length-1,rows:document.querySelectorAll(".comparison-matrix tbody tr").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
   await screenshot('easyev-agentic-comparison-desktop.png');
+
+  await click('[data-visual-vehicle]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer"', 5000, 'vehicle visual explorer');
+  results.live.vehiclePhoto = await evaluate('Boolean(document.querySelector(".visual-scene img")) || document.querySelector(".visual-scene")?.innerText.includes("Illustrative")');
+  await click('[data-visual-mode="concept"]');
+  await waitFor('Boolean(document.querySelector(".concept-ev"))', 5000, 'interactive 3D concept');
+  await evaluate('(() => { const input=document.querySelector("[data-visual-angle]"); input.value="54"; input.dispatchEvent(new Event("input",{bubbles:true})); })()');
+  results.live.vehicleConcept = await evaluate('(() => { const text=(document.querySelector(".visual-controls")?.innerText || "").toLowerCase(); return {present:Boolean(document.querySelector(".concept-ev")),angle:document.querySelector("#visual-angle-output")?.textContent,disclosure:text.includes("exact-model") && text.includes("not claimed")}; })()');
+  await click('[data-visual-back]');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Verified vehicle comparison"', 5000, 'return to comparison');
 
   await click('#stage-pin-button');
   const pinnedTitle = await evaluate('document.querySelector("#stage-title").textContent');
@@ -111,6 +121,10 @@ try {
   await click('[data-map-action="locate"]');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Charging points near you" && document.querySelectorAll(".station-card").length > 0', 12_000, 'charger result');
   results.live.chargers = await evaluate('({count:document.querySelectorAll(".station-card").length,source:document.querySelector("#stage-source")?.textContent,disclosure:document.querySelector(".map-disclosure")?.textContent})');
+  results.live.mapCenter = await evaluate('(() => { const canvas=document.querySelector("#map-canvas").getBoundingClientRect(); const user=document.querySelector(".map-user").getBoundingClientRect(); const location=document.querySelector(".map-location-bar")?.innerText || ""; return {deltaX:Math.round(Math.abs((user.left+user.width/2)-(canvas.left+canvas.width/2))),deltaY:Math.round(Math.abs((user.top+user.height/2)-(canvas.top+canvas.height/2))),coordinatesShown:/\\d+\\.\\d{4}/.test(location),location}; })()');
+  await click('[data-location-preset="delhi"]');
+  await waitFor('document.querySelector(".map-location-bar")?.innerText.includes("Centred on Delhi")', 12_000, 'Delhi city preset');
+  results.live.locationPreset = true;
   await screenshot('easyev-agentic-map-desktop.png');
 
   await click('[data-tool-prompt="snapshot"]');
@@ -130,6 +144,13 @@ try {
     await viewport(width, height);
     const layout = await evaluate('(() => { const stage=document.querySelector("#smart-stage").getBoundingClientRect(); const dock=document.querySelector(".call-dock").getBoundingClientRect(); return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,stageLeft:stage.left,stageRight:stage.right,dockLeft:dock.left,dockRight:dock.right}; })()');
     results.viewports.push({ view: 'room', width, height, overflow: layout.scrollWidth > layout.width, stageFits: layout.stageLeft >= 0 && layout.stageRight <= layout.width, dockFits: layout.dockLeft >= 0 && layout.dockRight <= layout.width });
+    if (width <= 768) {
+      await click('#context-toggle');
+      await waitFor('document.querySelector("#consultation-sidebar")?.classList.contains("is-open")', 3000, `context drawer ${width}`);
+      const drawer = await evaluate('(() => { const r=document.querySelector("#consultation-sidebar").getBoundingClientRect(); return {width:r.width,left:r.left,right:r.right,display:getComputedStyle(document.querySelector("#consultation-sidebar")).display}; })()');
+      results.viewports.push({ view: 'passport-drawer', width, height, visible: drawer.display !== 'none' && drawer.width > 0 && drawer.right > 0 && drawer.left < width });
+      await click('#context-toggle');
+    }
     if (width === 390) await screenshot('easyev-agentic-room-mobile.png');
   }
 
@@ -176,10 +197,14 @@ console.log(JSON.stringify(results, null, 2));
 
 const failed = !results.prejoin.focus || !results.prejoin.centered || !results.prejoin.camera ||
   !results.live.agora || !results.live.tools || results.live.comparison?.cards !== 2 ||
-  results.live.comparison?.sources !== 2 || !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
+  results.live.comparison?.sources !== 2 || results.live.comparison?.columns !== 2 || results.live.comparison?.rows < 6 ||
+  !results.live.vehiclePhoto || !results.live.vehicleConcept?.present || results.live.vehicleConcept?.angle !== '54°' || !results.live.vehicleConcept?.disclosure ||
+  !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
   !results.live.costRecalculated || !results.live.locationConsent || results.live.chargers?.count < 1 ||
+  results.live.mapCenter?.deltaX > 1 || results.live.mapCenter?.deltaY > 1 || !results.live.mapCenter?.coordinatesShown || !results.live.locationPreset ||
   !results.live.snapshotConsent || !results.live.snapshotUserOperated || !results.live.report?.button ||
   !results.live.outcomeFocus || !results.live.cameraStopped || !results.live.timerStopped ||
-  results.viewports.some((item) => item.overflow || item.stageFits === false || item.dockFits === false || item.cta === false) ||
+  !results.live.reportAfterCall ||
+  results.viewports.some((item) => item.overflow || item.stageFits === false || item.dockFits === false || item.cta === false || item.visible === false) ||
   !results.reducedMotion.matches || consoleErrors.length || pageErrors.length;
 if (failed) process.exitCode = 1;
