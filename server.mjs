@@ -1494,7 +1494,11 @@ const server = http.createServer(async (req, res) => {
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
-    if (!res.headersSent) json(res, Number(error?.statusCode) || 500, { error: safeMessage(error, 'Request failed') });
+    if (!res.headersSent) {
+      const statusCode = Number(error?.statusCode);
+      const status = Number.isInteger(statusCode) && statusCode >= 400 && statusCode < 600 ? statusCode : 500;
+      json(res, status, { error: status >= 500 ? 'Request failed' : safeMessage(error, 'Request failed') });
+    }
     else res.end();
   }
 });
