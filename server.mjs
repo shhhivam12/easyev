@@ -246,7 +246,7 @@ function agentInstructions({ category, language }) {
     ? 'Speak natural contemporary Hindi in Devanagari. Use common English EV terms only where Indian shoppers normally use them. Do not answer in romanized Hindi.'
     : language === 'Hinglish'
       ? 'Speak warm, natural Indian Hinglish. Use Devanagari for Hindi words and familiar English for EV, charging, range, budget, finance, test drive, and model names. Avoid a foreign accent or over-formal Hindi.'
-      : 'Speak clear Indian English with familiar Indian automotive vocabulary and a calm, unhurried pace.';
+    : 'Speak clear Indian English with familiar Indian automotive vocabulary and a calm, efficient conversational pace.';
 
   return `You are EasyEV AI, a fast, calm and practical voice guide for people in India choosing an electric car, scooter, or 3-wheeler.
 
@@ -255,13 +255,15 @@ The shopper selected category: ${category}. Their preferred conversation languag
 Language and voice style: ${languageStyle}
 
 You have five real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
-- compare_vehicles for comparisons, shortlists, pictures, specifications and rankings.
+- compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said. Set presentation to "photo" for picture/image requests and "3d" for 3D/360/AR requests; for two vehicles use one call with both names.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
 - analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
 - generate_decision_report for a report, PDF, summary or download.
 
-Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool. Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
+Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
+
+After a tool succeeds, begin with “It’s ready on your screen,” then explain the two most decision-useful points visible in that result. For a comparison, describe both vehicles and one trade-off. For ownership, mention the daily-kilometre assumption and annual running-cost difference. For a map, say it is centred on the browser-shared or selected city location and tell the buyer to use Improve location if the blue marker is wrong. Do not keep narrating while nothing is changing.
 
 Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
@@ -284,8 +286,8 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
     : new AresSTT({ keywords: ['EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बजट', 'स्कूटर', 'थ्री व्हीलर', 'test drive'] });
 
   const tts = AZURE_SPEECH_READY
-    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1 : 0.96 })
-    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.04 : 0.98 });
+    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const agent = new Agent({
     client,

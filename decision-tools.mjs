@@ -35,6 +35,18 @@ const DELHI_DEMO_CHARGERS = Object.freeze([
 
 const chargerCache = new Map();
 const mediaCache = new Map();
+const CURATED_MEDIA = Object.freeze({
+  'tata-punch-ev': {
+    url: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Tata_punch.ev.jpg/1280px-Tata_punch.ev.jpg',
+    pageUrl: 'https://commons.wikimedia.org/wiki/File:Tata_punch.ev.jpg',
+    license: 'CC0', creator: 'VideshiBhaktNRI', kind: 'licensed photograph', note: 'Tata Punch.ev reference photograph',
+  },
+  'citroen-ec3x': {
+    url: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/2024_Citroen_e-C3.jpg/1280px-2024_Citroen_e-C3.jpg',
+    pageUrl: 'https://commons.wikimedia.org/wiki/File:2024_Citroen_e-C3.jpg',
+    license: 'CC BY-SA 4.0', creator: 'Calreyn88', kind: 'licensed reference photograph', note: 'Global ë-C3 reference; Indian ë-C3X styling may differ',
+  },
+});
 
 function cleanText(value, limit = 240) {
   return typeof value === 'string' ? value.trim().replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, limit) : '';
@@ -276,6 +288,7 @@ export class EasyEVToolEngine {
           vehicle2: z.string().optional(),
           vehicle_names: flexibleTextList,
           query: z.string().optional(),
+          presentation: z.string().optional().describe('Use photo for picture/image, 3d for 3D/360/AR, otherwise comparison'),
           priorities: flexibleTextList.describe('Buyer priorities such as budget, range, comfort or payload'),
         },
         run: this.compareVehicles.bind(this),
@@ -347,6 +360,7 @@ export class EasyEVToolEngine {
         throw Object.assign(new Error('Tool work was cancelled.'), { code: 'CANCELLED' });
       }
       const phase = result.phase || 'completed';
+      this.persistSession(record).catch(() => {});
       this.emit(record, { tool: toolName, toolRunId, phase, stage: result.stage, payload: { ...result.payload, passport: this.publicPassport(record), spoken: result.spoken } });
       this.persistRun(record, { toolRunId, tool: toolName, phase, payload: result.payload }).catch(() => {});
       return { content: [{ type: 'text', text: result.spoken }], structuredContent: { tool: toolName, phase, stage: result.stage, ...result.payload } };
@@ -365,6 +379,7 @@ export class EasyEVToolEngine {
   }
 
   async resolveLicensedMedia(item, signal) {
+    if (CURATED_MEDIA[item.id]) return CURATED_MEDIA[item.id];
     const cached = mediaCache.get(item.id);
     if (cached && cached.expiresAt > Date.now()) return cached.media;
     try {
@@ -419,7 +434,11 @@ export class EasyEVToolEngine {
     const { resolved, ambiguous } = resolveVehicles(requested, record.category);
     const rawPriorities = firstDefined(input, ['priorities', 'priority']);
     const priorities = (Array.isArray(rawPriorities) ? rawPriorities : rawPriorities ? String(rawPriorities).split(/,|\band\b|और/i) : []).map((item) => cleanText(item, 60)).filter(Boolean).slice(0, 5);
+    const presentation = cleanText(firstDefined(input, ['presentation', 'view', 'mode', 'query']) || '', 140);
+    const wantsConcept = /3d|360|ar\b|स्पेस|घुमा/i.test(presentation);
+    const wantsVisual = wantsConcept || /visual|picture|photo|image|दिखा|तस्वीर/i.test(presentation);
     const media = await Promise.all(resolved.map((item) => this.resolveLicensedMedia(item, signal)));
+    signal.throwIfAborted();
     const vehicles = resolved.map((item, index) => ({
       ...item,
       media: media[index],
@@ -448,19 +467,21 @@ export class EasyEVToolEngine {
       missingFacts: ambiguous.map((name) => `Could not confidently resolve “${name}”.`),
       sourceNote: 'Specifications are curated from linked OEM pages. Prices and variants must be rechecked before purchase.',
       verifiedAt: vehicles.reduce((latest, item) => item.verifiedAt > latest ? item.verifiedAt : latest, ''),
+      visualMode: wantsConcept ? 'concept' : 'photo',
     };
     record.passport.shortlist = vehicles.map(({ id, name, category, sourceUrl, verifiedAt }) => ({ id, name, category, sourceUrl, verifiedAt }));
     record.passport.comparison = payload;
     record.passport.profile.priorities = priorities;
     record.passport.nextActions = unique([...record.passport.nextActions, 'Verify current on-road price and selected variant with an authorised dealer.']);
-    await this.persistSession(record);
     const leader = vehicles.find((item) => item.id === ranking[0]?.id);
     return {
-      stage: 'comparison',
+      stage: wantsVisual ? 'vehicle-visual' : 'comparison',
       payload,
       spoken: ambiguous.length
         ? `I found ${vehicles.length} close matches, but please clarify ${ambiguous.join(', ')}.`
-        : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
+        : wantsVisual
+          ? `The visual explorer for ${vehicles[0]?.name || 'your selected vehicle'} is ready on screen. It includes a sourced photograph when available and an original interactive concept that is clearly illustrative.`
+          : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
     };
   }
 
@@ -568,6 +589,7 @@ export class EasyEVToolEngine {
           providerErrors.push(safeError(error));
         }
       }
+      signal.throwIfAborted();
       let fallback = false;
       if (!stations.length && haversineKm(lat, lng, 28.6139, 77.209) < 80) {
         fallback = true;
@@ -595,7 +617,6 @@ export class EasyEVToolEngine {
       ? `${result.stations.length} public locations found within ${radiusKm} km search radius`
       : 'No public locations returned';
     record.passport.nextActions = unique([...record.passport.nextActions, 'Confirm connector compatibility and station access before travelling.']);
-    await this.persistSession(record);
     return {
       stage: 'charging-map',
       payload: result,
@@ -605,7 +626,7 @@ export class EasyEVToolEngine {
     };
   }
 
-  async calculateOwnership(record, args) {
+  async calculateOwnership(record, args, signal) {
     args = unpackArgs(args);
     const item = resolveVehicles([firstDefined(args, ['vehicle', 'vehicleName', 'vehicle_name']) || record.passport.shortlist[0]?.name], record.category).resolved[0];
     if (!item) throw new Error('Choose a vehicle before calculating ownership.');
@@ -669,10 +690,10 @@ export class EasyEVToolEngine {
       },
       notice: 'Illustrative deterministic estimate. Excludes insurance, tax differences, resale value, battery degradation, financing fees and changing tariffs unless shown above.',
     };
+    signal.throwIfAborted();
     record.passport.ownership = payload;
     record.passport.profile.dailyKm = dailyKm;
     record.passport.nextActions = unique([...record.passport.nextActions, 'Replace indicative prices and tariffs with written quotes before deciding.']);
-    await this.persistSession(record);
     return {
       stage: 'ownership',
       payload,
@@ -751,6 +772,7 @@ export class EasyEVToolEngine {
       if (!response.ok) throw new Error(`Gemini image analysis returned ${response.status}`);
       const data = await response.json();
       const result = this.extractModelJson(data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '');
+      signal.throwIfAborted();
       const rejected = result.decision !== 'allowed';
       const payload = rejected
         ? {
@@ -775,7 +797,6 @@ export class EasyEVToolEngine {
           };
       record.passport.readiness = payload;
       record.passport.nextActions = unique([...record.passport.nextActions, ...(payload.installerQuestions || [])]);
-      await this.persistSession(record);
       return {
         stage: 'snapshot-result',
         payload,
@@ -888,8 +909,9 @@ export class EasyEVToolEngine {
     return Buffer.concat(chunks);
   }
 
-  async generateReport(record) {
+  async generateReport(record, _args, signal) {
     const pdf = await this.buildReport(record);
+    signal.throwIfAborted();
     record.report = {
       pdf,
       createdAt: Date.now(),
@@ -903,7 +925,6 @@ export class EasyEVToolEngine {
       generatedAt: new Date().toISOString(),
     };
     record.passport.nextActions = unique([...record.passport.nextActions, 'Download and review the decision report.']);
-    await this.persistSession(record);
     return {
       stage: 'report-ready',
       payload,
