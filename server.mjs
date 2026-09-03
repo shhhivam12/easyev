@@ -5,7 +5,7 @@ import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 
 import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { EasyEVToolEngine, VEHICLES } from './decision-tools.mjs';
+import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import {
   AgoraClient,
@@ -26,6 +26,13 @@ const TOKEN_TTL_SECONDS = 3600;
 const TOOL_SAFE_MAX_HISTORY = 80;
 const BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
 const BODY_LIMIT_BYTES = 48 * 1024;
+const MAX_TRANSCRIPT_LINES = 400;
+const LLM_MODEL = 'gpt-4o-mini';
+const LLM_TUNING = Object.freeze({ max_tokens: 360, temperature: 0.25, top_p: 0.9 });
+// The update endpoint overwrites params wholesale, so the handoff swap has to
+// resend the model alongside the tuning it is preserving.
+const LLM_PARAMS = Object.freeze({ model: LLM_MODEL, ...LLM_TUNING });
+const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
@@ -45,6 +52,10 @@ const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTER
 const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
 const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
 const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes(32).toString('hex');
+// Optional shared secret for the specialist desk. When unset the queue is open,
+// which is fine on a laptop but should never be the case on a public deployment.
+const REP_DESK_KEY = process.env.REP_DESK_KEY?.trim() || '';
+const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL?.trim() || '';
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -63,7 +74,14 @@ const tools = new EasyEVToolEngine({
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
   geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash',
   openChargeMapKey: process.env.OPENCHARGEMAP_API_KEY?.trim(),
+  publicBaseUrl: PUBLIC_BASE_URL,
+  onEscalation: (record) => {
+    broadcast(record, 'handoff', handoffState(record));
+    notifySlack(record);
+  },
 });
+
+const handoffCodes = new Map();
 
 function loadLocalEnv(path) {
   if (!existsSync(path)) return;
@@ -256,12 +274,15 @@ The shopper selected category: ${category}. Their preferred conversation languag
 
 Language and voice style: ${languageStyle}
 
-You have five real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
+You have six real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
 - compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said. Set presentation to "photo" for picture/image requests and "3d" for 3D/360/AR requests; for two vehicles use one call with both names.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
 - analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
 - generate_decision_report for a report, PDF, summary or download.
+- escalate_to_human to bring a live human EasyEV specialist onto this same call.
+
+Call escalate_to_human when the buyer asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; when a trust concern or complaint stays open after you have addressed it once; or when they are ready to buy and need a human to close. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
 
 Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
 
@@ -274,7 +295,7 @@ After a tool succeeds, begin with “It’s ready on your screen,” then explai
 Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
 
-function createAgentSession({ channel, uid, category, language, voice, mcpUrl }) {
+function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const greeting = language === 'Hindi'
     ? 'नमस्ते! मैं आपका EasyEV गाइड हूँ। अपनी रोज़ की दूरी और ज़रूरत बताइए—मैं आपके सामने तुलना, खर्च और चार्जिंग विकल्प जाँच सकता हूँ।'
@@ -325,11 +346,11 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
   })
     .withStt(stt)
     .withLlm(new OpenAI({
-      model: 'gpt-4o-mini',
+      model: LLM_MODEL,
       greetingMessage: greeting,
       failureMessage: 'I had trouble responding. Please try that once more.',
       maxHistory: TOOL_SAFE_MAX_HISTORY,
-      params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
+      params: { ...LLM_TUNING },
       ...(mcpUrl ? { mcpServers: [createAgoraMcpServer(mcpUrl)] } : {}),
     }))
     .withTts(tts);
@@ -337,7 +358,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
   return agent.createSession({
     channel,
     agentUid: AGENT_UID,
-    remoteUids: [String(uid)],
+    remoteUids: repUid ? [String(uid), String(repUid)] : [String(uid)],
     idleTimeout: 120,
     expiresIn: ExpiresIn.hours(1),
     debug: false,
@@ -426,11 +447,28 @@ function createAgoraMcpServer(endpoint) {
   return server;
 }
 
+function newHandoffCode() {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    let code = '';
+    for (let i = 0; i < 8; i += 1) code += HANDOFF_CODE_ALPHABET[randomInt(0, HANDOFF_CODE_ALPHABET.length)];
+    if (!handoffCodes.has(code)) return code;
+  }
+  return randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
+}
+
 function createRecord({ key, channel, uid, category, language, voice }) {
+  // The specialist UID is reserved up front so the agent can subscribe to it from
+  // the start; that is what lets the agent keep transcribing the human once they join.
+  let repUid = String(randomInt(1000, 9_999_000));
+  while (repUid === String(uid) || repUid === AGENT_UID) repUid = String(randomInt(1000, 9_999_000));
   return {
     key,
     channel,
     uid,
+    repUid,
+    handoffCode: newHandoffCode(),
+    escalation: { status: 'none' },
+    transcript: [],
     category,
     language,
     voice,
@@ -478,6 +516,7 @@ async function stopRecord(record) {
     if (record.pendingSnapshot?.buffer) record.pendingSnapshot.buffer.fill(0);
     record.report = null;
     sessions.delete(record.key);
+    handoffCodes.delete(record.handoffCode);
   }
 }
 
@@ -499,6 +538,173 @@ function requireSession(id, res) {
     return null;
   }
   return record;
+}
+
+// Broadcasts to every SSE listener on a record — the buyer's browser and any
+// specialist console watching the same call. Deliberately does not push into
+// record.events: transcript traffic would evict tool events from the replay buffer.
+function broadcast(record, eventName, data) {
+  if (!record || record.closed) return;
+  const wire = `event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const client of record.sseClients) {
+    try { client.write(wire); } catch { record.sseClients.delete(client); }
+  }
+}
+
+function speakerFor(record, uid) {
+  const id = String(uid ?? '');
+  if (id === AGENT_UID) return 'ai';
+  if (id === String(record.repUid)) return 'rep';
+  if (id === String(record.uid) || id === '0') return 'buyer';
+  return 'buyer';
+}
+
+function appendTranscript(record, entries) {
+  const added = [];
+  for (const entry of entries) {
+    const text = String(entry?.text || '').trim().slice(0, 1000);
+    if (!text) continue;
+    const id = String(entry.id || `${entry.uid || ''}-${entry.timestamp || ''}`);
+    const existing = record.transcript.findIndex((item) => item.id === id);
+    const line = {
+      id,
+      speaker: entry.speaker === 'rep' || entry.speaker === 'ai' || entry.speaker === 'buyer'
+        ? entry.speaker
+        : speakerFor(record, entry.uid),
+      text,
+      timestamp: Number(entry.timestamp) || Date.now(),
+      final: entry.final !== false,
+    };
+    if (existing >= 0) record.transcript[existing] = line;
+    else record.transcript.push(line);
+    added.push(line);
+  }
+  if (record.transcript.length > MAX_TRANSCRIPT_LINES) {
+    record.transcript.splice(0, record.transcript.length - MAX_TRANSCRIPT_LINES);
+  }
+  if (added.length) broadcast(record, 'transcript', { entries: added });
+  return added.length;
+}
+
+function handoffState(record) {
+  return {
+    sessionKey: record.key,
+    handoffCode: record.handoffCode,
+    status: record.escalation?.status || 'none',
+    reason: record.escalation?.reason || null,
+    reasonLabel: record.escalation?.reason ? REASON_LABELS[record.escalation.reason] : null,
+    urgency: record.escalation?.urgency || 'standard',
+    summary: record.escalation?.summary || '',
+    repName: record.escalation?.repName || '',
+    requestedAt: record.escalation?.requestedAt || null,
+    joinedAt: record.escalation?.joinedAt || null,
+    resolvedAt: record.escalation?.resolvedAt || null,
+    language: record.language,
+    category: record.category,
+  };
+}
+
+function waitingCard(record) {
+  const escalation = record.escalation || {};
+  const profile = record.passport?.profile || {};
+  return {
+    handoffCode: record.handoffCode,
+    status: escalation.status,
+    reason: escalation.reason || null,
+    reasonLabel: escalation.reason ? REASON_LABELS[escalation.reason] : null,
+    urgency: escalation.urgency || 'standard',
+    summary: escalation.summary || '',
+    repName: escalation.repName || '',
+    requestedAt: escalation.requestedAt || null,
+    joinedAt: escalation.joinedAt || null,
+    language: record.language,
+    category: record.category,
+    dailyKm: profile.dailyKm || null,
+    budgetLakh: profile.budgetLakh || null,
+    chargingAccess: profile.chargingAccess || '',
+    shortlist: (record.passport?.shortlist || []).map((item) => item.name).slice(0, 3),
+    transcriptLines: record.transcript?.length || 0,
+  };
+}
+
+// Fire-and-forget: a paging failure must never break the call the buyer is on.
+function notifySlack(record) {
+  if (!SLACK_WEBHOOK_URL) return;
+  const escalation = record.escalation || {};
+  const profile = record.passport?.profile || {};
+  const link = PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/rep?code=${record.handoffCode}` : `/rep?code=${record.handoffCode}`;
+  const facts = [
+    `*Reason:* ${REASON_LABELS[escalation.reason] || 'Buyer asked for a person'}`,
+    `*Language:* ${record.language}`,
+    `*Looking for:* ${record.category}`,
+    profile.dailyKm ? `*Daily travel:* ${profile.dailyKm} km` : '',
+    (record.passport?.shortlist || []).length ? `*Shortlist:* ${record.passport.shortlist.map((item) => item.name).join(', ')}` : '',
+  ].filter(Boolean).join('\n');
+  const body = {
+    text: `EasyEV: a buyer is waiting for a specialist (${REASON_LABELS[escalation.reason] || 'handover'})`,
+    blocks: [
+      { type: 'section', text: { type: 'mrkdwn', text: `:telephone_receiver: *A buyer is waiting for a specialist*\n${escalation.summary || ''}` } },
+      { type: 'section', text: { type: 'mrkdwn', text: facts } },
+      {
+        type: 'actions',
+        elements: [{ type: 'button', text: { type: 'plain_text', text: 'Take this call' }, url: link, style: 'primary' }],
+      },
+      { type: 'context', elements: [{ type: 'mrkdwn', text: `Handover code \`${record.handoffCode}\` · ${escalation.urgency === 'high' ? 'urgent' : 'standard'}` }] },
+    ],
+  };
+  fetch(SLACK_WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(4000),
+  }).catch((error) => console.error('Slack page failed:', safeMessage(error)));
+}
+
+function deskAuthorized(req, url) {
+  if (!REP_DESK_KEY) return true;
+  const provided = req.headers['x-desk-key'] || url.searchParams.get('key') || '';
+  const expected = Buffer.from(REP_DESK_KEY);
+  const actual = Buffer.from(String(provided));
+  return expected.length === actual.length && timingSafeEqual(expected, actual);
+}
+
+const OBSERVER_SYSTEM_MESSAGE = `A human EasyEV specialist has now joined this voice call and is leading the conversation.
+You are muted. Do not speak, greet, summarise, agree, confirm or add anything at all.
+Questions spoken on this call are being asked of the human specialist, not of you, even when they sound like questions you could answer.
+Return an empty response for every turn. Do not call any tool.
+Keep listening so the conversation continues to be transcribed and recorded.`;
+
+async function silenceAgentForHandoff(record) {
+  if (!record.session) return;
+  try { await record.session.interrupt(); } catch {}
+  try {
+    await record.session.update({
+      llm: {
+        system_messages: [{ role: 'system', content: OBSERVER_SYSTEM_MESSAGE }],
+        params: { ...LLM_PARAMS },
+      },
+    });
+  } catch (error) {
+    // The client-side mute is the guarantee; this only stops the agent generating.
+    console.error('Handoff: could not switch agent to observer mode:', safeMessage(error));
+  }
+}
+
+async function restoreAgentAfterHandoff(record, note) {
+  if (!record.session) return;
+  const handover = note
+    ? `\n\nA human EasyEV specialist just spoke with this buyer on the call and has handed back to you. What the specialist wants you to know: ${note}. Acknowledge the handover back in one short sentence, then continue from there. Do not repeat questions the buyer has already answered.`
+    : '\n\nA human EasyEV specialist just left the call and handed back to you. Acknowledge the handover back in one short sentence, then continue. Do not repeat questions the buyer has already answered.';
+  try {
+    await record.session.update({
+      llm: {
+        system_messages: [{ role: 'system', content: agentInstructions({ category: record.category, language: record.language }) + handover }],
+        params: { ...LLM_PARAMS },
+      },
+    });
+  } catch (error) {
+    console.error('Handoff: could not restore agent instructions:', safeMessage(error));
+  }
 }
 
 async function handleMcp(req, res, url) {
@@ -533,7 +739,7 @@ async function handleMcp(req, res, url) {
 }
 
 async function handleScopedSessionApi(req, res, url) {
-  const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool)$/i);
+  const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool|transcript|escalate)$/i);
   if (!match) return false;
   const action = match[2];
   if (req.method === 'GET' && action === 'report') {
@@ -561,7 +767,12 @@ async function handleScopedSessionApi(req, res, url) {
       Connection: 'keep-alive',
       'X-Accel-Buffering': 'no',
     });
-    res.write(`retry: 1200\nevent: ready\ndata: ${JSON.stringify({ sessionId: record.key, passport: tools.publicPassport(record) })}\n\n`);
+    res.write(`retry: 1200\nevent: ready\ndata: ${JSON.stringify({
+      sessionId: record.key,
+      passport: tools.publicPassport(record),
+      handoff: handoffState(record),
+      transcript: record.transcript.slice(-80),
+    })}\n\n`);
     for (const event of record.events.slice(-12)) {
       res.write(`id: ${event.eventId}\nevent: tool-event\ndata: ${JSON.stringify(event)}\n\n`);
     }
@@ -621,12 +832,163 @@ async function handleScopedSessionApi(req, res, url) {
     return json(res, 200, { success: true, result: result.structuredContent });
   }
 
+  // The buyer's browser is the only participant that receives Agora's transcript
+  // stream, so it mirrors finalised lines here for the specialist console to read.
+  if (req.method === 'POST' && action === 'transcript') {
+    const body = await readJson(req);
+    const entries = Array.isArray(body.entries) ? body.entries.slice(0, 40) : [];
+    const stored = appendTranscript(record, entries);
+    return json(res, 200, { success: true, stored, total: record.transcript.length });
+  }
+
+  if (req.method === 'POST' && action === 'escalate') {
+    const body = await readJson(req);
+    const result = await tools.run(record, 'escalate_to_human', {
+      reason: body.reason || 'explicit-request',
+      summary: body.summary || '',
+      urgency: body.urgency || 'standard',
+    });
+    return json(res, 200, { success: true, result: result.structuredContent, handoff: handoffState(record) });
+  }
+
+  return json(res, 405, { error: 'Method not allowed' });
+}
+
+async function handleHandoffApi(req, res, url) {
+  // The specialist desk: every call currently waiting for, or held by, a human.
+  if (req.method === 'GET' && url.pathname === '/api/handoff/waiting') {
+    if (!deskAuthorized(req, url)) return json(res, 401, { error: 'This desk needs its access key.' });
+    const waiting = [];
+    for (const record of sessions.values()) {
+      if (record.closed) continue;
+      const status = record.escalation?.status;
+      if (status === 'requested' || status === 'rep-joined') waiting.push(waitingCard(record));
+    }
+    waiting.sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'requested' ? -1 : 1;
+      if (a.urgency !== b.urgency) return a.urgency === 'high' ? -1 : 1;
+      return new Date(a.requestedAt || 0) - new Date(b.requestedAt || 0);
+    });
+    return json(res, 200, { waiting, activeCalls: sessions.size, deskSecured: Boolean(REP_DESK_KEY) });
+  }
+
+  const match = url.pathname.match(/^\/api\/handoff\/([A-Z0-9]{6,16})(?:\/(events|join|handback|transcript))?$/);
+  if (!match) return false;
+  const sessionKey = handoffCodes.get(match[1]);
+  const record = sessionKey ? sessions.get(sessionKey) : null;
+  if (!record || record.closed) {
+    return json(res, 404, { error: 'That handover code is not on an active call. Ask the buyer to read it again, or wait for a new page.' });
+  }
+  const action = match[2] || '';
+
+  if (req.method === 'GET' && !action) {
+    return json(res, 200, {
+      handoff: handoffState(record),
+      passport: tools.publicPassport(record),
+      transcript: record.transcript.slice(-120),
+      channel: record.channel,
+      buyerUid: record.uid,
+      repUid: record.repUid,
+      agentUid: AGENT_UID,
+    });
+  }
+
+  if (req.method === 'GET' && action === 'events') {
+    res.writeHead(200, {
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-store, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    });
+    res.write(`retry: 1200\nevent: ready\ndata: ${JSON.stringify({
+      sessionId: record.key,
+      passport: tools.publicPassport(record),
+      handoff: handoffState(record),
+      transcript: record.transcript.slice(-120),
+    })}\n\n`);
+    for (const event of record.events.slice(-12)) {
+      res.write(`id: ${event.eventId}\nevent: tool-event\ndata: ${JSON.stringify(event)}\n\n`);
+    }
+    record.sseClients.add(res);
+    const keepAlive = setInterval(() => {
+      try { res.write(': keep-alive\n\n'); } catch {}
+    }, 15_000);
+    req.on('close', () => {
+      clearInterval(keepAlive);
+      record.sseClients.delete(res);
+    });
+    return true;
+  }
+
+  if (req.method === 'POST' && action === 'join') {
+    const body = await readJson(req);
+    const repName = String(body.repName || '').trim().slice(0, 60) || 'EasyEV specialist';
+    if (record.escalation?.status === 'rep-joined') {
+      return json(res, 409, { error: `${record.escalation.repName || 'Another specialist'} is already on this call.` });
+    }
+    record.escalation = {
+      ...record.escalation,
+      status: 'rep-joined',
+      reason: record.escalation?.reason || 'explicit-request',
+      summary: record.escalation?.summary || 'A specialist joined this call directly.',
+      repName,
+      requestedAt: record.escalation?.requestedAt || new Date().toISOString(),
+      joinedAt: new Date().toISOString(),
+    };
+    record.passport.escalation = { ...(record.passport.escalation || {}), ...handoffState(record) };
+    await silenceAgentForHandoff(record);
+    tools.emit(record, {
+      tool: 'escalate_to_human',
+      phase: 'completed',
+      stage: 'handoff',
+      payload: { ...handoffState(record), passport: tools.publicPassport(record) },
+    });
+    broadcast(record, 'handoff', handoffState(record));
+    return json(res, 200, {
+      appId: APP_ID,
+      token: createToken(record.channel, record.repUid),
+      channel: record.channel,
+      uid: record.repUid,
+      buyerUid: record.uid,
+      agentUid: AGENT_UID,
+      handoff: handoffState(record),
+    });
+  }
+
+  if (req.method === 'POST' && action === 'handback') {
+    const body = await readJson(req);
+    const note = String(body.note || '').trim().slice(0, 600);
+    record.escalation = { ...record.escalation, status: 'resolved', resolvedAt: new Date().toISOString(), handbackNote: note };
+    record.passport.escalation = { ...(record.passport.escalation || {}), ...handoffState(record) };
+    if (note) {
+      record.passport.nextActions = [...new Set([...record.passport.nextActions, `Specialist note: ${note}`])];
+    }
+    await restoreAgentAfterHandoff(record, note);
+    tools.emit(record, {
+      tool: 'escalate_to_human',
+      phase: 'completed',
+      stage: 'handoff',
+      payload: { ...handoffState(record), passport: tools.publicPassport(record) },
+    });
+    broadcast(record, 'handoff', handoffState(record));
+    return json(res, 200, { success: true, handoff: handoffState(record) });
+  }
+
+  if (req.method === 'POST' && action === 'transcript') {
+    const body = await readJson(req);
+    const entries = Array.isArray(body.entries) ? body.entries.slice(0, 40) : [];
+    const stored = appendTranscript(record, entries);
+    return json(res, 200, { success: true, stored });
+  }
+
   return json(res, 405, { error: 'Method not allowed' });
 }
 
 async function handleApi(req, res, url) {
   const scoped = await handleScopedSessionApi(req, res, url);
   if (scoped !== false) return scoped;
+  const handoff = await handleHandoffApi(req, res, url);
+  if (handoff !== false) return handoff;
   if (req.method === 'GET' && (url.pathname === '/api/health' || url.pathname === '/api/ready')) {
     return json(res, 200, {
       ok: true,
@@ -762,9 +1124,10 @@ async function handleApi(req, res, url) {
     const key = randomUUID();
     const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category, language, voice });
     sessions.set(key, record);
+    handoffCodes.set(record.handoffCode, key);
     const mcpUrl = MCP_PUBLIC ? `${MCP_BASE_URL}/${encodeURIComponent(signSessionToken(key))}` : null;
     try {
-      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, category, language, voice, mcpUrl });
+      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, repUid: record.repUid, category, language, voice, mcpUrl });
       record.agentId = await record.session.start();
       await tools.persistSession(record);
       tools.emit(record, {
@@ -782,9 +1145,13 @@ async function handleApi(req, res, url) {
         toolsMode: mcpUrl ? 'agora-mcp' : 'local-bridge',
         eventsUrl: `/api/sessions/${key}/events`,
         reportUrl: `/api/sessions/${key}/report`,
+        handoffCode: record.handoffCode,
+        repUid: record.repUid,
+        agentUid: AGENT_UID,
       });
     } catch (error) {
       sessions.delete(key);
+      handoffCodes.delete(record.handoffCode);
       throw error;
     }
   }
@@ -864,6 +1231,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
+    if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
     if (/^\/assets\/[a-z0-9\/-]+\.(?:jpe?g|png|webp|svg|glb|gltf)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
