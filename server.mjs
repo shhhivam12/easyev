@@ -714,6 +714,8 @@ function serveFile(res, path, cache = false) {
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
     '.webp': 'image/webp',
+    '.webm': 'video/webm',
+    '.mp4': 'video/mp4',
   }[extname(fullPath)] || 'application/octet-stream';
   res.writeHead(200, {
     'Content-Type': mime,
@@ -741,7 +743,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (/^\/assets\/[a-z0-9-]+\.(?:jpe?g|png|webp)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (/^\/assets\/[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
