@@ -1012,7 +1012,9 @@ export class EasyEVToolEngine {
 
   async generateReport(record, _args, signal) {
     const pdf = await this.buildReport(record);
-    signal.throwIfAborted();
+    // stopRecord() generates the closing report with no abort signal, so this
+    // must tolerate its absence — otherwise every ended call loses its report.
+    signal?.throwIfAborted();
     record.report = {
       pdf,
       createdAt: Date.now(),
