@@ -1,0 +1,33 @@
+EasyEV AI — 5-slide mentor discussion deck
+
+1. Intro
+EasyEV AI
+An EV sales negotiator and education voice agent for India
+Team CodeHackers — Shivam · Jatin · Sathvik
+Adaptive AI Sales and Negotiation Agent
+Mentor discussion: Kamal Walia
+
+2. Problem, idea, impact
+Takeaway: EV adoption is a decision-confidence problem.
+Pain: scattered facts; real-life fit is hard to calculate; generic sales answers reduce trust.
+Product: multilingual voice AI that explains, compares, simulates and safely negotiates across scooters, cars, e-rickshaws and fleets.
+Flow: confusion → natural conversation → verified next action.
+Impact: buyer confidence and access.
+Business: qualified leads and higher conversion.
+
+3. Implementation and Agora
+Architecture: Buyer UI → Agora real-time conversation → EasyEV decision/tool layer → verified data and actions.
+Agora responsibilities: RTC audio, Conversational AI Engine, interruption/turn handling, RTM state sync, transcripts/session history/metrics, Sarvam ASR/TTS.
+EasyEV responsibilities: decision graph, evidence-backed comparisons, what-if calculator, policy-bounded negotiation, booking/CRM/handoff.
+Stack: Next.js + TypeScript + React Flow; FastAPI + FastMCP + Pydantic; Supabase/Postgres + optional Graphiti; Langfuse + Promptfoo + Presidio.
+
+4. Current status and build plan
+Current: product positioning finalized; scope and demo journey defined; technical architecture and trust boundaries planned; submitted concept deck available.
+Next: Agora vertical slice → Decision Graph and tools → real booking/handoff → multilingual tests/evals/demo rehearsal.
+Mentor feedback: scope, deepest Agora proof, defensibility of Decision Graph and safe learning loop.
+
+5. Team ownership
+Shivam: product/conversation design; EV evidence; Decision Graph; safety/evals; pitch.
+Sathvik: Agora RTC/RTM/Conversational AI; FastAPI/FastMCP; agent lifecycle; handoff.
+Jatin: Next.js buyer/operator UI; React Flow graph; Supabase; booking/lead UX; visual QA.
+Shared checkpoints: first live call; end-to-end demo; final rehearsal.

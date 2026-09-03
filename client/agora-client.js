@@ -483,4 +483,3 @@ class VehicleAgoraAdapter extends AgoraAdapter {
 
 export const createAgoraAdapter = () => new AgoraAdapter();
 export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
-

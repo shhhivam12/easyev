@@ -346,7 +346,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
 
 function createVehicleAgentSession({ channel, uid, vehicleId, language, voice }) {
   const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
-  const client = new AgoraClient({ appId: APP_ID, appCert: APP_CERTIFICATE, area: Area.GLOBAL });
+  const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
   const greeting = language === 'Hindi'
     ? `नमस्ते! मैं ${vehicle.name} (${vehicle.company}) का AI एक्सपर्ट हूँ। आप इस गाड़ी की कीमत, बैटरी, रेंज या फीचर्स के बारे में जो पूछना चाहें, पूछिए!`
@@ -836,8 +836,9 @@ function serveFile(res, path, cache = false) {
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
     '.webp': 'image/webp',
+    '.webm': 'video/webm',
+    '.mp4': 'video/mp4',
     '.glb': 'model/gltf-binary',
-    '.gltf': 'model/gltf+json',
   }[extname(fullPath)] || 'application/octet-stream';
   res.writeHead(200, {
     'Content-Type': mime,
@@ -865,7 +866,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (/^\/assets\/[a-z0-9\/-]+\.(?:jpe?g|png|webp|svg|glb|gltf)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
