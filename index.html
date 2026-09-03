@@ -162,8 +162,9 @@
     }
 
     .site-nav {
-      position: relative;
-      z-index: 20;
+      position: sticky;
+      top: 16px;
+      z-index: 80;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -585,13 +586,13 @@
     /* Landing experience */
     .hero {
       display: grid;
-      grid-template-columns: minmax(0, 1.06fr) minmax(370px, .74fr);
+      grid-template-columns: minmax(0, .95fr) minmax(430px, .9fr);
       align-items: center;
-      gap: clamp(36px, 6vw, 92px);
-      width: min(1180px, calc(100% - 48px));
-      min-height: 660px;
+      gap: clamp(30px, 4.5vw, 68px);
+      width: min(1220px, calc(100% - 48px));
+      min-height: calc(100svh - 98px);
       margin: 0 auto;
-      padding: 104px 0 64px;
+      padding: clamp(38px, 6vh, 66px) 0 clamp(44px, 6vh, 70px);
       text-align: left;
     }
 
@@ -605,24 +606,25 @@
     }
 
     .hero__content {
-      max-width: 700px;
+      max-width: 620px;
+      transform: translateY(-5vh);
     }
 
     .hero h1 {
-      max-width: 730px;
-      margin: 23px 0 22px;
-      font-size: clamp(58px, 5.7vw, 86px);
+      max-width: 660px;
+      margin: 0 0 20px;
+      font-size: clamp(52px, 4.9vw, 76px);
     }
 
     .hero__copy {
       max-width: 650px;
       margin: 0;
-      font-size: 17px;
+      font-size: 16px;
     }
 
     .hero__actions {
       justify-content: flex-start;
-      margin-top: 30px;
+      margin-top: 25px;
     }
 
     .hero__proof {
@@ -633,7 +635,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px 22px;
-      margin-top: 26px;
+      margin-top: 22px;
       color: var(--muted);
       font-size: 11px;
       font-weight: 620;
@@ -654,7 +656,7 @@
 
     .hero-video-card {
       width: 100%;
-      max-width: 560px;
+      max-width: 660px;
       margin-left: auto;
     }
 
@@ -675,7 +677,7 @@
       background: transparent;
       filter: drop-shadow(0 24px 28px rgba(4, 35, 15, .16));
       pointer-events: none;
-      transform: scale(1.72) translateY(1.5%);
+      transform: scale(1.94) translateY(1.5%);
       transform-origin: 50% 58%;
     }
 
@@ -683,7 +685,7 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      margin-top: 24px;
+      margin-top: 20px;
       color: var(--muted-2);
       font-size: 10px;
       font-weight: 700;
@@ -716,6 +718,79 @@
       background: var(--white);
     }
 
+    .landing-guide-callout {
+      display: grid;
+      grid-template-columns: 118px minmax(0, 1fr);
+      align-items: center;
+      gap: 20px;
+      width: min(560px, 100%);
+      margin-top: 30px;
+      padding: 10px 24px 10px 10px;
+      border: 1px solid rgba(22, 191, 83, .24);
+      border-radius: 22px;
+      background: linear-gradient(135deg, var(--mint), rgba(255, 255, 255, .94));
+      box-shadow: 0 18px 44px rgba(4, 35, 15, .08);
+    }
+
+    .landing-guide-callout img {
+      display: block;
+      width: 118px;
+      height: 118px;
+      object-fit: contain;
+      filter: drop-shadow(0 14px 16px rgba(4, 35, 15, .13));
+    }
+
+    .landing-guide-callout strong,
+    .landing-guide-callout span { display: block; }
+
+    .landing-guide-callout strong {
+      font-size: 18px;
+      letter-spacing: -.025em;
+    }
+
+    .landing-guide-callout span {
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .landing-guide-callout--journey {
+      margin-left: auto;
+      background: linear-gradient(135deg, rgba(255, 255, 255, .96), #ecfff1);
+    }
+
+    .landing-footer {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 28px max(24px, calc((100vw - 1180px) / 2));
+      color: rgba(255, 255, 255, .78);
+      background: var(--forest);
+      border-top: 1px solid rgba(85, 242, 123, .16);
+    }
+
+    .landing-footer__guide {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .28));
+    }
+
+    .landing-footer__copy strong,
+    .landing-footer__copy span { display: block; }
+
+    .landing-footer__copy strong { color: var(--white); font-size: 15px; }
+    .landing-footer__copy span { margin-top: 5px; color: rgba(255, 255, 255, .58); font-size: 13px; }
+
+    .landing-footer__mark {
+      color: var(--green-bright);
+      font-size: 11px;
+      font-weight: 780;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
     .journey-heading {
       display: grid;
       grid-template-columns: 1.15fr .85fr;
@@ -4065,18 +4140,23 @@
 
       .hero {
         grid-template-columns: 1fr;
-        gap: 36px;
+        gap: 24px;
         width: min(680px, calc(100% - 40px));
         min-height: auto;
-        padding: 102px 0 64px;
+        padding: 58px 0 62px;
+      }
+
+      .hero__content {
+        transform: none;
       }
 
       .hero-video-card {
-        width: min(520px, 100%);
+        width: min(620px, 100%);
+        margin: 0 auto;
       }
 
       .hero-video {
-        transform: scale(1.62) translateY(1%);
+        transform: scale(1.84) translateY(1%);
       }
 
       .map-layout {
@@ -4141,6 +4221,7 @@
       }
 
       .site-nav {
+        top: 10px;
         width: calc(100% - 24px);
         min-height: 54px;
         margin-top: 12px;
@@ -4155,13 +4236,13 @@
         display: grid;
         width: calc(100% - 34px);
         min-height: auto;
-        padding: 86px 0 46px;
+        padding: 46px 0 38px;
         text-align: left;
       }
 
       .hero h1 {
-        margin: 19px 0 18px;
-        font-size: clamp(44px, 13vw, 60px);
+        margin: 0 0 16px;
+        font-size: clamp(40px, 12vw, 56px);
         letter-spacing: -.065em;
       }
 
@@ -4199,10 +4280,31 @@
       }
 
       .hero-video {
-        transform: scale(1.5) translateY(1%);
+        transform: scale(1.76) translateY(1%);
         transform-origin: 50% 58%;
       }
 
+
+      .landing-guide-callout {
+        grid-template-columns: 92px minmax(0, 1fr);
+        gap: 13px;
+        margin-top: 23px;
+        padding: 9px 15px 9px 7px;
+        border-radius: 18px;
+      }
+
+      .landing-guide-callout img { width: 92px; height: 92px; }
+      .landing-guide-callout strong { font-size: 16px; }
+      .landing-guide-callout span { font-size: 13px; }
+
+      .landing-footer {
+        grid-template-columns: 68px 1fr;
+        gap: 14px;
+        padding: 22px 17px;
+      }
+
+      .landing-footer__guide { width: 68px; height: 68px; }
+      .landing-footer__mark { grid-column: 1 / -1; }
       .energy-band {
         min-height: 540px;
         margin-top: 0;
@@ -6931,7 +7033,6 @@
 
       <div class="hero">
         <div class="hero__content">
-          <div class="hero__eyebrow">LIVE AI EV GUIDANCE FOR INDIA</div>
           <h1>From EV confusion to a <span>confident next step.</span></h1>
           <p class="hero__copy">Talk naturally in English, हिंदी or Hinglish. EasyEV turns your daily travel, budget and
             charging reality into a clear comparison across electric cars, scooters and 3-wheelers.</p>
@@ -7001,6 +7102,11 @@
           <span>The experience keeps the reasoning visible: your context comes first, then the comparison, charging
             check and action plan.</span>
         </div>
+        <aside class="landing-guide-callout" aria-label="EasyEV considers your full context before comparing">
+          <img src="/assets/clay-guide-thinking.webp" alt="EasyEV clay guide thinking through a buyer's needs" decoding="async">
+          <div><strong>Your context comes before the comparison.</strong><span>Commute, budget, parking and charging
+              access shape every recommendation.</span></div>
+        </aside>
         <div class="consultation-showcase">
           <figure class="process-feature">
             <img src="/assets/consultation-room-live.png"
@@ -7044,6 +7150,11 @@
           <h2 id="journey-title">Voice guidance that becomes a decision—and a next step.</h2>
           <span>EasyEV keeps the shopper in control while turning conversation into useful, visible progress.</span>
         </div>
+        <aside class="landing-guide-callout landing-guide-callout--journey" aria-label="EasyEV guides every stage of the decision journey">
+          <img src="/assets/clay-guide-hero-v2.webp" alt="EasyEV clay guide ready to help choose an electric vehicle" decoding="async">
+          <div><strong>One guide through every decision stage.</strong><span>Your needs stay attached from discovery and
+              comparison through charging and the next action.</span></div>
+        </aside>
         <div class="journey-grid">
           <article><span>01</span><strong>Discover</strong>
             <p>Share your real commute, passengers, payload, budget and parking situation.</p>
@@ -7064,6 +7175,12 @@
           <button class="button--primary" type="button" data-open-prejoin>Talk to EasyEV now</button>
         </div>
       </section>
+
+      <footer class="landing-footer" role="contentinfo">
+        <img class="landing-footer__guide" src="/assets/clay-guide-success-v2.webp" alt="EasyEV clay guide celebrating a confident decision" decoding="async">
+        <div class="landing-footer__copy"><strong>Made by Team CodeHackers</strong><span>Shivam · Sathvik · Jatin Vats</span></div>
+        <span class="landing-footer__mark">Built for better EV decisions</span>
+      </footer>
 
     </section>
 
@@ -7460,12 +7577,7 @@
       <!-- Standard Seamless Site Nav Header -->
       <header class="site-nav" id="compare-site-nav">
         <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
-          <span class="brand__symbol" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18.5 4.5H8.3a3.3 3.3 0 0 0 0 6.6h7.1a3.3 3.3 0 0 1 0 6.6H5.5"/>
-              <path d="M6.1 4.5 4 7.1l2.1 2.2M17.9 14.9 20 17l-2.1 2.1"/>
-            </svg>
-          </span>
+          <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
           <span class="brand__wordmark">EasyEV</span>
           <span class="brand__ai">AI</span>
         </a>
