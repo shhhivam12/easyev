@@ -988,6 +988,104 @@
       .consent-actions .stage-action, .consent-actions label { width: 100%; text-align: center; }
     }
 
+    /* Compact decision room, comparison matrix, location audit and visual explorer */
+    .context-toggle { display: none; min-height: 34px; padding: 0 10px; color: var(--white); border: 1px solid rgba(255,255,255,.16); border-radius: 99px; background: rgba(255,255,255,.07); font-size: 10px; font-weight: 700; }
+    .comparison-matrix { margin-top: 12px; overflow: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+    .comparison-matrix table { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 10px; }
+    .comparison-matrix th, .comparison-matrix td { padding: 9px 11px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    .comparison-matrix tr:last-child th, .comparison-matrix tr:last-child td { border-bottom: 0; }
+    .comparison-matrix thead th { position: sticky; top: 0; z-index: 1; color: var(--ink); background: var(--mint); font-size: 11px; }
+    .comparison-matrix tbody th { width: 110px; color: var(--muted); background: var(--panel); font-weight: 700; }
+    .vehicle-explore-button { width: calc(100% - 22px); min-height: 34px; margin: 0 11px 11px; color: var(--forest); border: 1px solid rgba(22,191,83,.3); border-radius: 9px; background: var(--mint); font-size: 10px; font-weight: 750; }
+    .tool-loading__steps { display: flex; justify-content: center; gap: 6px; margin-top: 14px; }
+    .tool-loading__steps i { width: 24px; height: 3px; border-radius: 9px; background: var(--line); }
+    .tool-loading__steps i:first-child { background: var(--green-deep); animation: ring-breathe 1s ease-in-out infinite; }
+    .map-location-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 9px 11px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 11px; background: var(--white); font-size: 9px; }
+    .map-location-bar strong, .map-location-bar span { display: block; }
+    .map-location-bar span { margin-top: 2px; color: var(--muted); }
+    .map-location-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+    .map-location-actions button, .location-preset { min-height: 32px; padding: 0 9px; color: var(--forest); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); font-size: 9px; font-weight: 720; }
+    .location-presets { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .location-preset:hover { border-color: var(--green-deep); background: var(--mint); }
+    .location-warning { margin-top: 8px; padding: 8px 10px; color: #6b4b12; border: 1px solid #ead6a5; border-radius: 9px; background: #fff9eb; font-size: 9px; line-height: 1.4; }
+    .visual-stage { display: grid; grid-template-columns: minmax(280px,1.15fr) minmax(220px,.85fr); gap: 18px; margin-top: 14px; }
+    .visual-scene { position: relative; display: grid; place-items: center; min-height: 270px; overflow: hidden; border: 1px solid var(--line); border-radius: 17px; background: radial-gradient(circle at 50% 78%, rgba(85,242,123,.25), transparent 32%), linear-gradient(150deg,#ecf8ef,#fff); perspective: 780px; }
+    .visual-scene::after { position: absolute; right: 10%; bottom: 35px; left: 10%; height: 2px; background: rgba(4,35,15,.12); content: ''; }
+    .visual-scene > img { width: 100%; height: 100%; min-height: 270px; object-fit: cover; }
+    .concept-ev { position: relative; z-index: 1; width: 230px; height: 115px; transform-style: preserve-3d; transform: rotateX(-7deg) rotateY(var(--spin,25deg)); transition: transform .18s ease; }
+    .concept-ev__body, .concept-ev__cabin, .concept-ev__front { position: absolute; display: block; transform-style: preserve-3d; }
+    .concept-ev__body { left: 17px; bottom: 24px; width: 194px; height: 54px; border: 2px solid #0d5428; border-radius: 42px 56px 20px 20px; background: linear-gradient(160deg,#55f27b,#16bf53); box-shadow: inset 0 -13px 0 rgba(4,35,15,.13), 0 25px 27px rgba(4,35,15,.18); transform: translateZ(18px); }
+    .concept-ev__cabin { left: 70px; bottom: 70px; width: 98px; height: 45px; border: 2px solid #153d24; border-radius: 42px 43px 5px 5px; background: linear-gradient(145deg,#d9f4e0,#89b69a); transform: translateZ(12px) skewX(-8deg); }
+    .concept-ev__front { right: 12px; bottom: 35px; width: 24px; height: 35px; border-radius: 0 20px 14px 0; background: #139844; transform: translateZ(8px); }
+    .concept-wheel { position: absolute; z-index: 2; bottom: 7px; width: 43px; height: 43px; border: 9px solid #16231a; border-radius: 50%; background: #c8d2ca; box-shadow: inset 0 0 0 3px #6f7d72; transform: translateZ(23px); }
+    .concept-wheel--rear { left: 36px; }
+    .concept-wheel--front { right: 34px; }
+    .visual-badge { position: absolute; z-index: 3; top: 11px; left: 11px; padding: 6px 8px; color: var(--green-deep); border-radius: 7px; background: rgba(255,255,255,.88); font-size: 8px; font-weight: 780; text-transform: uppercase; }
+    .visual-controls { display: grid; align-content: start; gap: 10px; }
+    .visual-controls h4 { margin: 0; color: var(--ink); font-size: 17px; }
+    .visual-controls p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .visual-angle { display: grid; gap: 7px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--white); }
+    .visual-angle label { display: flex; justify-content: space-between; color: var(--ink-2); font-size: 10px; font-weight: 700; }
+    .visual-angle input { width: 100%; accent-color: var(--green-deep); }
+    .visual-actions { display: flex; flex-wrap: wrap; gap: 7px; }
+    .visual-ar { position: relative; min-height: 270px; overflow: hidden; border-radius: 17px; background: #102017; }
+    .visual-ar video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .visual-ar .concept-ev { position: absolute; top: 50%; left: 50%; scale: .72; transform: translate(-50%,-50%) rotateX(-7deg) rotateY(var(--spin,25deg)); }
+    .visual-ar-note { position: absolute; z-index: 4; right: 10px; bottom: 10px; left: 10px; padding: 7px 9px; color: rgba(255,255,255,.82); border-radius: 8px; background: rgba(3,13,7,.7); font-size: 8px; text-align: center; }
+    @media (min-width: 940px) {
+      #room-view { overflow: hidden; }
+      .room-topbar { min-height: 64px; }
+      .room-layout { height: calc(100svh - 72px); margin-top: 8px; padding-bottom: 8px; }
+      .room-main { display: grid; grid-template-rows: 116px 42px 34px minmax(0,1fr); gap: 8px; overflow: hidden; }
+      .participant-strip { gap: 8px; }
+      .participant-tile { min-height: 0; padding: 11px; border-radius: 16px; }
+      .agent-clay-shell { height: 88px; margin-top: 11px; }
+      .agent-clay { height: 96px; }
+      .participant-tile--ai .participant-tile__label { top: 10px; left: 11px; right: 11px; }
+      .participant-tile--ai .ai-state { bottom: 7px; left: 9px; }
+      .participant-tile--ai .ai-wave { right: 10px; bottom: 10px; }
+      .participant-tile--self .participant-tile__label { right: 11px; bottom: 9px; left: 11px; }
+      .live-caption { min-height: 42px; padding: 9px 12px; }
+      .action-rail { min-height: 34px; }
+      .smart-stage { min-height: 0; height: 100%; }
+      .stage-header { min-height: 59px; padding: 9px 14px; }
+      .presented-label { top: 65px; }
+      .stage-content { height: calc(100% - 59px); min-height: 0; overflow: auto; padding: 18px 18px 82px; }
+      .context-sidebar { height: 100%; overflow: auto; padding: 12px; }
+      .verified-comparison { margin-top: 12px; }
+      .verified-vehicle__media { height: 92px; }
+      .fact-grid { margin: 8px 0; }
+    }
+    @media (max-width: 939px) {
+      .context-toggle { display: inline-flex; align-items: center; }
+      .room-topbar__center { display: none; }
+      .room-layout { grid-template-columns: 1fr; width: calc(100% - 20px); }
+      .context-sidebar { display: none; position: fixed; z-index: 84; top: 78px; right: 10px; bottom: 76px; left: 10px; overflow: auto; box-shadow: 0 28px 80px rgba(0,0,0,.55); backdrop-filter: blur(18px); }
+      .context-sidebar.is-open { display: block; }
+    }
+    @media (max-width: 639px) {
+      .room-topbar { min-height: 58px; padding: 7px 10px; }
+      .room-topbar__left .room-title { display: none; }
+      .room-topbar__right { gap: 5px; }
+      .room-topbar .brand__symbol { width: 29px; height: 29px; border-radius: 9px; }
+      .room-topbar .brand__wordmark { font-size: 14px; }
+      .room-topbar .brand__ai { padding: 3px 6px; font-size: 8px; }
+      .context-toggle { min-height: 30px; padding: 0 9px; font-size: 9px; }
+      .room-topbar__right #room-connection-chip { justify-content: center; width: 30px; min-height: 30px; padding: 0; overflow: hidden; font-size: 0; }
+      .room-topbar__right #room-connection-chip::before { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; content: ''; }
+      .room-layout { height: calc(100svh - 78px); overflow: hidden; }
+      .room-main { display: grid; grid-template-rows: 105px 43px 34px minmax(0,1fr); gap: 7px; overflow: hidden; }
+      .participant-tile { min-height: 0; }
+      .smart-stage { min-height: 0; max-height: none; height: 100%; overflow: hidden; }
+      .stage-header { min-height: 58px; padding: 9px 11px; }
+      .stage-content { height: calc(100% - 58px); min-height: 0; overflow: auto; padding: 17px 12px 90px; }
+      .presented-label { top: 63px; }
+      .visual-stage { grid-template-columns: 1fr; }
+      .visual-scene, .visual-ar { min-height: 220px; }
+      .map-location-bar { align-items: flex-start; flex-direction: column; }
+      .comparison-matrix table { min-width: 460px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .001ms !important;
@@ -1205,7 +1303,7 @@
           <div class="room-title">EasyEV Live <span class="room-elapsed" id="room-elapsed">00:00</span></div>
         </div>
         <div class="room-topbar__center">AI EV consultation</div>
-        <div class="room-topbar__right"><span class="status-badge" id="room-voice-chip">Hinglish · Indian voice</span><span class="status-badge" id="room-connection-chip" data-state="connecting">Connecting to Agora</span></div>
+        <div class="room-topbar__right"><button class="context-toggle" id="context-toggle" type="button" aria-expanded="false" aria-controls="consultation-sidebar">Passport</button><span class="status-badge" id="room-voice-chip">Hinglish · Indian voice</span><span class="status-badge" id="room-connection-chip" data-state="connecting">Connecting to Agora</span></div>
       </header>
 
       <div class="room-layout">
@@ -1243,7 +1341,7 @@
           </section>
         </div>
 
-        <aside class="context-sidebar" aria-label="Consultation context">
+        <aside class="context-sidebar" id="consultation-sidebar" aria-label="Consultation context">
           <div class="sidebar-tabs" id="sidebar-tabs" role="tablist" aria-label="Consultation context tabs">
             <button class="sidebar-tab" type="button" id="passport-tab" data-tab="passport" role="tab" aria-controls="passport-panel" aria-selected="true">Passport</button>
             <button class="sidebar-tab" type="button" id="transcript-tab" data-tab="transcript" role="tab" aria-controls="transcript-panel" aria-selected="false">Transcript</button>
@@ -1389,7 +1487,11 @@
         costModel: { dailyKm: 70, unitCost: 8, years: 5, publicRate: 18, homeShare: 80 },
         chargeProgress: 0,
         chargePlaying: false,
-        map: { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' },
+        map: { status: 'idle', lat: null, lng: null, accuracy: 0, label: '', zoom: 13, stations: [], selectedId: '', message: '' },
+        visualVehicleId: '',
+        visualMode: 'photo',
+        visualAngle: 25,
+        visualArOpen: false,
         outcomeSaved: false
       });
 
@@ -1467,7 +1569,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Working on it…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const networkLabel = () => {
         const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
@@ -1482,6 +1584,18 @@
       const carSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M25 44h100l-7-21a7 7 0 0 0-7-5H39a7 7 0 0 0-7 5l-7 21Z"/><path d="M19 44h112v8H19zM42 18l8-11h50l8 11"/><circle cx="43" cy="52" r="7" fill="currentColor"/><circle cx="107" cy="52" r="7" fill="currentColor"/><path d="M54 26h42"/></svg>';
       const scooterSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="38" cy="52" r="9"/><circle cx="112" cy="52" r="9"/><path d="M38 52h42l18-34h18M80 52 67 22h25M98 18h12l9 7h-15"/></svg>';
       const threeWheelerSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 45h101V24a8 8 0 0 0-8-8H48L23 33v12Z"/><path d="M49 16V7h48l9 9M23 35h101"/><circle cx="42" cy="53" r="7" fill="currentColor"/><circle cx="105" cy="53" r="7" fill="currentColor"/></svg>';
+      const INDIA_LOCATION_PRESETS = Object.freeze([
+        { id: 'delhi', label: 'Delhi', lat: 28.6139, lng: 77.209 },
+        { id: 'mumbai', label: 'Mumbai', lat: 19.076, lng: 72.8777 },
+        { id: 'bengaluru', label: 'Bengaluru', lat: 12.9716, lng: 77.5946 },
+        { id: 'pune', label: 'Pune', lat: 18.5204, lng: 73.8567 },
+        { id: 'hyderabad', label: 'Hyderabad', lat: 17.385, lng: 78.4867 },
+        { id: 'chennai', label: 'Chennai', lat: 13.0827, lng: 80.2707 },
+        { id: 'kolkata', label: 'Kolkata', lat: 22.5726, lng: 88.3639 },
+        { id: 'ahmedabad', label: 'Ahmedabad', lat: 23.0225, lng: 72.5714 }
+      ]);
+      const isLikelyInIndia = (lat, lng) => Number(lat) >= 6 && Number(lat) <= 38 && Number(lng) >= 67 && Number(lng) <= 99;
+      const conceptVehicleMarkup = (angle = state.visualAngle) => `<div class="concept-ev" style="--spin:${Number(angle) || 0}deg" role="img" aria-label="Original interactive illustrative electric vehicle concept"><span class="concept-ev__body"></span><span class="concept-ev__cabin"></span><span class="concept-ev__front"></span><span class="concept-wheel concept-wheel--rear"></span><span class="concept-wheel concept-wheel--front"></span></div>`;
 
       const DEMO_TURNS = {
         compare: {
@@ -1752,93 +1866,52 @@
         canvas.append(attribution);
       };
       const selectedStation = () => state.map.stations.find((station) => station.id === state.map.selectedId) || state.map.stations[0] || null;
-      const requestNearbyChargers = () => {
+      const useLocationForChargers = async ({ lat, lng, accuracy = 0, label = 'Browser location' }) => {
+        if (state.view !== 'room') return;
+        state.map = { ...state.map, lat: Number(lat), lng: Number(lng), accuracy: Math.round(Number(accuracy) || 0), label, status: 'loading', zoom: 13, stations: [], selectedId: '', message: 'Checking Open Charge Map, then OpenStreetMap if needed…' };
+        state.stageRevision += 1;
+        renderApp();
+        try {
+          if (state.integrationMode === 'live') {
+            await activeAdapter()?.setContext({ location: { lat: state.map.lat, lng: state.map.lng, accuracy: state.map.accuracy, consented: true } });
+            await activeAdapter()?.runTool('find_nearby_chargers', { radiusKm: 10 });
+            return;
+          }
+          mapRequestController?.abort();
+          mapRequestController = new AbortController();
+          const response = await fetch(`/api/charging/nearby?lat=${encodeURIComponent(state.map.lat)}&lng=${encodeURIComponent(state.map.lng)}&radius=10000`, { signal: mapRequestController.signal });
+          const data = await response.json();
+          if (!response.ok || data.unavailable) throw new Error(data.error || 'Charging data is unavailable.');
+          state.map = { ...state.map, status: 'ready', stations: Array.isArray(data.stations) ? data.stations : [], selectedId: data.stations?.[0]?.id || '', message: data.stations?.length ? `${data.stations.length} public charging points found within 10 km` : 'No mapped charging points were found within 10 km.' };
+          state.stageRevision += 1;
+          renderApp();
+        } catch (error) {
+          if (error?.name === 'AbortError' || state.view !== 'room') return;
+          state.map.status = 'error';
+          state.map.message = error?.message || 'Charging sources could not be checked.';
+          markAction('charging', 'pending', 'Map unavailable; no location was invented');
+          state.stageRevision += 1;
+          renderApp();
+        }
+      };
+      const requestNearbyChargers = (highAccuracy = true) => {
         if (!navigator.geolocation) {
           state.map.status = 'error';
-          state.map.message = 'Location is not available in this browser.';
+          state.map.message = 'Location is unavailable in this browser. Choose a city preset instead.';
           state.stageRevision += 1;
           renderApp();
-          return;
-        }
-        if (state.integrationMode === 'live') {
-          state.map.status = 'locating';
-          state.map.message = 'Waiting for your location permission…';
-          state.stageRevision += 1;
-          renderApp();
-          navigator.geolocation.getCurrentPosition(async (position) => {
-            if (state.view !== 'room') return;
-            state.map.lat = position.coords.latitude;
-            state.map.lng = position.coords.longitude;
-            state.map.status = 'loading';
-            state.map.message = 'Checking Open Charge Map, then OpenStreetMap if needed…';
-            state.stageRevision += 1;
-            renderApp();
-            try {
-              await activeAdapter()?.setContext({
-                location: {
-                  lat: state.map.lat,
-                  lng: state.map.lng,
-                  accuracy: position.coords.accuracy,
-                  consented: true
-                }
-              });
-              await activeAdapter()?.runTool('find_nearby_chargers', { radiusKm: 10 });
-            } catch (error) {
-              if (error?.name === 'AbortError') return;
-              state.map.status = 'error';
-              state.map.message = error?.message || 'Charging sources could not be checked.';
-              state.stageRevision += 1;
-              renderApp();
-            }
-          }, (error) => {
-            state.map.status = 'error';
-            state.map.message = error.code === 1 ? 'Location permission was not granted. Nothing was shared.' : 'Your location could not be determined.';
-            state.stageRevision += 1;
-            renderApp();
-          }, { enableHighAccuracy: false, timeout: 10_000, maximumAge: 5 * 60 * 1000 });
           return;
         }
         state.map.status = 'locating';
-        state.map.message = 'Waiting for your location permission…';
+        state.map.message = highAccuracy ? 'Requesting a fresh high-accuracy location…' : 'Waiting for your location permission…';
         state.stageRevision += 1;
         renderApp();
-        navigator.geolocation.getCurrentPosition(async (position) => {
-          if (state.view !== 'room' || state.stage.type !== 'charging-map') return;
-          state.map.lat = position.coords.latitude;
-          state.map.lng = position.coords.longitude;
-          state.map.status = 'loading';
-          state.map.message = 'Searching live public charging data…';
-          state.stageRevision += 1;
-          renderApp();
-          mapRequestController?.abort();
-          mapRequestController = new AbortController();
-          try {
-            const response = await fetch(`/api/charging/nearby?lat=${encodeURIComponent(state.map.lat)}&lng=${encodeURIComponent(state.map.lng)}&radius=10000`, { signal: mapRequestController.signal });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Charging data is unavailable.');
-            if (data.unavailable) throw new Error(data.error || 'Live charging data is temporarily unavailable.');
-            if (state.view !== 'room' || state.stage.type !== 'charging-map') return;
-            state.map.stations = Array.isArray(data.stations) ? data.stations : [];
-            state.map.selectedId = state.map.stations[0]?.id || '';
-            state.map.status = 'ready';
-            state.map.message = state.map.stations.length ? `${state.map.stations.length} public charging points found within 10 km` : 'No mapped charging points were found within 10 km.';
-            patchProfile({ charging: state.map.stations.length ? `${state.map.stations.length} mapped public chargers nearby` : 'No mapped chargers found within 10 km' });
-            markAction('charging', 'complete', `Live map checked · ${state.map.stations.length} mapped locations found`);
-            state.stageRevision += 1;
-            renderApp();
-          } catch (error) {
-            if (error?.name === 'AbortError') return;
-            state.map.status = 'error';
-            state.map.message = error?.message || 'Live charging data could not be loaded.';
-            state.stageRevision += 1;
-            renderApp();
-          }
-        }, (error) => {
+        navigator.geolocation.getCurrentPosition((position) => useLocationForChargers({ lat: position.coords.latitude, lng: position.coords.longitude, accuracy: position.coords.accuracy, label: 'Browser location' }), (error) => {
           state.map.status = 'error';
-          state.map.message = error.code === 1 ? 'Location permission was not granted. Nothing was shared.' : 'Your location could not be determined.';
+          state.map.message = error.code === 1 ? 'Location permission was not granted. Nothing was shared.' : 'Your browser location could not be determined. Choose a city preset instead.';
           state.stageRevision += 1;
           renderApp();
-        }, { enableHighAccuracy: false, timeout: 10_000, maximumAge: 5 * 60 * 1000 });
+        }, { enableHighAccuracy: Boolean(highAccuracy), timeout: 15_000, maximumAge: highAccuracy ? 0 : 60_000 });
       };
       const renderStage = () => {
         const target = $('#stage-content');
@@ -1846,7 +1919,7 @@
         const payload = state.stage.payload || {};
         const type = state.stage.type;
         if (type === 'tool-loading') {
-          target.innerHTML = `<div class="tool-loading" role="status"><div><div class="tool-loading__orb" aria-hidden="true"></div><strong>${escapeHtml(payload.message || 'Understanding your request')}</strong><span>EasyEV will present the result here as soon as the tool finishes.</span></div></div>`;
+          target.innerHTML = `<div class="tool-loading" role="status"><div><div class="tool-loading__orb" aria-hidden="true"></div><strong>${escapeHtml(payload.message || 'Understanding your request')}</strong><span>I’m working on it now. The result will replace this panel automatically.</span><div class="tool-loading__steps" aria-hidden="true"><i></i><i></i><i></i></div></div></div>`;
         } else if (type === 'tool-error') {
           target.innerHTML = `<div class="stage-content__intro"><h3>This tool needs another try</h3><p>${escapeHtml(payload.message || 'The decision tool could not finish. Your call is still connected.')}</p></div><div class="consent-card"><h4>No result was invented</h4><p>Try asking again, change the request, or continue with another tool. Existing Passport data is unchanged.</p></div>`;
         } else if (type === 'welcome') {
@@ -1861,26 +1934,50 @@
               ? `<img src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} licensed vehicle photograph" loading="eager">`
               : (item.category === 'Electric scooter' ? scooterSvg : item.category === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg);
             const mediaCredit = item.media?.url
-              ? `<a class="media-credit" href="${escapeHtml(item.media.pageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.creator)} · ${escapeHtml(item.media.license)}</a>`
+              ? `<a class="media-credit" href="${escapeHtml(item.media.pageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.creator)} · ${escapeHtml(item.media.license)}${item.media.note ? ` · ${escapeHtml(item.media.note)}` : ''}</a>`
               : '<span class="media-credit">Original EasyEV illustration · not the exact model</span>';
-            return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${item.media?.url ? 'Licensed photo' : 'Illustrative'}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div><div><span>Battery</span><strong>${escapeHtml(item.battery)}</strong></div><div><span>Charging</span><strong>${escapeHtml(item.charging)}</strong></div><div><span>Capacity</span><strong>${escapeHtml(item.capacity)}</strong></div><div><span>Warranty</span><strong>${escapeHtml(item.warranty)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div></article>`;
+            return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${item.media?.url ? 'Licensed photo' : 'Illustrative'}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div><button class="vehicle-explore-button" type="button" data-visual-vehicle="${escapeHtml(item.id)}">Explore visuals</button></article>`;
           }).join('');
+          const columns = payload.vehicles.map((item) => `<th scope="col">${escapeHtml(item.name)}</th>`).join('');
+          const matrixRows = [
+            ['Indicative price', 'priceLabel'], ['Claimed range', 'claimedRangeLabel'], ['Battery', 'battery'],
+            ['Charging', 'charging'], ['Capacity', 'capacity'], ['Warranty', 'warranty']
+          ].map(([label, key]) => `<tr><th scope="row">${label}</th>${payload.vehicles.map((item) => `<td>${escapeHtml(item[key] || 'Not verified')}</td>`).join('')}</tr>`).join('');
+          const matrix = `<div class="comparison-matrix" role="region" aria-label="Side-by-side vehicle specification comparison" tabindex="0"><table><thead><tr><th scope="col">Specification</th>${columns}</tr></thead><tbody>${matrixRows}</tbody></table></div>`;
           const missing = payload.missingFacts?.length ? `<div class="tool-notice"><strong>Needs clarification:</strong> ${escapeHtml(payload.missingFacts.join(' '))}</div>` : '';
-          target.innerHTML = `<div class="stage-content__intro"><h3>Verified options, compared around you</h3><p>${escapeHtml(payload.sourceNote || 'Every displayed fact keeps its source and verification date.')}</p></div><div class="verified-comparison">${cards}</div>${missing}<div class="comparison-foot"><p class="comparison-foot__note">Claimed range and indicative price vary by variant, test cycle, city and date. Recheck before purchase.</p><button class="stage-action" type="button" data-tool-direct="calculate_ownership">Calculate ownership</button></div>`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${payload.vehicles.length > 1 ? 'Side-by-side comparison ready' : 'Verified vehicle details'}</h3><p>${escapeHtml(payload.sourceNote || 'Every displayed fact keeps its source and verification date.')}</p></div><div class="verified-comparison">${cards}</div>${matrix}${missing}<div class="comparison-foot"><p class="comparison-foot__note">Claimed range and indicative price vary by variant, test cycle, city and date. Recheck before purchase.</p><button class="stage-action" type="button" data-tool-direct="calculate_ownership">Calculate ownership</button></div>`;
+        } else if (type === 'vehicle-visual' && Array.isArray(payload.vehicles) && payload.vehicles.length) {
+          const vehicle = payload.vehicles.find((item) => item.id === state.visualVehicleId) || payload.vehicles[0];
+          state.visualVehicleId = vehicle.id;
+          const selector = payload.vehicles.map((item) => `<button class="location-preset" type="button" data-visual-vehicle="${escapeHtml(item.id)}">${escapeHtml(item.name)}</button>`).join('');
+          const photo = vehicle.media?.url ? `<img src="${escapeHtml(vehicle.media.url)}" alt="${escapeHtml(vehicle.name)} licensed vehicle photograph">` : conceptVehicleMarkup();
+          const showPhoto = state.visualMode === 'photo' && vehicle.media?.url && !state.visualArOpen;
+          const visualScene = state.visualArOpen
+            ? `<div class="visual-ar"><video id="ar-preview-video" autoplay playsinline muted aria-label="Your camera view for illustrative vehicle overlay"></video>${conceptVehicleMarkup()}<span class="visual-ar-note">Camera overlay only · not scale-accurate WebXR or a safety/fit measurement</span></div>`
+            : `<div class="visual-scene"><span class="visual-badge">${showPhoto ? 'Licensed reference photo' : 'Interactive 3D concept · illustrative'}</span>${showPhoto ? photo : conceptVehicleMarkup()}</div>`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(vehicle.name)} visual explorer</h3><p>Inspect the sourced photo when available, then use the original interactive concept to discuss shape and parking questions. The concept is not exact-model geometry.</p></div><div class="location-presets">${selector}</div><div class="visual-stage">${visualScene}<div class="visual-controls"><h4>Explore while you talk</h4><p>Rotate the concept or open a user-controlled camera overlay. Exact-model 3D assets and spatial WebXR placement are not claimed.</p><div class="visual-actions"><button class="location-preset" type="button" data-visual-mode="photo" ${vehicle.media?.url ? '' : 'disabled'}>Photo</button><button class="location-preset" type="button" data-visual-mode="concept">3D concept</button></div>${vehicle.media?.note && showPhoto ? `<p class="tool-notice">${escapeHtml(vehicle.media.note)}</p>` : ''}<div class="visual-angle" ${showPhoto ? 'hidden' : ''}><label for="visual-angle-input"><span>Viewing angle</span><output id="visual-angle-output">${state.visualAngle}°</output></label><input id="visual-angle-input" data-visual-angle type="range" min="-70" max="70" step="1" value="${state.visualAngle}"></div><div class="visual-actions"><button class="stage-action" type="button" data-visual-ar>${state.visualArOpen ? 'Close camera overlay' : 'Preview in my space'}</button><button class="stage-pin" type="button" data-visual-back>Back to comparison</button></div><a class="source-link" href="${escapeHtml(vehicle.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open official model source ↗</a></div></div>`;
+          window.requestAnimationFrame(() => { const video = $('#ar-preview-video'); if (video && localStream) video.srcObject = localStream; });
         } else if (type === 'comparison') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Verified live catalog sources remain a separate marketplace-data integration.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
         } else if (type === 'charging-demo') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Make charging fit your routine')}</h3><p>Use this explainer to identify the questions a live advisor or electrician should verify.</p></div><div class="charging-layout"><div><div class="charging-visual"><div class="wallbox"><div class="wallbox__light"></div><div class="wallbox__line"></div></div><div class="charge-pulse" aria-hidden="true"></div><div class="charge-car">${carSvg}</div><div class="charging-visual__road"></div><span class="charging-label">home socket / wallbox → vehicle battery</span></div><div class="charging-controls"><button class="play-button" id="charge-play-button" type="button" aria-label="Play charging explainer" aria-pressed="${state.chargePlaying}">${state.chargePlaying ? 'Ⅱ' : '▶'}</button><div class="progress-track" aria-label="Charging explainer progress"><span id="charge-progress-fill" style="width:${state.chargeProgress}%"></span></div><span class="progress-time" id="charge-progress-time">${Math.round(state.chargeProgress)}%</span></div></div><div class="charging-checks"><div class="check-item"><span class="check-item__icon">1</span><div><strong>Parking access</strong><span>Where can the vehicle stay near a socket?</span></div></div><div class="check-item"><span class="check-item__icon">2</span><div><strong>Sanctioned load</strong><span>Can the electrical connection support charging?</span></div></div><div class="check-item"><span class="check-item__icon">3</span><div><strong>Installation feasibility</strong><span>What will the property and installer allow?</span></div></div></div></div>`;
         } else if (type === 'location-permission') {
-          target.innerHTML = `<div class="stage-content__intro"><h3>Share location only for this search</h3><p>${escapeHtml(payload.message || 'EasyEV needs an approximate location to search public charging sources near you.')}</p></div><div class="consent-card"><h4>You stay in control</h4><p>The browser asks for permission. Coordinates are scoped to this consultation and are not included in the downloadable report. EasyEV never claims live stall availability unless a provider supplies it.</p><div class="consent-actions"><button class="stage-action" type="button" data-map-action="locate">Share approximate location</button><button class="stage-pin" type="button" data-location-decline>Not now</button></div></div>`;
+          const presets = INDIA_LOCATION_PRESETS.map((item) => `<button class="location-preset" type="button" data-location-preset="${item.id}">${item.label}</button>`).join('');
+          target.innerHTML = `<div class="stage-content__intro"><h3>Share location only for this search</h3><p>${escapeHtml(payload.message || 'EasyEV needs an approximate location to search public charging sources near you.')}</p></div><div class="consent-card"><h4>You stay in control</h4><p>Use a fresh browser location, or choose an approximate city if Windows, a VPN or your network reports the wrong place. Coordinates stay scoped to this consultation.</p><div class="consent-actions"><button class="stage-action" type="button" data-map-action="locate">Use my precise location</button><button class="stage-pin" type="button" data-location-decline>Not now</button></div><div class="location-presets" aria-label="Approximate India city locations">${presets}</div><p class="media-credit">City choices are local presets. Charger coordinates are sent only after this explicit choice. Live stall availability is never assumed.</p></div>`;
         } else if (type === 'charging-map') {
           const station = selectedStation();
           const busy = state.map.status === 'locating' || state.map.status === 'loading';
+          const hasCenter = Number.isFinite(state.map.lat) && Number.isFinite(state.map.lng);
+          const accuracyText = state.map.accuracy ? ` ±${Math.round(state.map.accuracy)} m accuracy` : ' · approximate city centre';
+          const centerText = hasCenter ? `${state.map.lat.toFixed(4)}, ${state.map.lng.toFixed(4)}${accuracyText}` : 'Waiting for coordinates';
+          const locationWarning = hasCenter && !isLikelyInIndia(state.map.lat, state.map.lng) ? '<div class="location-warning">Your browser reported a location outside India. This can happen with VPN or Windows location settings. Use “Improve location” or choose an India city preset below.</div>' : '';
+          const presets = INDIA_LOCATION_PRESETS.map((item) => `<button class="location-preset" type="button" data-location-preset="${item.id}">${item.label}</button>`).join('');
+          const locationBar = hasCenter ? `<div class="map-location-bar"><div><strong>Centred on ${escapeHtml(state.map.label || 'shared location')}</strong><span>${centerText}</span></div><div class="map-location-actions"><button type="button" data-map-action="recenter">Recenter</button><button type="button" data-map-action="relocate">Improve location</button></div></div>${locationWarning}` : '';
           const stationCards = state.map.stations.length
             ? state.map.stations.slice(0, 8).map((item, index) => `<button class="station-card" type="button" data-station-id="${escapeHtml(item.id)}" aria-pressed="${item.id === state.map.selectedId}"><strong>${index + 1}. ${escapeHtml(item.name)}</strong><span>${item.distanceKm} km away</span><small>${escapeHtml(item.operator)} · ${escapeHtml(item.capacity)} ports</small></button>`).join('')
             : '<div class="station-detail"><strong>No mapped stations found</strong><span class="map-disclosure">Try again later or widen your search in your preferred maps app.</span></div>';
           const detail = station ? `<div class="station-detail"><strong>${escapeHtml(station.name)}</strong><div class="station-detail-row"><span>Operator</span><b>${escapeHtml(station.operator)}</b></div><div class="station-detail-row"><span>Distance</span><b>${station.distanceKm} km</b></div><div class="station-detail-row"><span>Connectors</span><b>${escapeHtml(station.sockets.length ? station.sockets.join(', ') : 'Not listed')}</b></div><div class="station-detail-row"><span>Hours</span><b>${escapeHtml(station.openingHours)}</b></div><a class="station-directions" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(station.lat + ',' + station.lng)}" target="_blank" rel="noopener noreferrer">Open directions ↗</a></div>` : '';
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Charging points near you')}</h3><p>${escapeHtml(state.map.message || payload.availabilityNotice || 'Search public charging data with your consent.')}</p></div>${state.map.status === 'idle' || state.map.status === 'error' ? `<div class="map-intro-actions"><button class="stage-action" type="button" data-map-action="locate">${state.map.status === 'error' ? 'Try location again' : 'Use my location'}</button></div><p class="map-disclosure">${state.map.status === 'error' ? escapeHtml(state.map.message) + ' ' : ''}Your location is scoped to this consultation. Availability and connector status are not verified in real time.</p>` : `<div class="map-layout"><div class="map-shell"><div class="map-canvas" id="map-canvas" aria-label="Map of nearby charging stations"></div>${busy ? `<div class="map-loading" role="status"><div><strong>${state.map.status === 'locating' ? 'Waiting for location…' : 'Finding chargers…'}</strong><span>This usually takes a few seconds.</span></div></div>` : ''}</div><div><div class="station-list" aria-label="Nearby charging stations">${stationCards}</div>${detail}</div></div><p class="map-disclosure">${payload.fallback ? '<strong>Demo fallback data.</strong> ' : ''}Source: ${escapeHtml(payload.source || 'OpenStreetMap contributors')}; checked ${escapeHtml(payload.fetchedAt || 'this session')}. Distance is straight-line and does not confirm availability, compatibility, pricing or access.</p>`}`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Charging points near you')}</h3><p>${escapeHtml(state.map.message || payload.availabilityNotice || 'Search public charging data with your consent.')}</p></div>${locationBar}${state.map.status === 'idle' || state.map.status === 'error' ? `<div class="map-intro-actions"><button class="stage-action" type="button" data-map-action="locate">${state.map.status === 'error' ? 'Try precise location' : 'Use my location'}</button></div><div class="location-presets">${presets}</div><p class="map-disclosure">${state.map.status === 'error' ? escapeHtml(state.map.message) + ' ' : ''}Availability and connector status are not verified in real time.</p>` : `<div class="map-layout"><div class="map-shell"><div class="map-canvas" id="map-canvas" aria-label="Map centred on your shared location with nearby charging stations"></div>${busy ? `<div class="map-loading" role="status"><div><strong>${state.map.status === 'locating' ? 'Waiting for location…' : 'Finding chargers…'}</strong><span>The map will recenter automatically.</span></div></div>` : ''}</div><div><div class="station-list" aria-label="Nearby charging stations">${stationCards}</div>${detail}</div></div><div class="location-presets">${presets}</div><p class="map-disclosure">${payload.fallback ? '<strong>Demo fallback data.</strong> ' : ''}Source: ${escapeHtml(payload.source || 'OpenStreetMap contributors')}; checked ${escapeHtml(payload.fetchedAt || 'this session')}. Distance is straight-line and does not confirm availability, compatibility, pricing or access.</p>`}`;
           if (state.map.status === 'ready') window.requestAnimationFrame(renderMapCanvas);
         } else if (type === 'ownership-cost' && payload.results && payload.assumptions) {
           const result = payload.results;
@@ -2197,7 +2294,11 @@
         state.costModel = { dailyKm: 70, unitCost: 8, years: 5, publicRate: 18, homeShare: 80 };
         state.chargeProgress = 0;
         state.chargePlaying = false;
-        state.map = { status: 'idle', lat: null, lng: null, zoom: 13, stations: [], selectedId: '', message: '' };
+        state.map = { status: 'idle', lat: null, lng: null, accuracy: 0, label: '', zoom: 13, stations: [], selectedId: '', message: '' };
+        state.visualVehicleId = '';
+        state.visualMode = 'photo';
+        state.visualAngle = 25;
+        state.visualArOpen = false;
         state.outcomeSaved = false;
         state.interruptAvailable = false;
         state.selectedTab = 'passport';
@@ -2260,7 +2361,7 @@
         state.chargePlaying = false;
         state.stage = { type, payload: { ...payload, title: payload.title || stageTitle(type), sourceStatus: payload.sourceStatus || 'EasyEV decision tool' } };
         state.stageRevision += 1;
-        if (type === 'comparison') markAction('comparison', 'complete', 'Three fit profiles are ready to explore');
+        if (type === 'comparison' || type === 'vehicle-visual') markAction('comparison', 'complete', 'Sourced comparison and visual explorer are ready');
         if (type === 'charging-demo') markAction('charging', 'active', 'Confirm parking, load and installation feasibility');
         if (type === 'charging-map') markAction('charging', 'active', 'Ready to search live public charging data with your permission');
         if (type === 'ownership-cost') markAction('requirements', 'complete', 'Usage assumptions captured for the illustrative model');
@@ -2338,6 +2439,8 @@
               status: 'ready',
               lat: Number(data.center?.lat),
               lng: Number(data.center?.lng),
+              accuracy: Number(data.center?.accuracy || state.map.accuracy || 0),
+              label: state.map.label || 'Shared location',
               zoom: 13,
               stations: Array.isArray(data.stations) ? data.stations : [],
               selectedId: data.stations?.[0]?.id || '',
@@ -2353,12 +2456,14 @@
               homeShare: data.assumptions.homeChargingSharePercent
             };
           }
+          if (toolEvent.tool === 'compare_vehicles' && data.visualMode) state.visualMode = data.visualMode;
           if (toolEvent.tool === 'generate_decision_report' && toolEvent.phase === 'completed') {
             state.reportReady = true;
             state.reportUrl = activeAdapter()?.getReportUrl?.() || '';
           }
           state.agentMode = toolEvent.phase === 'completed' ? 'success' : 'listening';
           presentToolStage(toolEvent.stage, data, toolEvent.tool);
+          if (toolEvent.phase === 'completed') showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
           if (toolEvent.phase === 'completed') scheduleLifecycle(() => {
             if (state.view === 'room' && state.agentMode === 'success') setAgentMode('listening');
           }, 900);
@@ -2764,7 +2869,7 @@
       demoAdapter.onEvent(handleAdapterEvent);
       liveAdapter?.onEvent(handleAdapterEvent);
 
-      document.addEventListener('click', (event) => {
+      document.addEventListener('click', async (event) => {
         if (event.target instanceof Element && event.target.classList.contains('prejoin-backdrop')) { closePrejoin(); return; }
         const target = event.target.closest('button, a');
         if (!target) return;
@@ -2786,6 +2891,13 @@
         if (target.matches('[data-preview-voice]')) { previewVoice(target.dataset.previewVoice); return; }
         if (target.id === 'enable-camera-button') { enableCameraPreview(); return; }
         if (target.id === 'join-demo-button') { joinConsultationRoom(); return; }
+        if (target.id === 'context-toggle') {
+          const sidebar = $('#consultation-sidebar');
+          const open = !sidebar?.classList.contains('is-open');
+          sidebar?.classList.toggle('is-open', open);
+          target.setAttribute('aria-expanded', String(open));
+          return;
+        }
         if (target.matches('[data-turn]')) { runConsultationTurn(target.dataset.turn); return; }
         if (target.matches('[data-tool-prompt]')) {
           const kind = target.dataset.toolPrompt;
@@ -2820,6 +2932,13 @@
         if (target.matches('[data-agent-action="whatsapp"]')) { openWhatsAppDraft(); return; }
         if (target.matches('[data-agent-action="passport"]')) { downloadDecisionPassport(); return; }
         if (target.matches('[data-map-action="locate"]')) { requestNearbyChargers(); return; }
+        if (target.matches('[data-map-action="relocate"]')) { requestNearbyChargers(true); return; }
+        if (target.matches('[data-map-action="recenter"]')) { state.map.zoom = 13; renderMapCanvas(); return; }
+        if (target.matches('[data-location-preset]')) {
+          const location = INDIA_LOCATION_PRESETS.find((item) => item.id === target.dataset.locationPreset);
+          if (location) useLocationForChargers({ ...location, accuracy: 0 });
+          return;
+        }
         if (target.matches('[data-location-decline]')) {
           state.map.status = 'error';
           state.map.message = 'Location was not shared. Nothing was stored.';
@@ -2830,6 +2949,40 @@
         if (target.matches('[data-snapshot-confirm]')) { submitSnapshot(); return; }
         if (target.matches('[data-snapshot-clear]')) { state.snapshotPreview = ''; state.stageRevision += 1; renderApp(); return; }
         if (target.matches('[data-download-report]')) { downloadStructuredReport(); return; }
+        if (target.matches('[data-visual-vehicle]')) {
+          state.visualVehicleId = target.dataset.visualVehicle;
+          const payload = state.stage.type === 'comparison' || state.stage.type === 'vehicle-visual' ? state.stage.payload : state.decisionPassport?.comparison;
+          if (payload?.vehicles?.length) showStage('vehicle-visual', { ...payload, title: stageTitle('vehicle-visual') });
+          return;
+        }
+        if (target.matches('[data-visual-mode]')) {
+          state.visualMode = target.dataset.visualMode;
+          state.visualArOpen = false;
+          state.stageRevision += 1;
+          renderApp();
+          return;
+        }
+        if (target.matches('[data-visual-back]')) {
+          state.visualArOpen = false;
+          const payload = state.decisionPassport?.comparison || state.stage.payload;
+          showStage('comparison', { ...payload, title: stageTitle('comparison') });
+          return;
+        }
+        if (target.matches('[data-visual-ar]')) {
+          if (state.visualArOpen) {
+            state.visualArOpen = false;
+            state.stageRevision += 1;
+            renderApp();
+            return;
+          }
+          if (!localStream) await enableCameraPreview();
+          if (localStream && state.cameraEnabled) {
+            state.visualArOpen = true;
+            state.stageRevision += 1;
+            renderApp();
+          } else showToast('Camera permission is required only for this optional overlay.');
+          return;
+        }
         if (target.matches('[data-map-zoom]')) {
           state.map.zoom = Math.max(10, Math.min(17, state.map.zoom + Number(target.dataset.mapZoom || 0)));
           renderMapCanvas();
@@ -2890,6 +3043,13 @@
       });
       document.addEventListener('input', (event) => {
         const input = event.target;
+        if (input.matches('[data-visual-angle]')) {
+          state.visualAngle = Number(input.value);
+          $$('.concept-ev').forEach((model) => model.style.setProperty('--spin', `${state.visualAngle}deg`));
+          const output = $('#visual-angle-output');
+          if (output) output.textContent = `${state.visualAngle}°`;
+          return;
+        }
         if (input.matches('[data-live-cost]')) {
           const key = input.dataset.liveCost;
           if (key === 'dailyKm') state.costModel.dailyKm = Number(input.value);
