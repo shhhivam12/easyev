@@ -103,9 +103,16 @@ try {
   results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,columns:document.querySelectorAll(".comparison-matrix thead th").length-1,rows:document.querySelectorAll(".comparison-matrix tbody tr").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
   await screenshot('easyev-agentic-comparison-desktop.png');
 
+  await sendTypedPrompt('Compare Tata Punch EV and Citroen EC3 in 3D.');
+  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2 && document.querySelectorAll(".verified-vehicle .concept-ev").length === 2', toolTimeout, 'fast two-vehicle 3D comparison');
+  results.live.fastVisualComparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,concepts:document.querySelectorAll(".verified-vehicle .concept-ev").length,title:document.querySelector("#stage-title")?.textContent})');
+  await screenshot('easyev-agentic-3d-comparison-desktop.png');
+
   await click('[data-visual-vehicle]');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer"', 5000, 'vehicle visual explorer');
-  results.live.vehiclePhoto = await evaluate('Boolean(document.querySelector(".visual-scene img")) || document.querySelector(".visual-scene")?.innerText.includes("Illustrative")');
+  await click('[data-visual-mode="photo"]');
+  await waitFor('Boolean(document.querySelector(".visual-scene img"))', 5000, 'local vehicle photo');
+  results.live.vehiclePhoto = await evaluate('document.querySelector(".visual-scene img")?.getAttribute("src")?.startsWith("/assets/")');
   await click('[data-visual-mode="concept"]');
   await waitFor('Boolean(document.querySelector(".concept-ev"))', 5000, 'interactive 3D concept');
   await evaluate('(() => { const input=document.querySelector("[data-visual-angle]"); input.value="54"; input.dispatchEvent(new Event("input",{bubbles:true})); })()');
@@ -166,8 +173,8 @@ try {
   const roomViewports = [[1440,900],[1280,800],[768,1024],[390,844]];
   for (const [width, height] of roomViewports) {
     await viewport(width, height);
-    const layout = await evaluate('(() => { const stage=document.querySelector("#smart-stage").getBoundingClientRect(); const dock=document.querySelector(".call-dock").getBoundingClientRect(); return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,stageLeft:stage.left,stageRight:stage.right,dockLeft:dock.left,dockRight:dock.right}; })()');
-    results.viewports.push({ view: 'room', width, height, overflow: layout.scrollWidth > layout.width, stageFits: layout.stageLeft >= 0 && layout.stageRight <= layout.width, dockFits: layout.dockLeft >= 0 && layout.dockRight <= layout.width });
+    const layout = await evaluate('(() => { const stage=document.querySelector("#smart-stage").getBoundingClientRect(); const people=document.querySelector(".participant-strip").getBoundingClientRect(); const dock=document.querySelector(".call-dock").getBoundingClientRect(); return {width:innerWidth,scrollWidth:document.documentElement.scrollWidth,stageLeft:stage.left,stageRight:stage.right,stageTop:stage.top,peopleTop:people.top,dockLeft:dock.left,dockRight:dock.right}; })()');
+    results.viewports.push({ view: 'room', width, height, overflow: layout.scrollWidth > layout.width, stageFits: layout.stageLeft >= 0 && layout.stageRight <= layout.width, stageAbovePeople: layout.stageTop < layout.peopleTop, dockFits: layout.dockLeft >= 0 && layout.dockRight <= layout.width });
     if (width <= 768) {
       await click('#context-toggle');
       await waitFor('document.querySelector("#consultation-sidebar")?.classList.contains("is-open")', 3000, `context drawer ${width}`);
@@ -222,6 +229,7 @@ console.log(JSON.stringify(results, null, 2));
 const failed = !results.prejoin.focus || !results.prejoin.centered || !results.prejoin.camera ||
   !results.live.agora || !results.live.tools || results.live.comparison?.cards !== 2 ||
   results.live.comparison?.sources !== 2 || results.live.comparison?.columns !== 2 || results.live.comparison?.rows < 6 ||
+  results.live.fastVisualComparison?.cards !== 2 || results.live.fastVisualComparison?.concepts !== 2 ||
   !results.live.vehiclePhoto || !results.live.vehicleConcept?.present || results.live.vehicleConcept?.angle !== '54°' || !results.live.vehicleConcept?.disclosure ||
   (isRemoteLive && (!results.live.spokenPicture || !results.live.spoken3d)) ||
   !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
@@ -230,6 +238,6 @@ const failed = !results.prejoin.focus || !results.prejoin.centered || !results.p
   !results.live.snapshotConsent || !results.live.snapshotUserOperated || !results.live.report?.button ||
   !results.live.outcomeFocus || !results.live.cameraStopped || !results.live.timerStopped ||
   !results.live.reportAfterCall || !results.live.falseCancellations ||
-  results.viewports.some((item) => item.overflow || item.stageFits === false || item.dockFits === false || item.cta === false || item.visible === false) ||
+  results.viewports.some((item) => item.overflow || item.stageFits === false || item.stageAbovePeople === false || item.dockFits === false || item.cta === false || item.visible === false) ||
   !results.reducedMotion.matches || consoleErrors.length || pageErrors.length;
 if (failed) process.exitCode = 1;

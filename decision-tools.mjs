@@ -37,12 +37,12 @@ const chargerCache = new Map();
 const mediaCache = new Map();
 const CURATED_MEDIA = Object.freeze({
   'tata-punch-ev': {
-    url: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/0/04/Tata_punch.ev.jpg/1280px-Tata_punch.ev.jpg',
+    url: '/assets/tata-punch-ev-reference.jpg',
     pageUrl: 'https://commons.wikimedia.org/wiki/File:Tata_punch.ev.jpg',
     license: 'CC0', creator: 'VideshiBhaktNRI', kind: 'licensed photograph', note: 'Tata Punch.ev reference photograph',
   },
   'citroen-ec3x': {
-    url: 'https://thumb.wikimedia.org/wikipedia/commons/thumb/e/ea/2024_Citroen_e-C3.jpg/1280px-2024_Citroen_e-C3.jpg',
+    url: '/assets/citroen-ec3-reference.jpg',
     pageUrl: 'https://commons.wikimedia.org/wiki/File:2024_Citroen_e-C3.jpg',
     license: 'CC BY-SA 4.0', creator: 'Calreyn88', kind: 'licensed reference photograph', note: 'Global ë-C3 reference; Indian ë-C3X styling may differ',
   },
@@ -476,7 +476,7 @@ export class EasyEVToolEngine {
     record.passport.nextActions = unique([...record.passport.nextActions, 'Verify current on-road price and selected variant with an authorised dealer.']);
     const leader = vehicles.find((item) => item.id === ranking[0]?.id);
     return {
-      stage: wantsVisual ? 'vehicle-visual' : 'comparison',
+      stage: wantsVisual && vehicles.length === 1 ? 'vehicle-visual' : 'comparison',
       payload,
       spoken: ambiguous.length
         ? `I found ${vehicles.length} close matches, but please clarify ${ambiguous.join(', ')}.`

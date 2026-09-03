@@ -485,7 +485,7 @@
     .self-view__initials { display: grid; place-items: center; width: 70px; height: 70px; color: var(--green-bright); border: 1px solid rgba(85,242,123,.52); border-radius: 50%; background: rgba(7,28,16,.66); font-size: 22px; font-weight: 700; }
     .participant-tile--self .participant-tile__label { position: absolute; z-index: 2; right: 15px; bottom: 14px; left: 15px; }
     .participant-indicators { display: inline-flex; align-items: center; gap: 5px; }
-    .participant-indicators span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.4); font-size: 11px; }
+    .participant-indicators span { display: inline-flex; align-items: center; justify-content: center; gap: 4px; min-width: 22px; height: 22px; padding: 0 7px; border-radius: 99px; background: rgba(0,0,0,.4); font-size: 9px; font-weight: 700; }
     .participant-tile--self[data-speaking="true"] { border-color: rgba(85,242,123,.68); box-shadow: inset 0 0 0 1px rgba(85,242,123,.18), 0 0 25px rgba(85,242,123,.12); }
     .participant-tile--self[data-speaking="true"] #room-mic-indicator { color: var(--forest); background: var(--green); box-shadow: 0 0 13px rgba(85,242,123,.5); }
     .live-caption { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: baseline; min-height: 48px; padding: 12px 15px; color: var(--white); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; background: rgba(255,255,255,.055); }
@@ -504,6 +504,11 @@
     .stage-expand:hover { color: var(--green-deep); border-color: var(--green-deep); }
     .presented-label { position: absolute; z-index: 2; top: 83px; right: 18px; color: var(--muted-2); font-size: 9px; font-weight: 600; }
     .stage-content { min-height: 389px; padding: 25px; animation: stage-in .38s var(--ease-out) both; }
+    .stage-activity { position: absolute; z-index: 9; top: 64px; left: 50%; display: flex; align-items: center; gap: 9px; max-width: calc(100% - 34px); padding: 9px 13px; color: #eaffef; border: 1px solid rgba(85,242,123,.42); border-radius: var(--radius-pill); background: rgba(5,34,16,.94); box-shadow: 0 12px 30px rgba(2,25,10,.22); transform: translateX(-50%); }
+    .stage-activity[hidden] { display: none; }
+    .stage-activity__spinner { width: 14px; height: 14px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.28); border-top-color: var(--green-bright); border-radius: 50%; animation: orbit-spin .72s linear infinite; }
+    .stage-activity strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .stage-activity small { color: rgba(234,255,239,.66); font-size: 9px; white-space: nowrap; }
     .stage-content__intro { max-width: 580px; }
     .stage-content__intro h3 { margin: 0 0 8px; font-size: 29px; font-weight: 560; letter-spacing: -.055em; line-height: 1.02; }
     .stage-content__intro p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
@@ -755,6 +760,7 @@
     .verified-vehicle__media { position: relative; display: grid; place-items: center; height: 118px; overflow: hidden; color: var(--forest-2); background: linear-gradient(135deg, var(--mint), #f7fff9); }
     .verified-vehicle__media img { width: 100%; height: 100%; object-fit: cover; }
     .verified-vehicle__media svg { width: 130px; }
+    .verified-vehicle__media .concept-ev { scale: .58; }
     .verified-vehicle__body { padding: 13px; }
     .verified-vehicle h4 { margin: 0 0 4px; color: var(--ink); font-size: 14px; }
     .vehicle-rank { color: var(--green-deep); font-size: 9px; font-weight: 760; letter-spacing: .08em; text-transform: uppercase; }
@@ -1036,7 +1042,7 @@
       #room-view { overflow: hidden; }
       .room-topbar { min-height: 64px; }
       .room-layout { height: calc(100svh - 72px); margin-top: 8px; padding-bottom: 8px; }
-      .room-main { display: grid; grid-template-rows: 116px 42px 34px minmax(0,1fr); gap: 8px; overflow: hidden; }
+      .room-main { display: grid; grid-template-rows: minmax(0,1fr) 42px 34px 104px; gap: 8px; overflow: hidden; }
       .participant-strip { gap: 8px; }
       .participant-tile { min-height: 0; padding: 11px; border-radius: 16px; }
       .agent-clay-shell { height: 88px; margin-top: 11px; }
@@ -1051,6 +1057,7 @@
       .stage-header { min-height: 59px; padding: 9px 14px; }
       .presented-label { top: 65px; }
       .stage-content { height: calc(100% - 59px); min-height: 0; overflow: auto; padding: 18px 18px 82px; }
+      .stage-activity { top: 66px; }
       .context-sidebar { height: 100%; overflow: auto; padding: 12px; }
       .verified-comparison { margin-top: 12px; }
       .verified-vehicle__media { height: 92px; }
@@ -1074,7 +1081,7 @@
       .room-topbar__right #room-connection-chip { justify-content: center; width: 30px; min-height: 30px; padding: 0; overflow: hidden; font-size: 0; }
       .room-topbar__right #room-connection-chip::before { width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 10px currentColor; content: ''; }
       .room-layout { height: calc(100svh - 78px); overflow: hidden; }
-      .room-main { display: grid; grid-template-rows: 105px 43px 34px minmax(0,1fr); gap: 7px; overflow: hidden; }
+      .room-main { display: grid; grid-template-rows: minmax(0,1fr) 43px 34px 96px; gap: 7px; overflow: hidden; }
       .participant-tile { min-height: 0; }
       .smart-stage { min-height: 0; max-height: none; height: 100%; overflow: hidden; }
       .stage-header { min-height: 58px; padding: 9px 11px; }
@@ -1308,18 +1315,15 @@
 
       <div class="room-layout">
         <div class="room-main">
-          <div class="participant-strip">
-            <div class="participant-tile participant-tile--ai" id="ai-participant-tile" data-mode="idle">
-              <div class="participant-tile__label"><span>EasyEV AI Guide</span><span>AI</span></div>
-              <div class="agent-clay-shell"><img class="agent-clay" id="agent-clay-image" src="/assets/clay-guide-presenting.webp" alt="EasyEV AI clay guide"><span class="agent-live-pulse" aria-hidden="true"></span></div>
-              <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
-              <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
-            </div>
-            <div class="participant-tile participant-tile--self" id="self-participant-tile" data-speaking="false">
-              <div class="self-view" id="room-self-view"><div class="self-view__initials" id="self-initials">EV</div><video id="room-video" autoplay playsinline muted hidden aria-label="Your camera preview"></video></div>
-              <div class="participant-tile__label"><span>You</span><span class="participant-indicators"><span id="room-camera-indicator" aria-label="Camera off">⌁</span><span id="room-mic-indicator" aria-label="Microphone on">●</span></span></div>
-            </div>
-          </div>
+          <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
+            <header class="stage-header">
+              <div class="stage-header__left"><p class="stage-kicker">Smart stage</p><h2 id="stage-title">Let's find what fits your life</h2></div>
+              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative visual</span><button class="stage-pin" id="stage-pin-button" type="button" aria-label="Pin current result" aria-pressed="false">Pin</button><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
+            </header>
+            <div class="stage-activity" id="stage-activity" role="status" aria-live="polite" hidden><span class="stage-activity__spinner" aria-hidden="true"></span><strong id="stage-activity-text">Understanding your request…</strong><small>Mic stays live · you can interrupt</small></div>
+            <span class="presented-label">Presented by EasyEV AI</span>
+            <div class="stage-content" id="stage-content" aria-live="polite"></div>
+          </section>
 
           <div class="live-caption" id="live-caption" aria-live="polite">
             <span class="live-caption__speaker" id="live-caption-speaker">EasyEV AI</span>
@@ -1331,14 +1335,18 @@
             <span class="tool-run" data-phase="completed">Ready for your request</span>
           </div>
 
-          <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
-            <header class="stage-header">
-              <div class="stage-header__left"><p class="stage-kicker">Smart stage</p><h2 id="stage-title">Let's find what fits your life</h2></div>
-              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative visual</span><button class="stage-pin" id="stage-pin-button" type="button" aria-label="Pin current result" aria-pressed="false">Pin</button><button class="stage-expand" id="stage-expand-button" type="button" aria-label="Expand smart stage" aria-expanded="false" data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4"/></svg></button></div>
-            </header>
-            <span class="presented-label">Presented by EasyEV AI</span>
-            <div class="stage-content" id="stage-content" aria-live="polite"></div>
-          </section>
+          <div class="participant-strip">
+            <div class="participant-tile participant-tile--ai" id="ai-participant-tile" data-mode="idle">
+              <div class="participant-tile__label"><span>EasyEV AI Guide</span><span>AI</span></div>
+              <div class="agent-clay-shell"><img class="agent-clay" id="agent-clay-image" src="/assets/clay-guide-presenting.webp" alt="EasyEV AI clay guide"><span class="agent-live-pulse" aria-hidden="true"></span></div>
+              <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+              <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
+            </div>
+            <div class="participant-tile participant-tile--self" id="self-participant-tile" data-speaking="false">
+              <div class="self-view" id="room-self-view"><div class="self-view__initials" id="self-initials">EV</div><video id="room-video" autoplay playsinline muted hidden aria-label="Your camera preview"></video></div>
+              <div class="participant-tile__label"><span>You</span><span class="participant-indicators"><span id="room-camera-indicator" aria-label="Camera off">Camera off</span><span id="room-mic-indicator" aria-label="Microphone on">Mic on</span></span></div>
+            </div>
+          </div>
         </div>
 
         <aside class="context-sidebar" id="consultation-sidebar" aria-label="Consultation context">
@@ -1492,6 +1500,11 @@
         visualMode: 'photo',
         visualAngle: 25,
         visualArOpen: false,
+        activityMessage: '',
+        lastReliableStageAt: 0,
+        handledFastIntentIds: new Set(),
+        intentGuard: null,
+        lastFinalUserEventId: '',
         outcomeSaved: false
       });
 
@@ -1507,6 +1520,7 @@
       let toastTimer = null;
       let backendReadyTimer = null;
       let costRecalcTimer = null;
+      let spokenIntentTimer = null;
       let currentPreviewAudio = null;
       let mapRequestController = null;
       const PASSPORT_STORAGE_KEY = 'easyev-decision-passport-v1';
@@ -1570,7 +1584,8 @@
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
       const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
-      const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Working on it…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
+      const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
+      const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
       const networkLabel = () => {
         const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
         if (!values.length) return '';
@@ -1930,13 +1945,18 @@
         } else if (type === 'comparison' && Array.isArray(payload.vehicles)) {
           const cards = payload.vehicles.map((item) => {
             const ranking = payload.ranking?.find((entry) => entry.id === item.id);
-            const visual = item.media?.url
-              ? `<img src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} licensed vehicle photograph" loading="eager">`
+            const visual = payload.visualMode === 'concept'
+              ? conceptVehicleMarkup()
+              : item.media?.url
+              ? `<img data-vehicle-fallback="${escapeHtml(item.category)}" src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} licensed vehicle photograph" loading="eager">`
               : (item.category === 'Electric scooter' ? scooterSvg : item.category === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg);
-            const mediaCredit = item.media?.url
+            const mediaCredit = payload.visualMode === 'concept'
+              ? '<span class="media-credit">Instant EasyEV 3D concept · illustrative, not exact-model geometry</span>'
+              : item.media?.url
               ? `<a class="media-credit" href="${escapeHtml(item.media.pageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.creator)} · ${escapeHtml(item.media.license)}${item.media.note ? ` · ${escapeHtml(item.media.note)}` : ''}</a>`
               : '<span class="media-credit">Original EasyEV illustration · not the exact model</span>';
-            return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${item.media?.url ? 'Licensed photo' : 'Illustrative'}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div><button class="vehicle-explore-button" type="button" data-visual-vehicle="${escapeHtml(item.id)}">Explore visuals</button></article>`;
+            const tag = payload.visualMode === 'concept' ? '3D concept' : item.media?.url ? 'Licensed photo' : 'Illustrative';
+            return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${tag}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div><button class="vehicle-explore-button" type="button" data-visual-vehicle="${escapeHtml(item.id)}">Explore visuals</button></article>`;
           }).join('');
           const columns = payload.vehicles.map((item) => `<th scope="col">${escapeHtml(item.name)}</th>`).join('');
           const matrixRows = [
@@ -1950,7 +1970,7 @@
           const vehicle = payload.vehicles.find((item) => item.id === state.visualVehicleId) || payload.vehicles[0];
           state.visualVehicleId = vehicle.id;
           const selector = payload.vehicles.map((item) => `<button class="location-preset" type="button" data-visual-vehicle="${escapeHtml(item.id)}">${escapeHtml(item.name)}</button>`).join('');
-          const photo = vehicle.media?.url ? `<img src="${escapeHtml(vehicle.media.url)}" alt="${escapeHtml(vehicle.name)} licensed vehicle photograph">` : conceptVehicleMarkup();
+          const photo = vehicle.media?.url ? `<img data-vehicle-fallback="${escapeHtml(vehicle.category)}" src="${escapeHtml(vehicle.media.url)}" alt="${escapeHtml(vehicle.name)} licensed vehicle photograph">` : conceptVehicleMarkup();
           const showPhoto = state.visualMode === 'photo' && vehicle.media?.url && !state.visualArOpen;
           const visualScene = state.visualArOpen
             ? `<div class="visual-ar"><video id="ar-preview-video" autoplay playsinline muted aria-label="Your camera view for illustrative vehicle overlay"></video>${conceptVehicleMarkup()}<span class="visual-ar-note">Camera overlay only · not scale-accurate WebXR or a safety/fit measurement</span></div>`
@@ -2004,6 +2024,14 @@
         } else {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's keep exploring</h3><p>Try one of the suggested views to continue.</p></div>`;
         }
+        $$('img[data-vehicle-fallback]', target).forEach((image) => image.addEventListener('error', () => {
+          const fallback = image.dataset.vehicleFallback === 'Electric scooter' ? scooterSvg : image.dataset.vehicleFallback === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg;
+          const container = image.closest('.verified-vehicle__media, .visual-scene');
+          image.insertAdjacentHTML('afterend', fallback);
+          image.remove();
+          const tag = container?.querySelector('.option-card__tag, .visual-badge');
+          if (tag) tag.textContent = 'Illustrative fallback';
+        }, { once: true }));
         renderedStageRevision = state.stageRevision;
         syncStageTransient();
         syncBookingSelection();
@@ -2085,6 +2113,11 @@
         }
         const aiState = $('#ai-state');
         if (aiState) aiState.textContent = agentStateLabel(state.agentMode);
+        const stageActivity = $('#stage-activity');
+        const stageActivityText = $('#stage-activity-text');
+        const stageBusy = state.agentMode === 'thinking' || state.agentMode === 'tool-running';
+        if (stageActivity) stageActivity.hidden = !stageBusy;
+        if (stageActivityText) stageActivityText.textContent = state.activityMessage || (state.agentMode === 'tool-running' ? 'Preparing your result…' : 'Understanding your request…');
         const elapsed = $('#room-elapsed');
         if (elapsed) elapsed.textContent = formatElapsedTime(state.elapsedSeconds);
         const mic = $('#mic-control');
@@ -2104,7 +2137,7 @@
         const selfTile = $('#self-participant-tile');
         if (selfTile) selfTile.dataset.speaking = String(!state.muted && state.localAudioLevel > .035);
         const micIndicator = $('#room-mic-indicator');
-        if (micIndicator) { micIndicator.textContent = state.muted ? '×' : '●'; micIndicator.setAttribute('aria-label', state.muted ? 'Microphone muted' : 'Microphone on'); }
+        if (micIndicator) { micIndicator.textContent = state.muted ? 'Mic muted' : 'Mic on'; micIndicator.setAttribute('aria-label', state.muted ? 'Microphone muted' : 'Microphone on'); }
         const cameraIndicator = $('#room-camera-indicator');
         if (cameraIndicator) { cameraIndicator.textContent = state.cameraEnabled ? '◉' : '⌁'; cameraIndicator.setAttribute('aria-label', state.cameraEnabled ? 'Camera on' : 'Camera off'); }
         const selfInitials = $('#self-initials');
@@ -2299,6 +2332,11 @@
         state.visualMode = 'photo';
         state.visualAngle = 25;
         state.visualArOpen = false;
+        state.activityMessage = '';
+        state.lastReliableStageAt = 0;
+        state.handledFastIntentIds = new Set();
+        state.intentGuard = null;
+        state.lastFinalUserEventId = '';
         state.outcomeSaved = false;
         state.interruptAvailable = false;
         state.selectedTab = 'passport';
@@ -2338,7 +2376,11 @@
           renderApp();
         }
       };
-      const setAgentMode = (mode) => { state.agentMode = mode; renderApp(); };
+      const setAgentMode = (mode) => {
+        state.agentMode = mode;
+        if (!['thinking', 'tool-running'].includes(mode)) state.activityMessage = '';
+        renderApp();
+      };
       const appendTranscript = (speaker, text, meta = {}) => {
         state.transcript.push({ speaker: speaker === 'you' ? 'you' : 'ai', text: String(text), timestamp: Date.now(), meta });
         renderTranscript();
@@ -2361,6 +2403,7 @@
         state.chargePlaying = false;
         state.stage = { type, payload: { ...payload, title: payload.title || stageTitle(type), sourceStatus: payload.sourceStatus || 'EasyEV decision tool' } };
         state.stageRevision += 1;
+        if (['comparison', 'vehicle-visual', 'ownership-cost', 'charging-map', 'snapshot-result', 'report-ready'].includes(type)) state.lastReliableStageAt = Date.now();
         if (type === 'comparison' || type === 'vehicle-visual') markAction('comparison', 'complete', 'Sourced comparison and visual explorer are ready');
         if (type === 'charging-demo') markAction('charging', 'active', 'Confirm parking, load and installation feasibility');
         if (type === 'charging-map') markAction('charging', 'active', 'Ready to search live public charging data with your permission');
@@ -2418,6 +2461,7 @@
       const handleToolEvent = (toolEvent) => {
         if (toolEvent.eventId && state.processedToolEventIds.has(toolEvent.eventId)) return;
         if (toolEvent.eventId) state.processedToolEventIds.add(toolEvent.eventId);
+        if (state.intentGuard && state.intentGuard.until > Date.now() && toolEvent.tool && toolEvent.tool !== state.intentGuard.tool) return;
         updateToolRun(toolEvent);
         const data = toolEvent.payload || {};
         if (data.passport) syncStructuredPassport(data.passport);
@@ -2431,6 +2475,7 @@
         if (toolEvent.phase === 'started') {
           if (actionId) markAction(actionId, 'active', data.message || 'EasyEV is working');
           state.agentMode = 'tool-running';
+          state.activityMessage = data.message || toolActivityLabel(toolEvent.tool);
           if (!state.stagePinned) showStage('tool-loading', { title: stageTitle('tool-loading'), sourceStatus: 'Working now', message: data.message });
         } else if (toolEvent.phase === 'completed' || toolEvent.phase === 'awaiting_input') {
           if (actionId) markAction(actionId, toolEvent.phase === 'completed' ? 'complete' : 'active', toolEvent.phase === 'completed' ? 'Result saved to the Decision Passport' : 'Waiting for your explicit permission');
@@ -2462,6 +2507,7 @@
             state.reportUrl = activeAdapter()?.getReportUrl?.() || '';
           }
           state.agentMode = toolEvent.phase === 'completed' ? 'success' : 'listening';
+          state.activityMessage = '';
           presentToolStage(toolEvent.stage, data, toolEvent.tool);
           if (toolEvent.phase === 'completed') showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
           if (toolEvent.phase === 'completed') scheduleLifecycle(() => {
@@ -2484,17 +2530,60 @@
           : ['Tata Punch.ev', 'MG Windsor EV'];
       const runDirectTool = async (tool, args = {}, userText = '') => {
         if (state.integrationMode !== 'live' || state.callStatus !== 'live') return;
+        state.intentGuard = { tool, until: Date.now() + 12_000 };
         if (userText) appendTranscript('you', userText, { localText: true, directTool: tool });
         state.agentMode = 'tool-running';
+        state.activityMessage = state.activityMessage || toolActivityLabel(tool);
         renderApp();
         try {
           await activeAdapter()?.runTool(tool, args);
         } catch (error) {
           if (error?.name === 'AbortError') return;
           state.agentMode = 'error';
+          state.activityMessage = '';
           showToast(error?.message || 'The decision tool could not finish.');
           renderApp();
         }
+      };
+      const SPOKEN_VEHICLES = [
+        { name: 'Tata Punch EV', match: /tata\s*punch|punch[.\s-]*ev|टाटा\s*पंच|पंच\s*(?:ईवी|ev)?/i },
+        { name: 'Citroen EC3', match: /citro[eë]n|e[\s-]*c3x?|ec3x?|सिट्रोएन|सिट्रोन/i },
+        { name: 'Tata Nexon EV', match: /tata\s*nexon|nexon[.\s-]*ev|नेक्सॉन/i },
+        { name: 'MG Windsor EV', match: /mg\s*windsor|windsor\s*ev|विंडसर/i },
+        { name: 'Mahindra XUV400', match: /xuv\s*400|xuv400|एक्सयूवी\s*400/i },
+        { name: 'Ather Rizta', match: /ather\s*rizta|rizta|रिज़्टा/i },
+        { name: 'Ather 450X', match: /ather\s*450x|450x|450\s*x/i },
+        { name: 'TVS iQube', match: /tvs\s*i\s*qube|iqube|i\s*qube|आईक्यूब/i },
+        { name: 'Ola S1 Pro', match: /ola\s*s1|s1\s*pro|ओला\s*एस1/i },
+        { name: 'Mahindra Treo Plus', match: /treo\s*plus|mahindra\s*treo|ट्रेओ/i },
+        { name: 'Bajaj RE E-TEC 9.0', match: /bajaj.*e[\s-]*tec|e[\s-]*tec\s*9|बजाज.*ई\s*टेक/i }
+      ];
+      const fastVisualIntent = (text, eventId = '') => {
+        const spoken = String(text || '').trim();
+        if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        const wants3d = /\b3\s*d\b|\b360\b|\bmodel\b|मॉडल|घुमा/i.test(spoken);
+        const wantsPhoto = /\bphoto\b|\bpicture\b|\bimage\b|तस्वीर|फोटो|दिखा|दिखाओ|दिखा सकते/i.test(spoken);
+        const wantsCompare = /compare|comparison|versus|\bvs\b|\bboth\b|between|difference|फर्क|तुलना|के बीच|दोनों/i.test(spoken);
+        if (!wants3d && !wantsPhoto && !wantsCompare) return false;
+        let vehicles = SPOKEN_VEHICLES.filter((item) => item.match.test(spoken)).map((item) => item.name);
+        const shortlisted = (state.decisionPassport?.shortlist || []).map((item) => item.name).filter(Boolean);
+        if (wantsCompare && vehicles.length < 2) vehicles = [...new Set([...vehicles, ...shortlisted, ...defaultCompareNames()])].slice(0, 2);
+        if (!wantsCompare && !vehicles.length) vehicles = (shortlisted.length ? shortlisted : defaultCompareNames()).slice(0, 1);
+        if (!vehicles.length) return false;
+        const normalized = spoken.toLowerCase().replace(/\s+/g, ' ');
+        const idKey = eventId ? `event:${eventId}` : '';
+        const textKey = `text:${normalized}`;
+        if ((idKey && state.handledFastIntentIds.has(idKey)) || state.handledFastIntentIds.has(textKey)) return true;
+        if (idKey) state.handledFastIntentIds.add(idKey);
+        state.handledFastIntentIds.add(textKey);
+        scheduleLifecycle(() => state.handledFastIntentIds.delete(textKey), 8_000);
+        const presentation = wants3d ? '3d' : wantsPhoto ? 'photo' : 'comparison';
+        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 12_000 };
+        state.activityMessage = wantsCompare && vehicles.length > 1
+          ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
+          : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
+        runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
+        return true;
       };
       const toolForTurn = (turnName) => ({
         compare: ['compare_vehicles', { vehicles: defaultCompareNames(), priorities: ['daily usability', 'running cost'] }],
@@ -2790,6 +2879,19 @@
         const localOnly = state.transcript.filter((entry) => entry.meta?.localText && !incoming.some((live) => live.speaker === entry.speaker && live.text === entry.text));
         state.transcript = [...incoming, ...localOnly].sort((a, b) => a.timestamp - b.timestamp);
         renderTranscript();
+        const latestUser = [...incoming].reverse().find((entry) => entry.speaker === 'you' && entry.text?.trim());
+        if (latestUser && ['1', '2', 'end', 'interrupted'].includes(String(latestUser.status || '').toLowerCase())) {
+          const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
+          if (state.lastFinalUserEventId === finalEventId) return;
+          state.lastFinalUserEventId = finalEventId;
+          state.intentGuard = null;
+          if (spokenIntentTimer) window.clearTimeout(spokenIntentTimer);
+          const sessionId = state.sessionId;
+          spokenIntentTimer = window.setTimeout(() => {
+            if (!isCurrentSession(sessionId) || state.view !== 'room') return;
+            fastVisualIntent(latestUser.text, finalEventId);
+          }, 520);
+        }
       };
       const handleAdapterEvent = (event) => {
         const payload = event.payload || {};
@@ -2855,12 +2957,16 @@
           state.connectionError = payload.message || 'The live consultation reported an error.';
           if (payload.recoverable === false) state.callStatus = 'error';
           if (payload.code === 'TOOL_HISTORY' && state.view === 'room') {
-            state.agentMode = 'error';
-            presentToolStage('tool-error', {
-              title: 'AI session needs a quick reset',
-              sourceStatus: 'Agora session recovery',
-              message: state.connectionError
-            }, 'session-recovery');
+            const hasFreshResult = Date.now() - state.lastReliableStageAt < 15_000;
+            state.agentMode = hasFreshResult ? 'listening' : 'error';
+            state.activityMessage = '';
+            if (!hasFreshResult) {
+              presentToolStage('tool-error', {
+                title: 'AI session needs a quick reset',
+                sourceStatus: 'Agora session recovery',
+                message: state.connectionError
+              }, 'session-recovery');
+            }
           }
           renderApp();
           showToast(state.connectionError);
@@ -3131,6 +3237,8 @@
         appendTranscript('you', text, { freeform: true, turnId, localText: true });
         if (state.integrationMode === 'live') {
           setAgentMode('thinking');
+          state.intentGuard = null;
+          fastVisualIntent(text, `typed:${turnId}`);
           activeAdapter()?.sendText(text).catch((error) => {
             if (!isCurrentSession(state.sessionId, turnId)) return;
             setAgentMode('listening');

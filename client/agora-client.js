@@ -162,7 +162,7 @@ class AgoraAdapter {
               speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
               text: item.text.trim(),
               timestamp: timestampMs(item._time),
-              status: String(item.status || ''),
+              status: String(item.status ?? ''),
             }));
           this.emit('TRANSCRIPT_SYNC', { entries, sessionId: context.sessionId });
         });
