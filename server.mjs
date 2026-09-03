@@ -367,7 +367,7 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
 
 function createVehicleAgentSession({ channel, uid, vehicleId, language, voice }) {
   const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
-  const client = new AgoraClient({ appId: APP_ID, appCert: APP_CERTIFICATE, area: Area.GLOBAL });
+  const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
   const greeting = language === 'Hindi'
     ? `नमस्ते! मैं ${vehicle.name} (${vehicle.company}) का AI एक्सपर्ट हूँ। आप इस गाड़ी की कीमत, बैटरी, रेंज या फीचर्स के बारे में जो पूछना चाहें, पूछिए!`
@@ -434,6 +434,181 @@ Keep answers concise, accurate, and conversational. Help the buyer understand re
     agentUid: AGENT_UID,
     remoteUids: [String(uid)],
     idleTimeout: 120,
+    expiresIn: ExpiresIn.hours(1),
+    debug: false,
+  });
+}
+
+function createDebateAgentSession({ channel, uid, vehicleIdA, vehicleIdB, language, voice }) {
+  const vehicleA = getVehicleById(vehicleIdA) || TOP_12_EVS[0];
+  const vehicleB = getVehicleById(vehicleIdB) || TOP_12_EVS[1];
+  const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
+  const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
+
+  const greeting = language === 'Hindi'
+    ? `[${vehicleA.name} Advocate]: "नमस्ते! मैं डिफेंड कर रहा हूँ ${vehicleA.name} को! सिर्फ ₹${vehicleA.priceMinLakh}L की प्राइस में ${vehicleA.claimedRangeKm} km रेंज और 5-Star NCAP सेफ्टी! ${vehicleB.name} इसके वैल्यू के सामने टिक नहीं सकती!"
+[${vehicleB.name} Advocate]: "अरे भाई रुकिए! ऑन-पेपर बात अलग है, लेकिन ${vehicleB.name} में ${vehicleB.realWorldRangeKm} की असली हाईवे रेंज और ${vehicleB.battery} बड़ी बैटरी मिलती है। सिर्फ सिटी में चलने वाली गाड़ी से हाईवे क्रूज़ का मुकाबला कैसे?"
+[${vehicleA.name} Advocate]: "लेकिन ₹${vehicleA.priceMinLakh}L और ₹${vehicleB.priceMinLakh}L के बीच 3 से 5 लाख का भारी अंतर है! शहर में 90% डेली कम्यूट होता है, जहाँ हमारी हल्की गाड़ी ज्यादा बिजली बचाती है!"
+[${vehicleB.name} Advocate]: "लेकिन जब परिवार के साथ लॉन्ग ट्रिप और हाईवे पर निकलेंगे, तब ${vehicleB.power} की दमदार पावर और ओवरटेकिंग कॉन्फिडेंस की जरूरत होगी!"
+[${vehicleA.name} Advocate]: "हमारी गाड़ी में भी 0-100 सिर्फ ${vehicleA.acceleration} में आता है और ट्रैफिक में कॉम्पैक्ट साइज से पार्क करना 10 गुना आसान है!"
+[${vehicleB.name} Advocate]: "पर सामान कहाँ रखेंगे? ${vehicleB.name} में ${vehicleB.bootSpace} का विशाल बूट स्पेस और रियर सीट लेगरूम मिलता है!"
+[${vehicleA.name} Advocate]: "हमारे पास भी ${vehicleA.bootSpace} बूट स्पेस है जो 3 बड़े सूटकेस के लिए काफी है, और हमारी फास्ट चार्जिंग ${vehicleA.charging.split('/')[0]} में 10 से 80% हो जाती है!"
+[${vehicleB.name} Advocate]: "मगर हाई-स्पीड सस्पेंशन स्टेबिलिटी और केबिन का शांत अहसास लॉन्ग ड्राइव में थकान नहीं होने देता, जो बड़ी बैटरी के साथ ही संभव है!"
+[${vehicleA.name} Advocate]: "रनिंग कॉस्ट का क्या? हम हर महीने ₹2500 बिजली बिल में बचाते हैं और 8 साल की बैटरी वारंटी के साथ पूरी मेंटेनेंस फ्री लाइफ देते हैं!"
+[${vehicleB.name} Advocate]: "लेकिन रिसेल वैल्यू और बड़े ईवी सेगमेंट में ${vehicleB.company} का प्रूवन ट्रैक रिकॉर्ड हर समझदार बायर की पहली पसंद बनाता है!"
+[${vehicleA.name} Advocate]: "जो पैसा आप ज्यादा देंगे उसमें तो 5 साल की फ्री चार्जिंग हो जाएगी! स्मार्ट बायर बजट और एफिशिएंसी चुनता है!"
+[${vehicleB.name} Advocate]: "और जो लक्जरी, पावर और नो-कॉम्प्रोमाइज रेंज चाहता है, वो सीधे ${vehicleB.name} चुनता है!"`
+    : language === 'Hinglish'
+      ? `[${vehicleA.name} Advocate]: "Bhai, main open kar raha hoon ${vehicleA.name} ke favor me! Starting price sirf ₹${vehicleA.priceMinLakh}L hai aur ${vehicleA.battery} battery ke saath ${vehicleA.claimedRangeKm} km claimed range! ${vehicleB.name} is price-to-value ko beat nahi kar sakti!"
+[${vehicleB.name} Advocate]: "Arre par real-world highway reality dekho! ${vehicleB.name} me ${vehicleB.realWorldRangeKm} true highway range aur ${vehicleB.battery} battery milti hai! Highway pe range anxiety ka koi chakkar hi nahi!"
+[${vehicleA.name} Advocate]: "Lekin ₹4 se ₹5 Lakh ka extra premium kyun de buyer? 90% daily travel 35-40 km city commute ka hota hai, jahan hamari compact car highest efficiency deti hai!"
+[${vehicleB.name} Advocate]: "Lekin jab family ke saath vacation ya intercity ride pe jaoge, tab ${vehicleB.power} instant power aur effortless high-speed overtake sirf ${vehicleB.name} me hi milega!"
+[${vehicleA.name} Advocate]: "Hamari acceleration bhi ${vehicleA.acceleration} hai jo city flyovers aur quick overtakes ke liye super responsive hai, plus tight parking me easily fit hoti hai!"
+[${vehicleB.name} Advocate]: "Par family luggage ka kya? ${vehicleB.name} me massive ${vehicleB.bootSpace} boot space aur executive rear knee-room milta hai jo long journeys me fatigue-free rakhta hai!"
+[${vehicleA.name} Advocate]: "Humare paas bhi ${vehicleA.bootSpace} boot space practical use ke liye standard hai, aur charging speed ${vehicleA.charging.split('/')[0]} me 10-80% top-up ho jaati hai!"
+[${vehicleB.name} Advocate]: "Lekin ${vehicleB.name} ka suspension setup potholes aur rough roads pe plush ride quality deta hai, body roll control next-level hai!"
+[${vehicleA.name} Advocate]: "Total Cost of Ownership dekho! Lower price point aur light weight ki wajah se monthly electricity bill aur EMI me seedha ₹8,000 to ₹10,000 ki bachat hoti hai!"
+[${vehicleB.name} Advocate]: "Lekin premium road presence, high resale demand, aur solid highway stability me ${vehicleB.name} segment champion hai!"
+[${vehicleA.name} Advocate]: "Jo extra ₹5 Lakh bachega usse 7 saal tak EV free me charge ho jayegi! Value and Smart ROI ke liye ${vehicleA.name} is the clear winner!"
+[${vehicleB.name} Advocate]: "Aur bina kisi compromise ke maximum power, ultimate comfort aur zero-stress long drives ke liye ${vehicleB.name} is the undisputed king!"`
+      : `[Option 1 - ${vehicleA.name}]: "Opening for Option 1! Starting at just ${vehicleA.priceMinLakh} Lakh rupees with ${vehicleA.claimedRangeKm} kilometers of range, our car offers unbeatable everyday value!"
+
+... ... ...
+
+[Option 2 - ${vehicleB.name}]: "Countering for Option 2! Our vehicle delivers real highway range and a much larger battery. True highway freedom requires substantial battery capacity!"
+
+... ... ...
+
+[Option 1 - ${vehicleA.name}]: "Look at the price difference! Why pay five Lakh rupees more when daily city drives are lighter and far more efficient in our car?"
+
+... ... ...
+
+[Option 2 - ${vehicleB.name}]: "Because road trips demand power! With ${vehicleB.power} and high-speed stability, our vehicle makes highway cruising completely effortless and safe!"
+
+... ... ...
+
+[Option 1 - ${vehicleA.name}]: "Our quick acceleration in traffic and compact dimensions make daily city commutes and parking completely effortless for every driver!"
+
+... ... ...
+
+[Option 2 - ${vehicleB.name}]: "What about family space? Our vehicle provides a huge ${vehicleB.bootSpace.replace(/L/i, 'litres')} boot capacity and superior rear cabin comfort for long trips!"
+
+... ... ...
+
+[Option 1 - ${vehicleA.name}]: "Our standard boot space is plenty for luggage, plus our fast charging completes ten to eighty percent in under an hour!"
+
+... ... ...
+
+[Option 2 - ${vehicleB.name}]: "Long-distance refinement and plush suspension damping make our vehicle a true highway cruiser without any passenger fatigue!"
+
+... ... ...
+
+[Option 1 - ${vehicleA.name}]: "On total cost of ownership, lower initial payments and lower electricity consumption save one Lakh rupees every single year!"
+
+... ... ...
+
+[Option 2 - ${vehicleB.name}]: "And for uncompromising road presence, premium comfort, and solid resale value, our vehicle stands as the undisputed champion!"`;
+
+  const speechInstructions = language === 'Hindi'
+    ? 'Speak slowly and calmly. Take clear pauses between sentences. Pronounce all vehicle specifications clearly.'
+    : language === 'Hinglish'
+      ? 'Speak slowly and calmly. Take clear pauses between sentences. Pronounce all vehicle specifications clearly.'
+      : 'Speak in calm, articulate English at a relaxed pace. Pronounce all words fully without abbreviations like km or L. Take clear, distinct pauses between arguments.';
+
+  const stt = language === 'English'
+    ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
+    : new AresSTT({ keywords: [vehicleA.name, vehicleB.name, vehicleA.company, vehicleB.company, 'EasyEV', 'डिबेट', 'Debate', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस', 'Punch', 'Nexon', 'Windsor', 'Ather', 'Rizta', 'TVS'] });
+
+  const tts = AZURE_SPEECH_READY
+    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: 0.88 })
+    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: 0.88 });
+
+  const debatePrompt = `You are staging a full, multi-turn, high-energy live EV debate between two AI automotive advocates defending their vehicles:
+1. ADVOCATE A (Defending ${vehicleA.name} by ${vehicleA.company}):
+- Price: ₹${vehicleA.priceMinLakh}L – ₹${vehicleA.priceMaxLakh}L ex-showroom
+- Claimed Range: ${vehicleA.claimedRangeKm} km (ARAI)
+- Real-World Range: ${vehicleA.realWorldRangeKm}
+- Battery: ${vehicleA.battery}
+- Fast Charging: ${vehicleA.charging}
+- Power/Torque: ${vehicleA.power}
+- Acceleration & Speed: 0-100/40 in ${vehicleA.acceleration}, Top Speed ${vehicleA.topSpeed}
+- Boot & Space: ${vehicleA.bootSpace}
+- Warranty: ${vehicleA.warranty}
+- Standout Strengths: ${vehicleA.pros.join(', ')}
+- Weaknesses to defend: ${vehicleA.cons.join(', ')}
+
+2. ADVOCATE B (Defending ${vehicleB.name} by ${vehicleB.company}):
+- Price: ₹${vehicleB.priceMinLakh}L – ₹${vehicleB.priceMaxLakh}L ex-showroom
+- Claimed Range: ${vehicleB.claimedRangeKm} km (ARAI)
+- Real-World Range: ${vehicleB.realWorldRangeKm}
+- Battery: ${vehicleB.battery}
+- Fast Charging: ${vehicleB.charging}
+- Power/Torque: ${vehicleB.power}
+- Acceleration & Speed: 0-100/40 in ${vehicleB.acceleration}, Top Speed ${vehicleB.topSpeed}
+- Boot & Space: ${vehicleB.bootSpace}
+- Warranty: ${vehicleB.warranty}
+- Standout Strengths: ${vehicleB.pros.join(', ')}
+- Weaknesses to defend: ${vehicleB.cons.join(', ')}
+
+REAL DEBATE RULES:
+1. FULL EXTENSIVE MULTI-ROUND DEBATE (12 to 20 CONTINUOUS STATEMENTS):
+   Write out a comprehensive back-and-forth dialogue where each advocate directly hears the opponent's specific point, dismantles their weak spot, and promotes their own strength.
+2. SYSTEMATIC DEBATE PHASES:
+   - Round 1: Price, Subsidies & Value for Money vs Premium Features
+   - Round 2: Real Highway Range & Battery Pack vs Daily City Efficiency
+   - Round 3: Fast Charging Times & Public Network Convenience
+   - Round 4: Cabin Comfort, Suspension Quality & Boot Storage
+   - Round 5: Long-term Total Cost of Ownership (TCO), Warranty & Resale
+3. EXACT SPEAKER PREFIXES ON EVERY LINE:
+   [Option 1 - ${vehicleA.name}]: "..."
+   [Option 2 - ${vehicleB.name}]: "..."
+4. ZERO HALLUCINATIONS: Ground 100% of arguments in the verified specs provided above.
+5. FAST, SNAPPY & ENTERTAINING: Each turn must be 1-2 punchy, grounded sentences.
+6. NO MID-SENTENCE OPTION WORDS: Never say the words 'option', 'option 1', or 'option 2' inside the spoken argument body. Only refer to 'our vehicle', 'this car', or 'the opponent'.`;
+
+  const agent = new Agent({
+    client,
+    instructions: debatePrompt,
+    greeting: '',
+    failureMessage: 'I had trouble answering that. Please ask once more.',
+    maxHistory: TOOL_SAFE_MAX_HISTORY,
+    turnDetection: {
+      language: recognitionLanguage,
+      config: {
+        speech_threshold: 0.5,
+        start_of_speech: {
+          mode: 'vad',
+          vad_config: { interrupt_duration_ms: 120, prefix_padding_ms: 240 },
+        },
+        end_of_speech: {
+          mode: 'vad',
+          vad_config: { silence_duration_ms: 360 },
+        },
+      },
+    },
+    advancedFeatures: { enable_rtm: true },
+    parameters: {
+      audio_scenario: 'chorus',
+      data_channel: 'datastream',
+      enable_error_message: true,
+      enable_metrics: true,
+    },
+  })
+    .withStt(stt)
+    .withLlm(new OpenAI({
+      model: 'gpt-4o-mini',
+      greetingMessage: greeting,
+      failureMessage: 'I had trouble answering that. Please ask once more.',
+      maxHistory: TOOL_SAFE_MAX_HISTORY,
+      params: { max_tokens: 2000, temperature: 0.35, top_p: 0.9 },
+    }))
+    .withTts(tts);
+
+  return agent.createSession({
+    channel,
+    agentUid: AGENT_UID,
+    remoteUids: [String(uid)],
+    idleTimeout: 180,
     expiresIn: ExpiresIn.hours(1),
     debug: false,
   });
@@ -1013,6 +1188,44 @@ async function handleApi(req, res, url) {
     });
   }
 
+  if (url.pathname === '/api/tts') {
+    const text = url.searchParams.get('text') || (req.method === 'POST' ? (await readJson(req)).text : '');
+    const voiceKey = url.searchParams.get('voice') || 'madhur';
+    const language = url.searchParams.get('language') || 'English';
+    if (!text) return json(res, 400, { error: 'Text required' });
+
+    try {
+      if (AZURE_SPEECH_READY) {
+        const selected = VOICES[voiceKey] || VOICES.madhur;
+        const locale = language === 'English' ? 'en-IN' : 'hi-IN';
+        const ssml = `<speak version="1.0" xml:lang="${locale}"><voice name="${selected.voiceName}"><prosody rate="0%">${xmlEscape(text)}</prosody></voice></speak>`;
+        const response = await fetch(`https://${AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+          method: 'POST',
+          headers: {
+            'Ocp-Apim-Subscription-Key': AZURE_SPEECH_KEY,
+            'Content-Type': 'application/ssml+xml',
+            'X-Microsoft-OutputFormat': 'audio-24khz-48kbitrate-mono-mp3',
+            'User-Agent': 'EasyEV-Hackathon',
+          },
+          body: ssml,
+          signal: AbortSignal.timeout(15_000),
+        });
+        if (response.ok) {
+          const audio = Buffer.from(await response.arrayBuffer());
+          res.writeHead(200, {
+            'Content-Type': 'audio/mpeg',
+            'Content-Length': audio.length,
+            'Cache-Control': 'public, max-age=86400',
+          });
+          return res.end(audio);
+        }
+      }
+    } catch (e) {
+      console.warn('Azure TTS synthesis failed, fallback to 503:', e.message);
+    }
+    return json(res, 503, { error: 'TTS service unavailable' });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/catalog') {
     return json(res, 200, {
       vehicles: VEHICLES.map(({ aliases, ...item }) => item),
@@ -1060,6 +1273,49 @@ async function handleApi(req, res, url) {
         agentId: record.agentId,
         state: 'RUNNING',
         vehicle,
+      });
+    } catch (error) {
+      sessions.delete(key);
+      throw error;
+    }
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/debate-session/token') {
+    const vehicleIdA = url.searchParams.get('vehicleIdA') || 'tata-punch-ev';
+    const vehicleIdB = url.searchParams.get('vehicleIdB') || 'tata-nexon-ev';
+    const channel = `easyev-debate-${Date.now().toString(36)}-${randomUUID().slice(0, 6)}`;
+    const uid = String(randomInt(1000, 9_999_000));
+    const token = createToken(channel, uid);
+    const bootstrapKey = randomUUID();
+    bootstraps.set(bootstrapKey, { channel, uid, vehicleIdA, vehicleIdB, expiresAt: Date.now() + BOOTSTRAP_TTL_MS });
+    return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, bootstrapKey, vehicleIdA, vehicleIdB, expiresIn: TOKEN_TTL_SECONDS });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/debate-session/start') {
+    const body = await readJson(req);
+    const pending = bootstraps.get(body.bootstrapKey);
+    if (!pending || pending.expiresAt < Date.now() || pending.channel !== body.channel || pending.uid !== String(body.uid)) {
+      return json(res, 400, { error: 'The debate session bootstrap expired. Please start again.' });
+    }
+    bootstraps.delete(body.bootstrapKey);
+    const vehicleIdA = body.vehicleIdA || pending.vehicleIdA || 'tata-punch-ev';
+    const vehicleIdB = body.vehicleIdB || pending.vehicleIdB || 'tata-nexon-ev';
+    const vehicleA = getVehicleById(vehicleIdA) || TOP_12_EVS[0];
+    const vehicleB = getVehicleById(vehicleIdB) || TOP_12_EVS[1];
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const voice = selectedVoice(body.voice).id;
+    const key = randomUUID();
+    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category: vehicleA.category, language, voice });
+    sessions.set(key, record);
+    try {
+      record.session = createDebateAgentSession({ channel: pending.channel, uid: pending.uid, vehicleIdA, vehicleIdB, language, voice });
+      record.agentId = await record.session.start();
+      return json(res, 200, {
+        sessionKey: key,
+        agentId: record.agentId,
+        state: 'RUNNING',
+        vehicleA,
+        vehicleB,
       });
     } catch (error) {
       sessions.delete(key);
@@ -1203,8 +1459,9 @@ function serveFile(res, path, cache = false) {
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
     '.webp': 'image/webp',
+    '.webm': 'video/webm',
+    '.mp4': 'video/mp4',
     '.glb': 'model/gltf-binary',
-    '.gltf': 'model/gltf+json',
   }[extname(fullPath)] || 'application/octet-stream';
   res.writeHead(200, {
     'Content-Type': mime,
@@ -1233,7 +1490,7 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (/^\/assets\/[a-z0-9\/-]+\.(?:jpe?g|png|webp|svg|glb|gltf)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));

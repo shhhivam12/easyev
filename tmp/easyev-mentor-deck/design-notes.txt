@@ -1,0 +1,9 @@
+Visual direction derived from submitted PPT.pdf:
+- 16:9, near-white to pale-lavender background.
+- Cyan/blue Agora accent, deep navy typography, small orange accent for business/actions.
+- Large lowercase agora wordmark at top-left; HACKATHON 2026 top-right.
+- Clean rounded white cards with faint lavender borders and soft shadows.
+- Large title, compact eyebrow label, short explanatory subtitle.
+- EchoSphere footer at bottom-left and Powered by KNOTIC at bottom-right.
+- Subtle translucent orb/wave decoration built with native PowerPoint shapes.
+- Minimal diagrams, generous whitespace, no dense tables.
