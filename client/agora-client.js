@@ -359,4 +359,127 @@ class AgoraAdapter {
   }
 }
 
+class VehicleAgoraAdapter extends AgoraAdapter {
+  async joinVehicle(context) {
+    await this.leave({ skipStop: false });
+    const generation = ++this.generation;
+    this.context = context;
+    this.emit('CALL_STATUS', { status: 'connecting', vehicleId: context.vehicleId });
+
+    try {
+      const tokenData = await getJson(`/api/vehicle-session/token?vehicleId=${encodeURIComponent(context.vehicleId || 'tata-punch-ev')}`);
+      if (generation !== this.generation) return;
+      this.appId = tokenData.appId;
+      this.channel = tokenData.channel;
+      this.uid = String(tokenData.uid);
+
+      this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+      this.rtc.on('connection-state-change', (current) => {
+        if (generation !== this.generation) return;
+        this.emit('CONNECTION_STATE', { state: current, vehicleId: context.vehicleId });
+      });
+      this.rtc.on('network-quality', (stats) => {
+        if (generation !== this.generation) return;
+        const uplink = Number(stats?.uplinkNetworkQuality || 0);
+        const downlink = Number(stats?.downlinkNetworkQuality || 0);
+        this.emit('NETWORK_QUALITY', { uplink, downlink, vehicleId: context.vehicleId });
+      });
+      this.rtc.on('user-published', async (user, mediaType) => {
+        if (generation !== this.generation || !this.rtc) return;
+        try {
+          await this.rtc.subscribe(user, mediaType);
+          if (mediaType === 'audio' && user.audioTrack) {
+            this.remoteAudioTrack = user.audioTrack;
+            user.audioTrack.play();
+            this.emit('AGENT_CONNECTED', { connected: true, vehicleId: context.vehicleId });
+          }
+        } catch (error) {
+          this.emit('ERROR', { message: `Could not play AI audio: ${error.message || error}`, recoverable: true });
+        }
+      });
+      this.rtc.on('user-left', () => {
+        if (generation === this.generation) this.emit('AGENT_CONNECTED', { connected: false, vehicleId: context.vehicleId });
+      });
+      this.rtc.on('token-privilege-will-expire', () => this.renewToken(generation));
+
+      this.rtm = new AgoraRTM.RTM(this.appId, this.uid);
+      await Promise.all([
+        this.rtm.login({ token: tokenData.token }).then(() => this.rtm.subscribe(this.channel)),
+        this.rtc.join(this.appId, this.channel, tokenData.token, Number(this.uid)),
+        AgoraRTC.createMicrophoneAudioTrack({
+          encoderConfig: 'speech_standard',
+          AEC: true,
+          ANS: true,
+          AGC: true,
+        }).then((track) => { this.micTrack = track; }),
+      ]);
+      if (generation !== this.generation) return;
+      await this.rtc.publish([this.micTrack]);
+      this.levelTimer = window.setInterval(() => {
+        if (generation !== this.generation || !this.micTrack) return;
+        const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
+        this.emit('LOCAL_AUDIO_LEVEL', { level, vehicleId: context.vehicleId });
+      }, 180);
+
+      try {
+        this.ai = await AgoraVoiceAI.init({
+          rtcEngine: this.rtc,
+          rtmConfig: { rtmEngine: this.rtm },
+          renderMode: TranscriptHelperMode.TEXT,
+          enableLog: false,
+        });
+        this.ai.on(AgoraVoiceAIEvents.TRANSCRIPT_UPDATED, (items) => {
+          if (generation !== this.generation) return;
+          const entries = items
+            .filter((item) => typeof item.text === 'string' && item.text.trim())
+            .map((item) => ({
+              id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+              speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
+              text: item.text.trim(),
+              timestamp: timestampMs(item._time),
+              status: String(item.status ?? ''),
+            }));
+          this.emit('TRANSCRIPT_SYNC', { entries, vehicleId: context.vehicleId });
+        });
+        this.ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (_agentUid, event) => {
+          if (generation !== this.generation) return;
+          const mode = agentMode(event?.state);
+          this.emit('AGENT_STATE', { mode, vehicleId: context.vehicleId });
+          this.emit('INTERRUPTION_READY', { ready: mode === 'speaking', vehicleId: context.vehicleId });
+        });
+        this.ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, (_agentUid, error) => {
+          this.emit('ERROR', normalizeAgentError(error, 'Signaling error in vehicle consultation.'));
+        });
+        this.ai.on(AgoraVoiceAIEvents.AGENT_ERROR, (_agentUid, error) => {
+          this.emit('ERROR', normalizeAgentError(error, 'The Vehicle AI expert reported an error.'));
+        });
+        this.ai.subscribeMessage(this.channel);
+      } catch {
+        this.emit('ERROR', { message: 'Vehicle audio connected.', recoverable: true });
+      }
+
+      const session = await postJson('/api/vehicle-session/start', {
+        bootstrapKey: tokenData.bootstrapKey,
+        channel: this.channel,
+        uid: this.uid,
+        vehicleId: context.vehicleId,
+        language: context.language || 'Hinglish',
+        voice: context.voice || 'madhur',
+      });
+      if (generation !== this.generation) {
+        await postJson('/api/session/stop', { sessionKey: session.sessionKey }, { keepalive: true }).catch(() => {});
+        return;
+      }
+      this.sessionKey = session.sessionKey;
+      this.emit('CALL_STATUS', { status: 'live', vehicleId: context.vehicleId, vehicle: session.vehicle });
+      this.emit('AGENT_STATE', { mode: 'listening', vehicleId: context.vehicleId });
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not connect to Vehicle AI expert.', recoverable: false, vehicleId: context.vehicleId });
+      await this.leave({ skipStop: false });
+      throw error;
+    }
+  }
+}
+
 export const createAgoraAdapter = () => new AgoraAdapter();
+export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
