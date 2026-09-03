@@ -41,6 +41,18 @@ const agentMode = (value) => {
   return 'idle';
 };
 
+const normalizeAgentError = (error, fallback) => {
+  const raw = String(error?.message || error || '');
+  if (/messages with role ['"]?tool|preceding message with ['"]?tool_calls/i.test(raw)) {
+    return {
+      code: 'TOOL_HISTORY',
+      message: 'EasyEV’s decision-tool session became inconsistent. End and rejoin the consultation to reset it; your browser is still connected safely.',
+      recoverable: true,
+    };
+  }
+  return { code: 'AGENT_ERROR', message: raw || fallback, recoverable: true };
+};
+
 class AgoraAdapter {
   constructor() {
     this.handlers = new Set();
@@ -161,10 +173,10 @@ class AgoraAdapter {
           this.emit('INTERRUPTION_READY', { ready: mode === 'speaking', sessionId: context.sessionId });
         });
         this.ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, (_agentUid, error) => {
-          this.emit('ERROR', { message: error?.message || 'Agora signaling reported an error.', recoverable: true });
+          this.emit('ERROR', normalizeAgentError(error, 'Agora signaling reported an error.'));
         });
         this.ai.on(AgoraVoiceAIEvents.AGENT_ERROR, (_agentUid, error) => {
-          this.emit('ERROR', { message: error?.message || 'The AI agent reported an error.', recoverable: true });
+          this.emit('ERROR', normalizeAgentError(error, 'The AI agent reported an error.'));
         });
         this.ai.subscribeMessage(this.channel);
       } catch (error) {

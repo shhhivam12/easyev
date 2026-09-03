@@ -22,6 +22,7 @@ const ROOT = resolve(import.meta.dirname);
 const PORT = Number(process.env.PORT || 4173);
 const AGENT_UID = '123456';
 const TOKEN_TTL_SECONDS = 3600;
+const TOOL_SAFE_MAX_HISTORY = 80;
 const BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
 const BODY_LIMIT_BYTES = 48 * 1024;
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
@@ -263,6 +264,10 @@ You have five real EasyEV decision tools. Autonomously select the one best tool 
 
 Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
 
+Location is required only for find_nearby_chargers. Never ask for, wait for, or reuse a location requirement before compare_vehicles, vehicle pictures, 3D/360/AR requests, calculate_ownership, snapshot consent, or report generation. If the buyer changes from a charger request to another intent, abandon the location question and execute the new best-fit tool. A photo or 3D request must call compare_vehicles even when a charging map is currently visible. Treat each new buyer request as the active intent; use prior turns only to resolve omitted vehicle names or changed assumptions.
+
+Do not answer catalog comparisons, pictures, 3D requests, ownership calculations, charger searches or reports from model memory. Call the matching tool so the visible stage and Buyer Passport stay synchronized.
+
 After a tool succeeds, begin with “It’s ready on your screen,” then explain the two most decision-useful points visible in that result. For a comparison, describe both vehicles and one trade-off. For ownership, mention the daily-kilometre assumption and annual running-cost difference. For a map, say it is centred on the browser-shared or selected city location and tell the buyer to use Improve location if the blue marker is wrong. Do not keep narrating while nothing is changing.
 
 Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
@@ -294,7 +299,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
     instructions: agentInstructions({ category, language }),
     greeting,
     failureMessage: 'I had trouble responding. Please try that once more.',
-    maxHistory: 50,
+    maxHistory: TOOL_SAFE_MAX_HISTORY,
     turnDetection: {
       language: recognitionLanguage,
       config: {
@@ -322,7 +327,7 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
       model: 'gpt-4o-mini',
       greetingMessage: greeting,
       failureMessage: 'I had trouble responding. Please try that once more.',
-      maxHistory: 15,
+      maxHistory: TOOL_SAFE_MAX_HISTORY,
       params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
       ...(mcpUrl ? { mcpServers: [createAgoraMcpServer(mcpUrl)] } : {}),
     }))
@@ -553,6 +558,7 @@ async function handleApi(req, res, url) {
       ready: startup.ready,
       phase: startup.phase,
       elapsedMs: Date.now() - startup.startedAt,
+      revision: process.env.RENDER_GIT_COMMIT?.slice(0, 7) || 'local',
       agoraConfigured: true,
       mode: 'live',
       activeSessions: sessions.size,

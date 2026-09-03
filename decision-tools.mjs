@@ -243,12 +243,13 @@ export class EasyEVToolEngine {
   }
 
   cancel(record, reason = 'Conversation moved on') {
+    const hadActiveWork = record.controllers.size > 0 || Boolean(record.pendingSnapshot);
     record.turnGeneration += 1;
     for (const controller of record.controllers.values()) controller.abort(reason);
     record.controllers.clear();
     if (record.pendingSnapshot?.buffer) record.pendingSnapshot.buffer.fill(0);
     record.pendingSnapshot = null;
-    this.emit(record, { phase: 'cancelled', stage: 'idle', payload: { message: reason } });
+    if (hadActiveWork) this.emit(record, { phase: 'cancelled', stage: 'idle', payload: { message: reason } });
   }
 
   async persistSession(record) {

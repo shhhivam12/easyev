@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 
 const cdpPort = Number(process.env.CDP_PORT || 9225);
 const appUrl = process.env.EASYEV_URL || 'http://127.0.0.1:4173/';
+const isRemoteLive = new URL(appUrl).protocol === 'https:';
+const toolTimeout = isRemoteLive ? 45_000 : 12_000;
 const artifacts = resolve('test-artifacts');
 await mkdir(artifacts, { recursive: true });
 
@@ -54,6 +56,11 @@ const waitFor = async (expression, timeoutMs = 30_000, label = expression) => {
   throw new Error(`Timed out waiting for ${label}: ${JSON.stringify(snapshot)}`);
 };
 const click = (selector) => evaluate(`(() => { const node=document.querySelector(${JSON.stringify(selector)}); if (!node) throw new Error('Missing ${selector}'); node.click(); return true; })()`);
+const sendTypedPrompt = async (text) => {
+  await click('#text-control');
+  await waitFor('document.querySelector("#prompt-drawer")?.hidden === false', 3000, 'text prompt drawer');
+  await evaluate(`(() => { const input=document.querySelector('#prompt-input'); input.value=${JSON.stringify(text)}; document.querySelector('#prompt-form').requestSubmit(); return true; })()`);
+};
 const viewport = (width, height) => send('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
 const screenshot = async (name) => {
   const shot = await send('Page.captureScreenshot', { format: 'png', fromSurface: true });
@@ -87,9 +94,12 @@ try {
   await waitFor('document.querySelector("#room-connection-chip")?.textContent.includes("tools linked")', 15_000, 'tool SSE');
   results.live.agora = true;
   results.live.tools = true;
+  if (isRemoteLive) {
+    await waitFor('document.querySelectorAll(".transcript-entry--ai").length > 0 && document.querySelector("#ai-participant-tile")?.dataset.mode === "listening"', 45_000, 'live greeting to finish');
+  }
 
   await click('[data-turn="compare"]');
-  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2', 12_000, 'verified comparison');
+  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2', toolTimeout, 'verified comparison');
   results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,columns:document.querySelectorAll(".comparison-matrix thead th").length-1,rows:document.querySelectorAll(".comparison-matrix tbody tr").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
   await screenshot('easyev-agentic-comparison-desktop.png');
 
@@ -103,10 +113,23 @@ try {
   await click('[data-visual-back]');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Verified vehicle comparison"', 5000, 'return to comparison');
 
+  if (isRemoteLive) {
+    await waitFor('document.querySelector("#ai-participant-tile")?.dataset.mode === "listening"', 30_000, 'agent ready after comparison');
+    await sendTypedPrompt('Show me a picture of Tata Punch EV.');
+    await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer"', toolTimeout, 'spoken picture request');
+    results.live.spokenPicture = Boolean(await evaluate('document.querySelector(".visual-scene")'));
+    await waitFor('document.querySelector("#ai-participant-tile")?.dataset.mode === "listening"', 30_000, 'agent ready after picture');
+    await sendTypedPrompt('Show Tata Punch EV in 3D. Do not ask for my location.');
+    await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer" && Boolean(document.querySelector(".concept-ev"))', toolTimeout, 'spoken 3D request');
+    results.live.spoken3d = true;
+    await click('[data-visual-back]');
+    await waitFor('document.querySelector("#stage-title")?.textContent === "Verified vehicle comparison"', 5000, 'return after spoken 3D request');
+  }
+
   await click('#stage-pin-button');
   const pinnedTitle = await evaluate('document.querySelector("#stage-title").textContent');
   await click('[data-turn="ownership"]');
-  await waitFor('document.querySelector("#action-rail")?.innerText.includes("Result ready")', 10_000, 'queued ownership result');
+  await waitFor('document.querySelector("#action-rail")?.innerText.includes("Result ready")', toolTimeout, 'queued ownership result');
   results.live.pinHeld = pinnedTitle === await evaluate('document.querySelector("#stage-title").textContent');
   await click('#stage-pin-button');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Ownership scenario"', 5000, 'unpin queued result');
@@ -116,10 +139,10 @@ try {
   results.live.costRecalculated = true;
 
   await click('[data-turn="map"]');
-  await waitFor('document.querySelector("#stage-title")?.textContent === "Share location for this search"', 8000, 'location consent stage');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Share location for this search"', toolTimeout, 'location consent stage');
   results.live.locationConsent = true;
   await click('[data-map-action="locate"]');
-  await waitFor('document.querySelector("#stage-title")?.textContent === "Charging points near you" && document.querySelectorAll(".station-card").length > 0', 12_000, 'charger result');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Charging points near you" && document.querySelectorAll(".station-card").length > 0', toolTimeout, 'charger result');
   results.live.chargers = await evaluate('({count:document.querySelectorAll(".station-card").length,source:document.querySelector("#stage-source")?.textContent,disclosure:document.querySelector(".map-disclosure")?.textContent})');
   results.live.mapCenter = await evaluate('(() => { const canvas=document.querySelector("#map-canvas").getBoundingClientRect(); const user=document.querySelector(".map-user").getBoundingClientRect(); const location=document.querySelector(".map-location-bar")?.innerText || ""; return {deltaX:Math.round(Math.abs((user.left+user.width/2)-(canvas.left+canvas.width/2))),deltaY:Math.round(Math.abs((user.top+user.height/2)-(canvas.top+canvas.height/2))),coordinatesShown:/\\d+\\.\\d{4}/.test(location),location}; })()');
   await click('[data-location-preset="delhi"]');
@@ -136,8 +159,9 @@ try {
   await click('[data-snapshot-clear]');
 
   await click('[data-tool-prompt="report"]');
-  await waitFor('document.querySelector("#stage-title")?.textContent === "Decision report ready"', 10_000, 'report stage');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Decision report ready"', toolTimeout, 'report stage');
   results.live.report = await evaluate('({button:Boolean(document.querySelector("[data-download-report]")),sections:document.querySelector(".report-card")?.innerText})');
+  results.live.falseCancellations = !(await evaluate('document.querySelector("#action-rail")?.innerText.includes("Cancelled")'));
 
   const roomViewports = [[1440,900],[1280,800],[768,1024],[390,844]];
   for (const [width, height] of roomViewports) {
@@ -199,12 +223,13 @@ const failed = !results.prejoin.focus || !results.prejoin.centered || !results.p
   !results.live.agora || !results.live.tools || results.live.comparison?.cards !== 2 ||
   results.live.comparison?.sources !== 2 || results.live.comparison?.columns !== 2 || results.live.comparison?.rows < 6 ||
   !results.live.vehiclePhoto || !results.live.vehicleConcept?.present || results.live.vehicleConcept?.angle !== '54°' || !results.live.vehicleConcept?.disclosure ||
+  (isRemoteLive && (!results.live.spokenPicture || !results.live.spoken3d)) ||
   !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
   !results.live.costRecalculated || !results.live.locationConsent || results.live.chargers?.count < 1 ||
   results.live.mapCenter?.deltaX > 1 || results.live.mapCenter?.deltaY > 1 || !results.live.mapCenter?.coordinatesShown || !results.live.locationPreset ||
   !results.live.snapshotConsent || !results.live.snapshotUserOperated || !results.live.report?.button ||
   !results.live.outcomeFocus || !results.live.cameraStopped || !results.live.timerStopped ||
-  !results.live.reportAfterCall ||
+  !results.live.reportAfterCall || !results.live.falseCancellations ||
   results.viewports.some((item) => item.overflow || item.stageFits === false || item.dockFits === false || item.cta === false || item.visible === false) ||
   !results.reducedMotion.matches || consoleErrors.length || pageErrors.length;
 if (failed) process.exitCode = 1;

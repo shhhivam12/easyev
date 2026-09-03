@@ -2854,6 +2854,14 @@
         if (event.type === 'ERROR') {
           state.connectionError = payload.message || 'The live consultation reported an error.';
           if (payload.recoverable === false) state.callStatus = 'error';
+          if (payload.code === 'TOOL_HISTORY' && state.view === 'room') {
+            state.agentMode = 'error';
+            presentToolStage('tool-error', {
+              title: 'AI session needs a quick reset',
+              sourceStatus: 'Agora session recovery',
+              message: state.connectionError
+            }, 'session-recovery');
+          }
           renderApp();
           showToast(state.connectionError);
           return;
