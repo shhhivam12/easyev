@@ -673,7 +673,13 @@ async function handleApi(req, res, url) {
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 1200) : '';
     if (!record || !text) return json(res, 400, { error: 'Active session and text are required.' });
     tools.cancel(record, 'New user intent');
-    await record.session.think(text, { interruptable: true, metadata: { source: 'easyev-text-prompt' } });
+    await record.session.think(text, {
+      on_listening_action: 'interrupt',
+      on_thinking_action: 'interrupt',
+      on_speaking_action: 'interrupt',
+      interruptable: true,
+      metadata: { source: 'easyev-text-prompt' },
+    });
     return json(res, 200, { success: true });
   }
 
