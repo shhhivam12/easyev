@@ -6,6 +6,7 @@ import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES } from './decision-tools.mjs';
+import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import {
   AgoraClient,
   Agent,
@@ -343,6 +344,80 @@ function createAgentSession({ channel, uid, category, language, voice, mcpUrl })
   });
 }
 
+function createVehicleAgentSession({ channel, uid, vehicleId, language, voice }) {
+  const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
+  const client = new AgoraClient({ appId: APP_ID, appCert: APP_CERTIFICATE, area: Area.GLOBAL });
+  const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
+  const greeting = language === 'Hindi'
+    ? `नमस्ते! मैं ${vehicle.name} (${vehicle.company}) का AI एक्सपर्ट हूँ। आप इस गाड़ी की कीमत, बैटरी, रेंज या फीचर्स के बारे में जो पूछना चाहें, पूछिए!`
+    : language === 'Hinglish'
+      ? `Hello! Main ${vehicle.name} (${vehicle.company}) ka dedicated AI expert hoon. Iski real-world range, charging, price ya features ke bare me aap kuch bhi pooch sakte hain.`
+      : `Hello! I am your dedicated AI specialist for the ${vehicle.name} by ${vehicle.company}. Ask me anything about its real-world range, battery, pricing, or charging in India.`;
+
+  const speechInstructions = language === 'Hindi'
+    ? 'Speak in conversational Hindi with clear pronunciation and natural phrasing.'
+    : language === 'Hinglish'
+      ? 'Speak in modern Indian Hinglish with natural pacing and warm automotive terminology.'
+      : 'Speak in warm Indian English with clear automotive terminology.';
+
+  const stt = language === 'English'
+    ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
+    : new AresSTT({ keywords: [vehicle.name, vehicle.company, 'EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस'] });
+
+  const tts = AZURE_SPEECH_READY
+    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
+
+  const agent = new Agent({
+    client,
+    instructions: `${vehicle.knowledgePrompt}
+Language Guideline: ${agentInstructions({ category: vehicle.category, language })}
+Keep answers concise, accurate, and conversational. Help the buyer understand real benefits, highway charging nuances, and total cost of ownership.`,
+    greeting,
+    failureMessage: 'I had trouble answering that. Please ask once more.',
+    maxHistory: TOOL_SAFE_MAX_HISTORY,
+    turnDetection: {
+      language: recognitionLanguage,
+      config: {
+        speech_threshold: 0.5,
+        start_of_speech: {
+          mode: 'vad',
+          vad_config: { interrupt_duration_ms: 120, prefix_padding_ms: 240 },
+        },
+        end_of_speech: {
+          mode: 'vad',
+          vad_config: { silence_duration_ms: 360 },
+        },
+      },
+    },
+    advancedFeatures: { enable_rtm: true },
+    parameters: {
+      audio_scenario: 'chorus',
+      data_channel: 'datastream',
+      enable_error_message: true,
+      enable_metrics: true,
+    },
+  })
+    .withStt(stt)
+    .withLlm(new OpenAI({
+      model: 'gpt-4o-mini',
+      greetingMessage: greeting,
+      failureMessage: 'I had trouble answering that. Please ask once more.',
+      maxHistory: TOOL_SAFE_MAX_HISTORY,
+      params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
+    }))
+    .withTts(tts);
+
+  return agent.createSession({
+    channel,
+    agentUid: AGENT_UID,
+    remoteUids: [String(uid)],
+    idleTimeout: 120,
+    expiresIn: ExpiresIn.hours(1),
+    debug: false,
+  });
+}
+
 function createAgoraMcpServer(endpoint) {
   const server = { name: 'easyev-decision-tools', endpoint, transport: 'streamable_http' };
   if (!/^[A-Za-z0-9.-]+$/.test(server.name) || !server.endpoint || server.transport !== 'streamable_http') {
@@ -583,6 +658,53 @@ async function handleApi(req, res, url) {
     });
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/vehicles/top12') {
+    const category = url.searchParams.get('category');
+    const list = category && category !== 'All'
+      ? TOP_12_EVS.filter((v) => v.category.toLowerCase().includes(category.toLowerCase()))
+      : TOP_12_EVS;
+    return json(res, 200, { vehicles: list });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/vehicle-session/token') {
+    const vehicleId = url.searchParams.get('vehicleId') || 'tata-punch-ev';
+    const channel = `easyev-v-${vehicleId.replace(/[^a-z0-9-]/gi, '').slice(0, 20)}-${Date.now().toString(36)}-${randomUUID().slice(0, 6)}`;
+    const uid = String(randomInt(1000, 9_999_000));
+    const token = createToken(channel, uid);
+    const bootstrapKey = randomUUID();
+    bootstraps.set(bootstrapKey, { channel, uid, vehicleId, expiresAt: Date.now() + BOOTSTRAP_TTL_MS });
+    return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, bootstrapKey, vehicleId, expiresIn: TOKEN_TTL_SECONDS });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/vehicle-session/start') {
+    const body = await readJson(req);
+    const pending = bootstraps.get(body.bootstrapKey);
+    if (!pending || pending.expiresAt < Date.now() || pending.channel !== body.channel || pending.uid !== String(body.uid)) {
+      return json(res, 400, { error: 'The vehicle consultation bootstrap expired. Please start again.' });
+    }
+    bootstraps.delete(body.bootstrapKey);
+    const vehicleId = body.vehicleId || pending.vehicleId || 'tata-punch-ev';
+    const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const voice = selectedVoice(body.voice).id;
+    const key = randomUUID();
+    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category: vehicle.category, language, voice });
+    sessions.set(key, record);
+    try {
+      record.session = createVehicleAgentSession({ channel: pending.channel, uid: pending.uid, vehicleId, language, voice });
+      record.agentId = await record.session.start();
+      return json(res, 200, {
+        sessionKey: key,
+        agentId: record.agentId,
+        state: 'RUNNING',
+        vehicle,
+      });
+    } catch (error) {
+      sessions.delete(key);
+      throw error;
+    }
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {
     return json(res, 200, { provider: AZURE_SPEECH_READY ? 'azure' : 'fallback', previewAvailable: AZURE_SPEECH_READY, voices: Object.values(VOICES) });
   }
@@ -714,6 +836,8 @@ function serveFile(res, path, cache = false) {
     '.jpeg': 'image/jpeg',
     '.png': 'image/png',
     '.webp': 'image/webp',
+    '.glb': 'model/gltf-binary',
+    '.gltf': 'model/gltf+json',
   }[extname(fullPath)] || 'application/octet-stream';
   res.writeHead(200, {
     'Content-Type': mime,
@@ -741,7 +865,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (/^\/assets\/[a-z0-9-]+\.(?:jpe?g|png|webp)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (/^\/assets\/[a-z0-9\/-]+\.(?:jpe?g|png|webp|svg|glb|gltf)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
