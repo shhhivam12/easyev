@@ -111,7 +111,7 @@ function resolveVehicles(names, category) {
     if (!ranked[0] || ranked[0].score < 20) ambiguous.push(query);
     else if (!resolved.some((item) => item.id === ranked[0].item.id)) resolved.push(ranked[0].item);
   }
-  if (resolved.length < 2) {
+  if (requested.length === 0) {
     const matches = VEHICLES.filter((item) => category === 'Not sure' || item.category === category);
     for (const item of matches) if (resolved.length < 2 && !resolved.some((current) => current.id === item.id)) resolved.push(item);
   }
@@ -426,7 +426,7 @@ export class EasyEVToolEngine {
   async compareVehicles(record, args, signal) {
     const input = unpackArgs(args);
     const requested = comparisonNames(input);
-    if (requested.length < 2) {
+    if (requested.length === 0) {
       for (const item of record.passport.shortlist || []) {
         if (requested.length >= 2) break;
         if (!requested.some((name) => normalizeName(name) === normalizeName(item.name))) requested.push(item.name);
@@ -482,7 +482,9 @@ export class EasyEVToolEngine {
         ? `I found ${vehicles.length} close matches, but please clarify ${ambiguous.join(', ')}.`
         : wantsVisual
           ? `The visual explorer for ${vehicles[0]?.name || 'your selected vehicle'} is ready on screen. It includes a sourced photograph when available and an original interactive concept that is clearly illustrative.`
-          : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
+          : vehicles.length === 1
+            ? `The decision card for ${vehicles[0]?.name || 'your selected vehicle'} is ready on your screen, with its sourced specifications and visual explorer.`
+            : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
     };
   }
 
