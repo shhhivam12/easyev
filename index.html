@@ -2833,7 +2833,6 @@
       let toastTimer = null;
       let backendReadyTimer = null;
       let costRecalcTimer = null;
-      let spokenIntentTimer = null;
       let currentPreviewAudio = null;
       let mapRequestController = null;
       const PASSPORT_STORAGE_KEY = 'easyev-decision-passport-v1';
@@ -3882,7 +3881,7 @@
         if (!wants3d && !wantsPhoto && !wantsCompare) return false;
         let vehicles = SPOKEN_VEHICLES.filter((item) => item.match.test(spoken)).map((item) => item.name);
         const shortlisted = (state.decisionPassport?.shortlist || []).map((item) => item.name).filter(Boolean);
-        if (wantsCompare && vehicles.length < 2) vehicles = [...new Set([...vehicles, ...shortlisted, ...defaultCompareNames()])].slice(0, 2);
+        if (wantsCompare && !vehicles.length) vehicles = [...new Set([...shortlisted, ...defaultCompareNames()])].slice(0, 2);
         if (!wantsCompare && !vehicles.length) vehicles = (shortlisted.length ? shortlisted : defaultCompareNames()).slice(0, 1);
         if (!vehicles.length) return false;
         const normalized = spoken.toLowerCase().replace(/\s+/g, ' ');
@@ -3893,11 +3892,11 @@
         state.handledFastIntentIds.add(textKey);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(textKey), 8_000);
         const presentation = wants3d ? '3d' : wantsPhoto ? 'photo' : 'comparison';
-        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 12_000 };
         state.activityMessage = wantsCompare && vehicles.length > 1
           ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
           : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
         runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
+        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 60_000 };
         return true;
       };
       const toolForTurn = (turnName) => ({
@@ -4199,13 +4198,8 @@
           const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
-          state.intentGuard = null;
-          if (spokenIntentTimer) window.clearTimeout(spokenIntentTimer);
-          const sessionId = state.sessionId;
-          spokenIntentTimer = window.setTimeout(() => {
-            if (!isCurrentSession(sessionId) || state.view !== 'room') return;
-            fastVisualIntent(latestUser.text, finalEventId);
-          }, 520);
+          const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
+          if (!handledVisually) state.intentGuard = null;
         }
       };
       const handleAdapterEvent = (event) => {
