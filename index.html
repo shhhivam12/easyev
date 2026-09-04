@@ -7155,6 +7155,1743 @@
       }
       .energy-band::before, .energy-band::after { animation: none; }
     }
+
+    /* ============================================================
+       FOR DEALERS ONBOARDING PORTAL (PIXEL PERFECT GOLD STANDARD)
+       ============================================================ */
+    #dealers-view {
+      position: relative;
+      width: 100%;
+      height: 100svh;
+      max-height: 100svh;
+      overflow: hidden;
+      background: #f0f7f2;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 16px 20px;
+      box-sizing: border-box;
+      gap: 12px;
+    }
+
+    /* Top Navigation Bar (EasyEV Standard Dark Pill Navbar) */
+    .dealers-navbar {
+      background: #071910;
+      border-radius: 999px;
+      height: 48px;
+      width: min(1140px, 100%);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 22px;
+      box-sizing: border-box;
+      flex-shrink: 0;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .dealers-nav-links {
+      display: flex;
+      align-items: center;
+      gap: 26px;
+    }
+
+    .dealers-nav-links a {
+      color: rgba(255, 255, 255, 0.75);
+      font-size: 12.5px;
+      font-weight: 550;
+      text-decoration: none;
+      transition: color .15s ease;
+    }
+
+    .dealers-nav-links a:hover {
+      color: #ffffff;
+    }
+
+    .dealers-nav-links a.active {
+      color: #16bf53;
+      font-weight: 700;
+    }
+
+    .btn-talk-ai {
+      background: #16bf53;
+      color: #072a18;
+      border: none;
+      border-radius: 999px;
+      padding: 7px 16px;
+      font-size: 12px;
+      font-weight: 750;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: background .15s ease, transform .15s ease;
+    }
+
+    .btn-talk-ai:hover {
+      background: #55f27b;
+      transform: translateY(-1px);
+    }
+
+    /* Page Content Wrapper (Centered, Compact & Zero Scroll) */
+    .dealers-page-wrapper {
+      width: min(1400px, 100%);
+      margin: 24px auto;
+      flex: 1;
+      max-height: calc(100svh - 144px);
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-sizing: border-box;
+    }
+
+    /* Top White Header Card with Title & Interactive Stepper */
+    .dealers-header-card {
+      background: #ffffff;
+      border: 1px solid #e3ede6;
+      border-radius: 14px;
+      padding: 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+      flex-shrink: 0;
+    }
+
+    .dealers-header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dealers-main-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0;
+      letter-spacing: -.02em;
+      line-height: 1.2;
+    }
+
+    .dealers-main-title .text-green {
+      color: #16bf53;
+      text-shadow: 0 0 12px rgba(22, 191, 83, 0.2);
+    }
+
+    .dealers-main-sub {
+      font-size: 11px;
+      color: #6b7280;
+      margin: 1px 0 0;
+    }
+
+    /* Stepper Row with Clickable Nav Pills */
+    .dealers-stepper-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .dealer-step-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      color: #4b5563;
+      font-size: 11.5px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+
+    .dealer-step-btn:hover {
+      border-color: #16bf53;
+      color: #074728;
+      background: #f0fdf4;
+      transform: translateY(-1px);
+    }
+
+    .dealer-step-btn .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: #475569;
+      display: grid;
+      place-items: center;
+      font-size: 10.5px;
+      font-weight: 800;
+      transition: all .2s ease;
+    }
+
+    .dealer-step-btn.active {
+      background: #062817;
+      border-color: #062817;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(6, 40, 23, 0.25);
+    }
+
+    .dealer-step-btn.active .step-num {
+      background: #16bf53;
+      color: #062817;
+      box-shadow: 0 0 8px rgba(22, 191, 83, 0.6);
+    }
+
+    .dealer-step-btn.completed {
+      background: #f0fdf4;
+      border-color: #86efac;
+      color: #15803d;
+    }
+
+    .dealer-step-btn.completed .step-num {
+      background: #16bf53;
+      color: #ffffff;
+    }
+
+    /* Main 2-Column Split Workspace (Form 58% / Copilot 42%) */
+    .dealers-main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr);
+      gap: 14px;
+      flex: 1;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    /* LEFT: Form Card */
+    .dealers-form-card {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #e3ede6;
+      padding: 16px 22px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+      box-sizing: border-box;
+    }
+
+    .form-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+      margin-bottom: 14px;
+      flex-shrink: 0;
+    }
+
+    .form-card-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #074728, #0e854b);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 10px rgba(7, 71, 40, 0.2);
+    }
+
+    .form-card-title-meta {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-card-title-meta h2 {
+      font-size: 15px;
+      font-weight: 750;
+      color: #111827;
+      margin: 0 0 2px;
+    }
+
+    .form-card-title-meta p {
+      font-size: 11.5px;
+      color: #6b7280;
+      margin: 0;
+    }
+
+    .step-indicator-badge {
+      background: #e8f7ee;
+      color: #16bf53;
+      border: 1px solid #bbf7d0;
+      font-size: 11px;
+      font-weight: 750;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Form Container & Step Panes */
+    #dealer-registration-form {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dealer-step-pane {
+      display: none;
+      height: 100%;
+      min-height: 0;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: fadeInStep .2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .dealer-step-pane.active {
+      display: flex;
+    }
+
+    @keyframes fadeInStep {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-scroll-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 14px;
+    }
+
+    .dealers-inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px 16px;
+    }
+
+    .input-field-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .input-field-wrap.full-span {
+      grid-column: 1 / -1;
+    }
+
+    .input-field-wrap label {
+      font-size: 12.5px;
+      font-weight: 650;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .input-field-wrap label .req {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .input-with-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-with-icon .input-left-icon {
+      position: absolute;
+      left: 12px;
+      font-size: 14px;
+      opacity: 0.65;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      color: #64748b;
+    }
+
+    .input-with-icon input,
+    .select-with-chevron select {
+      width: 100%;
+      height: 42px;
+      padding: 0 14px 0 36px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #ffffff;
+      box-sizing: border-box;
+      transition: all .15s ease;
+      color: #0f172a;
+    }
+
+    .select-with-chevron select {
+      padding-left: 14px;
+      cursor: pointer;
+    }
+
+    .input-with-icon input:focus,
+    .select-with-chevron select:focus {
+      border-color: #16bf53;
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.15);
+      background: #fbfdfc;
+    }
+
+    .phone-input-combo {
+      position: relative;
+      display: flex;
+      align-items: center;
+      height: 42px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 9px;
+      background: #ffffff;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: all .15s ease;
+    }
+
+    .phone-input-combo:focus-within {
+      border-color: #16bf53;
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.15);
+    }
+
+    .phone-code {
+      padding: 0 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #374151;
+      background: #f8fafc;
+      border-right: 1px solid #e2e8f0;
+      height: 100%;
+      display: grid;
+      place-items: center;
+    }
+
+    .phone-input-combo input {
+      border: none !important;
+      outline: none !important;
+      flex: 1;
+      height: 100%;
+      padding: 0 12px;
+      font-size: 13px;
+      color: #0f172a;
+    }
+
+    .whatsapp-icon {
+      padding-right: 12px;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-hint {
+      margin: 0 0 4px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .field-error {
+      font-size: 10.5px;
+      color: #dc2626;
+      font-weight: 600;
+      min-height: 12px;
+      line-height: 1.2;
+    }
+
+    /* Working Days & Inventory Pills */
+    .pills-selection-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .select-pill {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .select-pill:hover {
+      border-color: #cbd5e1;
+      background: #f1f5f9;
+    }
+
+    .select-pill.active {
+      background: #062817;
+      border-color: #062817;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(6, 40, 23, 0.2);
+    }
+
+    /* Category Cards Grid */
+    .category-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .cat-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      cursor: pointer;
+      transition: all .2s ease;
+      user-select: none;
+    }
+
+    .cat-card:hover {
+      background: #ffffff;
+      border-color: #16bf53;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .cat-card.active {
+      background: #f0fdf4;
+      border-color: #16bf53;
+      box-shadow: 0 0 0 1.5px #16bf53, 0 4px 12px rgba(22, 191, 83, 0.12);
+    }
+
+    .cat-card .cat-icon {
+      font-size: 22px;
+      margin-bottom: 6px;
+    }
+
+    .cat-card strong {
+      font-size: 12.5px;
+      font-weight: 750;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .cat-card span {
+      font-size: 10.5px;
+      color: #64748b;
+      line-height: 1.25;
+    }
+
+    .cat-card .cat-check {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+      color: transparent;
+      transition: all .15s ease;
+    }
+
+    .cat-card.active .cat-check {
+      background: #16bf53;
+      color: #ffffff;
+      box-shadow: 0 0 6px rgba(22, 191, 83, 0.5);
+    }
+
+    /* Brand Chips Grid */
+    .brand-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 8px;
+    }
+
+    .brand-chip {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      color: #334155;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .brand-chip:hover {
+      border-color: #16bf53;
+      background: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .brand-chip.active {
+      background: #072615;
+      border-color: #072615;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(7, 38, 21, 0.25);
+    }
+
+    .custom-brand-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .custom-brand-row input {
+      flex: 1;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .custom-brand-row button {
+      height: 36px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: #074728;
+      border: none;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background .15s ease;
+    }
+
+    .custom-brand-row button:hover {
+      background: #05331d;
+    }
+
+    /* Service Config Boxes (Step 4) */
+    .service-config-box {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      transition: all .2s ease;
+    }
+
+    .service-config-box:hover {
+      border-color: #cbd5e1;
+      background: #ffffff;
+    }
+
+    .service-config-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .service-config-header strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 750;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .service-config-header span {
+      font-size: 11.5px;
+      color: #64748b;
+    }
+
+    .service-config-body {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .sub-label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 650;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    .bank-partners-grid,
+    .td-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .bank-check-item,
+    .slot-pill-check {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 11.5px;
+      font-weight: 550;
+      color: #334155;
+      cursor: pointer;
+      padding: 6px 10px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      transition: all .15s ease;
+    }
+
+    .bank-check-item:hover,
+    .slot-pill-check:hover {
+      border-color: #16bf53;
+      background: #f0fdf4;
+    }
+
+    .td-modes-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    /* Switch Toggles */
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .switch-toggle .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #cbd5e1;
+      transition: .2s;
+      border-radius: 24px;
+    }
+
+    .switch-toggle .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    }
+
+    .switch-toggle input:checked + .slider {
+      background-color: #16bf53;
+    }
+
+    .switch-toggle input:checked + .slider:before {
+      transform: translateX(20px);
+    }
+
+    /* Form Footer Navigation Actions */
+    .form-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .btn-continue-action,
+    .btn-step-submit {
+      background: #074728;
+      color: #ffffff;
+      border: none;
+      border-radius: 9px;
+      padding: 10px 22px;
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .15s ease;
+      margin-left: auto;
+      box-shadow: 0 4px 12px rgba(7, 71, 40, 0.2);
+    }
+
+    .btn-continue-action:hover,
+    .btn-step-submit:hover {
+      background: #05331d;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(7, 71, 40, 0.3);
+    }
+
+    .btn-step-prev {
+      background: #ffffff;
+      border: 1.5px solid #d1d5db;
+      color: #374151;
+      border-radius: 9px;
+      padding: 9px 16px;
+      font-size: 12.5px;
+      font-weight: 650;
+      cursor: pointer;
+      transition: all .15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-step-prev:hover {
+      background: #f8fafc;
+      border-color: #9ca3af;
+      color: #111827;
+    }
+
+    /* Step 5: Digital Verified Certificate */
+    .dealer-cert-card {
+      background: linear-gradient(135deg, #072615, #0b4526);
+      border: 2px solid #22c55e;
+      border-radius: 14px;
+      padding: 18px 22px;
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(7, 38, 21, 0.35);
+      margin: 14px 0;
+      text-align: left;
+    }
+
+    .cert-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    .cert-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      color: #86efac;
+    }
+
+    .cert-id-badge {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .cert-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .cert-col .c-label {
+      display: block;
+      font-size: 10.5px;
+      color: #86efac;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .cert-col strong {
+      font-size: 12.5px;
+      color: #ffffff;
+    }
+
+    .cert-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding-top: 10px;
+      font-size: 11.5px;
+      color: #cbd5e1;
+    }
+
+    .cert-status-dot {
+      color: #4ade80;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cert-status-dot::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 6px #4ade80;
+    }
+
+    /* RIGHT: AI VOICE COPILOT DARK CARD */
+    .dealers-copilot-dark-card {
+      background: #091a10;
+      border: 1px solid rgba(22, 191, 83, 0.18);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      height: 100%;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+
+    .whatsapp-icon {
+      padding-right: 12px;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+    }
+
+    .select-with-chevron select {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 9px;
+      font-size: 13px;
+      outline: none;
+      background: #ffffff;
+      box-sizing: border-box;
+    }
+
+    .field-hint {
+      margin: 0 0 4px;
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .field-error {
+      font-size: 10.5px;
+      color: #dc2626;
+      font-weight: 500;
+      min-height: 12px;
+      line-height: 1.2;
+    }
+
+    /* Category Cards Grid */
+    .category-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .cat-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .cat-card:hover {
+      background: #f9fafb;
+      border-color: #9ca3af;
+    }
+
+    .cat-card.active {
+      background: #f0fdf4;
+      border-color: #16bf53;
+      box-shadow: 0 0 0 1px #16bf53;
+    }
+
+    .cat-card .cat-icon {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .cat-card strong {
+      font-size: 12px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .cat-card span {
+      font-size: 10.5px;
+      color: #6b7280;
+      line-height: 1.2;
+    }
+
+    .cat-card .cat-check {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: #e5e7eb;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: transparent;
+      transition: all .15s ease;
+    }
+
+    .cat-card.active .cat-check {
+      background: #16bf53;
+      color: #ffffff;
+    }
+
+    /* Brand Chips Grid */
+    .brand-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .brand-chip {
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      color: #374151;
+      font-size: 11.5px;
+      font-weight: 550;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .brand-chip:hover {
+      border-color: #9ca3af;
+      color: #111827;
+    }
+
+    .brand-chip.active {
+      background: #071c10;
+      border-color: #071c10;
+      color: #ffffff;
+    }
+
+    .custom-brand-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .custom-brand-row input {
+      flex: 1;
+      height: 32px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      font-size: 11.5px;
+      outline: none;
+    }
+
+    .custom-brand-row button {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 6px;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Service Config Boxes */
+    .service-config-box {
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 12px;
+      margin-bottom: 6px;
+    }
+
+    .service-config-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .service-config-header strong {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 2px;
+    }
+
+    .service-config-header span {
+      font-size: 11px;
+      color: #6b7280;
+    }
+
+    .service-config-body {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .sub-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 4px;
+    }
+
+    .bank-partners-grid,
+    .td-slots-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 6px;
+    }
+
+    .bank-check-item,
+    .slot-pill-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #374151;
+      cursor: pointer;
+    }
+
+    .td-modes-row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    /* Form Footer Actions */
+    .form-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      padding-top: 10px;
+      border-top: 1px solid #f1f5f9;
+      flex-shrink: 0;
+    }
+
+    .btn-continue-action,
+    .btn-step-submit {
+      background: #074728;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background .15s ease;
+      margin-left: auto;
+    }
+
+    .btn-continue-action:hover,
+    .btn-step-submit:hover {
+      background: #05331d;
+    }
+
+    .btn-step-prev {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 550;
+      cursor: pointer;
+    }
+
+    /* RIGHT: AI VOICE COPILOT DARK CARD (CLEAN SENIOR FRONTEND DESIGN) */
+    .dealers-copilot-dark-card {
+      background: #091a10;
+      border: 1px solid rgba(22, 191, 83, 0.18);
+      border-radius: 16px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    /* Copilot Header */
+    .copilot-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .copilot-brand-title {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .copilot-brand-title strong {
+      font-size: 14.5px;
+      font-weight: 750;
+      color: #ffffff;
+      letter-spacing: -.01em;
+    }
+
+    .copilot-brand-title span {
+      font-size: 11px;
+      color: #8cb399;
+    }
+
+    .copilot-status-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill-ai-ready {
+      background: rgba(22, 191, 83, 0.12);
+      border: 1px solid rgba(22, 191, 83, 0.3);
+      color: #4ade80;
+      font-size: 11px;
+      font-weight: 650;
+      padding: 3px 9px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pill-ai-ready .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 6px #4ade80;
+    }
+
+    .copilot-wave-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 2.5px;
+      height: 14px;
+    }
+
+    .copilot-wave-visualizer span {
+      width: 2.5px;
+      height: 6px;
+      border-radius: 2px;
+      background: #4ade80;
+      animation: dWaveAnim 0.8s ease-in-out infinite alternate;
+    }
+
+    .copilot-wave-visualizer span:nth-child(2) { animation-delay: -0.2s; height: 10px; }
+    .copilot-wave-visualizer span:nth-child(3) { animation-delay: -0.4s; height: 14px; }
+    .copilot-wave-visualizer span:nth-child(4) { animation-delay: -0.6s; height: 9px; }
+    .copilot-wave-visualizer span:nth-child(5) { animation-delay: -0.1s; height: 7px; }
+
+    @keyframes dWaveAnim {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.2); }
+    }
+
+    /* Structured Progress Box */
+    .copilot-progress-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 9px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .copilot-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 550;
+      color: #94a3b8;
+    }
+
+    .copilot-progress-labels strong {
+      color: #e2e8f0;
+      font-weight: 650;
+    }
+
+    .copilot-progress-track {
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .copilot-progress-fill {
+      height: 100%;
+      background: #16bf53;
+      border-radius: 2px;
+      transition: width .3s ease;
+    }
+
+    /* Central Conversation Stream Card */
+    .copilot-conversation-stream {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px 16px;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .copilot-agent-bubble {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .agent-header-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .agent-role-badge {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: #16bf53;
+      text-transform: uppercase;
+      background: rgba(22, 191, 83, 0.1);
+      border: 1px solid rgba(22, 191, 83, 0.2);
+      border-radius: 4px;
+      padding: 1px 6px;
+    }
+
+    .copilot-agent-bubble p {
+      margin: 0;
+      color: #f8fafc;
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 450;
+    }
+
+    .btn-start-speaking {
+      background: #16bf53;
+      color: #042414;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 12.5px;
+      font-weight: 750;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      width: fit-content;
+      margin-top: 6px;
+      transition: all .15s ease;
+      box-shadow: 0 3px 12px rgba(22, 191, 83, 0.25);
+    }
+
+    .btn-start-speaking:hover {
+      background: #3ee679;
+      transform: translateY(-1px);
+    }
+
+    /* Quick Reply Chips */
+    .copilot-suggestions-section {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .suggestions-heading {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .quick-chips-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .reply-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 550;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .reply-chip:hover {
+      background: rgba(22, 191, 83, 0.15);
+      border-color: #16bf53;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Bottom Voice & Input Dock */
+    .copilot-bottom-dock {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .copilot-controls-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-voice-mic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #16bf53;
+      border: none;
+      color: #042414;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+
+    .btn-voice-mic:hover {
+      transform: scale(1.05);
+      background: #3ee679;
+      box-shadow: 0 0 12px rgba(22, 191, 83, 0.4);
+    }
+
+    .btn-voice-mic.listening {
+      background: #ef4444;
+      color: #ffffff;
+      animation: pulseMic 1.2s infinite;
+    }
+
+    @keyframes pulseMic {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    }
+
+    .copilot-input-form {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .copilot-input-form input {
+      width: 100%;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #ffffff;
+      padding: 0 14px;
+      font-size: 12.5px;
+      font-family: inherit;
+      outline: none;
+      box-sizing: border-box;
+      transition: all .15s ease;
+    }
+
+    .copilot-input-form input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .copilot-input-form input:focus {
+      border-color: #16bf53;
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 2px rgba(22, 191, 83, 0.2);
+    }
+
+    .btn-voice-send {
+      height: 40px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+
+    .btn-voice-send:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-voice-submit {
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 8px;
+      background: #16bf53;
+      border: none;
+      color: #042414;
+      font-size: 12.5px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .btn-voice-submit:hover {
+      background: #3ee679;
+    }
+
+    .btn-voice-submit:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .copilot-footer-notice {
+      font-size: 11px;
+      color: #64748b;
+      text-align: center;
+      margin: 0;
+      flex-shrink: 0;
+    }
+
+    /* Bottom Highlights Bar (4 White Cards) */
+    .dealers-highlights-bar {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #e3ede6;
+      padding: 7px 16px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      flex-shrink: 0;
+    }
+
+    .highlight-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .highlight-icon-box {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      background: #e8f7ee;
+      color: #15803d;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+
+    .highlight-text strong {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #111827;
+    }
+
+    .highlight-text span {
+      display: block;
+      font-size: 9.5px;
+      color: #6b7280;
+    }
+
+    /* Success Screen */
+    .success-screen {
+      text-align: center;
+      padding: 8px 0;
+    }
+
+    .success-mascot-badge img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      margin-bottom: 8px;
+    }
+
+    .success-tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: #15803d;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .success-screen h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #111827;
+      margin: 0 0 4px;
+    }
+
+    .success-sub {
+      color: #6b7280;
+      font-size: 12px;
+      margin: 0 0 14px;
+    }
+
+    .dealer-cert-card {
+      background: #071c10;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+      padding: 14px;
+      color: #ffffff;
+      text-align: left;
+      margin-bottom: 14px;
+    }
+
+    .cert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 10px;
+    }
+
+    .cert-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .cert-id-badge {
+      font-size: 11px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .cert-id-badge strong {
+      color: #55f27b;
+      font-family: monospace;
+      margin-left: 4px;
+    }
+
+    .cert-body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .cert-col .c-label {
+      display: block;
+      font-size: 10px;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: 2px;
+    }
+
+    .cert-col strong {
+      font-size: 11.5px;
+      color: #ffffff;
+    }
+
+    .cert-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.7);
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .cert-status-dot {
+      color: #55f27b;
+      font-weight: 600;
+    }
+
+    .success-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn-register-another {
+      background: #ffffff;
+      border: 1px solid #d1d5db;
+      color: #374151;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-return-home {
+      background: #16bf53;
+      border: none;
+      color: #ffffff;
+      padding: 7px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 
@@ -7329,7 +9066,11 @@
 
       <footer class="landing-footer" role="contentinfo">
         <img class="landing-footer__guide" src="/assets/clay-guide-success-v2.webp" alt="EasyEV clay guide celebrating a confident decision" decoding="async">
-        <div class="landing-footer__copy"><strong>Made by Team CodeHackers</strong><span>Shivam · Sathvik · Jatin Vats</span></div>
+        <div class="landing-footer__copy">
+          <strong>Made by Team CodeHackers</strong>
+          <span>Shivam · Sathvik · Jatin Vats</span>
+          <a href="#for-dealers" data-nav-action="dealers" style="color: var(--green-bright); text-decoration: underline; font-weight: 700; font-size: 13px; margin-top: 6px; display: inline-block;">Are you an EV Dealer? Register your showroom ➔</a>
+        </div>
         <span class="landing-footer__mark">Built for better EV decisions</span>
       </footer>
 
@@ -7934,6 +9675,576 @@
         </div>
       </div>
     </div>
+
+    <!-- ============================================================
+         FOR DEALERS ONBOARDING PORTAL VIEW (#dealers-view)
+         ============================================================ -->
+    <section id="dealers-view" class="view" hidden aria-hidden="true" aria-label="EasyEV Dealer Onboarding">
+      <!-- Top Navbar (EasyEV Standard Dark Pill Navbar) -->
+      <header class="dealers-navbar">
+        <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
+          <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
+          <span class="brand__wordmark">EasyEV</span>
+          <span class="brand__ai">AI</span>
+        </a>
+        <nav class="dealers-nav-links">
+          <a href="#how-it-works" data-nav-action="how">How it works</a>
+          <a href="#explore" data-nav-action="explore">Explore EVs</a>
+          <a href="#compare" data-nav-action="compare">Compare EVs</a>
+          <a href="#dealers" class="active">For dealers</a>
+        </nav>
+        <div class="dealers-nav-cta">
+          <button class="btn-talk-ai" type="button" data-start-consultation>
+            <span>Talk to EasyEV AI</span>
+            <svg width="14" height="10" viewBox="0 0 16 12" fill="currentColor">
+              <rect x="0" y="3" width="2" height="6" rx="1"/>
+              <rect x="3.5" y="1" width="2" height="10" rx="1"/>
+              <rect x="7" y="0" width="2" height="12" rx="1"/>
+              <rect x="10.5" y="2" width="2" height="8" rx="1"/>
+              <rect x="14" y="4" width="2" height="4" rx="1"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Workspace Container -->
+      <div class="dealers-page-wrapper">
+        <!-- Top White Header Card with Title & Interactive Stepper -->
+        <div class="dealers-header-card">
+          <div class="dealers-header-left">
+            <h1 class="dealers-main-title">Register Your <span class="text-green">EV Dealership</span></h1>
+            <p class="dealers-main-sub">Complete all 4 steps below or use the AI Voice Copilot for auto-fill</p>
+          </div>
+
+          <div class="dealers-stepper-row" id="dealers-stepper">
+            <button type="button" class="dealer-step-btn active" data-step-indicator="1">
+              <span class="step-num">1</span>
+              <span>1. Profile</span>
+            </button>
+            <button type="button" class="dealer-step-btn" data-step-indicator="2">
+              <span class="step-num">2</span>
+              <span>2. Location</span>
+            </button>
+            <button type="button" class="dealer-step-btn" data-step-indicator="3">
+              <span class="step-num">3</span>
+              <span>3. Brands</span>
+            </button>
+            <button type="button" class="dealer-step-btn" data-step-indicator="4">
+              <span class="step-num">4</span>
+              <span>4. Services</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main 2-Column Split Workspace -->
+        <div class="dealers-main-grid">
+          <!-- LEFT: Form Card -->
+          <div class="dealers-form-card">
+            <div class="form-card-header">
+              <div class="form-card-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+                  <path d="M2 7h20"/>
+                </svg>
+              </div>
+              <div class="form-card-title-meta">
+                <h2 id="dealer-form-step-title">Step 1: Dealership & Contact Profile</h2>
+                <p id="dealer-form-step-sub">Tell us about your showroom and the primary contact manager for buyer bookings.</p>
+              </div>
+              <span class="step-indicator-badge" id="dealer-step-indicator-badge">Step 1 of 4</span>
+            </div>
+
+            <form id="dealer-registration-form" novalidate>
+              <!-- STEP 1: Dealership & Contact Profile -->
+              <div class="dealer-step-pane active" id="dealer-step-1" data-step="1">
+                <div class="form-scroll-body">
+                  <div class="dealers-inputs-grid">
+                    <div class="input-field-wrap full-span">
+                      <label for="dealer-shop-name">Dealership / Shop Name <span class="req">*</span></label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+                        </span>
+                        <input type="text" id="dealer-shop-name" placeholder="e.g. Tata Motors EV Hub - South Extension" required>
+                      </div>
+                      <span class="field-error" id="err-shop-name"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-type">Dealership Type</label>
+                      <div class="select-with-chevron">
+                        <select id="dealer-type">
+                          <option value="Authorized OEM Dealership">Authorized OEM Dealership</option>
+                          <option value="Multi-Brand EV Showroom">Multi-Brand EV Showroom</option>
+                          <option value="Exclusive EV Franchise">Exclusive EV Franchise</option>
+                          <option value="Commercial & Fleet EV Center">Commercial & Fleet EV Center</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-contact-name">Owner / Showroom Manager Name <span class="req">*</span></label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </span>
+                        <input type="text" id="dealer-contact-name" placeholder="e.g. Rajesh Sharma" required>
+                      </div>
+                      <span class="field-error" id="err-contact-name"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-phone">Business Mobile / WhatsApp Number <span class="req">*</span></label>
+                      <div class="phone-input-combo">
+                        <span class="phone-code">+91</span>
+                        <input type="tel" id="dealer-phone" placeholder="98112 34567" maxlength="10" required>
+                        <span class="whatsapp-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        </span>
+                      </div>
+                      <span class="field-error" id="err-phone"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-city">City <span class="req">*</span></label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <input type="text" id="dealer-city" placeholder="e.g. New Delhi, Bengaluru, Pune" required>
+                      </div>
+                      <span class="field-error" id="err-city"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-email">Official Email Address</label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </span>
+                        <input type="email" id="dealer-email" placeholder="e.g. sales@dealership.in">
+                      </div>
+                      <span class="field-error" id="err-email"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-state">State</label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M16 14h.01"/></svg>
+                        </span>
+                        <input type="text" id="dealer-state" placeholder="e.g. Delhi, Maharashtra, Karnataka">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-card-footer">
+                  <div></div>
+                  <button type="button" class="btn-continue-action" id="btn-step-1-next">Continue to Location ➔</button>
+                </div>
+              </div>
+
+              <!-- STEP 2: Location & Operating Hours -->
+              <div class="dealer-step-pane" id="dealer-step-2" data-step="2">
+                <div class="form-scroll-body">
+                  <div class="dealers-inputs-grid">
+                    <div class="input-field-wrap full-span">
+                      <label for="dealer-address">Full Street Address <span class="req">*</span></label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <input type="text" id="dealer-address" placeholder="e.g. Plot 42, Ring Road, South Extension Part II" required>
+                      </div>
+                      <span class="field-error" id="err-address"></span>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-landmark">Landmark / Locality Area</label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>
+                        </span>
+                        <input type="text" id="dealer-landmark" placeholder="e.g. Opposite Metro Pillar 114">
+                      </div>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-pincode">Pincode (6 digits) <span class="req">*</span></label>
+                      <div class="input-with-icon">
+                        <span class="input-left-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                        </span>
+                        <input type="text" id="dealer-pincode" placeholder="e.g. 110049" maxlength="6" required>
+                      </div>
+                      <span class="field-error" id="err-pincode"></span>
+                    </div>
+
+                    <div class="input-field-wrap full-span">
+                      <label>Working Days</label>
+                      <div class="pills-selection-row" id="working-days-pills">
+                        <button type="button" class="select-pill active" data-days="All 7 Days">All 7 Days (Open Daily)</button>
+                        <button type="button" class="select-pill" data-days="Monday to Saturday">Monday to Saturday</button>
+                        <button type="button" class="select-pill" data-days="Tuesday to Sunday">Tuesday to Sunday</button>
+                      </div>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-open-time">Showroom Opens At</label>
+                      <div class="select-with-chevron">
+                        <select id="dealer-open-time">
+                          <option value="09:00 AM">09:00 AM</option>
+                          <option value="09:30 AM" selected>09:30 AM</option>
+                          <option value="10:00 AM">10:00 AM</option>
+                          <option value="10:30 AM">10:30 AM</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="input-field-wrap">
+                      <label for="dealer-close-time">Showroom Closes At</label>
+                      <div class="select-with-chevron">
+                        <select id="dealer-close-time">
+                          <option value="07:30 PM">07:30 PM</option>
+                          <option value="08:00 PM">08:00 PM</option>
+                          <option value="08:30 PM" selected>08:30 PM</option>
+                          <option value="09:00 PM">09:00 PM</option>
+                          <option value="09:30 PM">09:30 PM</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-card-footer">
+                  <button type="button" class="btn-step-prev" id="btn-step-2-prev">⬅ Back to Step 1: Profile</button>
+                  <button type="button" class="btn-continue-action" id="btn-step-2-next">Continue to Inventory ➔</button>
+                </div>
+              </div>
+
+              <!-- STEP 3: EV Categories & Brand Portfolio -->
+              <div class="dealer-step-pane" id="dealer-step-3" data-step="3">
+                <div class="form-scroll-body">
+                  <div class="input-field-wrap full-span">
+                    <label>Vehicle Categories Available in Your Showroom <span class="req">*</span></label>
+                    <p class="field-hint">Select all that apply. This helps the AI voice agent match the right buyers to you.</p>
+                    <div class="category-cards-grid" id="dealer-cat-cards">
+                      <div class="cat-card active" data-category="4W">
+                        <span class="cat-icon">🚗</span>
+                        <strong>4-Wheeler EVs</strong>
+                        <span>Electric Cars & SUVs</span>
+                        <span class="cat-check">✓</span>
+                      </div>
+                      <div class="cat-card active" data-category="2W">
+                        <span class="cat-icon">🛵</span>
+                        <strong>2-Wheeler EVs</strong>
+                        <span>Scooters & Bikes</span>
+                        <span class="cat-check">✓</span>
+                      </div>
+                      <div class="cat-card active" data-category="3W">
+                        <span class="cat-icon">🛺</span>
+                        <strong>3-Wheeler EVs</strong>
+                        <span>Autos & Loaders</span>
+                        <span class="cat-check">✓</span>
+                      </div>
+                      <div class="cat-card active" data-category="commercial">
+                        <span class="cat-icon">🚚</span>
+                        <strong>Commercial EVs</strong>
+                        <span>Fleets & Trucks</span>
+                        <span class="cat-check">✓</span>
+                      </div>
+                    </div>
+                    <span class="field-error" id="err-categories"></span>
+                  </div>
+
+                  <div class="input-field-wrap full-span" style="margin-top: 6px;">
+                    <label>EV Brands You Deal In / Represent <span class="req">*</span></label>
+                    <div class="brand-chips-grid" id="dealer-brand-chips">
+                      <button type="button" class="brand-chip active" data-brand="Tata Motors">Tata Motors</button>
+                      <button type="button" class="brand-chip active" data-brand="Mahindra">Mahindra</button>
+                      <button type="button" class="brand-chip" data-brand="MG Motor">MG Motor</button>
+                      <button type="button" class="brand-chip" data-brand="Hyundai">Hyundai</button>
+                      <button type="button" class="brand-chip" data-brand="Ather Energy">Ather Energy</button>
+                      <button type="button" class="brand-chip" data-brand="Ola Electric">Ola Electric</button>
+                      <button type="button" class="brand-chip" data-brand="TVS">TVS</button>
+                      <button type="button" class="brand-chip" data-brand="Bajaj Chetak">Bajaj Chetak</button>
+                      <button type="button" class="brand-chip" data-brand="Piaggio">Piaggio</button>
+                      <button type="button" class="brand-chip" data-brand="Euler Motors">Euler</button>
+                      <button type="button" class="brand-chip" data-brand="BYD">BYD</button>
+                    </div>
+                    <div class="custom-brand-row">
+                      <input type="text" id="custom-brand-input" placeholder="Add another brand (e.g. Lotus, Audi e-tron, Hero Vida)">
+                      <button type="button" id="btn-add-custom-brand">+ Add Brand</button>
+                    </div>
+                    <span class="field-error" id="err-brands"></span>
+                  </div>
+
+                  <div class="input-field-wrap full-span" style="margin-top: 6px;">
+                    <label>Display / Floor Inventory Scale</label>
+                    <div class="pills-selection-row" id="inventory-scale-pills">
+                      <button type="button" class="select-pill" data-scale="< 5 EVs">&lt; 5 EVs</button>
+                      <button type="button" class="select-pill active" data-scale="5-15 EVs">5 to 15 EVs</button>
+                      <button type="button" class="select-pill" data-scale="15+ EVs">15+ EVs (Full Showroom)</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-card-footer">
+                  <button type="button" class="btn-step-prev" id="btn-step-3-prev">⬅ Back to Step 2: Location</button>
+                  <button type="button" class="btn-continue-action" id="btn-step-3-next">Continue to Services ➔</button>
+                </div>
+              </div>
+
+              <!-- STEP 4: Services & Test Drive Setup -->
+              <div class="dealer-step-pane" id="dealer-step-4" data-step="4">
+                <div class="form-scroll-body">
+                  <!-- EMI Service Box -->
+                  <div class="service-config-box">
+                    <div class="service-config-header">
+                      <div>
+                        <strong>💳 EMI & Vehicle Loan Assistance</strong>
+                        <span>Do you provide on-the-spot vehicle finance & EMI options?</span>
+                      </div>
+                      <label class="switch-toggle">
+                        <input type="checkbox" id="dealer-emi-toggle" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                    <div class="service-config-body" id="emi-config-body">
+                      <label class="sub-label">Partner Banks & NBFCs Available:</label>
+                      <div class="bank-partners-grid">
+                        <label class="bank-check-item"><input type="checkbox" value="HDFC Bank" checked> HDFC Bank</label>
+                        <label class="bank-check-item"><input type="checkbox" value="State Bank of India" checked> SBI</label>
+                        <label class="bank-check-item"><input type="checkbox" value="Tata Capital" checked> Tata Capital</label>
+                        <label class="bank-check-item"><input type="checkbox" value="Bajaj Finserv" checked> Bajaj Finserv</label>
+                        <label class="bank-check-item"><input type="checkbox" value="ICICI Bank"> ICICI Bank</label>
+                        <label class="bank-check-item"><input type="checkbox" value="Kotak Mahindra Bank"> Kotak Bank</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Insurance Service Box -->
+                  <div class="service-config-box">
+                    <div class="service-config-header">
+                      <div>
+                        <strong>🛡️ Vehicle Insurance Services</strong>
+                        <span>Do you provide insurance packages with vehicle purchase?</span>
+                      </div>
+                      <label class="switch-toggle">
+                        <input type="checkbox" id="dealer-insurance-toggle" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                    <div class="service-config-body" id="insurance-config-body">
+                      <label class="sub-label">Insurance Covers Included:</label>
+                      <div class="bank-partners-grid">
+                        <label class="bank-check-item"><input type="checkbox" value="Zero-Depreciation" checked> Zero Dep</label>
+                        <label class="bank-check-item"><input type="checkbox" value="Battery Protection Cover" checked> Battery Cover</label>
+                        <label class="bank-check-item"><input type="checkbox" value="Comprehensive 1+3 Year" checked> Comprehensive</label>
+                        <label class="bank-check-item"><input type="checkbox" value="24x7 Roadside Assistance" checked> 24x7 RSA</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Charging Facility Box -->
+                  <div class="service-config-box">
+                    <div class="service-config-header">
+                      <div>
+                        <strong>⚡ On-site EV Charging Station</strong>
+                        <span>Do you have an EV charger on premises for customer cars?</span>
+                      </div>
+                      <label class="switch-toggle">
+                        <input type="checkbox" id="dealer-charging-toggle" checked>
+                        <span class="slider"></span>
+                      </label>
+                    </div>
+                    <div class="service-config-body" id="charging-config-body">
+                      <label class="sub-label">Charger Specification:</label>
+                      <div class="select-with-chevron">
+                        <select id="dealer-charger-type">
+                          <option value="Fast DC (50kW - 60kW)" selected>Fast DC (50kW - 60kW)</option>
+                          <option value="Slow AC (7.4kW - 11kW)">Slow AC (7.4kW - 11kW)</option>
+                          <option value="Dual AC & DC Multi-gun">Dual AC & DC Multi-gun</option>
+                          <option value="Standard 15A Socket">Standard 15A Socket</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Test Drive Facilities -->
+                  <div class="service-config-box">
+                    <div class="service-config-header">
+                      <div>
+                        <strong>🚗 Test Drive Facilities</strong>
+                        <span>How can buyers experience your vehicles?</span>
+                      </div>
+                    </div>
+                    <div class="service-config-body">
+                      <div class="td-modes-row">
+                        <label class="bank-check-item"><input type="checkbox" id="td-showroom" checked> Showroom Test Drive</label>
+                        <label class="bank-check-item"><input type="checkbox" id="td-home" checked> Doorstep Test Drive</label>
+                      </div>
+                      <label class="sub-label" style="margin-top: 6px;">Available Test Drive Time Windows:</label>
+                      <div class="td-slots-grid">
+                        <label class="slot-pill-check"><input type="checkbox" value="morning" checked> Morning (10AM - 1PM)</label>
+                        <label class="slot-pill-check"><input type="checkbox" value="afternoon" checked> Afternoon (1PM - 5PM)</label>
+                        <label class="slot-pill-check"><input type="checkbox" value="evening" checked> Evening (5PM - 8PM)</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-card-footer">
+                  <button type="button" class="btn-step-prev" id="btn-step-4-prev">⬅ Back to Step 3: Brands</button>
+                  <button type="submit" class="btn-step-submit" id="btn-dealer-submit">
+                    <span class="btn-label">Complete Registration & Verify</span>
+                    <span class="btn-spinner" hidden></span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- STEP 5: Instant Verified Partner Certificate (Completion) -->
+              <div class="dealer-step-pane" id="dealer-step-5" data-step="5">
+                <div class="success-screen">
+                  <div class="success-mascot-badge">
+                    <img src="/assets/clay-guide-success-v2.webp" alt="EasyEV Mascot Celebrating">
+                  </div>
+
+                  <span class="success-tag">VERIFIED DEALER PARTNER</span>
+                  <h2 id="success-dealer-name">Tata Motors EV Hub - South Extension</h2>
+                  <p class="success-sub">Your dealership has been officially verified and added to the EasyEV Network!</p>
+
+                  <!-- Digital Certificate Card -->
+                  <div class="dealer-cert-card">
+                    <div class="cert-header">
+                      <div class="cert-brand">
+                        <span class="brand__symbol"><img src="/assets/icon.png" alt=""></span>
+                        <span>EasyEV Partner Certificate</span>
+                      </div>
+                      <div class="cert-id-badge">
+                        <span>Partner ID:</span>
+                        <strong id="cert-partner-id">EEV-DLR-2026-9812</strong>
+                      </div>
+                    </div>
+                    <div class="cert-body">
+                      <div class="cert-col">
+                        <span class="c-label">Location</span>
+                        <strong id="cert-location">South Extension, New Delhi</strong>
+                      </div>
+                      <div class="cert-col">
+                        <span class="c-label">EV Categories</span>
+                        <strong id="cert-categories">4-Wheeler EVs (Cars & SUVs)</strong>
+                      </div>
+                      <div class="cert-col">
+                        <span class="c-label">Financing & Insurance</span>
+                        <strong id="cert-services">EMI Available · Insurance Certified</strong>
+                      </div>
+                      <div class="cert-col">
+                        <span class="c-label">Test Drives</span>
+                        <strong id="cert-td">Showroom & Home Test Drive Active</strong>
+                      </div>
+                    </div>
+                    <div class="cert-footer">
+                      <span>✓ Ready for Voice Sales Agent Queries & Slot Bookings</span>
+                      <span class="cert-status-dot">Live in Network</span>
+                    </div>
+                  </div>
+
+                  <!-- Post Registration Actions -->
+                  <div class="success-actions">
+                    <button type="button" class="btn-register-another" id="btn-register-another">+ Register Another Outlet</button>
+                    <button type="button" class="btn-return-home" id="btn-dealer-home">Go to EasyEV Home</button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- RIGHT: AI Voice Copilot Dark Card -->
+          <div class="dealers-copilot-dark-card">
+            <!-- Header Bar -->
+            <div class="copilot-top-meta">
+              <div class="copilot-brand-title">
+                <strong>EasyEV Voice Copilot</strong>
+                <span>Speak or type to fill showroom profile</span>
+              </div>
+              <div class="copilot-status-chips">
+                <span class="pill-ai-ready">
+                  <span class="live-dot"></span>
+                  <span>AI Ready</span>
+                </span>
+                <div class="copilot-wave-visualizer" id="d-voice-waves">
+                  <span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Structured Progress Box -->
+            <div class="copilot-progress-box">
+              <div class="copilot-progress-labels">
+                <span>Progress: <strong id="d-voice-progress-text">0 / 10 details captured</strong></span>
+                <strong id="d-voice-progress-percent">0%</strong>
+              </div>
+              <div class="copilot-progress-track">
+                <div class="copilot-progress-fill" id="d-voice-progress-bar" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Central Conversation Stream Card -->
+            <div class="copilot-conversation-stream" id="d-voice-chat-stream">
+              <div class="copilot-agent-bubble">
+                <div class="agent-header-row">
+                  <span class="agent-role-badge">EASYEV COPILOT</span>
+                </div>
+                <p id="d-voice-first-msg">Namaste! Main aapka showroom register karne mein madad karunga. Aapke EV showroom ka kya naam hai?</p>
+                <button type="button" class="btn-start-speaking" id="btn-start-speaking-cta">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                  <span>Start Voice (बोलकर बताएं)</span>
+                </button>
+              </div>
+
+              <div class="copilot-suggestions-section">
+                <span class="suggestions-heading">Quick suggestions:</span>
+                <div class="quick-chips-grid">
+                  <button type="button" class="reply-chip" data-prompt="Tata Motors & Mahindra 4-Wheeler EVs">🚗 Tata & Mahindra 4W</button>
+                  <button type="button" class="reply-chip" data-prompt="Ather Energy & Ola Electric 2-Wheelers">🛵 Ather & Ola 2W</button>
+                  <button type="button" class="reply-chip" data-prompt="Indiranagar Bengaluru, Pincode 560038">📍 Indiranagar Bengaluru</button>
+                  <button type="button" class="reply-chip" data-prompt="Yes, we provide EMI, Insurance and Test Drives">✅ EMI & Insurance Active</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom Voice & Input Dock -->
+            <div class="copilot-bottom-dock">
+              <div class="copilot-controls-row">
+                <button type="button" class="btn-voice-mic" id="btn-d-mic-toggle" title="Click to speak / mute mic">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                </button>
+                <form id="dealer-voice-input-form" class="copilot-input-form">
+                  <input type="text" id="dealer-voice-text-input" placeholder="Speak aloud or type your answer..." autocomplete="off">
+                </form>
+                <button type="submit" form="dealer-voice-input-form" class="btn-voice-send" id="btn-d-send-msg">Send</button>
+                <button type="button" class="btn-voice-submit" id="btn-d-voice-submit">Submit</button>
+              </div>
+              <p class="copilot-footer-notice">Supports English · हिन्दी · Hinglish</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
   <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
@@ -8604,9 +10915,11 @@
         const outcome = $('#outcome-view');
         const explore = $('#explore-view');
         const compare = $('#compare-view');
+        const dealers = $('#dealers-view');
         if (landing) landing.hidden = state.view !== 'landing' && state.view !== 'prejoin';
         if (explore) { explore.hidden = state.view !== 'explore'; explore.setAttribute('aria-hidden', String(state.view !== 'explore')); }
         if (compare) { compare.hidden = state.view !== 'compare'; compare.setAttribute('aria-hidden', String(state.view !== 'compare')); }
+        if (dealers) { dealers.hidden = state.view !== 'dealers'; dealers.setAttribute('aria-hidden', String(state.view !== 'dealers')); }
         if (prejoin) { prejoin.hidden = state.view !== 'prejoin'; prejoin.setAttribute('aria-hidden', String(state.view !== 'prejoin')); }
         if (room) { room.hidden = state.view !== 'room'; room.setAttribute('aria-hidden', String(state.view !== 'room')); }
         if (outcome) { outcome.hidden = state.view !== 'outcome'; outcome.setAttribute('aria-hidden', String(state.view !== 'outcome')); }
@@ -9617,8 +11930,7 @@
         if (target.matches('[data-nav-action]')) {
           navOpen = false; $('#primary-navigation')?.classList.remove('is-open'); $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
           if (target.dataset.navAction === 'how') { event.preventDefault(); if (state.view !== 'landing') resetToLanding(); $('#consultation-process')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' }); }
-          if (target.dataset.navAction === 'explore') { event.preventDefault(); openPrejoin(); }
-          if (target.dataset.navAction === 'dealers') { event.preventDefault(); showToast('Dealer workflows arrive after confirmation in the integrated milestone.'); }
+          if (target.dataset.navAction === 'dealers') { event.preventDefault(); openDealersPortal(); return; }
           return;
         }
         if (target.matches('[data-see-room]')) { window.setTimeout(() => { const preview = $('#room-preview'); preview?.classList.add('is-focused'); window.setTimeout(() => preview?.classList.remove('is-focused'), 1900); }, 350); return; }
@@ -10961,10 +13273,1052 @@
           closeDedicatedVehicleVoice();
           return;
         }
+
+        // For Dealers Nav Action
+        if (target.dataset.navAction === 'dealers' || target.getAttribute('href') === '#for-dealers') {
+          event.preventDefault();
+          navOpen = false;
+          $('#primary-navigation')?.classList.remove('is-open');
+          $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+          openDealersPortal();
+          return;
+        }
+
+        // Dealer Stepper Header Pills Click (Direct Navigation to any Step for Review/Edit)
+        if (target.closest('[data-step-indicator]')) {
+          event.preventDefault();
+          const stepBtn = target.closest('[data-step-indicator]');
+          const stepNum = parseInt(stepBtn.dataset.stepIndicator, 10);
+          if (stepNum >= 1 && stepNum <= 4) {
+            goToDealerStep(stepNum);
+          }
+          return;
+        }
+
+        // Dealer Step Navigation Buttons
+        if (target.closest('#btn-step-1-next')) {
+          event.preventDefault();
+          if (validateStep1()) goToDealerStep(2);
+          return;
+        }
+        if (target.closest('#btn-step-2-prev')) {
+          event.preventDefault();
+          goToDealerStep(1);
+          return;
+        }
+        if (target.closest('#btn-step-2-next')) {
+          event.preventDefault();
+          if (validateStep2()) goToDealerStep(3);
+          return;
+        }
+        if (target.closest('#btn-step-3-prev')) {
+          event.preventDefault();
+          goToDealerStep(2);
+          return;
+        }
+        if (target.closest('#btn-step-3-next')) {
+          event.preventDefault();
+          if (validateStep3()) goToDealerStep(4);
+          return;
+        }
+        if (target.closest('#btn-step-4-prev')) {
+          event.preventDefault();
+          goToDealerStep(3);
+          return;
+        }
+
+        // Dealer Category Cards Multi-Select
+        if (target.closest('.cat-card')) {
+          const card = target.closest('.cat-card');
+          card.classList.toggle('active');
+          return;
+        }
+
+        // Dealer Brand Chips Multi-Select
+        if (target.closest('.brand-chip')) {
+          const chip = target.closest('.brand-chip');
+          chip.classList.toggle('active');
+          return;
+        }
+
+        // Add Custom Brand
+        if (target.id === 'btn-add-custom-brand') {
+          event.preventDefault();
+          const input = $('#custom-brand-input');
+          const brandVal = input?.value.trim();
+          if (brandVal) {
+            const container = $('#dealer-brand-chips');
+            const newChip = document.createElement('button');
+            newChip.type = 'button';
+            newChip.className = 'brand-chip active';
+            newChip.dataset.brand = brandVal;
+            newChip.textContent = brandVal;
+            container.appendChild(newChip);
+            input.value = '';
+          }
+          return;
+        }
+
+        // Working Days Selection Pills
+        if (target.closest('#working-days-pills .select-pill')) {
+          const pill = target.closest('#working-days-pills .select-pill');
+          $$('#working-days-pills .select-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          dealerFormData.workingDays = pill.dataset.days;
+          return;
+        }
+
+        // Inventory Scale Selection Pills
+        if (target.closest('#inventory-scale-pills .select-pill')) {
+          const pill = target.closest('#inventory-scale-pills .select-pill');
+          $$('#inventory-scale-pills .select-pill').forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          dealerFormData.inventoryScale = pill.dataset.scale;
+          return;
+        }
+
+        // Register Another Outlet
+        if (target.id === 'btn-register-another') {
+          event.preventDefault();
+          $('#dealer-registration-form')?.reset();
+          $$('#dealer-cat-cards .cat-card').forEach((c, idx) => c.classList.toggle('active', idx === 0));
+          goToDealerStep(1);
+          return;
+        }
+
+        // Return to Home
+        if (target.id === 'btn-dealer-home') {
+          event.preventDefault();
+          resetToLanding();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
       });
+
+      // ============================================================
+      // FOR DEALERS ONBOARDING CONTROLLER FUNCTIONS
+      // ============================================================
+      let currentDealerStep = 1;
+      window.currentDealerStep = 1;
+      const dealerFormData = {
+        workingDays: 'All 7 Days',
+        inventoryScale: '5-15 EVs'
+      };
+
+      const dealerMascots = {
+        1: {
+          img: '/assets/clay-guide-hero-v2.webp',
+          text: '"Namaste Dealer Partner! Welcome to EasyEV. Let\'s start with your showroom\'s basic identity."'
+        },
+        2: {
+          img: '/assets/clay-guide-thinking.webp',
+          text: '"Where are you located? Our voice agent uses your exact location to route nearby buyers to you."'
+        },
+        3: {
+          img: '/assets/clay-guide-presenting.webp',
+          text: '"What EVs do you offer? Select all categories and brands present in your showroom."'
+        },
+        4: {
+          img: '/assets/clay-guide-thinking.webp',
+          text: '"Almost done! Do you support EMI financing, insurance, or doorstep test drives?"'
+        },
+        5: {
+          img: '/assets/clay-guide-success-v2.webp',
+          text: '"Congratulations! Your dealership is officially verified and added to the EasyEV Network."'
+        }
+      };
+
+      const setDealerMascot = (step) => {
+        const mascot = dealerMascots[step] || dealerMascots[1];
+        const imgEl = $('#dealer-mascot-img');
+        const speechEl = $('#dealer-guide-speech');
+        if (imgEl) imgEl.src = mascot.img;
+        if (speechEl) speechEl.textContent = mascot.text;
+      };
+
+      const openDealersPortal = () => {
+        setView('dealers');
+        goToDealerStep(1);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (window.dealerVoiceAssistant?.startSession) {
+          window.dealerVoiceAssistant.startSession();
+        }
+      };
+      window.openDealersPortal = openDealersPortal;
+
+      const updateStepperUI = (step) => {
+        $$('[data-step-indicator]').forEach((el) => {
+          const s = Number(el.dataset.stepIndicator);
+          el.classList.toggle('active', s === step);
+          el.classList.toggle('completed', s < step);
+          const numSpan = el.querySelector('.step-num');
+          if (numSpan) {
+            numSpan.textContent = s < step ? '✓' : String(s);
+          }
+        });
+        const line1 = $('#stepper-line-1');
+        const line2 = $('#stepper-line-2');
+        const line3 = $('#stepper-line-3');
+        if (line1) line1.classList.toggle('completed', step > 1);
+        if (line2) line2.classList.toggle('completed', step > 2);
+        if (line3) line3.classList.toggle('completed', step > 3);
+      };
+
+      const goToDealerStep = (step) => {
+        currentDealerStep = step;
+        window.currentDealerStep = step;
+        $$('.dealer-step-pane').forEach((pane) => {
+          pane.classList.toggle('active', Number(pane.dataset.step) === step);
+        });
+        updateStepperUI(step);
+        setDealerMascot(step);
+
+        const stepMeta = {
+          1: { title: 'Step 1: Dealership & Contact Profile', sub: 'Tell us about your showroom and the primary contact manager for buyer bookings.', badge: 'Step 1 of 4' },
+          2: { title: 'Step 2: Location & Operating Hours', sub: 'Specify your showroom address and daily operating hours.', badge: 'Step 2 of 4' },
+          3: { title: 'Step 3: EV Categories & Brand Portfolio', sub: 'Select the vehicle types and EV brands you represent.', badge: 'Step 3 of 4' },
+          4: { title: 'Step 4: Services & Test Drive Setup', sub: 'Configure EMI finance, insurance packages and test drive booking slots.', badge: 'Step 4 of 4' },
+          5: { title: 'Dealership Verified!', sub: 'Official EasyEV Partner Certificate Issued.', badge: 'Verified Partner' }
+        };
+
+        const meta = stepMeta[step];
+        if (meta) {
+          const titleEl = $('#dealer-form-step-title');
+          const subEl = $('#dealer-form-step-sub');
+          const badgeEl = $('#dealer-step-indicator-badge');
+          if (titleEl) titleEl.textContent = meta.title;
+          if (subEl) subEl.textContent = meta.sub;
+          if (badgeEl) badgeEl.textContent = meta.badge;
+        }
+      };
+      window.goToDealerStep = goToDealerStep;
+
+      const validateStep1 = () => {
+        let valid = true;
+        const shopName = $('#dealer-shop-name')?.value.trim();
+        const contactName = $('#dealer-contact-name')?.value.trim();
+        const phone = $('#dealer-phone')?.value.trim();
+        const city = $('#dealer-city')?.value.trim();
+
+        const errShop = $('#err-shop-name');
+        const errContact = $('#err-contact-name');
+        const errPhone = $('#err-phone');
+        const errCity = $('#err-city');
+
+        if (errShop) errShop.textContent = '';
+        if (errContact) errContact.textContent = '';
+        if (errPhone) errPhone.textContent = '';
+        if (errCity) errCity.textContent = '';
+
+        if (!shopName) {
+          if (errShop) errShop.textContent = 'Dealership / Shop name is required.';
+          valid = false;
+        }
+        if (!contactName) {
+          if (errContact) errContact.textContent = 'Contact person name is required.';
+          valid = false;
+        }
+        if (!phone || phone.length < 10) {
+          if (errPhone) errPhone.textContent = 'Valid 10-digit mobile number is required.';
+          valid = false;
+        }
+        if (!city) {
+          if (errCity) errCity.textContent = 'City is required for buyer location routing.';
+          valid = false;
+        }
+        return valid;
+      };
+
+      const validateStep2 = () => {
+        let valid = true;
+        const address = $('#dealer-address')?.value.trim();
+        const pincode = $('#dealer-pincode')?.value.trim();
+        const errAddress = $('#err-address');
+        const errPincode = $('#err-pincode');
+
+        if (errAddress) errAddress.textContent = '';
+        if (errPincode) errPincode.textContent = '';
+
+        if (!address) {
+          if (errAddress) errAddress.textContent = 'Street address is required.';
+          valid = false;
+        }
+        if (!pincode || pincode.length !== 6) {
+          if (errPincode) errPincode.textContent = 'Valid 6-digit pincode is required.';
+          valid = false;
+        }
+        return valid;
+      };
+
+      const validateStep3 = () => {
+        let valid = true;
+        const errCategories = $('#err-categories');
+        const errBrands = $('#err-brands');
+        if (errCategories) errCategories.textContent = '';
+        if (errBrands) errBrands.textContent = '';
+
+        const selectedCats = Array.from($$('#dealer-cat-cards .cat-card.active')).map(c => c.dataset.category);
+        if (selectedCats.length === 0) {
+          if (errCategories) errCategories.textContent = 'Please select at least one vehicle category.';
+          valid = false;
+        }
+        const selectedBrands = Array.from($$('#dealer-brand-chips .brand-chip.active')).map(b => b.dataset.brand);
+        if (selectedBrands.length === 0) {
+          if (errBrands) errBrands.textContent = 'Please select at least one brand represented.';
+          valid = false;
+        }
+        return valid;
+      };
+
+      // Service toggle event listeners
+      const emiToggle = $('#dealer-emi-toggle');
+      if (emiToggle) {
+        emiToggle.addEventListener('change', () => {
+          const body = $('#emi-config-body');
+          if (body) body.style.display = emiToggle.checked ? 'block' : 'none';
+        });
+      }
+      const insToggle = $('#dealer-insurance-toggle');
+      if (insToggle) {
+        insToggle.addEventListener('change', () => {
+          const body = $('#insurance-config-body');
+          if (body) body.style.display = insToggle.checked ? 'block' : 'none';
+        });
+      }
+      const chgToggle = $('#dealer-charging-toggle');
+      if (chgToggle) {
+        chgToggle.addEventListener('change', () => {
+          const body = $('#charging-config-body');
+          if (body) body.style.display = chgToggle.checked ? 'block' : 'none';
+        });
+      }
+
+      // Dealer Registration Form Submit Handler
+      const dealerForm = document.getElementById('dealer-registration-form');
+      if (dealerForm) {
+        dealerForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          if (!validateStep1() || !validateStep2() || !validateStep3()) return;
+
+          const submitBtn = $('#btn-dealer-submit');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('.btn-label').textContent = 'Registering & Verifying...';
+          }
+
+          const categories = Array.from($$('#dealer-cat-cards .cat-card.active')).map(c => c.dataset.category);
+          const brands = Array.from($$('#dealer-brand-chips .brand-chip.active')).map(b => b.dataset.brand);
+          const emiAvailable = $('#dealer-emi-toggle')?.checked ?? true;
+          const emiPartners = emiAvailable
+            ? Array.from($$('#emi-config-body input[type="checkbox"]:checked')).map(cb => cb.value)
+            : [];
+          const insuranceAvailable = $('#dealer-insurance-toggle')?.checked ?? true;
+          const insuranceTypes = insuranceAvailable
+            ? Array.from($$('#insurance-config-body input[type="checkbox"]:checked')).map(cb => cb.value)
+            : [];
+          const chargingOnSite = $('#dealer-charging-toggle')?.checked ?? true;
+          const chargerType = $('#dealer-charger-type')?.value || 'Fast DC (50kW - 60kW)';
+
+          const showroomTestDrive = $('#td-showroom')?.checked ?? true;
+          const homeTestDrive = $('#td-home')?.checked ?? true;
+          const availableSlots = Array.from($$('.td-slots-grid input[type="checkbox"]:checked')).map(cb => {
+            const map = {
+              morning: { id: 'morning', label: 'Morning (10:00 AM - 01:00 PM)', active: true },
+              afternoon: { id: 'afternoon', label: 'Afternoon (01:00 PM - 05:00 PM)', active: true },
+              evening: { id: 'evening', label: 'Evening (05:00 PM - 08:00 PM)', active: true }
+            };
+            return map[cb.value] || { id: cb.value, label: cb.value, active: true };
+          });
+
+          const payload = {
+            shopName: $('#dealer-shop-name')?.value.trim() || 'My EV Showroom',
+            dealerType: $('#dealer-type')?.value || 'Authorized OEM Dealership',
+            contactPerson: {
+              name: $('#dealer-contact-name')?.value.trim() || 'Store Manager',
+              phone: '+91 ' + ($('#dealer-phone')?.value.trim() || ''),
+              email: $('#dealer-email')?.value.trim() || '',
+              whatsapp: '+91 ' + ($('#dealer-phone')?.value.trim() || '')
+            },
+            location: {
+              address: $('#dealer-address')?.value.trim() || '',
+              landmark: $('#dealer-landmark')?.value.trim() || '',
+              city: $('#dealer-city')?.value.trim() || '',
+              state: $('#dealer-state')?.value.trim() || 'Delhi',
+              pincode: $('#dealer-pincode')?.value.trim() || ''
+            },
+            timings: {
+              openTime: $('#dealer-open-time')?.value || '09:30 AM',
+              closeTime: $('#dealer-close-time')?.value || '08:30 PM',
+              workingDays: dealerFormData.workingDays || 'All 7 Days',
+              allDaysOpen: (dealerFormData.workingDays || '').includes('All 7')
+            },
+            categories,
+            brands,
+            inventoryScale: dealerFormData.inventoryScale || '5-15 EVs',
+            services: {
+              emiAvailable,
+              emiPartners,
+              minDownPaymentPercent: 10,
+              insuranceAvailable,
+              insuranceTypes,
+              extendedWarranty: true,
+              batteryAssurance: true,
+              chargingOnSite,
+              chargerType
+            },
+            testDrive: {
+              showroomTestDrive,
+              homeTestDrive,
+              availableSlots
+            }
+          };
+
+          try {
+            const resp = await fetch('/api/dealers/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Registration failed');
+
+            const registeredDealer = data.dealer;
+
+            // Populate Step 5 Screen
+            const nameEl = $('#success-dealer-name');
+            const idEl = $('#cert-partner-id');
+            const locEl = $('#cert-location');
+            const catEl = $('#cert-categories');
+            const srvEl = $('#cert-services');
+            const tdEl = $('#cert-td');
+            const simMention = $('#sim-shop-mention');
+
+            if (nameEl) nameEl.textContent = registeredDealer.shopName;
+            if (idEl) idEl.textContent = registeredDealer.id;
+            if (locEl) locEl.textContent = `${registeredDealer.location.address}, ${registeredDealer.location.city} (${registeredDealer.location.pincode})`;
+            if (catEl) {
+              const catNames = { '4W': '4-Wheeler Cars', '2W': '2-Wheeler Scooters', '3W': '3-Wheeler Autos', 'commercial': 'Commercial Fleets' };
+              catEl.textContent = registeredDealer.categories.map(c => catNames[c] || c).join(' · ');
+            }
+            if (srvEl) {
+              srvEl.textContent = `${registeredDealer.services.emiAvailable ? 'EMI Available' : 'No EMI'} · ${registeredDealer.services.insuranceAvailable ? 'Insurance Certified' : 'Direct Only'}`;
+            }
+            if (tdEl) {
+              tdEl.textContent = `${registeredDealer.testDrive.showroomTestDrive ? 'Showroom' : ''}${registeredDealer.testDrive.showroomTestDrive && registeredDealer.testDrive.homeTestDrive ? ' & ' : ''}${registeredDealer.testDrive.homeTestDrive ? 'Home Test Drive' : ''} Active`;
+            }
+            if (simMention) simMention.textContent = registeredDealer.shopName;
+
+            goToDealerStep(5);
+            showToast(`Dealership Registered! Partner ID: ${registeredDealer.id}`);
+          } catch (err) {
+            showToast(err.message || 'Error registering dealership');
+          } finally {
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.querySelector('.btn-label').textContent = 'Complete Registration & Verify';
+            }
+          }
+        });
+      }
+
+      // ============================================================
+      // DEALER ONBOARDING VOICE ASSISTANT COPILOT
+      // ============================================================
+      let dealerVoiceAdapter = null;
+      let dealerSpeechRecognition = null;
+      let isDealerMicActive = false;
+      let dealerAudioSynth = window.speechSynthesis || null;
+
+      const initDealerVoiceAssistant = () => {
+        const btnMic = $('#btn-d-mic-toggle');
+        const btnStartSpeakingCta = $('#btn-start-speaking-cta');
+        const inputForm = $('#dealer-voice-input-form');
+        const textInput = $('#dealer-voice-text-input');
+        const btnSubmitVoice = $('#btn-d-voice-submit');
+
+        let isSessionStarting = false;
+        let selectedDealerLanguage = 'Hinglish';
+
+        const setVoiceState = (mode, label) => {
+          const pill = $('#d-voice-state-pill') || $('.pill-ai-ready');
+          const waves = $('#d-voice-waves');
+
+          if (pill) {
+            const spanText = pill.querySelector('span:last-child');
+            if (spanText) spanText.textContent = label || (mode === 'speaking' ? 'AI Speaking' : mode === 'thinking' ? 'Processing...' : mode === 'listening' ? 'Listening...' : 'AI Ready');
+          }
+          if (waves) {
+            waves.style.opacity = mode === 'speaking' || mode === 'listening' ? '1' : '0.6';
+          }
+        };
+
+        const getIndianVoice = (text) => {
+          if (!dealerAudioSynth) return null;
+          const voices = dealerAudioSynth.getVoices() || [];
+          if (voices.length === 0) return null;
+
+          const isDevanagari = /[\u0900-\u097F]/.test(text);
+
+          if (isDevanagari || selectedDealerLanguage === 'Hindi') {
+            const hi = voices.find(v => (
+              (v.lang && (v.lang.startsWith('hi') || v.lang.includes('IN'))) &&
+              (v.name.includes('Google हिन्दी') || v.name.includes('Google Hindi') || v.name.includes('Swara') || v.name.includes('Madhur') || v.name.includes('Hemant') || v.name.includes('Lekha') || v.name.includes('Kalpana') || v.name.includes('Hindi'))
+            )) || voices.find(v => v.lang && v.lang.startsWith('hi'));
+            if (hi) return { voice: hi, lang: 'hi-IN' };
+          }
+
+          const inVoice = voices.find(v => (
+            (v.lang && (v.lang.includes('IN') || v.lang.startsWith('hi'))) &&
+            (v.name.includes('Google') || v.name.includes('Swara') || v.name.includes('Madhur') || v.name.includes('Hemant') || v.name.includes('Neerja') || v.name.includes('Rishi') || v.name.includes('Veena') || v.name.includes('India'))
+          )) || voices.find(v => v.lang && (v.lang === 'en-IN' || v.lang === 'en_IN' || v.lang.startsWith('hi')));
+
+          if (inVoice) return { voice: inVoice, lang: inVoice.lang || 'hi-IN' };
+          return { voice: voices[0], lang: 'hi-IN' };
+        };
+
+        const speakText = (text, onEnd) => {
+          if (!dealerAudioSynth || !text) {
+            if (onEnd) onEnd();
+            return;
+          }
+          try {
+            dealerAudioSynth.cancel(); // Barge-in interruption
+            const utterance = new SpeechSynthesisUtterance(text);
+            const voiceConfig = getIndianVoice(text);
+            if (voiceConfig) {
+              if (voiceConfig.voice) utterance.voice = voiceConfig.voice;
+              utterance.lang = voiceConfig.lang || 'hi-IN';
+            } else {
+              utterance.lang = 'hi-IN';
+            }
+            utterance.rate = 0.90; // Natural pacing without robotic rush
+            utterance.pitch = 1.0;
+
+            utterance.onstart = () => {
+              setVoiceState('speaking', 'AI Speaking');
+            };
+            utterance.onend = () => {
+              setVoiceState('ready', 'AI Ready');
+              if (onEnd) onEnd();
+            };
+            utterance.onerror = () => {
+              setVoiceState('ready', 'AI Ready');
+              if (onEnd) onEnd();
+            };
+            dealerAudioSynth.speak(utterance);
+          } catch (e) {
+            console.warn('Speech synthesis error:', e);
+            if (onEnd) onEnd();
+          }
+        };
+
+        // Initialize Speech Recognition
+        const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+        if (SpeechRec) {
+          try {
+            dealerSpeechRecognition = new SpeechRec();
+            dealerSpeechRecognition.continuous = false;
+            dealerSpeechRecognition.interimResults = false;
+            dealerSpeechRecognition.lang = 'hi-IN';
+
+            dealerSpeechRecognition.onstart = () => {
+              isDealerMicActive = true;
+              if (btnMic) btnMic.classList.add('listening');
+              setVoiceState('listening', 'Listening to you...');
+            };
+
+            dealerSpeechRecognition.onresult = (e) => {
+              const transcript = e.results?.[0]?.[0]?.transcript || '';
+              if (transcript.trim()) {
+                handleUserVoiceTurn(transcript.trim());
+              }
+            };
+
+            dealerSpeechRecognition.onerror = (err) => {
+              console.warn('Dealer SpeechRec error:', err);
+              isDealerMicActive = false;
+              if (btnMic) btnMic.classList.remove('listening');
+              setVoiceState('ready', 'AI Ready');
+              if (err.error === 'not-allowed') {
+                showToast('Microphone access blocked. Please allow mic in browser permissions or type below!');
+                if (textInput) textInput.focus();
+              }
+            };
+
+            dealerSpeechRecognition.onend = () => {
+              isDealerMicActive = false;
+              if (btnMic) btnMic.classList.remove('listening');
+              setVoiceState('ready', 'AI Ready');
+            };
+          } catch (recErr) {
+            console.warn('Speech recognition setup failed:', recErr);
+          }
+        }
+
+        const appendChatMessage = (role, text) => {
+          const stream = $('#d-voice-chat-stream');
+          if (!stream) return;
+          const msg = document.createElement('div');
+          msg.className = `d-chat-msg ${role}`;
+          msg.style.margin = '8px 0';
+          msg.style.padding = '8px 12px';
+          msg.style.borderRadius = '8px';
+          msg.style.fontSize = '13px';
+          msg.style.lineHeight = '1.4';
+          if (role === 'user') {
+            msg.style.background = 'rgba(22, 191, 83, 0.15)';
+            msg.style.border = '1px solid rgba(22, 191, 83, 0.3)';
+            msg.style.color = '#86efac';
+            msg.innerHTML = `<strong>You:</strong> <span>${escapeHtml(text)}</span>`;
+          } else {
+            msg.style.background = 'rgba(255, 255, 255, 0.05)';
+            msg.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+            msg.style.color = '#f8fafc';
+            msg.innerHTML = `<strong style="color: var(--green-bright, #16bf53)">EasyEV Copilot:</strong> <span>${escapeHtml(text)}</span>`;
+          }
+          stream.appendChild(msg);
+          stream.scrollTop = stream.scrollHeight;
+        };
+
+        const flashField = (el) => {
+          if (!el) return;
+          el.classList.add('voice-field-focused', 'voice-field-flash');
+          setTimeout(() => el.classList.remove('voice-field-focused', 'voice-field-flash'), 1800);
+          try {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch {}
+        };
+
+        const syncFormFromAgentState = (currentForm, completionStats, step, extracted) => {
+          if (!currentForm) return;
+
+          // 1. Sync Step 1: Profile
+          if (currentForm.shopName) {
+            const el = $('#dealer-shop-name');
+            if (el && el.value !== currentForm.shopName) {
+              el.value = currentForm.shopName;
+              flashField(el);
+            }
+          }
+          if (currentForm.managerName) {
+            const el = $('#dealer-contact-name');
+            if (el && el.value !== currentForm.managerName) {
+              el.value = currentForm.managerName;
+              flashField(el);
+            }
+          }
+          if (currentForm.phone) {
+            const el = $('#dealer-phone');
+            if (el && el.value !== currentForm.phone) {
+              el.value = currentForm.phone;
+              flashField(el);
+            }
+          }
+          if (currentForm.email) {
+            const el = $('#dealer-email');
+            if (el && el.value !== currentForm.email) {
+              el.value = currentForm.email;
+              flashField(el);
+            }
+          }
+          if (currentForm.dealerType) {
+            const el = $('#dealer-type');
+            if (el && el.value !== currentForm.dealerType) {
+              el.value = currentForm.dealerType;
+              flashField(el);
+            }
+          }
+
+          // 2. Sync Step 2: Location
+          if (currentForm.address) {
+            const el = $('#dealer-address');
+            if (el && el.value !== currentForm.address) {
+              el.value = currentForm.address;
+              flashField(el);
+            }
+          }
+          if (currentForm.city) {
+            const el = $('#dealer-city');
+            if (el && el.value !== currentForm.city) {
+              el.value = currentForm.city;
+              flashField(el);
+            }
+          }
+          if (currentForm.pincode) {
+            const el = $('#dealer-pincode');
+            if (el && el.value !== currentForm.pincode) {
+              el.value = currentForm.pincode;
+              flashField(el);
+            }
+          }
+          if (currentForm.openTime) {
+            const el = $('#dealer-open-time');
+            if (el) el.value = currentForm.openTime;
+          }
+          if (currentForm.closeTime) {
+            const el = $('#dealer-close-time');
+            if (el) el.value = currentForm.closeTime;
+          }
+
+          // 3. Sync Step 3: Categories & Brands
+          if (Array.isArray(currentForm.categories)) {
+            $$('#dealer-cat-cards .cat-card').forEach((card) => {
+              const cat = card.dataset.category;
+              const isMatch = currentForm.categories.includes(cat);
+              if (isMatch && !card.classList.contains('active')) {
+                card.classList.add('active');
+                flashField(card);
+              } else if (!isMatch) {
+                card.classList.remove('active');
+              }
+            });
+          }
+          if (Array.isArray(currentForm.brands)) {
+            $$('#dealer-brand-chips .brand-chip').forEach((chip) => {
+              const b = chip.dataset.brand;
+              const isMatch = currentForm.brands.includes(b);
+              if (isMatch && !chip.classList.contains('active')) {
+                chip.classList.add('active');
+                flashField(chip);
+              } else if (!isMatch) {
+                chip.classList.remove('active');
+              }
+            });
+          }
+
+          // 4. Sync Step 4: Services
+          if (currentForm.emiAvailable !== undefined) {
+            const el = $('#dealer-emi-toggle');
+            if (el) {
+              el.checked = currentForm.emiAvailable;
+              const body = $('#emi-config-body');
+              if (body) body.style.display = currentForm.emiAvailable ? 'block' : 'none';
+            }
+          }
+          if (currentForm.insuranceAvailable !== undefined) {
+            const el = $('#dealer-insurance-toggle');
+            if (el) {
+              el.checked = currentForm.insuranceAvailable;
+              const body = $('#insurance-config-body');
+              if (body) body.style.display = currentForm.insuranceAvailable ? 'block' : 'none';
+            }
+          }
+
+          // 5. Update Progress Tracker
+          if (completionStats) {
+            const textEl = $('#d-voice-progress-text');
+            const barEl = $('#d-voice-progress-bar');
+            const pctEl = $('#d-voice-progress-percent');
+            const percent = `${completionStats.percentage || 0}%`;
+
+            if (textEl) textEl.textContent = `${completionStats.filledCount} / ${completionStats.totalRequired} details captured`;
+            if (barEl) barEl.style.width = percent;
+            if (pctEl) pctEl.textContent = percent;
+
+            if (btnSubmitVoice) {
+              btnSubmitVoice.disabled = completionStats.filledCount < 4;
+            }
+          }
+
+          // Auto navigate wizard step if meaningful progress
+          if (step && step >= 1 && step <= 4 && step !== currentDealerStep && currentDealerStep !== 5) {
+            goToDealerStep(step);
+          }
+        };
+
+        const getScrapedDOMValues = () => {
+          return {
+            shopName: $('#dealer-shop-name')?.value?.trim() || '',
+            managerName: $('#dealer-contact-name')?.value?.trim() || '',
+            phone: $('#dealer-phone')?.value?.trim() || '',
+            email: $('#dealer-email')?.value?.trim() || '',
+            dealerType: $('#dealer-type')?.value || '',
+            address: $('#dealer-address')?.value?.trim() || '',
+            city: $('#dealer-city')?.value?.trim() || '',
+            pincode: $('#dealer-pincode')?.value?.trim() || '',
+            openTime: $('#dealer-open-time')?.value || '',
+            closeTime: $('#dealer-close-time')?.value || '',
+            categories: Array.from($$('#dealer-cat-cards .cat-card.active')).map(c => c.dataset.category),
+            brands: Array.from($$('#dealer-brand-chips .brand-chip.active')).map(c => c.dataset.brand),
+            emiAvailable: $('#dealer-emi-toggle')?.checked ?? true,
+            insuranceAvailable: $('#dealer-insurance-toggle')?.checked ?? true,
+          };
+        };
+
+        const ensureDealerVoiceSession = async () => {
+          if (dealerVoiceAdapter || isSessionStarting) return;
+          isSessionStarting = true;
+          setVoiceState('thinking', 'AI Initializing...');
+
+          if (typeof EasyEVAgoraBundle !== 'undefined' && EasyEVAgoraBundle.createDealerAgoraAdapter) {
+            dealerVoiceAdapter = EasyEVAgoraBundle.createDealerAgoraAdapter();
+          }
+
+          const initialValues = getScrapedDOMValues();
+          const sessionPayload = {
+            language: selectedDealerLanguage || 'Hinglish',
+            voice: 'madhur',
+            initialValues,
+            currentStep: currentDealerStep || 1
+          };
+
+          try {
+            if (dealerVoiceAdapter) {
+              dealerVoiceAdapter.onEvent((event) => {
+                if (event.type === 'FORM_STATE_SYNC') {
+                  syncFormFromAgentState(
+                    event.payload.currentForm,
+                    event.payload.completionStats,
+                    event.payload.step,
+                    event.payload.extractedFields
+                  );
+                }
+              });
+
+              const startData = await dealerVoiceAdapter.startDealerSession(sessionPayload);
+              if (startData && startData.initialTurn) {
+                const initial = startData.initialTurn;
+                const firstMsg = $('#d-voice-first-msg');
+                if (firstMsg) firstMsg.textContent = initial.speechText;
+                syncFormFromAgentState(initial.currentForm, initial.completionStats, initial.step);
+              }
+            } else {
+              const resp = await fetch('/api/dealer-session/start', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sessionPayload)
+              });
+              const data = await resp.json();
+              if (data.initialTurn) {
+                const firstMsg = $('#d-voice-first-msg');
+                if (firstMsg) firstMsg.textContent = data.initialTurn.speechText;
+                syncFormFromAgentState(data.initialTurn.currentForm, data.initialTurn.completionStats, data.initialTurn.step);
+              }
+            }
+            setVoiceState('ready', 'AI Ready');
+          } catch (err) {
+            console.error('Failed to start dealer voice session:', err);
+            setVoiceState('ready', 'AI Ready');
+          } finally {
+            isSessionStarting = false;
+          }
+        };
+
+        const handleUserVoiceTurn = async (text) => {
+          if (!text || !text.trim()) return;
+          await ensureDealerVoiceSession();
+          appendChatMessage('user', text.trim());
+          setVoiceState('thinking', 'Processing...');
+
+          if (dealerAudioSynth) dealerAudioSynth.cancel();
+
+          try {
+            let result = null;
+            if (dealerVoiceAdapter) {
+              result = await dealerVoiceAdapter.sendUserTurn(text.trim());
+            } else {
+              const resp = await fetch('/api/dealer-session/process-turn', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  sessionId: dealerVoiceAdapter?.sessionId,
+                  userSpeech: text.trim(),
+                  currentForm: getScrapedDOMValues(),
+                  currentStep: currentDealerStep || 1,
+                  language: selectedDealerLanguage || 'Hinglish'
+                })
+              });
+              result = await resp.json();
+            }
+
+            if (result && result.speechText) {
+              appendChatMessage('agent', result.speechText);
+              const bannerMsg = $('#d-voice-first-msg');
+              if (bannerMsg) bannerMsg.textContent = result.speechText;
+              speakText(result.ttsText || result.speechText, () => {
+                if (!result.isSubmitted && dealerSpeechRecognition && !isDealerMicActive) {
+                  try {
+                    dealerSpeechRecognition.start();
+                  } catch (e) {}
+                }
+              });
+            }
+
+            if (result && result.currentForm) {
+              syncFormFromAgentState(result.currentForm, result.completionStats, result.step, result.extractedFields);
+            }
+
+            if (result && (result.isSubmitted || result.action === 'SUBMIT_SUCCESS') && (result.registeredDealer || result.currentForm)) {
+              const registeredDealer = result.registeredDealer || result.currentForm || {};
+              const partnerId = result.partnerId || registeredDealer.partnerId || registeredDealer.id || `EEV-DLR-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+              const nameEl = $('#success-dealer-name');
+              const idEl = $('#cert-partner-id');
+              const locEl = $('#cert-location');
+              const catEl = $('#cert-categories');
+              const srvEl = $('#cert-services');
+              const tdEl = $('#cert-td');
+              const simMention = $('#sim-shop-mention');
+
+              const shopTitle = registeredDealer.shopName || registeredDealer.name || 'EasyEV Mobility Hub';
+              if (nameEl) nameEl.textContent = shopTitle;
+              if (idEl) idEl.textContent = partnerId;
+              const addrStr = registeredDealer.address || registeredDealer.location?.address || 'Showroom Address';
+              const cityStr = registeredDealer.city || registeredDealer.location?.city || 'City';
+              const pinStr = registeredDealer.pincode || registeredDealer.location?.pincode || '';
+              if (locEl) locEl.textContent = `${addrStr}, ${cityStr} ${pinStr ? `(${pinStr})` : ''}`;
+              if (catEl) {
+                const catNames = { '4W': '4-Wheeler Cars', '2W': '2-Wheeler Scooters', '3W': '3-Wheeler Autos', 'commercial': 'Commercial Fleets' };
+                const cats = Array.isArray(registeredDealer.categories) && registeredDealer.categories.length > 0 ? registeredDealer.categories : ['4W', '2W', '3W', 'commercial'];
+                catEl.textContent = cats.map(c => catNames[c] || c).join(' · ');
+              }
+              if (srvEl) {
+                const emi = registeredDealer.emiAvailable ?? registeredDealer.services?.emiAvailable ?? true;
+                const ins = registeredDealer.insuranceAvailable ?? registeredDealer.services?.insuranceAvailable ?? true;
+                srvEl.textContent = `${emi ? 'EMI Available' : 'No EMI'} · ${ins ? 'Insurance Certified' : 'Direct Only'}`;
+              }
+              if (tdEl) {
+                const std = registeredDealer.showroomTestDrive ?? registeredDealer.testDrive?.showroomTestDrive ?? true;
+                const htd = registeredDealer.homeTestDrive ?? registeredDealer.testDrive?.homeTestDrive ?? true;
+                tdEl.textContent = `${std ? 'Showroom' : ''}${std && htd ? ' & ' : ''}${htd ? 'Home Test Drive' : ''} Active`;
+              }
+              if (simMention) simMention.textContent = shopTitle;
+
+              goToDealerStep(5);
+              showToast(`🎉 Registration Complete! Partner ID: ${partnerId}`);
+            }
+            return result;
+          } catch (err) {
+            console.error('Error handling voice turn:', err);
+            const errReply = 'Maaf kijiye, samajhne me thodi dikkat hui. Kripya dobara bataiye ya type karein.';
+            appendChatMessage('agent', errReply);
+            speakText(errReply);
+            setVoiceState('ready', 'AI Ready');
+            return null;
+          }
+        };
+
+        // Mic Button Click Handler
+        if (btnMic) {
+          btnMic.addEventListener('click', async () => {
+            if (window.speechSynthesis) {
+              const dummy = new SpeechSynthesisUtterance('');
+              dummy.volume = 0;
+              window.speechSynthesis.speak(dummy);
+            }
+            await ensureDealerVoiceSession();
+            if (isDealerMicActive) {
+              if (dealerSpeechRecognition) {
+                try { dealerSpeechRecognition.stop(); } catch {}
+              }
+              isDealerMicActive = false;
+              btnMic.classList.remove('listening');
+              setVoiceState('ready', 'AI Ready');
+            } else {
+              if (dealerAudioSynth) dealerAudioSynth.cancel();
+              if (dealerSpeechRecognition) {
+                try {
+                  dealerSpeechRecognition.start();
+                } catch (e) {
+                  console.warn('Recognition start issue:', e);
+                }
+              } else {
+                showToast('Speech recognition not available in this browser. You can type below!');
+                if (textInput) textInput.focus();
+              }
+            }
+          });
+        }
+
+        // Start Speaking CTA Button
+        if (btnStartSpeakingCta) {
+          btnStartSpeakingCta.addEventListener('click', async () => {
+            if (window.speechSynthesis) {
+              const dummy = new SpeechSynthesisUtterance('');
+              dummy.volume = 0;
+              window.speechSynthesis.speak(dummy);
+            }
+            await ensureDealerVoiceSession();
+            const firstMsg = $('#d-voice-first-msg')?.textContent || 'Namaste! Main aapka showroom register karne mein madad karunga. Aapke EV showroom ka kya naam hai?';
+            speakText(firstMsg, () => {
+              if (dealerSpeechRecognition && !isDealerMicActive) {
+                try { dealerSpeechRecognition.start(); } catch {}
+              }
+            });
+          });
+        }
+
+        // Text input submit handler
+        if (inputForm && textInput) {
+          inputForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = textInput.value.trim();
+            if (!text) return;
+            textInput.value = '';
+            handleUserVoiceTurn(text);
+          });
+        }
+
+        // Quick Spoken / Suggestion Reply Chips
+        document.addEventListener('click', (e) => {
+          const chip = e.target.closest('.reply-chip, .d-prompt-chip');
+          if (chip && chip.dataset.prompt) {
+            handleUserVoiceTurn(chip.dataset.prompt);
+          }
+        });
+
+        // Submit Button
+        if (btnSubmitVoice) {
+          btnSubmitVoice.addEventListener('click', async () => {
+            await ensureDealerVoiceSession();
+            setVoiceState('thinking', 'Submitting registration...');
+            try {
+              if (dealerVoiceAdapter) {
+                const res = await dealerVoiceAdapter.submitRegistration();
+                if (res && res.registeredDealer) {
+                  handleUserVoiceTurn('Submit my verified registration');
+                }
+              } else {
+                const dealerForm = document.getElementById('dealer-registration-form');
+                if (dealerForm) dealerForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+              }
+            } catch (e) {
+              showToast(e.message || 'Could not submit registration');
+            }
+          });
+        }
+
+        // Expose controller globally
+        window.dealerVoiceAssistant = {
+          startSession: ensureDealerVoiceSession,
+          processVoiceTurn: handleUserVoiceTurn,
+          getAdapter: () => dealerVoiceAdapter
+        };
+
+        // If page is already on dealers view, start session
+        if (state && state.view === 'dealers') {
+          ensureDealerVoiceSession();
+        }
+      };
+
+      initDealerVoiceAssistant();
 
       renderApp();
       loadExploreVehicles();
+
+      const handleRoute = () => {
+        const hash = window.location.hash;
+        if (hash === '#for-dealers' || hash === '#dealers') {
+          openDealersPortal();
+        } else if (hash === '#compare') {
+          setView('compare');
+          if (typeof renderCompareSelectionGrid === 'function') renderCompareSelectionGrid();
+        } else if (hash === '#explore') {
+          setView('explore');
+          if (typeof renderExploreGrid === 'function') renderExploreGrid();
+        }
+      };
+      window.addEventListener('hashchange', handleRoute);
+      handleRoute();
     })();
   </script>
 </body>
