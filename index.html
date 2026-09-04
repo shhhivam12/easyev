@@ -2739,6 +2739,81 @@
       letter-spacing: .16em;
     }
 
+    .crm-card {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin: 16px 0 12px;
+    }
+
+    .crm-card > div {
+      padding: 11px 13px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .04);
+    }
+
+    .crm-card span {
+      display: block;
+      margin-bottom: 3px;
+      color: rgba(255, 255, 255, .5);
+      font-size: 9.5px;
+      font-weight: 640;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
+    .crm-card strong {
+      font-size: 13px;
+      font-weight: 660;
+      overflow-wrap: anywhere;
+    }
+
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 9px;
+      margin: 16px 0 12px;
+    }
+
+    .slot-grid .slot-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 11px;
+      background: rgba(255, 255, 255, .04);
+      color: inherit;
+      font-size: 12.5px;
+      font-weight: 620;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .slot-grid .slot-button:hover {
+      border-color: var(--green-bright);
+      background: rgba(85, 242, 123, .1);
+    }
+
+    .slot-index {
+      display: grid;
+      flex: none;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(85, 242, 123, .18);
+      color: var(--green-bright);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .booking-done.is-live .crm-card > div {
+      border-color: rgba(85, 242, 123, .3);
+      background: rgba(85, 242, 123, .08);
+    }
+
     .transcript-entry__text {
       margin: 4px 0 0;
       color: rgba(255, 255, 255, .82);
@@ -8017,7 +8092,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
       const networkLabel = () => {
@@ -8452,6 +8527,32 @@
           }
         } else if (type === 'report-ready') {
           target.innerHTML = `<div class="stage-content__intro"><h3>Your decision report is ready</h3><p>Built from the same structured Passport, sources and deterministic calculations shown during this consultation.</p></div><div class="report-card"><span class="report-icon" aria-hidden="true">PDF</span><div><strong>${escapeHtml(payload.filename || 'EasyEV decision report')}</strong><span>${Array.isArray(payload.sections) ? escapeHtml(payload.sections.join(' · ')) : 'Buyer profile · comparison · cost · charging · readiness · next actions'}</span></div><button class="stage-action" type="button" data-download-report>Download PDF</button></div><p class="tool-notice">Dealer contact, calendar, WhatsApp and booking actions remain simulated. The report is decision support, not financial, electrical or safety certification.</p>`;
+        } else if (type === 'lead-capture') {
+          const rows = [
+            ['Name', payload.name],
+            ['Email', payload.email],
+            ['Phone', payload.phone],
+          ].filter(([, value]) => value);
+          target.innerHTML = payload.needsDetails
+            ? `<div class="stage-content__intro"><h3>So a specialist can follow up</h3><p>Share a name and either a phone number or an email. Nothing is shared outside EasyEV.</p></div>`
+            : `<div class="stage-content__intro"><h3>Saved to the CRM</h3><p>Your details are attached to everything we have discussed, so nobody will ask you to repeat it.</p></div>
+               <div class="crm-card">${rows.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
+               <p class="tool-notice">${payload.live ? 'Written to HubSpot as a sales-qualified lead with the full Buyer Passport.' : 'Held against this conversation. Connect HubSpot to sync it to the CRM.'}</p>`;
+        } else if (type === 'booking-slots') {
+          const slots = Array.isArray(payload.slots) ? payload.slots : [];
+          target.innerHTML = `<div class="stage-content__intro"><h3>Open times</h3><p>${payload.live ? 'Live availability from the EasyEV booking calendar.' : 'Indicative times; the live calendar is not connected.'}</p></div>
+            <div class="slot-grid">${slots.map((slot, index) => `<button class="slot-button" type="button" data-book-slot="${escapeHtml(slot.start)}"><span class="slot-index">${index + 1}</span>${escapeHtml(slot.label)}</button>`).join('') || '<p class="stage-note">No open slots in this window.</p>'}</div>
+            ${payload.needsEmail ? '<p class="tool-notice">An email address is needed so the confirmation can be sent.</p>' : ''}`;
+        } else if (type === 'booking-confirmed') {
+          target.innerHTML = `<div class="booking-done ${payload.confirmed ? 'is-live' : ''}">
+              <div class="stage-content__intro"><h3>${payload.confirmed ? 'Booked' : 'Time held'}</h3><p>${payload.confirmed ? `A confirmation is on its way to ${escapeHtml(payload.email || 'your inbox')}.` : 'A specialist will confirm this with you.'}</p></div>
+              <div class="crm-card">
+                <div><span>When</span><strong>${escapeHtml(payload.when || '')}</strong></div>
+                <div><span>Type</span><strong>${escapeHtml(payload.demoType || 'Test drive')}</strong></div>
+                ${payload.bookingId ? `<div><span>Reference</span><strong>${escapeHtml(String(payload.bookingId))}</strong></div>` : ''}
+              </div>
+              <p class="tool-notice">${payload.confirmed ? `Created on the real booking calendar via ${escapeHtml(payload.provider)}.` : escapeHtml(payload.note || 'Held in this session only.')}</p>
+            </div>`;
         } else if (type === 'handoff') {
           const handoff = state.handoff || payload || {};
           const joined = handoff.status === 'rep-joined';
@@ -8574,7 +8675,10 @@
           mic.setAttribute('aria-pressed', String(!state.muted));
           mic.disabled = state.callStatus !== 'live';
         }
-        $$('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
+        $('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
+        $('[data-request-human]').forEach((button) => {
+          button.disabled = state.callStatus !== 'live' || state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined';
+        });
         $$('[data-request-human]').forEach((button) => {
           button.disabled = state.callStatus !== 'live' || state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined';
         });
@@ -8883,7 +8987,9 @@
         find_nearby_chargers: payload?.fallback ? 'Demo fallback data' : (payload?.source || 'Live charging sources'),
         calculate_ownership: 'Deterministic calculation',
         analyze_readiness_snapshot: 'Optional Gemini analysis',
-        generate_decision_report: 'Structured Passport PDF'
+        generate_decision_report: 'Structured Passport PDF',
+        capture_lead: payload?.live ? 'Written to HubSpot CRM' : 'Held in this session',
+        book_test_drive: payload?.live || payload?.confirmed ? 'Live Cal.com calendar' : 'Indicative times'
       }[tool] || 'EasyEV decision tool');
       const stageTypeForTool = (stage) => stage === 'ownership' ? 'ownership-cost' : stage;
       const presentToolStage = (stage, payload, tool) => {
@@ -9050,7 +9156,6 @@
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
         if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
         if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
-        // "talk to the AI agent" is not a request for a person.
         if (/\bagent\b/i.test(spoken) && AI_SELF_REFERENCE.test(spoken) && !/human|insaan|इंसान|आदमी|banda|बंदा/i.test(spoken)) return false;
         const key = eventId ? `human:${eventId}` : `human:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
         if (state.handledFastIntentIds.has(key)) return true;
@@ -9061,6 +9166,33 @@
         state.activityMessage = 'Paging a human specialist…';
         adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
           .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
+        return true;
+      };
+      // A booking request must not depend on the model routing correctly: it is the
+      // demo's closing beat, and "test drive chahiye" reads a lot like "ready to buy",
+      // which the escalation tool also claims. This settles it deterministically.
+      const BOOK_STRONG = /test\s*drive|टेस्ट\s*ड्राइव|appointment|अपॉइंटमेंट|showroom|शोरूम|dealership\s*visit/i;
+      const BOOK_VERB = /\b(book|schedule|arrange|fix|want)\b|बुक|शेड्यूल|लगा(?:ओ|ना|दो|इए)|चाहिए|chahiye|karni hai|karna hai/i;
+      const BOOK_DEMO = /\bdemo\b|डेमो/i;
+      const fastBookingIntent = (text, eventId = '') => {
+        const spoken = String(text || '').trim();
+        if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        if (state.decisionPassport?.booking?.confirmed) return false;
+        const wants = BOOK_STRONG.test(spoken) || (BOOK_DEMO.test(spoken) && BOOK_VERB.test(spoken));
+        if (!wants) return false;
+        const key = eventId ? `book:${eventId}` : `book:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
+        if (state.handledFastIntentIds.has(key)) return true;
+        state.handledFastIntentIds.add(key);
+        scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
+        const adapter = activeAdapter();
+        if (typeof adapter?.runTool !== 'function') return false;
+        state.activityMessage = 'Checking real availability…';
+        const demoType = /at[- ]?home|ghar/i.test(spoken) ? 'At-home demo'
+          : /video|online/i.test(spoken) ? 'Video walk-through'
+          : /dealer|showroom|शोरूम/i.test(spoken) ? 'Dealership visit'
+          : '';
+        adapter.runTool('book_test_drive', demoType ? { demoType } : {})
+          .catch((error) => showToast(error?.message || 'Availability could not be checked.'));
         return true;
       };
       const toolForTurn = (turnName) => ({
@@ -9363,6 +9495,7 @@
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
           if (fastHumanIntent(latestUser.text, finalEventId)) return;
+          if (fastBookingIntent(latestUser.text, finalEventId)) return;
           const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
           if (!handledVisually) state.intentGuard = null;
         }
@@ -9502,6 +9635,26 @@
           const open = !sidebar?.classList.contains('is-open');
           sidebar?.classList.toggle('is-open', open);
           target.setAttribute('aria-expanded', String(open));
+          return;
+        }
+        if (target.matches('[data-book-slot]')) {
+          const start = target.dataset.bookSlot;
+          target.disabled = true;
+          try {
+            const adapter = activeAdapter();
+            if (typeof adapter?.runTool !== 'function') throw new Error('Booking needs the live consultation.');
+            const lead = state.decisionPassport?.lead || {};
+            if (!lead.email) {
+              showToast('Tell EasyEV your email so the confirmation can be sent.');
+              target.disabled = false;
+              return;
+            }
+            await adapter.runTool('book_test_drive', { slot: start, demoType: state.booking.demoType || 'Dealership visit' });
+          } catch (error) {
+            showToast(error?.message || 'That slot could not be booked.');
+          } finally {
+            target.disabled = false;
+          }
           return;
         }
         if (target.matches('[data-request-human]')) {
