@@ -8675,10 +8675,7 @@
           mic.setAttribute('aria-pressed', String(!state.muted));
           mic.disabled = state.callStatus !== 'live';
         }
-        $('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
-        $('[data-request-human]').forEach((button) => {
-          button.disabled = state.callStatus !== 'live' || state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined';
-        });
+        $$('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
         $$('[data-request-human]').forEach((button) => {
           button.disabled = state.callStatus !== 'live' || state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined';
         });
