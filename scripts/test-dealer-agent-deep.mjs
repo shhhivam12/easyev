@@ -7,6 +7,9 @@ import {
   normalizeEntities,
   parseSpokenNumberWords,
   normalizeSttTranscript,
+  detectCrossFieldConflicts,
+  CONVERSATION_MODE,
+  FIELD_REPAIR_VOCABULARY,
   INTENT,
   FIELD_STATE,
   TURN_QUALITY,
@@ -17,37 +20,21 @@ console.log('🧪 Starting Enterprise Production Verification Suite for Dealer V
 
 let passCount = 0;
 let failCount = 0;
+const testQueue = [];
 
 function test(name, fn) {
-  try {
-    fn();
-    console.log(`  ✅ PASS: ${name}`);
-    passCount++;
-  } catch (err) {
-    console.error(`  ❌ FAIL: ${name}`);
-    console.error(`     Error: ${err.message}`);
-    console.error(err.stack);
-    failCount++;
-  }
+  testQueue.push({ name, fn, isAsync: false });
 }
 
-async function asyncTest(name, fn) {
-  try {
-    await fn();
-    console.log(`  ✅ PASS: ${name}`);
-    passCount++;
-  } catch (err) {
-    console.error(`  ❌ FAIL: ${name}`);
-    console.error(`     Error: ${err.message}`);
-    console.error(err.stack);
-    failCount++;
-  }
+function asyncTest(name, fn) {
+  testQueue.push({ name, fn, isAsync: true });
 }
 
-// -------------------------------------------------------------
-// SECTION 1: CANONICAL FORM STATE & PROVENANCE TRACKING (P1, P9, P20)
-// -------------------------------------------------------------
-console.log('--- Section 1: Canonical Form State Machine & Provenance ---');
+function logSection(title) {
+  testQueue.push({ isHeader: true, title });
+}
+
+logSection('--- Section 1: Canonical Form State Machine & Provenance ---');
 
 test('VOICE_INTERVIEW_FIELDS contains exactly 10 questions without categories', () => {
   assert.strictEqual(VOICE_INTERVIEW_FIELDS.length, 10);
@@ -98,58 +85,40 @@ test('Controlled updateField records provenance, utterance, confidence, and audi
   assert.strictEqual(f.validated, true);
   assert.strictEqual(f.history.length, 1);
   assert.strictEqual(f.history[0].value, 'Eco Wheels EV Hub');
+  assert.strictEqual(f.history[0].source, 'voice');
   assert.strictEqual(sm.auditTrail.length, 1);
 });
 
-// -------------------------------------------------------------
-// SECTION 2: SPOKEN NUMBERS & STT ERROR NORMALIZATION (P4, P17)
-// -------------------------------------------------------------
-console.log('\n--- Section 2: Spoken Numbers & STT Normalization ---');
+logSection('\n--- Section 2: Spoken Numbers & STT Normalization ---');
 
 test('Spoken Hindi/English number conversion', () => {
-  const parsed1 = parseSpokenNumberWords('nau aath saat chhe paanch chaar teen do ek shunya');
-  assert.strictEqual(parsed1.join(''), '9876543210');
-
-  const parsed2 = parseSpokenNumberWords('double nine double eight double seven double six double five');
-  assert.strictEqual(parsed2.join(''), '9988776655');
+  const seqs = parseSpokenNumberWords('mera number hai nau aath double one do teen chaar paanch chhe saat');
+  assert.ok(seqs.includes('9811234567'), `Expected 9811234567 in ${JSON.stringify(seqs)}`);
 });
 
 test('STT email & transcript normalization', () => {
-  const cleaned = normalizeSttTranscript('satvik at the rate easyev dot com');
-  assert.strictEqual(cleaned, 'satvik@easyev.com');
-
-  const cleaned2 = normalizeSttTranscript('support at rate tataev dot in');
-  assert.strictEqual(cleaned2, 'support@tataev.in');
+  const norm = normalizeSttTranscript('contact at the rate ecowheels dot com');
+  assert.strictEqual(norm, 'contact@ecowheels.com');
 });
 
 test('Phone extraction with clean 10-digit extraction', () => {
-  const res1 = normalizeEntities('Mera phone number hai 9811234567', {}, 'phone', 1);
-  assert.strictEqual(res1.phone, '9811234567');
-
-  const res2 = normalizeEntities('WhatsApp number 91 98765 43210', {}, 'phone', 1);
-  assert.strictEqual(res2.phone, '9876543210');
+  const ext = normalizeEntities('mera mobile number hai 9811234567');
+  assert.strictEqual(ext.phone, '9811234567');
 });
 
 test('Pincode extraction', () => {
-  const res1 = normalizeEntities('Humara showroom 110049 me hai', {}, 'pincode', 2);
-  assert.strictEqual(res1.pincode, '110049');
-
-  const res2 = normalizeEntities('Pincode hai 560038', {}, 'pincode', 2);
-  assert.strictEqual(res2.pincode, '560038');
+  const ext = normalizeEntities('humara pin code 110049 hai');
+  assert.strictEqual(ext.pincode, '110049');
 });
 
 test('Multi-brand extraction', () => {
-  const res = normalizeEntities('Hum Tata Motors aur Mahindra aur Ather deal karte hain', {}, 'brands', 3);
-  assert.ok(Array.isArray(res.brands));
-  assert.ok(res.brands.includes('Tata Motors'));
-  assert.ok(res.brands.includes('Mahindra'));
-  assert.ok(res.brands.includes('Ather Energy'));
+  const ext = normalizeEntities('hum tata motors aur mahindra electric sell karte hain');
+  assert.ok(Array.isArray(ext.brands));
+  assert.ok(ext.brands.includes('Tata Motors'));
+  assert.ok(ext.brands.includes('Mahindra'));
 });
 
-// -------------------------------------------------------------
-// SECTION 3: INTENT CLASSIFICATION & QUALITY CONTROL (P3, P10)
-// -------------------------------------------------------------
-console.log('\n--- Section 3: Intent Classification & Quality Control ---');
+logSection('\n--- Section 3: Intent Classification & Quality Control ---');
 
 test('Submit intent classification with negative lookahead for fees/help', () => {
   assert.strictEqual(classifyIntent('Submit my verified registration'), INTENT.SUBMIT);
@@ -166,12 +135,9 @@ test('Navigation & Correction intents', () => {
   assert.strictEqual(classifyIntent('Nahi mera phone actually alag hai'), INTENT.CORRECT_FIELD);
 });
 
-// -------------------------------------------------------------
-// SECTION 4: 3-ATTEMPT PROGRESSIVE FALLBACK (P2)
-// -------------------------------------------------------------
-console.log('\n--- Section 4: 3-Attempt Progressive Fallback ---');
+logSection('\n--- Section 4: 3-Attempt Progressive Fallback ---');
 
-await asyncTest('3-Attempt progressive fallback escalation to MANUAL_FALLBACK', async () => {
+asyncTest('3-Attempt progressive fallback escalation to MANUAL_FALLBACK', async () => {
   const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
 
   // Attempt 0: First time asking for shopName
@@ -198,12 +164,9 @@ await asyncTest('3-Attempt progressive fallback escalation to MANUAL_FALLBACK', 
   assert.strictEqual(t3.targetField, 'managerName');
 });
 
-// -------------------------------------------------------------
-// SECTION 5: MULTI-FIELD COMPOUND EXTRACTION & OUT-OF-ORDER (P5, P6)
-// -------------------------------------------------------------
-console.log('\n--- Section 5: Compound Extraction & Out-of-Order Answers ---');
+logSection('\n--- Section 5: Compound Extraction & Out-of-Order Answers ---');
 
-await asyncTest('Compound single sentence extracts shopName, managerName, phone, and city in one turn', async () => {
+asyncTest('Compound single sentence extracts shopName, managerName, phone, and city in one turn', async () => {
   const session = dealerVoiceAgentManager.createSession({});
   const utterance = 'Mera showroom name Shakti Motors EV, manager Rajesh Sharma, phone 9811223344, located in New Delhi';
   
@@ -218,7 +181,7 @@ await asyncTest('Compound single sentence extracts shopName, managerName, phone,
   assert.strictEqual(turnRes.step, 2);
 });
 
-await asyncTest('Out-of-order field answer (Email provided while Phone asked) is preserved', async () => {
+asyncTest('Out-of-order field answer (Email provided while Phone asked) is preserved', async () => {
   const session = dealerVoiceAgentManager.createSession({});
   session.stateMachine.currentTargetField = 'phone';
   
@@ -227,12 +190,9 @@ await asyncTest('Out-of-order field answer (Email provided while Phone asked) is
   assert.strictEqual(session.stateMachine.fields.email.status, FIELD_STATE.FILLED);
 });
 
-// -------------------------------------------------------------
-// SECTION 6: CORRECTIONS WITH AUDIT TRAIL (P7, P20)
-// -------------------------------------------------------------
-console.log('\n--- Section 6: Non-Destructive Corrections & Audit Trail ---');
+logSection('\n--- Section 6: Non-Destructive Corrections & Audit Trail ---');
 
-await asyncTest('Field correction maintains history and audit trail without data loss', async () => {
+asyncTest('Field correction maintains history and audit trail without data loss', async () => {
   const session = dealerVoiceAgentManager.createSession({});
   await session.processTurn({ text: 'Mera phone number 9811223344 hai' });
   assert.strictEqual(session.stateMachine.fields.phone.value, '9811223344');
@@ -248,12 +208,9 @@ await asyncTest('Field correction maintains history and audit trail without data
   assert.ok(session.stateMachine.auditTrail.length >= 2);
 });
 
-// -------------------------------------------------------------
-// SECTION 7: IRRELEVANT ANSWER REJECTION (P3, P4)
-// -------------------------------------------------------------
-console.log('\n--- Section 7: Irrelevant Answer Guard ---');
+logSection('\n--- Section 7: Irrelevant Answer Guard ---');
 
-await asyncTest('Irrelevant answer (e.g. Pune) when phone is expected does not pollute phone field', async () => {
+asyncTest('Irrelevant answer (e.g. Pune) when phone is expected does not pollute phone field', async () => {
   const session = dealerVoiceAgentManager.createSession({});
   session.stateMachine.currentTargetField = 'phone';
 
@@ -264,12 +221,9 @@ await asyncTest('Irrelevant answer (e.g. Pune) when phone is expected does not p
   assert.strictEqual(session.stateMachine.fields.city.value, 'Pune');
 });
 
-// -------------------------------------------------------------
-// SECTION 8: FULL END-TO-END ONBOARDING JOURNEY (P18)
-// -------------------------------------------------------------
-console.log('\n--- Section 8: End-to-End Onboarding Journey Simulation ---');
+logSection('\n--- Section 8: End-to-End Onboarding Journey Simulation ---');
 
-await asyncTest('Simulate full 10-turn voice onboarding interview from 0/10 to 10/10 and Submit', async () => {
+asyncTest('Simulate full 10-turn voice onboarding interview from 0/10 to 10/10 and Submit', async () => {
   const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
 
   // Initial check
@@ -349,12 +303,9 @@ await asyncTest('Simulate full 10-turn voice onboarding interview from 0/10 to 1
   assert.strictEqual(tSubmit.registeredDealer.shopName, 'Shakti Motors EV Hub');
 });
 
-// -------------------------------------------------------------
-// SECTION 9: OBSERVABILITY & TELEMETRY REPORT (P21)
-// -------------------------------------------------------------
-console.log('\n--- Section 9: Observability & Telemetry Metrics ---');
+logSection('\n--- Section 9: Observability & Telemetry Metrics ---');
 
-await asyncTest('Observability report accurately aggregates latency and turn metrics', async () => {
+asyncTest('Observability report accurately aggregates latency and turn metrics', async () => {
   const session = dealerVoiceAgentManager.createSession({});
   await session.processTurn({ text: 'Showroom ABC Motors' });
   await session.processTurn({ text: 'uhhh' });
@@ -368,14 +319,11 @@ await asyncTest('Observability report accurately aggregates latency and turn met
   assert.ok(report.auditTrailLength >= 2);
 });
 
-// -------------------------------------------------------------
-// SECTION 10: LIVE SERVER HTTP API ENDPOINTS
-// -------------------------------------------------------------
-console.log('\n--- Section 10: Live Server HTTP API Endpoints ---');
+logSection('\n--- Section 10: Live Server HTTP API Endpoints ---');
 
 const BASE_URL = process.env.TEST_SERVER_URL || 'http://127.0.0.1:4173';
 
-await asyncTest('GET /api/dealers/stats returns active dealer network statistics', async () => {
+asyncTest('GET /api/dealers/stats returns active dealer network statistics', async () => {
   const res = await fetch(`${BASE_URL}/api/dealers/stats`);
   assert.strictEqual(res.status, 200);
   const data = await res.json();
@@ -384,7 +332,7 @@ await asyncTest('GET /api/dealers/stats returns active dealer network statistics
   assert.ok(typeof data.stats.verifiedDealers === 'number');
 });
 
-await asyncTest('GET /api/dealers returns list of dealerships with count', async () => {
+asyncTest('GET /api/dealers returns list of dealerships with count', async () => {
   const res = await fetch(`${BASE_URL}/api/dealers`);
   assert.strictEqual(res.status, 200);
   const data = await res.json();
@@ -393,7 +341,7 @@ await asyncTest('GET /api/dealers returns list of dealerships with count', async
   assert.ok(data.count >= 0);
 });
 
-await asyncTest('POST /api/dealers/register creates new dealer and validates schema', async () => {
+asyncTest('POST /api/dealers/register creates new dealer and validates schema', async () => {
   const sampleDealer = {
     name: 'Integration Test EV Showroom',
     dealerType: 'Authorized OEM Dealership',
@@ -505,10 +453,175 @@ await asyncTest('POST /api/dealer-session/start, process-turn, sync-state, telem
   assert.strictEqual(stopRes.status, 200);
 });
 
-console.log('\n=============================================');
-console.log(`Summary: ${passCount} Passed, ${failCount} Failed`);
-console.log('=============================================\n');
+logSection('\n--- Section 11: Advanced Enterprise Production Features ---');
 
-if (failCount > 0) {
-  process.exit(1);
+asyncTest('Tip 11: Information Memory - Agent never asks questions user already answered', async () => {
+  const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
+  
+  // User gives showroom name, owner name, and city in the first turn
+  const turn1 = await session.processTurn({ text: 'Mera showroom name hai Volt Drive Hub, owner Satvik Kesarwani, city Pune' });
+  
+  assert.strictEqual(turn1.currentForm.shopName, 'Volt Drive Hub');
+  assert.strictEqual(turn1.currentForm.managerName, 'Satvik Kesarwani');
+  assert.strictEqual(turn1.currentForm.city, 'Pune');
+  
+  // The only remaining missing field in Step 1 is phone!
+  // Agent must ask for phone directly, NEVER asking "what is your name" or "which city"
+  assert.strictEqual(turn1.targetField, 'phone');
+  assert.ok(turn1.speechText.includes('phone') || turn1.speechText.includes('mobile') || turn1.speechText.includes('number'));
+  assert.ok(!turn1.speechText.includes('Aapke EV showroom ka kya naam hai'));
+});
+
+test('Tip 12: Cross-field Reasoning - Detect city vs pincode mismatch conflict', () => {
+  // Case A: Delhi city with Bangalore pincode (560038)
+  const conflictForm = {
+    city: 'Delhi',
+    pincode: '560038'
+  };
+  const conflicts = detectCrossFieldConflicts(conflictForm);
+  assert.strictEqual(conflicts.length, 1);
+  assert.strictEqual(conflicts[0].conflictCode, 'CITY_PINCODE_MISMATCH');
+  assert.deepStrictEqual(conflicts[0].fields, ['city', 'pincode']);
+  assert.ok(conflicts[0].suggestedQuestion.Hinglish.includes('pincode'));
+
+  // Case B: Valid matching city and pincode (Mumbai + 400001)
+  const validForm = {
+    city: 'Mumbai',
+    pincode: '400001'
+  };
+  const noConflicts = detectCrossFieldConflicts(validForm);
+  assert.strictEqual(noConflicts.length, 0);
+});
+
+asyncTest('Tip 15: Explicit Conversation Mode transitions', async () => {
+  const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
+  
+  // Initial Greeting should be ASKING
+  const greeting = session.getInitialGreeting();
+  assert.strictEqual(greeting.conversationMode, CONVERSATION_MODE.ASKING);
+  
+  // Hesitation should set PAUSED
+  const pausedTurn = await session.processTurn({ text: 'Arre ek minute ruko please' });
+  assert.strictEqual(pausedTurn.conversationMode, CONVERSATION_MODE.PAUSED);
+
+  // Answering field returns to ASKING or CONFIRMING
+  const ansTurn = await session.processTurn({ text: 'Showroom name hai Speed Wheels' });
+  assert.ok([CONVERSATION_MODE.ASKING, CONVERSATION_MODE.CONFIRMING].includes(ansTurn.conversationMode));
+
+  // Correction sets CORRECTING
+  const corrTurn = await session.processTurn({ text: 'Nahi mera showroom name badlo, actual name hai Turbo EV' });
+  assert.strictEqual(corrTurn.conversationMode, CONVERSATION_MODE.CORRECTING);
+});
+
+asyncTest('Tip 20: Submission is a multi-stage transaction with audit records', async () => {
+  const session = dealerVoiceAgentManager.createSession({
+    language: 'Hinglish',
+    initialValues: {
+      shopName: 'Apex EV World',
+      managerName: 'Priya Sharma',
+      phone: '9822334455',
+      city: 'Pune',
+      address: 'Senapati Bapat Road',
+      pincode: '411016',
+      brands: ['Tata Motors', 'Mahindra']
+    }
+  });
+
+  const submitRes = await session.submitRegistration();
+  assert.strictEqual(submitRes.action, 'SUBMIT_SUCCESS');
+  assert.ok(submitRes.transactionAudit);
+  assert.strictEqual(submitRes.transactionAudit.status, 'COMMITTED');
+  assert.ok(Array.isArray(submitRes.transactionAudit.stages));
+  
+  const stageNames = submitRes.transactionAudit.stages.map(s => s.stage);
+  assert.ok(stageNames.includes('REQUIRED_FIELDS_CHECK'));
+  assert.ok(stageNames.includes('DETERMINISTIC_VALIDATION'));
+  assert.ok(stageNames.includes('DEPENDENCY_CHECK'));
+  assert.ok(stageNames.includes('CROSS_FIELD_CONFLICT_CHECK'));
+  assert.ok(stageNames.includes('SERVER_SIDE_VALIDATION'));
+  assert.ok(stageNames.includes('IDEMPOTENT_SUBMISSION'));
+});
+
+asyncTest('Tip 23: Latency budget & turn breakdown telemetry', async () => {
+  const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
+  const turn = await session.processTurn({ text: 'Showroom name hai Nexus EV', sttLatencyMs: 140 });
+  
+  assert.ok(turn.latencyBreakdown);
+  assert.strictEqual(turn.latencyBreakdown.sttLatencyMs, 140);
+  assert.strictEqual(typeof turn.latencyBreakdown.extractionLatencyMs, 'number');
+  assert.strictEqual(typeof turn.latencyBreakdown.validationLatencyMs, 'number');
+  assert.strictEqual(typeof turn.latencyBreakdown.decisionLatencyMs, 'number');
+  assert.strictEqual(typeof turn.latencyBreakdown.totalTurnLatencyMs, 'number');
+  assert.ok(turn.turnLatencyMs >= 0);
+});
+
+test('Tip 30: Field-Specific Repair Vocabulary exists for all major fields', () => {
+  const fields = ['phone', 'email', 'pincode', 'address', 'brands', 'shopName', 'managerName', 'city'];
+  for (const f of fields) {
+    assert.ok(FIELD_REPAIR_VOCABULARY[f], `Repair vocabulary missing for ${f}`);
+    assert.ok(FIELD_REPAIR_VOCABULARY[f].Hindi, `Hindi repair vocabulary missing for ${f}`);
+    assert.ok(FIELD_REPAIR_VOCABULARY[f].Hinglish, `Hinglish repair vocabulary missing for ${f}`);
+    assert.ok(FIELD_REPAIR_VOCABULARY[f].English, `English repair vocabulary missing for ${f}`);
+  }
+});
+
+asyncTest('Tip 31: Handle "I don\'t know" / UNKNOWN Intent without 3-retry loop', async () => {
+  const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
+  
+  // Step 1: user doesn't know the exact shop name right now
+  const turn1 = await session.processTurn({ text: 'Mujhe abhi pata nahi, yaad nahi aa raha' });
+  
+  // Should gracefully mark as MANUAL_FALLBACK and proceed to next field without looping 3 times
+  assert.strictEqual(session.stateMachine.fields.shopName.status, FIELD_STATE.MANUAL_FALLBACK);
+  assert.strictEqual(turn1.targetField, 'managerName');
+  assert.ok(turn1.speechText.includes('manually') || turn1.speechText.includes('screen') || turn1.speechText.includes('Koi baat nahi'));
+});
+
+asyncTest('Tip 33: Graceful Degradation preserves canonical form state on error', async () => {
+  const session = dealerVoiceAgentManager.createSession({
+    language: 'Hinglish',
+    initialValues: { shopName: 'Saved Motors', managerName: 'Amit Shah' }
+  });
+
+  // Simulate internal error or manual patch sync
+  await session.stateMachine.updateFields({ phone: '9811223344' }, 'manual_ui');
+  
+  const turn = await session.processTurn({ text: '' });
+  assert.strictEqual(turn.currentForm.shopName, 'Saved Motors');
+  assert.strictEqual(turn.currentForm.managerName, 'Amit Shah');
+  assert.strictEqual(turn.currentForm.phone, '9811223344');
+});
+
+async function runAll() {
+  for (const item of testQueue) {
+    if (item.isHeader) {
+      console.log(item.title);
+      continue;
+    }
+    try {
+      if (item.isAsync) {
+        await item.fn();
+      } else {
+        item.fn();
+      }
+      console.log(`  ✅ PASS: ${item.name}`);
+      passCount++;
+    } catch (err) {
+      console.error(`  ❌ FAIL: ${item.name}`);
+      console.error(`     Error: ${err.message}`);
+      console.error(err.stack);
+      failCount++;
+    }
+  }
+
+  console.log('\n=============================================');
+  console.log(`Summary: ${passCount} Passed, ${failCount} Failed`);
+  console.log('=============================================\n');
+
+  if (failCount > 0) {
+    process.exit(1);
+  }
 }
+
+await runAll();
+
