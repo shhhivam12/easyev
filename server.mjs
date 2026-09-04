@@ -8,6 +8,8 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
 import { CrmCalendar } from './crm-calendar.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
+import { dealerDb } from './dealer-db.mjs';
+import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
 import {
   AgoraClient,
   Agent,
@@ -93,16 +95,20 @@ const tools = new EasyEVToolEngine({
 const handoffCodes = new Map();
 
 function loadLocalEnv(path) {
-  if (!existsSync(path)) return;
-  const source = readFileSync(path, 'utf8');
-  for (const line of source.split(/\r?\n/)) {
-    const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-    if (!match || process.env[match[1]]) continue;
-    let value = match[2].trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
+  try {
+    if (!existsSync(path)) return;
+    const source = readFileSync(path, 'utf8');
+    for (const line of source.split(/\r?\n/)) {
+      const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!match || process.env[match[1]]) continue;
+      let value = match[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      process.env[match[1]] = value;
     }
-    process.env[match[1]] = value;
+  } catch (err) {
+    console.warn('loadLocalEnv warning:', err?.message || err);
   }
 }
 
@@ -1336,6 +1342,134 @@ async function handleApi(req, res, url) {
       sessions.delete(key);
       throw error;
     }
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealers/stats') {
+    return json(res, 200, { success: true, stats: dealerDb.getDealerStats() });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealers') {
+    const filters = {
+      city: url.searchParams.get('city') || '',
+      pincode: url.searchParams.get('pincode') || '',
+      category: url.searchParams.get('category') || '',
+      brand: url.searchParams.get('brand') || '',
+      hasEmi: url.searchParams.get('hasEmi'),
+      hasInsurance: url.searchParams.get('hasInsurance'),
+      hasTestDrive: url.searchParams.get('hasTestDrive'),
+    };
+    const dealers = dealerDb.findDealers(filters);
+    return json(res, 200, { success: true, count: dealers.length, dealers });
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/dealers/')) {
+    const id = decodeURIComponent(url.pathname.slice('/api/dealers/'.length));
+    const dealer = dealerDb.getDealerById(id);
+    if (!dealer) {
+      return json(res, 404, { error: 'Dealer not found' });
+    }
+    return json(res, 200, { success: true, dealer });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealers/register') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    try {
+      const dealer = dealerDb.registerDealer(body);
+      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Failed to register dealer' });
+    }
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/token') {
+    const channel = `easyev-dlr-${Date.now().toString(36)}-${randomUUID().slice(0, 6)}`;
+    const uid = String(randomInt(1000, 9_999_000));
+    const token = createToken(channel, uid);
+    const bootstrapKey = randomUUID();
+    bootstraps.set(bootstrapKey, { channel, uid, expiresAt: Date.now() + BOOTSTRAP_TTL_MS });
+    return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, bootstrapKey, expiresIn: TOKEN_TTL_SECONDS });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/start') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const voice = selectedVoice(body.voice).id;
+    const initialValues = (body.initialValues && typeof body.initialValues === 'object') ? body.initialValues : {};
+    const currentStep = (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : null;
+    const session = dealerVoiceAgentManager.createSession({ language, voice, initialValues, currentStep });
+    const initialTurn = session.getInitialGreeting();
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      state: 'RUNNING',
+      initialTurn,
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/process-turn') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : 1
+      });
+    }
+    try {
+      const userText = body.text || body.userSpeech || body.transcript || body.input || '';
+      const result = await session.processTurn({ text: userText, patch: body.patch || null });
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 500, { error: err.message || 'Failed to process voice turn' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/sync-state') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : 1
+      });
+    }
+    if (body.patch) {
+      session.stateMachine.updateFields(body.patch, 'manual_ui_sync');
+    }
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      currentForm: session.stateMachine.getValues(),
+      completionStats: session.stateMachine.getCompletionStats()
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/submit') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: 4
+      });
+    }
+    try {
+      const result = await session.submitRegistration();
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Failed to submit dealer registration' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/stop') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    if (body.sessionId) {
+      dealerVoiceAgentManager.destroySession(body.sessionId);
+    }
+    return json(res, 200, { success: true });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {
