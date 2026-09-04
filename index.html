@@ -2738,7 +2738,6 @@
       font-family: ui-monospace, Menlo, monospace;
       letter-spacing: .16em;
     }
-
     .crm-card {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -8092,7 +8091,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
       const networkLabel = () => {
@@ -9153,6 +9152,7 @@
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
         if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
         if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
+        // "talk to the AI agent" is not a request for a person.
         if (/\bagent\b/i.test(spoken) && AI_SELF_REFERENCE.test(spoken) && !/human|insaan|इंसान|आदमी|banda|बंदा/i.test(spoken)) return false;
         const key = eventId ? `human:${eventId}` : `human:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
         if (state.handledFastIntentIds.has(key)) return true;
