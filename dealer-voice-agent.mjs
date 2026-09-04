@@ -1354,10 +1354,19 @@ export class DealerAgentSession {
       const turnDuration = Date.now() - turnStartTime;
       this.telemetry.turnLatenciesMs.push(turnDuration);
 
+      const latencyBreakdown = result.latencyBreakdown || {
+        sttLatencyMs,
+        extractionLatencyMs: 0,
+        validationLatencyMs: 0,
+        decisionLatencyMs: 0,
+        totalTurnLatencyMs: turnDuration
+      };
+
       return {
         ...result,
         conversationMode: this.conversationMode,
         turnLatencyMs: turnDuration,
+        latencyBreakdown,
         telemetry: this.getObservabilityReport()
       };
     } catch (err) {
