@@ -2663,6 +2663,82 @@
       color: rgba(255, 255, 255, .75);
     }
 
+    .transcript-entry--rep .transcript-entry__speaker {
+      color: #ffc75a;
+    }
+
+    .transcript-entry--rep .transcript-entry__text {
+      border-left: 2px solid rgba(255, 199, 90, .5);
+      padding-left: 9px;
+    }
+
+    .handoff-panel {
+      display: grid;
+      gap: 18px;
+    }
+
+    .handoff-wait,
+    .handoff-strip {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 199, 90, .32);
+      border-radius: 12px;
+      background: rgba(255, 199, 90, .08);
+      font-size: 12px;
+    }
+
+    .handoff-wait strong {
+      display: block;
+      font-size: 13px;
+      font-weight: 680;
+    }
+
+    .handoff-wait span {
+      color: rgba(255, 255, 255, .6);
+      font-size: 11px;
+    }
+
+    .handoff-panel.is-live .handoff-strip {
+      border-color: rgba(85, 242, 123, .34);
+      background: rgba(85, 242, 123, .09);
+      font-weight: 640;
+    }
+
+    .handoff-dot {
+      flex: none;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--green-bright);
+    }
+
+    .handoff-dot.is-waiting {
+      background: #ffc75a;
+      animation: handoffPulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes handoffPulse {
+      50% { opacity: .3; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .handoff-dot.is-waiting { animation: none; }
+    }
+
+    .handoff-code {
+      margin: 0;
+      color: rgba(255, 255, 255, .55);
+      font-size: 11px;
+    }
+
+    .handoff-code b {
+      color: #fff;
+      font-family: ui-monospace, Menlo, monospace;
+      letter-spacing: .16em;
+    }
+
     .transcript-entry__text {
       margin: 4px 0 0;
       color: rgba(255, 255, 255, .82);
@@ -7416,6 +7492,7 @@
         <button class="prompt-chip" type="button" data-tool-prompt="snapshot">Check my charging setup</button>
         <button class="prompt-chip" type="button" data-tool-prompt="report">Build decision report</button>
         <button class="prompt-chip" type="button" data-turn="booking">Book a test drive</button>
+        <button class="prompt-chip" type="button" data-request-human>Talk to a specialist</button>
       </div>
 
       <aside class="prompt-drawer" id="prompt-drawer" hidden role="dialog" aria-label="Text prompt">
@@ -7849,6 +7926,7 @@
         selectedTab: 'passport',
         profileFlash: new Set(),
         booking: { slot: '', demoType: '', confirmed: false },
+        handoff: null,
         costModel: { dailyKm: 70, unitCost: 8, years: 5, publicRate: 18, homeShare: 80 },
         chargeProgress: 0,
         chargePlaying: false,
@@ -7939,7 +8017,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
       const networkLabel = () => {
@@ -8117,12 +8195,12 @@
         }
         state.transcript.forEach((entry) => {
           const item = document.createElement('article');
-          item.className = `transcript-entry transcript-entry--${entry.speaker === 'you' ? 'you' : 'ai'}`;
+          item.className = `transcript-entry transcript-entry--${entry.speaker === 'you' ? 'you' : entry.speaker === 'rep' ? 'rep' : 'ai'}`;
           const meta = document.createElement('div');
           meta.className = 'transcript-entry__meta';
           const speaker = document.createElement('span');
           speaker.className = 'transcript-entry__speaker';
-          speaker.textContent = entry.speaker === 'you' ? 'You' : 'EasyEV AI';
+          speaker.textContent = entry.speaker === 'you' ? 'You' : entry.speaker === 'rep' ? (state.handoff?.repName || 'EasyEV specialist') : 'EasyEV AI';
           const time = document.createElement('time');
           time.textContent = formatTimestamp(entry.timestamp);
           meta.append(speaker, time);
@@ -8374,6 +8452,17 @@
           }
         } else if (type === 'report-ready') {
           target.innerHTML = `<div class="stage-content__intro"><h3>Your decision report is ready</h3><p>Built from the same structured Passport, sources and deterministic calculations shown during this consultation.</p></div><div class="report-card"><span class="report-icon" aria-hidden="true">PDF</span><div><strong>${escapeHtml(payload.filename || 'EasyEV decision report')}</strong><span>${Array.isArray(payload.sections) ? escapeHtml(payload.sections.join(' · ')) : 'Buyer profile · comparison · cost · charging · readiness · next actions'}</span></div><button class="stage-action" type="button" data-download-report>Download PDF</button></div><p class="tool-notice">Dealer contact, calendar, WhatsApp and booking actions remain simulated. The report is decision support, not financial, electrical or safety certification.</p>`;
+        } else if (type === 'handoff') {
+          const handoff = state.handoff || payload || {};
+          const joined = handoff.status === 'rep-joined';
+          const resolved = handoff.status === 'resolved';
+          const code = escapeHtml(handoff.handoffCode || payload.handoffCode || '');
+          const who = escapeHtml(handoff.repName || 'an EasyEV specialist');
+          target.innerHTML = resolved
+            ? `<div class="handoff-panel is-resolved"><div class="stage-content__intro"><h3>Back with EasyEV AI</h3><p>${who} has handed the call back. Everything they agreed with you is already in your Passport, so nothing needs repeating.</p></div></div>`
+            : joined
+              ? `<div class="handoff-panel is-live"><div class="stage-content__intro"><h3>${who} is on the call</h3><p>The AI is muted and listening. Your specialist already has your full Buyer Passport — daily distance, shortlist, ownership numbers and every question you asked — so start wherever you like.</p></div><div class="handoff-strip"><span class="handoff-dot"></span>Live human specialist · AI still taking notes</div></div>`
+              : `<div class="handoff-panel"><div class="stage-content__intro"><h3>Paging a human specialist</h3><p>${escapeHtml(handoff.summary || 'They will see everything covered so far before they speak, so you will not have to repeat yourself.')}</p></div><div class="handoff-wait"><span class="handoff-dot is-waiting"></span><div><strong>Waiting for a specialist to pick up</strong><span>Reason: ${escapeHtml(handoff.reasonLabel || 'You asked to speak to a person')}</span></div></div>${code ? `<p class="handoff-code">Handover code <b>${code}</b></p>` : ''}</div>`;
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Choose a demo type and time. EasyEV prepares useful next steps, but you approve every action.</p></div>${confirmed ? `<div class="booking-confirmed">Action pack ready · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No dealer has been contacted.</div><div class="action-pack"><button type="button" data-agent-action="calendar"><span>▣</span>Add to calendar (.ics)</button><button type="button" data-agent-action="whatsapp"><span>↗</span>Open WhatsApp draft</button><button type="button" data-agent-action="passport"><span>↓</span>Download Decision Passport</button></div><p class="map-disclosure">Calendar and passport files are generated locally. WhatsApp opens a draft only; nothing is sent until you choose a contact and press send.</p>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">Your selection stays local until you confirm. No dealer is contacted.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Prepare my action pack</button></div>`}`;
@@ -8486,6 +8575,9 @@
           mic.disabled = state.callStatus !== 'live';
         }
         $$('[data-turn]').forEach((button) => { button.disabled = state.callStatus !== 'live'; });
+        $$('[data-request-human]').forEach((button) => {
+          button.disabled = state.callStatus !== 'live' || state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined';
+        });
         const camera = $('#camera-control');
         if (camera) camera.setAttribute('aria-pressed', String(state.cameraEnabled));
         const captions = $('#captions-control');
@@ -8742,7 +8834,8 @@
         renderApp();
       };
       const appendTranscript = (speaker, text, meta = {}) => {
-        state.transcript.push({ speaker: speaker === 'you' ? 'you' : 'ai', text: String(text), timestamp: Date.now(), meta });
+        const role = speaker === 'you' ? 'you' : speaker === 'rep' ? 'rep' : 'ai';
+        state.transcript.push({ speaker: role, text: String(text), timestamp: Date.now(), meta });
         renderTranscript();
       };
       const patchProfile = (partialProfile) => {
@@ -8943,6 +9036,31 @@
           : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
         runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
         state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 60_000 };
+        return true;
+      };
+      // Escalation is the one intent that must survive the agent losing its tools —
+      // a dropped MCP tunnel would otherwise leave the buyer asking for a person
+      // and nothing happening. Two-part match (an asking verb AND a human noun)
+      // keeps precision high enough to run without confirmation.
+      const HUMAN_ASK = /\b(talk|speak|connect|transfer|put me|get me|call)\b|baat\s*kar|baat\s*karn|बात\s*कर|जोड़(?:ि|ो|े)|मिला(?:इ|ओ)/i;
+      const HUMAN_TARGET = /\b(human|person|someone|somebody|agent|representative|manager|advisor|salesperson|sales\s?man|sales\s?team|customer\s?care|dealer)\b|insaan|इंसान|आदमी|aadmi|banda|बंदा|vyakti|व्यक्ति|मैनेजर|सेल्स|डीलर|असली/i;
+      const AI_SELF_REFERENCE = /\b(ai|bot|assistant|easyev)\b\s*(agent|se)?/i;
+      const fastHumanIntent = (text, eventId = '') => {
+        const spoken = String(text || '').trim();
+        if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
+        if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
+        // "talk to the AI agent" is not a request for a person.
+        if (/\bagent\b/i.test(spoken) && AI_SELF_REFERENCE.test(spoken) && !/human|insaan|इंसान|आदमी|banda|बंदा/i.test(spoken)) return false;
+        const key = eventId ? `human:${eventId}` : `human:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
+        if (state.handledFastIntentIds.has(key)) return true;
+        state.handledFastIntentIds.add(key);
+        scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
+        const adapter = activeAdapter();
+        if (typeof adapter?.requestHuman !== 'function') return false;
+        state.activityMessage = 'Paging a human specialist…';
+        adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
+          .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
         return true;
       };
       const toolForTurn = (turnName) => ({
@@ -9244,6 +9362,7 @@
           const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
+          if (fastHumanIntent(latestUser.text, finalEventId)) return;
           const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
           if (!handledVisually) state.intentGuard = null;
         }
@@ -9301,6 +9420,24 @@
         }
         if (event.type === 'PASSPORT_SYNC' && isCurrentSession(payload.sessionId)) {
           syncStructuredPassport(payload.passport);
+          renderApp();
+          return;
+        }
+        if (event.type === 'HANDOFF') {
+          const previous = state.handoff?.status || 'none';
+          state.handoff = { ...(state.handoff || {}), ...payload };
+          if (payload.status && payload.status !== 'none' && payload.status !== previous) {
+            showStage('handoff', { ...payload, sourceStatus: payload.status === 'rep-joined' ? 'Live human specialist' : 'Escalation in progress' });
+            if (payload.status === 'rep-joined') {
+              markAction('requirements', 'complete', `${payload.repName || 'A specialist'} joined the call with your full Passport`);
+              appendTranscript('rep', `${payload.repName || 'An EasyEV specialist'} joined the call.`, { system: true });
+              showToast('A human specialist has joined. The AI is muted.');
+            }
+            if (payload.status === 'resolved') {
+              appendTranscript('ai', 'The specialist handed the call back to me. I have their notes.', { system: true });
+              showToast('Back with EasyEV AI.');
+            }
+          }
           renderApp();
           return;
         }
@@ -9365,6 +9502,20 @@
           const open = !sidebar?.classList.contains('is-open');
           sidebar?.classList.toggle('is-open', open);
           target.setAttribute('aria-expanded', String(open));
+          return;
+        }
+        if (target.matches('[data-request-human]')) {
+          target.disabled = true;
+          appendTranscript('you', 'I would like to speak to a person.', { localText: true });
+          try {
+            const adapter = activeAdapter();
+            if (typeof adapter?.requestHuman !== 'function') throw new Error('Human escalation needs the live consultation, not the guided demo.');
+            await adapter.requestHuman('explicit-request', 'The buyer asked for a human directly from the call controls.');
+          } catch (error) {
+            showToast(error?.message || 'The specialist could not be paged.');
+          } finally {
+            target.disabled = false;
+          }
           return;
         }
         if (target.matches('[data-turn]')) { runConsultationTurn(target.dataset.turn); return; }
