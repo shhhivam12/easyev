@@ -8,7 +8,7 @@ export const CANONICAL_DEALER_FIELDS = {
   // Step 1: Dealership Profile
   shopName: { step: 1, label: 'Dealership / Shop Name', required: true, type: 'string', group: 'profile' },
   managerName: { step: 1, label: 'Owner / Manager Name', required: true, type: 'string', group: 'profile' },
-  phone: { step: 1, label: 'Mobile / WhatsApp Number', required: true, type: 'phone', group: 'profile' },
+  phone: { step: 1, label: 'Mobile / WhatsApp Number', required: true, type: 'phone', group: 'profile', highRisk: true },
   city: { step: 1, label: 'City', required: true, type: 'string', group: 'profile' },
   dealerType: { step: 1, label: 'Dealership Type', required: false, type: 'enum', default: 'Authorized OEM Dealership', group: 'profile', isDefault: true },
   email: { step: 1, label: 'Business Email Address', required: false, type: 'email', group: 'profile' },
@@ -40,7 +40,86 @@ export const CANONICAL_DEALER_FIELDS = {
 };
 
 /**
- * Deterministic Validators
+ * 10 Active Core Voice Interview Questions
+ */
+export const VOICE_INTERVIEW_FIELDS = [
+  'shopName',
+  'managerName',
+  'phone',
+  'city',
+  'address',
+  'pincode',
+  'workingDays',
+  'brands',
+  'emiAvailable',
+  'showroomTestDrive'
+];
+
+/**
+ * Field Lifecycle States (Principle 1 & 9)
+ */
+export const FIELD_STATE = {
+  MISSING: 'MISSING',
+  LISTENING: 'LISTENING',
+  EXTRACTING: 'EXTRACTING',
+  VALIDATING: 'VALIDATING',
+  FILLED: 'FILLED',
+  CONFIRMED: 'CONFIRMED',
+  UNCLEAR: 'UNCLEAR',
+  INVALID: 'INVALID',
+  SKIPPED: 'SKIPPED',
+  MANUAL_FALLBACK: 'MANUAL_FALLBACK'
+};
+
+/**
+ * Turn Evaluation & Speech Quality Classification (Principle 3)
+ */
+export const TURN_QUALITY = {
+  NO_SPEECH: 'NO_SPEECH',
+  STT_ERROR: 'STT_ERROR',
+  UNCLEAR_SPEECH: 'UNCLEAR_SPEECH',
+  IRRELEVANT_ANSWER: 'IRRELEVANT_ANSWER',
+  INVALID_VALUE: 'INVALID_VALUE',
+  AMBIGUOUS_VALUE: 'AMBIGUOUS_VALUE',
+  VALID_VALUE: 'VALID_VALUE'
+};
+
+/**
+ * Form Level State Machine Enum
+ */
+export const FORM_STATE = {
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  REVIEW: 'REVIEW',
+  COMPLETED: 'COMPLETED',
+  ABANDONED: 'ABANDONED'
+};
+
+/**
+ * Rich Intent Types (Principle 10)
+ */
+export const INTENT = {
+  ANSWER_FIELD: 'ANSWER_FIELD',
+  CORRECT_FIELD: 'CORRECT_FIELD',
+  SKIP_FIELD: 'SKIP_FIELD',
+  REPEAT_QUESTION: 'REPEAT_QUESTION',
+  GO_BACK: 'GO_BACK',
+  GO_FORWARD: 'GO_FORWARD',
+  NAVIGATE_STEP: 'NAVIGATE_STEP',
+  RESET: 'RESET',
+  SUBMIT: 'SUBMIT',
+  HELP: 'HELP',
+  NO_SPEECH: 'NO_SPEECH',
+  PAUSE: 'PAUSE',
+  RESUME: 'RESUME',
+  CONFIRM_YES: 'CONFIRM_YES',
+  CONFIRM_NO: 'CONFIRM_NO',
+  IRRELEVANT: 'IRRELEVANT',
+  UNKNOWN: 'UNKNOWN'
+};
+
+/**
+ * Deterministic Validation Code (Principle 4: LLM extracts, deterministic code validates)
  */
 export const validators = {
   phone(val) {
@@ -97,8 +176,7 @@ export const validators = {
 };
 
 /**
- * Intelligent Spoken Number Word Parser
- * Converts "double nine eight eight...", "nau aath saat chhe...", "one one zero zero four nine" to digits
+ * Intelligent Spoken Number Word Parser (Principle 17: STT Error Normalization)
  */
 export function parseSpokenNumberWords(text = '') {
   if (!text) return [];
@@ -144,61 +222,77 @@ export function parseSpokenNumberWords(text = '') {
 }
 
 /**
+ * Intelligent STT Cleanup & Normalization (Principle 17)
+ */
+export function normalizeSttTranscript(text = '') {
+  if (!text) return '';
+  return text
+    .replace(/\bat\s+the\s+rate\b/gi, '@')
+    .replace(/\bat\s+rate\b/gi, '@')
+    .replace(/\bdot\s+com\b/gi, '.com')
+    .replace(/\bdot\s+in\b/gi, '.in')
+    .replace(/\bdot\s+org\b/gi, '.org')
+    .replace(/\bdot\s+co\b/gi, '.co')
+    .replace(/\s*@\s*/g, '@')
+    .replace(/\s*\.\s*(com|in|org|net|co|io)/gi, '.$1')
+    .trim();
+}
+
+/**
  * Intelligent Dealer FAQ & Queries Interceptor
  */
 export function handleDealerFaq(text = '', language = 'Hinglish') {
   const lower = (text || '').toLowerCase().trim();
-  if (!lower) return null;
 
-  // Cost / Charges / Commission FAQ
-  if (/(?:charge|fee|fees|cost|paisa|paise|rupaye|commission|free|kitn[ai]\s*lageg[ai]|kitn[ai]\s*kharcha|पैसे|शुल्क|फीस|फ्री)/i.test(lower)) {
-    return language === 'Hindi'
-      ? 'EasyEV पर डीलरशिप रजिस्ट्रेशन 100% मुफ़्त है! इसके लिए कोई भी रजिस्ट्रेशन शुल्क या कमीशन नहीं लिया जाता।'
-      : 'EasyEV par showroom registration 100% free of charge hai! Koi hidden fee ya commission nahi lagta.';
+  if (/(?:fee|fees|cost|charge|kitna\s*paisa|free|muft|charges|paise\s*lagega|शुल्क|खर्च)/i.test(lower)) {
+    if (language === 'Hindi') {
+      return 'EasyEV पर डीलरशिप ऑनबोर्डिंग 100% मुफ्त और डिजिटल है। कोई भी रजिस्ट्रेशन शुल्क नहीं लगता है।';
+    } else if (language === 'English') {
+      return 'EasyEV dealership onboarding is 100% free of charge and fully digital. There are zero registration fees.';
+    } else {
+      return 'EasyEV par dealership onboarding 100% free of charge aur fully digital hai. Koi registration fee nahi lagti.';
+    }
   }
 
-  // Benefits / Why register FAQ
-  if (/(?:kya fayda|fayda kya|why register|benefit|kyu judu|kya milega|फायda|लाभ)/i.test(lower)) {
-    return language === 'Hindi'
-      ? 'EasyEV पार्टनर बनने से आपके इलाके के खरीदारों की टेस्ट ड्राइव बुकिंग और ईवी इंक्वायरी सीधे आपके शोरूम को प्राप्त होती हैं।'
-      : 'EasyEV verified partner banne par aapke area ke serious buyers ki test drive bookings aur verified purchase leads direct aapke showroom ko milti hain.';
+  if (/(?:document|documents|paper|papers|gst|aadhaar|pan|upload|kaagaz|कागजात|दस्तावेज)/i.test(lower)) {
+    if (language === 'Hindi') {
+      return 'प्रारंभिक प्रोफाइलिंग के लिए किसी दस्तावेज अपलोड की जरूरत नहीं है। बस अपनी शोरूम डिटेल्स बोलकर दर्ज करवा सकते हैं।';
+    } else if (language === 'English') {
+      return 'No document uploads are required for initial voice verification. Simply provide your showroom details.';
+    } else {
+      return 'Initial verification ke liye koi paper upload ki zaroorat nahi hai. Aap voice se details bol kar instantly verify ho sakte hain.';
+    }
   }
 
-  // Documents required FAQ
-  if (/(?:document|kagaz|paper|upload|kyc|दस्तावेज|कागजात)/i.test(lower)) {
-    return language === 'Hindi'
-      ? 'आपको कोई दस्तावेज़ अपलोड करने की ज़रूरत नहीं है! बस नाम, पता और ब्रांड्स नोट कराकर तुरंत डिजिटल सर्टिफिकेट जारी हो जाता है।'
-      : 'Aapko koi bhi document upload nahi karna hai. Bas basic address, manager contact aur brands confirm karke instant Verified Certificate issue ho jata hai.';
-  }
-
-  // Safety / Certificate FAQ
-  if (/(?:certificate|verified|authentic|partner id|सर्टिफिकेट|प्रमाण पत्र)/i.test(lower)) {
-    return language === 'Hindi'
-      ? 'रजिस्ट्रेशन पूरा होते ही आपकी स्क्रीन पर आधिकारिक EasyEV पार्टनर सर्टिफिकेट और पार्टनर आईडी तुरंत जारी हो जाता है।'
-      : 'Form submit hote hi screen par aapki official EasyEV Partner ID aur digital verified certificate turant generate ho jata hai.';
+  if (/(?:benefit|benefits|fayda|kya\s*milega|why\s*join|kyun\s*judein|फायदे|लाभ)/i.test(lower)) {
+    if (language === 'Hindi') {
+      return 'EasyEV पार्टनर बनने पर आपको सत्यापित लीड्स, टेस्ट ड्राइव बुकिंग्स, डिजिटल शोरूम पेज और मुफ्त ब्रांड प्रमोशन मिलता है।';
+    } else if (language === 'English') {
+      return 'As a verified EasyEV partner, you get high-intent EV buyer leads, test-drive appointments, and live digital showroom presence.';
+    } else {
+      return 'EasyEV verified partner banne par aapko daily buyer test-drive bookings, digital showroom showcase aur customer leads milti hain.';
+    }
   }
 
   return null;
 }
 
 /**
- * Intelligent Entity Normalizer for Indian EV Dealership terms
+ * Robust Multi-Field Compound Entity Extraction (Principles 4, 5, 6, 17)
  */
-export function normalizeEntities(text = '', currentForm = {}, currentTargetField = '', currentStep = 1) {
+export function normalizeEntities(text = '', currentForm = {}, currentTargetField = null, currentStep = 1) {
   const extracted = {};
-  const lower = text.toLowerCase().trim();
-  const cleanUtterance = text
-    .replace(/^(?:namaste|hello|hi|haan|mera|humara|hamara|my)?\s*(?:showroom|dealership)?\s*(?:ka)?\s*(?:name|naam)?\s*(?:is|hai|h|here|actually|dekho|bhai|sir)?\s*[:=]?\s*/i, '')
-    .replace(/\s+(?:hai|hoon|h|sir|bhai|ji)$/i, '')
-    .trim();
+  const cleanedText = normalizeSttTranscript(text);
+  const lower = cleanedText.toLowerCase().trim();
 
-  // Spoken digits parsing fallback
-  const spokenSequences = parseSpokenNumberWords(text);
+  if (!cleanedText) return extracted;
+
+  const spokenSequences = parseSpokenNumberWords(cleanedText);
   const tenDigitPhone = spokenSequences.find(s => s.length === 10 && /^[6-9]/.test(s));
   const sixDigitPin = spokenSequences.find(s => s.length === 6 && /^[1-9]/.test(s));
 
-  // Explicit Multi-field Compound Extraction Patterns (e.g. "Mera showroom name XYZ, manager ABC, phone 9876543210")
-  const shopMatch = text.match(/(?:(?:mera|humara|hamara)\s+)?(?:showroom|dealership|hub|agency|shop|store)(?:\s*ka)?\s*(?:name|naam)\s*(?:hai|is)?\s*[:=]?\s*([A-Za-z0-9\s&]+)/i);
+  // Explicit Compound Extraction: Shop Name
+  const shopMatch = cleanedText.match(/(?:(?:mera|humara|hamara)\s+)?(?:showroom|dealership|hub|agency|shop|store)(?:\s*ka)?\s*(?:name|naam)\s*(?:hai|is)?\s*[:=]?\s*([A-Za-z0-9\s&]+)/i);
   if (shopMatch && shopMatch[1]) {
     let sName = shopMatch[1].split(/(?:,\s*|\s+(?:manager|owner|contact|phone|mobile|city|address|location|pin|pincode|email))/i)[0].trim();
     sName = sName.replace(/^(?:name|naam|is|hai)\s+/i, '').replace(/\s+(?:hai|hoon|h)$/i, '').trim();
@@ -207,7 +301,8 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     }
   }
 
-  const mgrMatch = text.match(/(?:(?:manager|owner|contact\s*person|mera|apna|hamara|humara)\s*(?:ka\s*)?(?:naam|name)|(?:manager|owner|contact\s*person))\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z\s]+)/i);
+  // Explicit Compound Extraction: Manager / Owner Name
+  const mgrMatch = cleanedText.match(/(?:(?:manager|owner|contact\s*person|mera|apna|hamara|humara)\s*(?:ka\s*)?(?:naam|name)|(?:manager|owner|contact\s*person))\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z\s]+)/i);
   if (mgrMatch && mgrMatch[1]) {
     let mName = mgrMatch[1].split(/(?:,\s*|\s+(?:phone|mobile|city|address|location|pin|pincode|email))/i)[0].trim();
     mName = mName.replace(/^(?:naam|name|is|hai|ka|ki|ke)\s+/i, '').replace(/\s+(?:hai|hoon|h|sir|ji|kardo)$/i, '').trim();
@@ -216,7 +311,8 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     }
   }
 
-  const addrMatch = text.match(/(?:address(?:\s*hai)?|location(?:\s*hai)?|pata(?:\s*hai)?)\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z0-9\s,.-]+)/i);
+  // Explicit Compound Extraction: Address
+  const addrMatch = cleanedText.match(/(?:address(?:\s*hai)?|location(?:\s*hai)?|pata(?:\s*hai)?)\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z0-9\s,.-]+)/i);
   if (addrMatch && addrMatch[1]) {
     let aVal = addrMatch[1].split(/(?:,\s*|\s+(?:pin|pincode|city|working|timing|timings|open|close|kardo))/i)[0].trim();
     aVal = aVal.replace(/^(?:badal\s*ke|change\s*karke|is|hai)\s+/i, '').replace(/\s+(?:hai|hoon|h)$/i, '').trim();
@@ -225,34 +321,37 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     }
   }
 
-  // Direct Target Field Contextual Fallback Extraction
+  const noisePattern = /\b(?:blah|gibberish|uh+|uhm+|um+|umm+|hmm+|ahem+|err+|kuch\s*bhi|pata\s*nahi|dont\s*know|don't\s*know|hello|hi|namaste|test|testing|kya|kyu|why|what|ruko|wait|sunno|suno|ek\s*min|nahi\s*pata|maloom\s*nahi)\b/i;
+
+  // Fallback Contextual Direct Answer for shopName
+  const cleanUtterance = cleanedText.replace(/^(?:mera|humara|hamara|dealership\s*ka|showroom\s*ka|my)\s*(?:name\s*is|naam\s*hai)?\s*/i, '').trim();
   if (!extracted.shopName && (currentTargetField === 'shopName' || (!currentForm.shopName && currentStep === 1)) && cleanUtterance.length >= 2) {
-    if (!/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update)\b/i.test(cleanUtterance) && !/^[0-9]{10}$/.test(cleanUtterance)) {
+    if (!noisePattern.test(cleanUtterance) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update|yes|haan|no|nahi)\b/i.test(cleanUtterance) && !/^[0-9]{10}$/.test(cleanUtterance)) {
       extracted.shopName = cleanUtterance;
     }
   }
 
-  // If agent asked for managerName
+  // Fallback Contextual Direct Answer for managerName
   const nonDigitText = cleanUtterance.replace(/(?:\+?91[\s-]?)?([6-9]\d{9})/g, '').replace(/[0-9]/g, '').replace(/[,.-]/g, ' ').trim();
   if (!extracted.managerName && (currentTargetField === 'managerName' || (currentForm.shopName && !currentForm.managerName && currentStep === 1)) && nonDigitText.length >= 2) {
     let cleanMgr = nonDigitText
       .replace(/^(?:namaste|hello|hi|haan|mera|humara|my)?\s*(?:manager|owner|contact\s*person)?\s*(?:ka)?\s*(?:naam|name)?\s*(?:is|hai)?\s*[:=]?\s*/i, '')
       .replace(/\s+(?:hai|hoon|h|sir|ji)$/i, '')
       .trim();
-    if (!/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change)\b/i.test(cleanMgr)) {
+    if (!noisePattern.test(cleanMgr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change|yes|haan|no|nahi)\b/i.test(cleanMgr)) {
       extracted.managerName = cleanMgr;
     }
   }
 
-  // If agent asked for address
+  // Fallback Contextual Direct Answer for address
   if (!extracted.address && (currentTargetField === 'address' || (!currentForm.address && currentStep === 2)) && cleanUtterance.length >= 3) {
-    if (!/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|emi|loan|bima|badal|change)\b/i.test(cleanUtterance)) {
+    if (!/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|emi|loan|bima|badal|change|yes|haan|no|nahi)\b/i.test(cleanUtterance)) {
       extracted.address = cleanUtterance.replace(/\b([1-9][0-9]{5})\b/, '').replace(/[,.-]$/, '').trim();
     }
   }
 
-  // Phone number extraction (from raw text or spaces or parsed spoken words)
-  const digitsOnly = text.replace(/[^0-9]/g, '');
+  // Phone number extraction (from raw digits or parsed spoken words)
+  const digitsOnly = cleanedText.replace(/[^0-9]/g, '');
   const phoneDigitMatch = digitsOnly.match(/(?:91)?([6-9]\d{9})/);
   if (phoneDigitMatch) {
     const valid = validators.phone(phoneDigitMatch[1]);
@@ -263,14 +362,14 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   }
 
   // Email extraction
-  const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch) {
     const valid = validators.email(emailMatch[0]);
     if (valid.valid) extracted.email = valid.value;
   }
 
-  // Pincode extraction (from raw text or parsed spoken words)
-  const pinMatch = text.match(/\b([1-9][0-9]{5})\b/);
+  // Pincode extraction
+  const pinMatch = cleanedText.match(/\b([1-9][0-9]{5})\b/);
   if (pinMatch) {
     const valid = validators.pincode(pinMatch[1]);
     if (valid.valid) extracted.pincode = valid.value;
@@ -279,7 +378,7 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     if (valid.valid) extracted.pincode = valid.value;
   }
 
-  // City extraction
+  // City extraction (Prioritizing multi-word cities)
   const majorCities = [
     'new delhi', 'greater noida', 'navi mumbai', 'bengaluru', 'bangalore', 'gurugram', 'gurgaon', 'noida', 'delhi',
     'mumbai', 'pune', 'hyderabad', 'chennai', 'kolkata', 'ahmedabad', 'jaipur', 'lucknow', 'chandigarh',
@@ -303,57 +402,40 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     'लखनऊ': 'Lucknow', 'इंदौर': 'Indore', 'अहमदाबाद': 'Ahmedabad', 'सूरत': 'Surat'
   };
   for (const [hCity, enCity] of Object.entries(hindiCities)) {
-    if (text.includes(hCity)) {
+    if (cleanedText.includes(hCity)) {
       extracted.city = enCity;
       break;
     }
   }
 
-  // If agent asked for city and we haven't found a major city, treat clean single word as city (guarding against long command sentences and step navigation words)
-  if (currentTargetField === 'city' && !extracted.city && cleanUtterance.length >= 2 && !/[0-9]/.test(cleanUtterance) && !/\b(?:step|chalo|aage|next|yes|haan|ok|theek|bilkul|manager|owner|phone|pincode|address|naam|badal|change|correct|update|kardo)\b/i.test(cleanUtterance) && cleanUtterance.split(/\s+/).length <= 3) {
-    extracted.city = cleanUtterance.charAt(0).toUpperCase() + cleanUtterance.slice(1);
-  }
-
-  // EV Categories
-  const categories = [];
-  if (/(?:\b(?:4[ -]*wheeler|4w|four[ -]*wheeler|car|sedan|suv|gaadi|gaadiya|cars|vehicles)\b|4\s*व्हीलर|कार|गाड़ी|गाड़ियां|चार\s*पहिया)/i.test(lower)) {
-    categories.push('4W');
-  }
-  if (/(?:\b(?:2[ -]*wheeler|2w|two[ -]*wheeler|scooter|bike|motorcycle|scooty|bikes|scooters)\b|2\s*व्हीलर|स्कूटर|बाइक|दो\s*पहिया)/i.test(lower)) {
-    categories.push('2W');
-  }
-  if (/(?:\b(?:3[ -]*wheeler|3w|three[ -]*wheeler|auto|rickshaw|loader|e-rickshaw)\b|3\s*व्हीलर|ऑटो|रिक्शा|तीन\s*पहिया)/i.test(lower)) {
-    categories.push('3W');
-  }
-  if (/(?:\b(?:commercial|delivery[ -]*van|truck|fleet|cargo)\b|कमर्शियल|लोडर|ट्रक)/i.test(lower)) {
-    categories.push('commercial');
-  }
-  if (categories.length > 0) {
-    extracted.categories = Array.from(new Set([...(currentForm.categories || []), ...categories]));
-  }
-
-  // EV Brands
+  // Brands extraction
   const knownBrands = [
-    { key: 'Tata Motors', regex: /(?:\b(?:tata|tata motors|nexon|punch|tiago|curvv)\b|टाटा)/i },
-    { key: 'Mahindra', regex: /(?:\b(?:mahindra|xuv400|be6|xev)\b|महिंद्रा)/i },
-    { key: 'MG Motor', regex: /(?:\b(?:mg|mg motor|zs ev|windsor|comet)\b|एमजी)/i },
-    { key: 'Hyundai', regex: /(?:\b(?:hyundai|ioniq|kona|creta ev)\b|हुंडई)/i },
-    { key: 'Ather Energy', regex: /(?:\b(?:ather|ather energy|450x|rizta)\b|एथर)/i },
-    { key: 'Ola Electric', regex: /(?:\b(?:ola|ola electric|s1|s1 pro|s1 air)\b|ओला)/i },
-    { key: 'TVS', regex: /(?:\b(?:tvs|iqube)\b|टीवीएस)/i },
-    { key: 'Bajaj Chetak', regex: /(?:\b(?:bajaj|chetak)\b|बजाज|चेतक)/i },
-    { key: 'Piaggio', regex: /(?:\b(?:piaggio|ape e-city|ape)\b|पियाजियो)/i },
-    { key: 'Euler Motors', regex: /(?:\b(?:euler|hiload)\b|यूलर)/i },
-    { key: 'BYD', regex: /(?:\b(?:byd|atto 3|seal|dolphin)\b|बीवाईडी)/i },
+    { pattern: /\btata(?:\s*motors)?\b/i, name: 'Tata Motors' },
+    { pattern: /\bmahindra(?:\s*electric)?\b/i, name: 'Mahindra' },
+    { pattern: /\bmg(?:\s*motor)?\b/i, name: 'MG Motor' },
+    { pattern: /\bhundai|hyundai\b/i, name: 'Hyundai' },
+    { pattern: /\bbyd\b/i, name: 'BYD' },
+    { pattern: /\bkia\b/i, name: 'Kia' },
+    { pattern: /\bather(?:\s*energy)?\b/i, name: 'Ather Energy' },
+    { pattern: /\bola(?:\s*electric)?\b/i, name: 'Ola Electric' },
+    { pattern: /\btvs(?:\s*iqube|motor)?\b/i, name: 'TVS' },
+    { pattern: /\bbajaj(?:\s*chetak)?\b/i, name: 'Bajaj Chetak' },
+    { pattern: /\bhero(?:\s*electric|\s*vida)?\b/i, name: 'Hero Vida' },
+    { pattern: /\bultraviolette\b/i, name: 'Ultraviolette' },
+    { pattern: /\beuler(?:\s*motors)?\b/i, name: 'Euler Motors' },
+    { pattern: /\baltigreen\b/i, name: 'Altigreen' },
+    { pattern: /\bpiaggio\b/i, name: 'Piaggio' }
   ];
+
   const matchedBrands = [];
   for (const b of knownBrands) {
-    if (b.regex.test(lower)) {
-      matchedBrands.push(b.key);
+    if (b.pattern.test(lower)) {
+      matchedBrands.push(b.name);
     }
   }
   if (matchedBrands.length > 0) {
-    extracted.brands = Array.from(new Set([...(currentForm.brands || []), ...matchedBrands]));
+    const existing = Array.isArray(currentForm.brands) ? currentForm.brands : [];
+    extracted.brands = Array.from(new Set([...existing, ...matchedBrands]));
   }
 
   // Services: EMI & Insurance
@@ -388,7 +470,7 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     }
   }
 
-  // If user says explicitly that all services / all facilities are provided
+  // All services positive declaration
   if (currentStep === 4 && /(?:sabhi\s*services|all\s*services|sab\s*kuch|sab\s*uplabdh|sab\s*suvidha)/i.test(lower)) {
     extracted.emiAvailable = true;
     extracted.insuranceAvailable = true;
@@ -407,50 +489,11 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
 }
 
 /**
- * Field States
- */
-export const FIELD_STATE = {
-  MISSING: 'MISSING',
-  FILLED: 'FILLED',
-  INVALID: 'INVALID',
-  UNCLEAR: 'UNCLEAR',
-  CONFIRMING: 'CONFIRMED',
-  SKIPPED: 'SKIPPED',
-  FAILED: 'FAILED'
-};
-
-/**
- * Form State Enum
- */
-export const FORM_STATE = {
-  NOT_STARTED: 'NOT_STARTED',
-  IN_PROGRESS: 'IN_PROGRESS',
-  REVIEW: 'REVIEW',
-  COMPLETED: 'COMPLETED',
-  ABANDONED: 'ABANDONED'
-};
-
-/**
- * Intent Types
- */
-export const INTENT = {
-  ANSWER_FIELD: 'ANSWER_FIELD',
-  CORRECT_FIELD: 'CORRECT_FIELD',
-  SKIP_FIELD: 'SKIP_FIELD',
-  REPEAT_QUESTION: 'REPEAT_QUESTION',
-  GO_BACK: 'GO_BACK',
-  GO_FORWARD: 'GO_FORWARD',
-  NAVIGATE_STEP: 'NAVIGATE_STEP',
-  RESET: 'RESET',
-  SUBMIT: 'SUBMIT',
-  HELP: 'HELP',
-  NO_SPEECH: 'NO_SPEECH',
-  IRRELEVANT: 'IRRELEVANT',
-  UNKNOWN: 'UNKNOWN'
-};
-
-/**
- * Progressive Field Prompts across all 4 steps
+ * 3-Attempt Progressive Field Prompts across all 4 steps (Principle 2 & 16)
+ * Index 0: Normal crisp question
+ * Index 1: Contextual rephrase with hint
+ * Index 2: Explicit phonetic / digit-by-digit prompt
+ * Index 3: Manual fallback transition message
  */
 export const FIELD_PROMPTS = {
   // STEP 1 FIELDS
@@ -498,19 +541,19 @@ export const FIELD_PROMPTS = {
     Hindi: [
       'ग्राहक टेस्ट ड्राइव और बुकिंग्स के लिए आपका 10 अंकों का मोबाइल या व्हाट्सएप नंबर क्या है?',
       'नंबर सही से नहीं मिला। कृपया अपना 10 अंकों का मोबाइल नंबर बताएं।',
-      'कृपया 10 अंकों का नंबर बताएं, जैसे: "98765 43210"।',
-      'नंबर रिकॉर्ड नहीं हो सका। कृपया इसे स्क्रीन पर दर्ज करें।'
+      'कृपया 10 अंकों का नंबर एक-एक अंक करके बोलें, जैसे: "9 8 1 1 2 3 4 5 6 7"।',
+      'मोबाइल नंबर रिकॉर्ड नहीं हो सका। कृपया इसे स्क्रीन पर दर्ज करें।'
     ],
     Hinglish: [
       'Customer test drives aur bookings ke liye aapka 10-digit mobile ya WhatsApp number kya hai?',
       'Number samajh nahi aaya. Kripya apna 10-digit mobile number dobara batayein.',
-      'Kripya 10-digit mobile number batayein, jaise: "9811234567".',
-      'Mobile number record nahi ho saka. Aap ise screen par type kar sakte hain.'
+      'Ek aakhri baar — apna number digit by digit boliye jaise "9-8-1-1-2-3-4-5-6-7".',
+      'Mobile number record nahi ho saka. Aap ise screen par manually type kar sakte hain.'
     ],
     English: [
       'What is your 10-digit business mobile or WhatsApp number for customer bookings?',
       'I couldn\'t register that number. Please repeat your 10-digit mobile number.',
-      'Please speak your 10-digit phone number, for example: "9811234567".',
+      'One last time — please say your phone number digit by digit, e.g. "9-8-1-1-2-3-4-5-6-7".',
       'Unable to capture the phone number. Please enter it manually in the field.'
     ]
   },
@@ -560,19 +603,19 @@ export const FIELD_PROMPTS = {
     Hindi: [
       'शोरूम का 6 अंकों का पोस्टल पिनकोड क्या है?',
       'पिनकोड समझ नहीं आया। कृपया 6 अंकों का पिनकोड बताएं।',
-      'कृपया पिनकोड बताएं, उदाहरण के लिए: "110049" या "411045"।',
+      'कृपया पिनकोड अंक दर अंक बताएं, उदाहरण के लिए: "1 1 0 0 4 9"।',
       'आप पिनकोड स्क्रीन पर दर्ज कर सकते हैं।'
     ],
     Hinglish: [
       'Showroom ka 6-digit postal pincode kya hai?',
       'Pincode samajh nahi aaya. Kripya 6-digit postal pincode dobara batayein.',
-      'Kripya pincode batayein, for example: "110049" ya "560038".',
+      'Kripya pincode digit by digit batayein, jaise: "1 1 0 0 4 9" ya "5 6 0 0 3 8".',
       'Aap pincode screen par type kar sakte hain.'
     ],
     English: [
       'What is your showroom\'s 6-digit postal pincode?',
       'I didn\'t catch that pincode. Please repeat the 6-digit postal code.',
-      'Please state the 6-digit pincode, for example: "110049" or "560038".',
+      'Please state the 6-digit pincode digit by digit, for example: "1 1 0 0 4 9".',
       'You can type the pincode on screen.'
     ]
   },
@@ -682,292 +725,8 @@ export const FIELD_PROMPTS = {
   }
 };
 
-export const VOICE_INTERVIEW_FIELDS = [
-  'shopName',
-  'managerName',
-  'phone',
-  'city',
-  'address',
-  'pincode',
-  'workingDays',
-  'brands',
-  'emiAvailable',
-  'showroomTestDrive'
-];
-
 /**
- * Production-Grade Dealer Form State Machine
- */
-export class DealerFormStateMachine {
-  constructor(initialValues = {}) {
-    this.fields = {};
-    this.auditTrail = [];
-    this.currentStep = 1;
-    this.currentTargetField = 'shopName';
-    this.formStatus = FORM_STATE.NOT_STARTED;
-
-    for (const [key, meta] of Object.entries(CANONICAL_DEALER_FIELDS)) {
-      const isTextProvided = typeof initialValues[key] === 'string' && initialValues[key].trim().length > 0;
-      const isCustomArrayProvided = Array.isArray(initialValues[key]) && initialValues[key].length > 0 && key === 'brands';
-      const isUserFilled = isTextProvided || isCustomArrayProvided;
-
-      const initial = isUserFilled ? initialValues[key] : (meta.default !== undefined ? meta.default : '');
-
-      this.fields[key] = {
-        value: initial,
-        status: isUserFilled ? FIELD_STATE.FILLED : FIELD_STATE.MISSING,
-        attempts: 0,
-        confidence: isUserFilled ? 1.0 : 0.0,
-        source: isUserFilled ? 'manual_ui' : (meta.isDefault ? 'default' : 'none'),
-        history: isUserFilled ? [{ value: initial, source: 'manual_ui', timestamp: Date.now(), confidence: 1.0, validated: true }] : [],
-        updatedAt: Date.now()
-      };
-    }
-
-    if (Object.values(this.fields).some(f => f.status === FIELD_STATE.FILLED && f.source === 'manual_ui')) {
-      this.formStatus = FORM_STATE.IN_PROGRESS;
-    }
-  }
-
-  updateFields(patch, source = 'voice', confidence = 0.95) {
-    const changes = {};
-    for (const [key, value] of Object.entries(patch)) {
-      if (CANONICAL_DEALER_FIELDS[key]) {
-        const prev = this.fields[key].value;
-        this.fields[key].value = value;
-        this.fields[key].status = FIELD_STATE.FILLED;
-        this.fields[key].confidence = confidence;
-        this.fields[key].source = source;
-        this.fields[key].attempts = 0;
-        this.fields[key].updatedAt = Date.now();
-        this.fields[key].history.push({
-          value,
-          source,
-          confidence,
-          validated: true,
-          timestamp: Date.now()
-        });
-        changes[key] = { from: prev, to: value };
-      }
-    }
-
-    if (Object.keys(changes).length > 0) {
-      this.formStatus = FORM_STATE.IN_PROGRESS;
-      this.auditTrail.push({
-        timestamp: Date.now(),
-        source,
-        changes
-      });
-    }
-
-    this.recalculateCurrentStep();
-    return changes;
-  }
-
-  recordFailedAttempt(fieldKey) {
-    if (this.fields[fieldKey]) {
-      this.fields[fieldKey].attempts = (this.fields[fieldKey].attempts || 0) + 1;
-      if (this.fields[fieldKey].attempts >= 3) {
-        this.fields[fieldKey].status = FIELD_STATE.SKIPPED;
-      } else {
-        this.fields[fieldKey].status = FIELD_STATE.UNCLEAR;
-      }
-    }
-  }
-
-  getValues() {
-    const res = {};
-    for (const [k, v] of Object.entries(this.fields)) {
-      res[k] = v.value;
-    }
-    return res;
-  }
-
-  getCompletionStats() {
-    // 10 active voice interview questions across all 4 steps:
-    // Step 1: shopName, managerName, phone, city (4)
-    // Step 2: address, pincode, workingDays (3)
-    // Step 3: brands (1) (Categories are pre-selected by default)
-    // Step 4: emiAvailable, showroomTestDrive (2)
-    const coreKeys = VOICE_INTERVIEW_FIELDS;
-
-    const userFilledSources = new Set(['voice', 'voice_extracted', 'manual_ui']);
-    const filledCount = coreKeys.filter(k => {
-      const f = this.fields[k];
-      if (!f) return false;
-      const isFilled = f.value !== undefined && f.value !== null && f.value !== '' && (!Array.isArray(f.value) || f.value.length > 0);
-      return isFilled && f.status === FIELD_STATE.FILLED && userFilledSources.has(f.source);
-    }).length;
-
-    const totalRequired = coreKeys.length;
-    const percentage = Math.min(100, Math.round((filledCount / totalRequired) * 100));
-    const isComplete = this.isStepComplete(1) && this.isStepComplete(2) && this.isStepComplete(3) && this.isStepComplete(4);
-
-    if (isComplete && this.formStatus !== FORM_STATE.COMPLETED) {
-      this.formStatus = FORM_STATE.REVIEW;
-    }
-
-    return {
-      totalRequired,
-      filledCount,
-      percentage,
-      isComplete,
-      formStatus: this.formStatus
-    };
-  }
-
-  isFieldInCompletedStep(fieldKey) {
-    const meta = CANONICAL_DEALER_FIELDS[fieldKey];
-    if (!meta) return false;
-    return this.currentStep > meta.step;
-  }
-
-  isStepComplete(stepNum) {
-    const stepFields = {
-      1: ['shopName', 'managerName', 'phone', 'city'],
-      2: ['address', 'pincode', 'workingDays'],
-      3: ['brands'],
-      4: ['emiAvailable', 'showroomTestDrive']
-    }[stepNum] || [];
-
-    const userFilledSources = new Set(['voice', 'voice_extracted', 'manual_ui']);
-    return stepFields.every(key => {
-      const f = this.fields[key];
-      if (!f) return false;
-      if (f.status === FIELD_STATE.SKIPPED) return true;
-      const val = f.value;
-      const isFilled = val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
-      return isFilled && f.status === FIELD_STATE.FILLED && userFilledSources.has(f.source);
-    });
-  }
-
-  recalculateCurrentStep() {
-    for (let s = 1; s <= 4; s++) {
-      if (!this.isStepComplete(s)) {
-        this.currentStep = s;
-        return;
-      }
-    }
-    this.currentStep = 4;
-  }
-
-  decideNextAction(language = 'Hinglish') {
-    const stats = this.getCompletionStats();
-    const validSources = new Set(['voice', 'voice_extracted', 'manual_ui']);
-
-    // Step 1 Check
-    if (this.currentStep === 1) {
-      const step1Order = ['shopName', 'managerName', 'phone', 'city'];
-      for (const key of step1Order) {
-        const f = this.fields[key];
-        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && f.status === FIELD_STATE.FILLED && validSources.has(f.source);
-        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED) {
-          this.currentTargetField = key;
-          const attempt = Math.min(3, f?.attempts || 0);
-          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
-          const promptText = promptList[attempt] || promptList[0] || 'Namaste! Aapke EV showroom ka kya naam hai?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
-          return { action: 'ASK_FIELD', targetField: key, step: 1, attempt, promptText, ttsText, stats };
-        }
-      }
-
-      const promptText = language === 'Hindi'
-        ? `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 (शोरूम लोकेशन और टाइमिंग्स) पर आगे बढ़ें?`
-        : language === 'English'
-          ? `Dealership profile is saved! Shall we move to Step 2: Showroom Location & Timings?`
-          : `Dealership profile note ho gayi hai! Kya hum Step 2 (Location aur Timings) par aage badhein?`;
-      const ttsText = language === 'English' ? promptText : `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 लोकेशन और टाइमिंग्स पर आगे बढ़ें?`;
-      return { action: 'STEP_CONFIRMATION', nextStep: 2, step: 1, promptText, ttsText, stats };
-    }
-
-    // Step 2 Check
-    if (this.currentStep === 2) {
-      const step2Order = ['address', 'pincode', 'workingDays'];
-      for (const key of step2Order) {
-        const f = this.fields[key];
-        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && f.status === FIELD_STATE.FILLED && validSources.has(f.source);
-        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED) {
-          this.currentTargetField = key;
-          const attempt = Math.min(3, f?.attempts || 0);
-          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
-          const promptText = promptList[attempt] || promptList[0] || 'Step 2: Aapka showroom kis address par hai?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
-          return { action: 'ASK_FIELD', targetField: key, step: 2, attempt, promptText, ttsText, stats };
-        }
-      }
-
-      const promptText = language === 'Hindi'
-        ? `शोरूम का पता और समय नोट हो चुका है! क्या स्टेप 3 (ईवी ब्रांड्स) पर चलें?`
-        : language === 'English'
-          ? `Location and timings saved! Shall we move to Step 3: EV Brands?`
-          : `Showroom location aur timings save ho gayi hain! Kya Step 3 (EV Brands) par chalein?`;
-      const ttsText = language === 'English' ? promptText : `शोरूम का पता और समय नोट हो चुका है! क्या स्टेप 3 ईवी ब्रांड्स पर चलें?`;
-      return { action: 'STEP_CONFIRMATION', nextStep: 3, step: 2, promptText, ttsText, stats };
-    }
-
-    // Step 3 Check
-    if (this.currentStep === 3) {
-      const step3Order = ['brands'];
-      for (const key of step3Order) {
-        const f = this.fields[key];
-        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && f.status === FIELD_STATE.FILLED && validSources.has(f.source);
-        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED) {
-          this.currentTargetField = key;
-          const attempt = Math.min(3, f?.attempts || 0);
-          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
-          const promptText = promptList[attempt] || promptList[0] || 'Step 3: Aap kaunse EV brands deal karte hain?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
-          return { action: 'ASK_FIELD', targetField: key, step: 3, attempt, promptText, ttsText, stats };
-        }
-      }
-
-      // Step 3 complete -> Confirm transition to Step 4
-      const promptText = language === 'Hindi'
-        ? `ईवी ब्रांड्स सेव हो गए! क्या आखिरी स्टेप (ईएमआई लोन, बीमा और टेस्ट ड्राइव) देखें?`
-        : language === 'English'
-          ? `Brands recorded! Shall we proceed to Step 4: Services & Test Drives?`
-          : `Brands select ho gaye! Kya last step (Step 4: EMI, Insurance aur Test Drives) dekhein?`;
-      const ttsText = language === 'English' ? promptText : `ईवी ब्रांड्स सेव हो गए! क्या आखिरी स्टेप ईएमआई लोन, बीमा और टेस्ट ड्राइव देखें?`;
-      return { action: 'STEP_CONFIRMATION', nextStep: 4, step: 3, promptText, ttsText, stats };
-    }
-
-    // Step 4 Check
-    if (this.currentStep === 4) {
-      const step4Order = ['emiAvailable', 'showroomTestDrive'];
-      for (const key of step4Order) {
-        const f = this.fields[key];
-        const isFilled = f?.value !== undefined && f.status === FIELD_STATE.FILLED && validSources.has(f.source);
-        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED) {
-          this.currentTargetField = key;
-          const attempt = Math.min(3, f?.attempts || 0);
-          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
-          const promptText = promptList[attempt] || promptList[0] || 'Step 4: Kya aap EMI aur Test Drive provide karte hain?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
-          return { action: 'ASK_FIELD', targetField: key, step: 4, attempt, promptText, ttsText, stats };
-        }
-      }
-
-      // Final Completion
-      const vals = this.getValues();
-      const promptText = language === 'Hindi'
-        ? `बहुत बढ़िया! आपकी डीलरशिप "${vals.shopName || 'ईवी शोरूम'}" की सभी जानकारियाँ पूरी हो गई हैं। क्या मैं अधिकृत पार्टनरशिप सबमिट कर दूँ?`
-        : language === 'English'
-          ? `All 4 steps are complete for "${vals.shopName || 'your showroom'}"! Shall I go ahead and submit your verified registration?`
-          : `Awesome! Aapke showroom "${vals.shopName || 'EV Hub'}" ke sabhi 4 steps complete ho chuke hain. Kya main verified registration submit kar doon?`;
-      const ttsText = language === 'English' ? promptText : `बहुत बढ़िया! आपकी डीलरशिप ${vals.shopName || 'ईवी शोरूम'} की सभी जानकारियाँ पूरी हो गई हैं। क्या मैं अधिकृत पार्टनरशिप सबमिट कर दूँ?`;
-      return { action: 'COMPLETE', step: 4, promptText, ttsText, stats };
-    }
-
-    return { action: 'ASK_FIELD', targetField: 'shopName', step: 1, attempt: 0, promptText: 'Namaste! Aapke EV showroom ka kya naam hai?', stats };
-  }
-}
-
-/**
- * Classify User Intent from Utterance
+ * Classify User Intent from Utterance (Principle 10)
  */
 export function classifyIntent(text = '') {
   const trimmed = text.trim();
@@ -1003,15 +762,361 @@ export function classifyIntent(text = '') {
   if (/(?:help|madad|kaise karein|kya karna hai|मदद|सहायता)/i.test(trimmed)) {
     return INTENT.HELP;
   }
-  if (/(?:badlo|change|correct|galat ho gaya|update karo|बदलो|सुधारो)/i.test(trimmed)) {
+  if (/(?:badlo|change|correct|galat ho gaya|update karo|nahi\s*mera|actually|बदलो|सुधारो)/i.test(trimmed)) {
     return INTENT.CORRECT_FIELD;
+  }
+  if (/^(?:yes|haan|ha|sahi hai|correct|bilkul|confirm|हाँ|हा|सही है)$/i.test(trimmed)) {
+    return INTENT.CONFIRM_YES;
+  }
+  if (/^(?:no|nahi|galat|wrong|cancel|नहीं|गलत)$/i.test(trimmed)) {
+    return INTENT.CONFIRM_NO;
   }
 
   return INTENT.ANSWER_FIELD;
 }
 
 /**
- * Dealer Voice Agent Session Instance
+ * Production-Grade Dealer Form State Machine (Principles 1, 7, 9, 20)
+ */
+export class DealerFormStateMachine {
+  constructor(initialValues = {}) {
+    this.fields = {};
+    this.auditTrail = [];
+    this.currentStep = 1;
+    this.currentTargetField = 'shopName';
+    this.formStatus = FORM_STATE.NOT_STARTED;
+
+    for (const [key, meta] of Object.entries(CANONICAL_DEALER_FIELDS)) {
+      const isTextProvided = typeof initialValues[key] === 'string' && initialValues[key].trim().length > 0;
+      const isCustomArrayProvided = Array.isArray(initialValues[key]) && initialValues[key].length > 0 && key === 'brands';
+      const isUserFilled = isTextProvided || isCustomArrayProvided;
+
+      const initial = isUserFilled ? initialValues[key] : (meta.default !== undefined ? meta.default : '');
+
+      this.fields[key] = {
+        value: initial,
+        status: isUserFilled ? FIELD_STATE.FILLED : FIELD_STATE.MISSING,
+        attempts: 0,
+        confidence: isUserFilled ? 1.0 : 0.0,
+        validated: isUserFilled,
+        confirmed: false,
+        source: isUserFilled ? 'manual_ui' : (meta.isDefault ? 'default' : 'none'),
+        sourceUtterance: isUserFilled ? 'initial_ui_prefill' : '',
+        history: isUserFilled ? [{
+          value: initial,
+          source: 'manual_ui',
+          sourceUtterance: 'initial_ui_prefill',
+          timestamp: Date.now(),
+          confidence: 1.0,
+          validated: true,
+          reason: 'Initial form value'
+        }] : [],
+        updatedAt: Date.now()
+      };
+    }
+
+    if (Object.values(this.fields).some(f => f.status === FIELD_STATE.FILLED && f.source === 'manual_ui')) {
+      this.formStatus = FORM_STATE.IN_PROGRESS;
+    }
+  }
+
+  /**
+   * Controlled Update Field (Principle 11)
+   */
+  updateField(key, value, source = 'voice', utterance = '', confidence = 0.95, reason = 'Direct user input') {
+    if (!CANONICAL_DEALER_FIELDS[key]) return null;
+
+    const prev = this.fields[key].value;
+    this.fields[key].value = value;
+    this.fields[key].status = FIELD_STATE.FILLED;
+    this.fields[key].confidence = confidence;
+    this.fields[key].validated = true;
+    this.fields[key].source = source;
+    this.fields[key].sourceUtterance = utterance;
+    this.fields[key].attempts = 0;
+    this.fields[key].updatedAt = Date.now();
+
+    this.fields[key].history.push({
+      value,
+      previousValue: prev,
+      source,
+      sourceUtterance: utterance,
+      confidence,
+      validated: true,
+      reason,
+      timestamp: Date.now()
+    });
+
+    this.formStatus = FORM_STATE.IN_PROGRESS;
+    this.auditTrail.push({
+      timestamp: Date.now(),
+      field: key,
+      from: prev,
+      to: value,
+      source,
+      utterance,
+      reason
+    });
+
+    this.recalculateCurrentStep();
+    return { field: key, from: prev, to: value };
+  }
+
+  /**
+   * Batch Update Fields
+   */
+  updateFields(patch, source = 'voice', utterance = '', confidence = 0.95) {
+    const changes = {};
+    for (const [key, value] of Object.entries(patch)) {
+      if (CANONICAL_DEALER_FIELDS[key]) {
+        const change = this.updateField(key, value, source, utterance, confidence, 'Batch patch extraction');
+        if (change) changes[key] = { from: change.from, to: change.to };
+      }
+    }
+    return changes;
+  }
+
+  /**
+   * Record Failed / Unclear Attempt (Principle 2: 3-Attempt Progressive Fallback)
+   */
+  recordFailedAttempt(fieldKey, turnQuality = TURN_QUALITY.UNCLEAR_SPEECH) {
+    if (this.fields[fieldKey]) {
+      this.fields[fieldKey].attempts = (this.fields[fieldKey].attempts || 0) + 1;
+      if (this.fields[fieldKey].attempts >= 3) {
+        this.fields[fieldKey].status = FIELD_STATE.MANUAL_FALLBACK;
+      } else {
+        this.fields[fieldKey].status = turnQuality === TURN_QUALITY.INVALID_VALUE ? FIELD_STATE.INVALID : FIELD_STATE.UNCLEAR;
+      }
+    }
+  }
+
+  /**
+   * Controlled Action: Skip Field
+   */
+  skipField(fieldKey, reason = 'User requested skip') {
+    if (this.fields[fieldKey]) {
+      this.fields[fieldKey].status = FIELD_STATE.SKIPPED;
+      this.auditTrail.push({
+        timestamp: Date.now(),
+        field: fieldKey,
+        action: 'SKIP',
+        reason
+      });
+      this.recalculateCurrentStep();
+    }
+  }
+
+  /**
+   * Controlled Action: Confirm Field (Principle 8)
+   */
+  confirmField(fieldKey) {
+    if (this.fields[fieldKey]) {
+      this.fields[fieldKey].confirmed = true;
+      this.fields[fieldKey].status = FIELD_STATE.CONFIRMED;
+    }
+  }
+
+  getValues() {
+    const res = {};
+    for (const [k, v] of Object.entries(this.fields)) {
+      res[k] = v.value;
+    }
+    return res;
+  }
+
+  getCanonicalState() {
+    const res = {};
+    for (const [k, v] of Object.entries(this.fields)) {
+      res[k] = {
+        value: v.value,
+        status: v.status,
+        confidence: v.confidence,
+        attempts: v.attempts,
+        validated: v.validated,
+        confirmed: v.confirmed,
+        source: v.source,
+        updatedAt: v.updatedAt
+      };
+    }
+    return res;
+  }
+
+  getCompletionStats() {
+    const coreKeys = VOICE_INTERVIEW_FIELDS;
+    const userFilledSources = new Set(['voice', 'voice_extracted', 'voice_compound', 'manual_ui', 'manual_ui_sync']);
+    
+    const filledCount = coreKeys.filter(k => {
+      const f = this.fields[k];
+      if (!f) return false;
+      const isFilled = f.value !== undefined && f.value !== null && f.value !== '' && (!Array.isArray(f.value) || f.value.length > 0);
+      return isFilled && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && userFilledSources.has(f.source);
+    }).length;
+
+    const totalRequired = coreKeys.length;
+    const percentage = Math.min(100, Math.round((filledCount / totalRequired) * 100));
+    const isComplete = this.isStepComplete(1) && this.isStepComplete(2) && this.isStepComplete(3) && this.isStepComplete(4);
+
+    if (isComplete && this.formStatus !== FORM_STATE.COMPLETED) {
+      this.formStatus = FORM_STATE.REVIEW;
+    }
+
+    return {
+      totalRequired,
+      filledCount,
+      percentage,
+      isComplete,
+      formStatus: this.formStatus
+    };
+  }
+
+  isStepComplete(stepNum) {
+    const stepFields = {
+      1: ['shopName', 'managerName', 'phone', 'city'],
+      2: ['address', 'pincode', 'workingDays'],
+      3: ['brands'],
+      4: ['emiAvailable', 'showroomTestDrive']
+    }[stepNum] || [];
+
+    const userFilledSources = new Set(['voice', 'voice_extracted', 'voice_compound', 'manual_ui', 'manual_ui_sync']);
+    return stepFields.every(key => {
+      const f = this.fields[key];
+      if (!f) return false;
+      if (f.status === FIELD_STATE.SKIPPED || f.status === FIELD_STATE.MANUAL_FALLBACK) return true;
+      const val = f.value;
+      const isFilled = val !== undefined && val !== null && val !== '' && (!Array.isArray(val) || val.length > 0);
+      return isFilled && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && userFilledSources.has(f.source);
+    });
+  }
+
+  recalculateCurrentStep() {
+    for (let s = 1; s <= 4; s++) {
+      if (!this.isStepComplete(s)) {
+        this.currentStep = s;
+        return;
+      }
+    }
+    this.currentStep = 4;
+  }
+
+  /**
+   * Decide Next Controlled Action & Prompt (Principles 2 & 16)
+   */
+  decideNextAction(language = 'Hinglish') {
+    const stats = this.getCompletionStats();
+    const validSources = new Set(['voice', 'voice_extracted', 'voice_compound', 'manual_ui', 'manual_ui_sync']);
+
+    // Step 1 Check
+    if (this.currentStep === 1) {
+      const step1Order = ['shopName', 'managerName', 'phone', 'city'];
+      for (const key of step1Order) {
+        const f = this.fields[key];
+        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          const attempt = Math.min(3, f?.attempts || 0);
+          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
+          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
+          const promptText = promptList[attempt] || promptList[0] || 'Namaste! Aapke EV showroom ka kya naam hai?';
+          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          return { action: 'ASK_FIELD', targetField: key, step: 1, attempt, promptText, ttsText, stats };
+        }
+      }
+
+      const promptText = language === 'Hindi'
+        ? `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 (लोकेशन) पर आगे बढ़ें?`
+        : language === 'English'
+          ? `Dealership profile is saved! Shall we move to Step 2: Showroom Location?`
+          : `Dealership profile note ho gayi hai! Kya hum Step 2 (Location) par chalein?`;
+      const ttsText = language === 'English' ? promptText : `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 लोकेशन पर आगे बढ़ें?`;
+      return { action: 'STEP_CONFIRMATION', nextStep: 2, step: 1, promptText, ttsText, stats };
+    }
+
+    // Step 2 Check
+    if (this.currentStep === 2) {
+      const step2Order = ['address', 'pincode', 'workingDays'];
+      for (const key of step2Order) {
+        const f = this.fields[key];
+        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          const attempt = Math.min(3, f?.attempts || 0);
+          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
+          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
+          const promptText = promptList[attempt] || promptList[0] || 'Step 2: Aapka showroom kis address par hai?';
+          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          return { action: 'ASK_FIELD', targetField: key, step: 2, attempt, promptText, ttsText, stats };
+        }
+      }
+
+      const promptText = language === 'Hindi'
+        ? `शोरूम का पता और समय नोट हो चुका है! क्या स्टेप 3 (ईवी ब्रांड्स) पर चलें?`
+        : language === 'English'
+          ? `Location and timings saved! Shall we move to Step 3: EV Brands?`
+          : `Showroom location aur timings save ho gayi hain! Kya Step 3 (EV Brands) par chalein?`;
+      const ttsText = language === 'English' ? promptText : `शोरूम का पता और समय नोट हो चुका है! क्या स्टेप 3 ईवी ब्रांड्स पर चलें?`;
+      return { action: 'STEP_CONFIRMATION', nextStep: 3, step: 2, promptText, ttsText, stats };
+    }
+
+    // Step 3 Check
+    if (this.currentStep === 3) {
+      const step3Order = ['brands'];
+      for (const key of step3Order) {
+        const f = this.fields[key];
+        const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          const attempt = Math.min(3, f?.attempts || 0);
+          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
+          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
+          const promptText = promptList[attempt] || promptList[0] || 'Step 3: Aap kaunse EV brands deal karte hain?';
+          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          return { action: 'ASK_FIELD', targetField: key, step: 3, attempt, promptText, ttsText, stats };
+        }
+      }
+
+      const promptText = language === 'Hindi'
+        ? `ईवी ब्रांड्स सेव हो गए! क्या आखिरी स्टेप (ईएमआई लोन, बीमा और टेस्ट ड्राइव) देखें?`
+        : language === 'English'
+          ? `Brands recorded! Shall we proceed to Step 4: Services & Test Drives?`
+          : `Brands select ho gaye! Kya last step (Step 4: Services & Test Drives) par chalein?`;
+      const ttsText = language === 'English' ? promptText : `ईवी ब्रांड्स सेव हो गए! क्या आखिरी स्टेप ईएमआई लोन, बीमा और टेस्ट ड्राइव देखें?`;
+      return { action: 'STEP_CONFIRMATION', nextStep: 4, step: 3, promptText, ttsText, stats };
+    }
+
+    // Step 4 Check
+    if (this.currentStep === 4) {
+      const step4Order = ['emiAvailable', 'showroomTestDrive'];
+      for (const key of step4Order) {
+        const f = this.fields[key];
+        const isFilled = f?.value !== undefined && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          const attempt = Math.min(3, f?.attempts || 0);
+          const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
+          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
+          const promptText = promptList[attempt] || promptList[0] || 'Step 4: Kya aap EMI aur Test Drive provide karte hain?';
+          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          return { action: 'ASK_FIELD', targetField: key, step: 4, attempt, promptText, ttsText, stats };
+        }
+      }
+
+      // Final Review & Submission Gate (Principle 18)
+      const vals = this.getValues();
+      const promptText = language === 'Hindi'
+        ? `बहुत बढ़िया! आपकी डीलरशिप "${vals.shopName || 'ईवी शोरूम'}" की सभी जानकारियाँ पूरी हो गई हैं। क्या मैं अधिकृत पार्टनरशिप सबमिट कर दूँ?`
+        : language === 'English'
+          ? `All 4 steps are complete for "${vals.shopName || 'your showroom'}"! Shall I go ahead and submit your verified registration?`
+          : `Awesome! Aapke showroom "${vals.shopName || 'EV Hub'}" ke sabhi 4 steps complete ho chuke hain. Kya main verified registration submit kar doon?`;
+      const ttsText = language === 'English' ? promptText : `बहुत बढ़िया! आपकी डीलरशिप ${vals.shopName || 'ईवी शोरूम'} की सभी जानकारियाँ पूरी हो गई हैं। क्या मैं अधिकृत पार्टनरशिप सबमिट कर दूँ?`;
+      return { action: 'COMPLETE', step: 4, promptText, ttsText, stats };
+    }
+
+    return { action: 'ASK_FIELD', targetField: 'shopName', step: 1, attempt: 0, promptText: 'Namaste! Aapke EV showroom ka kya naam hai?', stats };
+  }
+}
+
+/**
+ * Enterprise Dealer Voice Agent Session Instance (Principles 12, 20, 21)
  */
 export class DealerAgentSession {
   constructor({ sessionId, language = 'Hinglish', voice = 'madhur', initialValues = {}, currentStep = null }) {
@@ -1029,6 +1134,18 @@ export class DealerAgentSession {
     this.updatedAt = Date.now();
     this.isSubmitted = false;
     this.registeredDealer = null;
+
+    // Observability & Telemetry Metrics (Principle 21)
+    this.telemetry = {
+      totalTurns: 0,
+      successfulExtractions: 0,
+      retriedTurns: 0,
+      invalidAnswers: 0,
+      correctionsCount: 0,
+      manualFallbacks: 0,
+      turnLatenciesMs: [],
+      firstAttemptSuccessCount: 0
+    };
   }
 
   getInitialGreeting() {
@@ -1048,6 +1165,7 @@ export class DealerAgentSession {
       step: isStep1Complete ? 2 : 1,
       extractedFields: {},
       currentForm: this.stateMachine.getValues(),
+      canonicalState: this.stateMachine.getCanonicalState(),
       completionStats: this.stateMachine.getCompletionStats(),
       isSubmitted: this.isSubmitted,
       registeredDealer: this.registeredDealer
@@ -1055,15 +1173,28 @@ export class DealerAgentSession {
   }
 
   async processTurn({ text = '', patch = null } = {}) {
+    const turnStartTime = Date.now();
+    this.telemetry.totalTurns++;
+
     if (patch && typeof patch === 'object') {
-      this.stateMachine.updateFields(patch, 'manual_ui');
+      this.stateMachine.updateFields(patch, 'manual_ui', 'UI field manual patch');
     }
-    return this.processUserUtterance(typeof text === 'string' ? text : '');
+
+    const result = await this.processUserUtterance(typeof text === 'string' ? text : '');
+    const turnDuration = Date.now() - turnStartTime;
+    this.telemetry.turnLatenciesMs.push(turnDuration);
+
+    return {
+      ...result,
+      turnLatencyMs: turnDuration,
+      telemetry: this.getObservabilityReport()
+    };
   }
 
   async processUserUtterance(userText = '') {
     this.updatedAt = Date.now();
     let extracted = {};
+    let turnQuality = TURN_QUALITY.VALID_VALUE;
 
     if (userText && userText.trim()) {
       this.conversation.push({
@@ -1074,16 +1205,16 @@ export class DealerAgentSession {
 
       const intent = classifyIntent(userText);
 
-      // High-Priority Direct Submission Check (guarding against informational questions)
+      // High-Priority Direct Submission Check (Principle 18)
       const isSubmitCommand = (intent === INTENT.SUBMIT ||
-        /(?:submit|verified\s*registration|registration\s*submit|kar\s*do|kardo|confirm\s*submit|सबमिट|जमा\s*कर)/i.test(userText))
-        && !/(?:fee|fees|charge|cost|document|paper|upload|kyc|kya|why|kaise|kitna|help|फायदा|शुल्क|कागजात)/i.test(userText);
+        /(?:(?:final\s*)?submit|sabmit|verified\s*registration|registration\s*(?:submit|kardo|kar\s*do)|register\s*(?:kardo|kar\s*do)|kar\s*do\s*register|form\s*(?:submit|kardo|kar\s*do)|सबमिट|रजिस्टर|जमा\s*कर)/i.test(userText))
+        && !/(?:fee|fees|charge|cost|document|paper|upload|kyc|kya|why|kaise|kitna|help|फायदा|शुल्क|कागजात|change|badlo|update|phone|number|name|address)/i.test(userText);
 
       if (isSubmitCommand) {
         return await this.submitRegistration();
       }
 
-      // If at step 4 and already complete, affirmative responses trigger submission
+      // Step 4 final affirmative submission
       if (this.stateMachine.currentStep === 4 && this.stateMachine.isStepComplete(4)) {
         if (/(?:yes|haan|ha|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|सबमिट|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
           return await this.submitRegistration();
@@ -1106,6 +1237,7 @@ export class DealerAgentSession {
           step: 1,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: this.stateMachine.getCompletionStats(),
           isSubmitted: false
         };
@@ -1133,6 +1265,7 @@ export class DealerAgentSession {
           step: targetStep,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: next.stats,
           isSubmitted: this.isSubmitted
         };
@@ -1142,8 +1275,7 @@ export class DealerAgentSession {
       if (intent === INTENT.SKIP_FIELD) {
         const target = this.stateMachine.currentTargetField;
         if (target && this.stateMachine.fields[target]) {
-          this.stateMachine.fields[target].status = FIELD_STATE.SKIPPED;
-          this.stateMachine.recalculateCurrentStep();
+          this.stateMachine.skipField(target, 'User explicitly said skip');
         }
         const skipMsg = this.language === 'Hindi'
           ? 'ठीक है, इस सवाल को छोड़ दिया गया है। चलिए आगे बढ़ते हैं।'
@@ -1158,6 +1290,7 @@ export class DealerAgentSession {
           step: next.step,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: next.stats,
           isSubmitted: this.isSubmitted
         };
@@ -1176,12 +1309,13 @@ export class DealerAgentSession {
           step: next.step,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: next.stats,
           isSubmitted: this.isSubmitted
         };
       }
 
-      // Handle FAQ Questions
+      // Handle FAQ Interception
       const faqAnswer = handleDealerFaq(userText, this.language);
       if (faqAnswer) {
         const next = this.stateMachine.decideNextAction(this.language);
@@ -1194,6 +1328,7 @@ export class DealerAgentSession {
           step: next.step,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: next.stats,
           isSubmitted: this.isSubmitted
         };
@@ -1214,16 +1349,20 @@ export class DealerAgentSession {
           step: next.step,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: next.stats,
           isSubmitted: this.isSubmitted
         };
       }
 
-      // Handle Field Correction Intent
+      // Handle Field Correction Intent (Principle 7: Non-destructive corrections)
       if (intent === INTENT.CORRECT_FIELD) {
+        this.telemetry.correctionsCount++;
         const corrExtract = normalizeEntities(userText, this.stateMachine.getValues(), this.stateMachine.currentTargetField, this.stateMachine.currentStep);
         if (Object.keys(corrExtract).length > 0) {
-          this.stateMachine.updateFields(corrExtract, 'voice_extracted');
+          for (const [fKey, fVal] of Object.entries(corrExtract)) {
+            this.stateMachine.updateField(fKey, fVal, 'voice_correction', userText, 0.98, 'User speech correction');
+          }
           const next = this.stateMachine.decideNextAction(this.language);
           const corrMsg = this.language === 'Hindi'
             ? 'जानकारी सही कर दी गई है! '
@@ -1231,11 +1370,13 @@ export class DealerAgentSession {
           return {
             sessionId: this.sessionId,
             speechText: `${corrMsg}${next.promptText}`,
+            ttsText: next.ttsText || next.promptText,
             action: next.action,
             targetField: next.targetField,
             step: next.step,
             extractedFields: corrExtract,
             currentForm: this.stateMachine.getValues(),
+            canonicalState: this.stateMachine.getCanonicalState(),
             completionStats: next.stats,
             isSubmitted: this.isSubmitted
           };
@@ -1250,16 +1391,18 @@ export class DealerAgentSession {
         return {
           sessionId: this.sessionId,
           speechText: helpMsg,
+          ttsText: helpMsg,
           action: 'HELP',
           step: this.stateMachine.currentStep,
           extractedFields: {},
           currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
           completionStats: this.stateMachine.getCompletionStats(),
           isSubmitted: this.isSubmitted
         };
       }
 
-      // Progression / Confirmation handling
+      // Step Confirmation transitions
       if (/(?:yes|haan|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
         if (this.stateMachine.currentStep === 1 && this.stateMachine.isStepComplete(1)) {
           this.stateMachine.currentStep = 2;
@@ -1270,24 +1413,37 @@ export class DealerAgentSession {
         } else if (this.stateMachine.currentStep === 4 && this.stateMachine.isStepComplete(4)) {
           return await this.submitRegistration();
         }
-      } else if (this.stateMachine.currentStep === 4 && /(?:submit|register|kar do|confirm|proceed|done|सबमिट|जमा|पार्टनरशिप|कर दो)/i.test(userText)) {
-        return await this.submitRegistration();
       }
 
-      // Normalize and extract entities
+      // Multi-field Compound Entity Extraction (Principles 4, 5, 6)
       extracted = normalizeEntities(userText, this.stateMachine.getValues(), this.stateMachine.currentTargetField, this.stateMachine.currentStep);
+      
       if (Object.keys(extracted).length > 0) {
-        this.stateMachine.updateFields(extracted, 'voice_extracted');
+        this.telemetry.successfulExtractions++;
+        const target = this.stateMachine.currentTargetField;
+        if (target && extracted[target] !== undefined && this.stateMachine.fields[target]?.attempts === 0) {
+          this.telemetry.firstAttemptSuccessCount++;
+        }
+
+        for (const [k, v] of Object.entries(extracted)) {
+          this.stateMachine.updateField(k, v, 'voice_compound', userText, 0.95, 'Natural compound voice extraction');
+        }
       } else {
         const currTarget = this.stateMachine.currentTargetField;
         if (currTarget && !/(?:yes|haan|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
-          this.stateMachine.recordFailedAttempt(currTarget);
+          turnQuality = TURN_QUALITY.UNCLEAR_SPEECH;
+          this.telemetry.retriedTurns++;
+          this.stateMachine.recordFailedAttempt(currTarget, turnQuality);
+          if (this.stateMachine.fields[currTarget]?.status === FIELD_STATE.MANUAL_FALLBACK) {
+            this.telemetry.manualFallbacks++;
+          }
         }
       }
     } else {
+      turnQuality = TURN_QUALITY.NO_SPEECH;
       const currTarget = this.stateMachine.currentTargetField;
       if (currTarget) {
-        this.stateMachine.recordFailedAttempt(currTarget);
+        this.stateMachine.recordFailedAttempt(currTarget, turnQuality);
       }
     }
 
@@ -1310,10 +1466,31 @@ export class DealerAgentSession {
       targetField: nextAction.targetField,
       step: nextAction.step,
       extractedFields: extracted,
+      turnQuality,
       currentForm: this.stateMachine.getValues(),
+      canonicalState: this.stateMachine.getCanonicalState(),
       completionStats: nextAction.stats,
       isSubmitted: this.isSubmitted,
       registeredDealer: this.registeredDealer
+    };
+  }
+
+  getObservabilityReport() {
+    const latencies = this.telemetry.turnLatenciesMs;
+    const avgLatency = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0;
+    const stats = this.stateMachine.getCompletionStats();
+
+    return {
+      sessionId: this.sessionId,
+      totalTurns: this.telemetry.totalTurns,
+      successfulExtractions: this.telemetry.successfulExtractions,
+      retriedTurns: this.telemetry.retriedTurns,
+      correctionsCount: this.telemetry.correctionsCount,
+      manualFallbacks: this.telemetry.manualFallbacks,
+      avgTurnLatencyMs: avgLatency,
+      formCompletionPercentage: stats.percentage,
+      isFormCompleted: stats.isComplete,
+      auditTrailLength: this.stateMachine.auditTrail.length
     };
   }
 
@@ -1328,10 +1505,12 @@ export class DealerAgentSession {
       return {
         sessionId: this.sessionId,
         speechText: alreadyMsg,
+        ttsText: alreadyMsg,
         action: 'SUBMIT_SUCCESS',
         step: 5,
         extractedFields: {},
         currentForm: vals,
+        canonicalState: this.stateMachine.getCanonicalState(),
         completionStats: this.stateMachine.getCompletionStats(),
         isSubmitted: true,
         partnerId: this.registeredDealer.partnerId,
@@ -1400,6 +1579,7 @@ export class DealerAgentSession {
       step: 5,
       extractedFields: {},
       currentForm: this.stateMachine.getValues(),
+      canonicalState: this.stateMachine.getCanonicalState(),
       completionStats: this.stateMachine.getCompletionStats(),
       isSubmitted: true,
       partnerId,

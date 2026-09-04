@@ -1472,6 +1472,29 @@ async function handleApi(req, res, url) {
     return json(res, 200, { success: true });
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/telemetry') {
+    const sessionId = url.searchParams.get('sessionId');
+    const session = sessionId ? dealerVoiceAgentManager.getSession(sessionId) : null;
+    if (!session) {
+      return json(res, 404, { error: 'Session not found' });
+    }
+    return json(res, 200, { success: true, telemetry: session.getObservabilityReport() });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/audit') {
+    const sessionId = url.searchParams.get('sessionId');
+    const session = sessionId ? dealerVoiceAgentManager.getSession(sessionId) : null;
+    if (!session) {
+      return json(res, 404, { error: 'Session not found' });
+    }
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      auditTrail: session.stateMachine.auditTrail,
+      canonicalState: session.stateMachine.getCanonicalState()
+    });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {
     return json(res, 200, { provider: AZURE_SPEECH_READY ? 'azure' : 'fallback', previewAvailable: AZURE_SPEECH_READY, voices: Object.values(VOICES) });
   }

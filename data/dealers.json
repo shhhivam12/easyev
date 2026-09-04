@@ -1,5 +1,746 @@
 [
   {
+    "id": "EEV-DLR-2026-3869",
+    "shopName": "Royal Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223399",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223399"
+    },
+    "location": {
+      "address": "Showroom Address",
+      "landmark": "",
+      "city": "Bengaluru",
+      "state": "Delhi",
+      "pincode": "560001",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:51.591Z"
+  },
+  {
+    "id": "EEV-DLR-2026-9331",
+    "shopName": "Integration Test EV Showroom",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876500001",
+      "email": "vikram.test@easyev.in",
+      "whatsapp": "9876500001"
+    },
+    "location": {
+      "address": "Sector 62, Electronic City",
+      "landmark": "",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "pincode": "201301",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:51.563Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8652",
+    "shopName": "Royal Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223399",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223399"
+    },
+    "location": {
+      "address": "Showroom Address",
+      "landmark": "",
+      "city": "Bengaluru",
+      "state": "Delhi",
+      "pincode": "560001",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:24.035Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8885",
+    "shopName": "Integration Test EV Showroom",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876500001",
+      "email": "vikram.test@easyev.in",
+      "whatsapp": "9876500001"
+    },
+    "location": {
+      "address": "Sector 62, Electronic City",
+      "landmark": "",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "pincode": "201301",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:23.996Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8127",
+    "shopName": "Royal Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223399",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223399"
+    },
+    "location": {
+      "address": "Showroom Address",
+      "landmark": "",
+      "city": "Bengaluru",
+      "state": "Delhi",
+      "pincode": "560001",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:05.591Z"
+  },
+  {
+    "id": "EEV-DLR-2026-9799",
+    "shopName": "Integration Test EV Showroom",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876500001",
+      "email": "vikram.test@easyev.in",
+      "whatsapp": "9876500001"
+    },
+    "location": {
+      "address": "Sector 62, Electronic City",
+      "landmark": "",
+      "city": "Noida",
+      "state": "Uttar Pradesh",
+      "pincode": "201301",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:07:05.546Z"
+  },
+  {
+    "id": "EEV-DLR-2026-4062",
+    "shopName": "EasyEV Mobility Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Showroom Address",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:05:29.647Z"
+  },
+  {
+    "id": "EEV-DLR-2026-6672",
+    "shopName": "Shakti Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Plot 42, Okhla Phase 3 Industrial Area",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110020",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:05:15.369Z"
+  },
+  {
+    "id": "EEV-DLR-2026-4568",
+    "shopName": "EasyEV Mobility Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Showroom Address",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-04T20:05:15.362Z"
+  },
+  {
     "id": "EEV-DLR-2026-8437",
     "shopName": "Royal Motors EV Hub",
     "dealerType": "Authorized OEM Dealership",
