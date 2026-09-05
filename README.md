@@ -3,7 +3,7 @@
 <div align="center">
 
   <a href="https://github.com/shhhivam12/easyev">
-    <img src="assets/easyev-hero-banner.svg" alt="EasyEV AI - Autonomous Multimodal EV Discovery, Negotiation & Action Platform" width="100%" style="max-width: 960px; border-radius: 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);" />
+    <img src="assets/easyev-hero-banner.png" alt="EasyEV AI - Autonomous Multimodal EV Discovery, Negotiation & Action Platform" width="100%" style="max-width: 960px; border-radius: 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);" />
   </a>
 
   <br/><br/>
