@@ -2677,6 +2677,64 @@
       gap: 18px;
     }
 
+    .mailform {
+      margin: 18px 0 4px;
+      padding: 16px 17px;
+      border: 1px solid rgba(85, 242, 123, .28);
+      border-radius: 13px;
+      background: rgba(85, 242, 123, .06);
+    }
+
+    .mailform__label {
+      display: block;
+      margin-bottom: 8px;
+      color: rgba(255, 255, 255, .62);
+      font-size: 10px;
+      font-weight: 640;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .mailform__row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .mailform__input {
+      flex: 1 1 220px;
+      min-width: 0;
+      padding: 11px 13px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, .28);
+      color: #fff;
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .mailform__input:focus {
+      outline: none;
+      border-color: var(--green-bright);
+    }
+
+    .mailform__send {
+      flex: none;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--green-bright);
+      color: #06231a;
+      font: inherit;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    .mailform__send[disabled] { opacity: .55; cursor: not-allowed; }
+
+    .mailform__note {
+      margin: 9px 0 0;
+      color: rgba(255, 255, 255, .55);
+      font-size: 11px;
+      line-height: 1.45;
+    }
     .crm-card {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -8552,7 +8610,9 @@
             ['Phone', payload.phone],
           ].filter(([, value]) => value);
           target.innerHTML = payload.needsDetails
-            ? `<div class="stage-content__intro"><h3>So a specialist can follow up</h3><p>Share a name and either a phone number or an email. Nothing is shared outside EasyEV.</p></div>`
+            ? `<div class="stage-content__intro"><h3>${payload.emailUnclear ? 'I did not catch that address' : 'So a specialist can follow up'}</h3><p>${payload.emailUnclear
+                ? `I heard "${escapeHtml(payload.heard || '')}", which I could not read as an email. Type it here instead — it goes straight through.`
+                : 'Type your email below, or just say your name and number. Nothing is shared outside EasyEV.'}</p></div>${emailFormHtml()}`
             : `<div class="stage-content__intro"><h3>Saved to the CRM</h3><p>Your details are attached to everything we have discussed, so nobody will ask you to repeat it.</p></div>
                <div class="crm-card">${rows.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
                <p class="tool-notice">${payload.live ? 'Written to HubSpot as a sales-qualified lead with the full Buyer Passport.' : 'Held against this conversation. Connect HubSpot to sync it to the CRM.'}</p>`;
@@ -8560,7 +8620,13 @@
           const slots = Array.isArray(payload.slots) ? payload.slots : [];
           target.innerHTML = `<div class="stage-content__intro"><h3>Open times</h3><p>${payload.live ? 'Live availability from the EasyEV booking calendar.' : 'Indicative times; the live calendar is not connected.'}</p></div>
             <div class="slot-grid">${slots.map((slot, index) => `<button class="slot-button" type="button" data-book-slot="${escapeHtml(slot.start)}"><span class="slot-index">${index + 1}</span>${escapeHtml(slot.label)}</button>`).join('') || '<p class="stage-note">No open slots in this window.</p>'}</div>
-            ${payload.needsEmail ? '<p class="tool-notice">An email address is needed so the confirmation can be sent.</p>' : ''}`;
+            ${payload.needsEmail ? emailFormHtml({
+              pendingStart: payload.pendingStart || '',
+              heard: payload.emailUnclear ? payload.heard : '',
+              note: payload.emailUnclear
+                ? `I heard "${escapeHtml(payload.heard || '')}" and could not read it as an email.`
+                : 'The confirmation needs somewhere to go.',
+            }) : ''}`;
         } else if (type === 'booking-confirmed') {
           const failed = Boolean(payload.failed);
           const humanizeBookingError = (error) => {
@@ -9029,6 +9095,20 @@
         capture_lead: payload?.live ? 'Written to HubSpot CRM' : 'Held in this session',
         book_test_drive: payload?.live || payload?.confirmed ? 'Live Cal.com calendar' : 'Indicative times'
       }[tool] || 'EasyEV decision tool');
+      // Saying an email out loud is the least reliable thing in the whole call:
+      // Hinglish recognition writes digits in Devanagari and guesses at spellings.
+      // Typing it removes the recogniser from the path entirely.
+      const emailFormHtml = ({ pendingStart = '', note = '', heard = '' } = {}) => `
+        <form class="mailform" data-email-form${pendingStart ? ` data-pending-start="${escapeHtml(pendingStart)}"` : ''}>
+          <label class="mailform__label" for="stage-email-input">Your email address</label>
+          <div class="mailform__row">
+            <input class="mailform__input" id="stage-email-input" name="email" type="email"
+                   inputmode="email" autocomplete="email" spellcheck="false"
+                   placeholder="you@example.com" value="${escapeHtml(heard && heard.includes('@') ? heard : '')}" required>
+            <button class="mailform__send" type="submit">Send</button>
+          </div>
+          <p class="mailform__note">${escapeHtml(note || 'Typing is more reliable than saying it out loud.')}</p>
+        </form>`;
       const stageTypeForTool = (stage) => stage === 'ownership' ? 'ownership-cost' : stage;
       const presentToolStage = (stage, payload, tool) => {
         const next = {
@@ -9921,6 +10001,34 @@
         if (event.key.toLowerCase() === 't') openPromptDrawer();
         if (event.key.toLowerCase() === 'm') $('#mic-control')?.click();
       });
+      document.addEventListener('submit', async (event) => {
+        const form = event.target instanceof Element ? event.target.closest('[data-email-form]') : null;
+        if (!form) return;
+        event.preventDefault();
+        const input = form.querySelector('input[name="email"]');
+        const email = String(input?.value || '').trim();
+        if (!email) return;
+        const send = form.querySelector('.mailform__send');
+        const pendingStart = form.dataset.pendingStart || '';
+        if (send) { send.disabled = true; send.textContent = 'Sending…'; }
+        try {
+          const adapter = activeAdapter();
+          if (typeof adapter?.runTool !== 'function') throw new Error('Email capture needs the live consultation.');
+          appendTranscript('you', `My email is ${email}.`, { localText: true });
+          await adapter.runTool('capture_lead', { email });
+          // If the buyer had already picked a slot and only the address was
+          // missing, finish the booking rather than making them choose again.
+          if (pendingStart) {
+            state.activityMessage = 'Confirming your booking…';
+            await adapter.runTool('book_test_drive', { slot: pendingStart, demoType: state.booking.demoType || 'Dealership visit' });
+          }
+        } catch (error) {
+          showToast(error?.message || 'That email could not be saved.');
+        } finally {
+          if (send) { send.disabled = false; send.textContent = 'Send'; }
+        }
+      });
+
       $('#prompt-form')?.addEventListener('submit', (event) => {
         event.preventDefault();
         const input = $('#prompt-input');
