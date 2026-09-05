@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" width="240" height="60" fill="none">
+  <rect width="240" height="60" rx="10" fill="#111827" />
+  <g transform="translate(16, 12)">
+    <!-- Sarvam stylized geometric glyph -->
+    <path d="M6 30L18 6L30 30H22L18 18L14 30H6Z" fill="url(#sarvam-grad)" />
+    <circle cx="18" cy="8" r="3.5" fill="#FF8A00" />
+    <path d="M12 24L18 12L24 24" stroke="#FFA726" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+  <text x="60" y="37" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="800" fill="#FFFFFF" letter-spacing="0.5">
+    sarvam<tspan fill="#FF7A00">.ai</tspan>
+  </text>
+  <defs>
+    <linearGradient id="sarvam-grad" x1="6" y1="6" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF5722" />
+      <stop offset="0.5" stop-color="#FF7A00" />
+      <stop offset="1" stop-color="#FFA726" />
+    </linearGradient>
+  </defs>
+</svg>
