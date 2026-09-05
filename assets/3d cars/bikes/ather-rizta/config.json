@@ -1,0 +1,15 @@
+{
+  "id": "ather-rizta",
+  "name": "Ather Rizta",
+  "category": "bike",
+  "source": "https://www.bikewale.com/ather-bikes/rizta/360-view/",
+  "folder": "bikes/ather-rizta/exterior",
+  "pattern": "frame-{nn}.jpg",
+  "frames": 36,
+  "width": 1280,
+  "height": 720,
+  "sensitivity": 10,
+  "autoRotate": true,
+  "autoRotateSpeed": 0.6,
+  "autoRotateDelay": 3000
+}

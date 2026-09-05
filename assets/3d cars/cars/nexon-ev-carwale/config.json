@@ -1,0 +1,34 @@
+{
+  "id": "nexon-ev-carwale",
+  "name": "Tata Nexon EV",
+  "source": "https://www.carwale.com/tata-cars/nexon-ev/360-view/",
+  "views": {
+    "exterior": {
+      "type": "spin",
+      "folder": "cars/nexon-ev-carwale/exterior",
+      "pattern": "frame-{nn}.jpg",
+      "frames": 72,
+      "label": "Exterior 360\u00b0 (doors closed)"
+    },
+    "open": {
+      "type": "spin",
+      "folder": "cars/nexon-ev-carwale/open",
+      "pattern": "frame-{nn}.jpg",
+      "frames": 72,
+      "label": "Open-door 360\u00b0"
+    },
+    "interior": {
+      "type": "cubemap",
+      "folder": "cars/nexon-ev-carwale/interior",
+      "faces": [
+        "face-0.jpg",
+        "face-1.jpg",
+        "face-2.jpg",
+        "face-3.jpg",
+        "face-4.jpg",
+        "face-5.jpg"
+      ],
+      "label": "Interior panorama"
+    }
+  }
+}

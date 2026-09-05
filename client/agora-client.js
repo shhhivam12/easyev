@@ -161,10 +161,12 @@ class AgoraAdapter {
             .filter((item) => typeof item.text === 'string' && item.text.trim())
             .map((item) => ({
               id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+              turnId: String(item.turn_id ?? item.stream_id ?? ''),
               speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
               text: item.text.trim(),
               timestamp: timestampMs(item._time),
               status: String(item.status ?? ''),
+              isFinal: item.status !== undefined && item.status !== null && Number(item.status) !== 0,
             }));
           this.emit('TRANSCRIPT_SYNC', { entries, sessionId: context.sessionId });
         });
@@ -436,10 +438,12 @@ class VehicleAgoraAdapter extends AgoraAdapter {
             .filter((item) => typeof item.text === 'string' && item.text.trim())
             .map((item) => ({
               id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+              turnId: String(item.turn_id ?? item.stream_id ?? ''),
               speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
               text: item.text.trim(),
               timestamp: timestampMs(item._time),
               status: String(item.status ?? ''),
+              isFinal: item.status !== undefined && item.status !== null && Number(item.status) !== 0,
             }));
           this.emit('TRANSCRIPT_SYNC', { entries, vehicleId: context.vehicleId });
         });

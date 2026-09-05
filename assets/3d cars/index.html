@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>360° Car Viewer — Tata Punch EV</title>
+<meta name="description" content="Smooth drag-to-spin 360° car viewer. Tata Punch EV exterior, 24 frames. Add more cars easily." />
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="vendor/pannellum.css" />
+</head>
+<body>
+<header>
+  <div>
+    <span class="badge">360° VIRTUAL TOUR • LIKE CARDEKHO + CARWALE</span>
+    <h1 id="car-title">Tata Punch EV — 360° View</h1>
+    <p id="car-sub">Drag left / right to spin • Scroll-safe touch • Auto-spins when idle</p>
+  </div>
+  <div class="hint-text" id="car-meta">24 frames • 930×620 • ~1 MB total • no library</div>
+</header>
+
+<main>
+  <div class="layout">
+    <section class="viewer" id="viewer" aria-label="360 car viewer">
+      <div class="view-tabs" id="view-tabs">
+        <button data-view="exterior" class="active">Exterior</button>
+        <button data-view="open">Open-door</button>
+        <button data-view="interior">Interior</button>
+      </div>
+      <div class="view-tabs" id="variant-tabs"></div>
+      <div class="view-tabs" id="color-tabs"></div>
+      <div class="spin-stage" id="stage">
+        <img class="spin-frame" alt="360 frame" draggable="false" />
+        <div class="spin-loader"><div class="loader-fill"></div></div>
+        <div class="spin-pct">0%</div>
+        <div class="spin-hint">⟵ Drag to spin ⟶</div>
+        <div class="spin-count">1 / 24</div>
+      </div>
+      <div class="pano-stage" id="pano-stage">
+        <div id="pano"></div>
+        <div class="pano-hint">Drag to look around • Scroll / pinch to zoom</div>
+      </div>
+      <div class="toolbar" id="spin-toolbar">
+        <div class="btn-group">
+          <button data-spin="prev">⟵ Prev</button>
+          <button data-spin="next">Next ⟶</button>
+        </div>
+        <div class="btn-group">
+          <button data-spin="play" class="primary" aria-pressed="true">⏸ Pause spin</button>
+          <button data-spin="fs">⛶ Fullscreen</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="card">
+        <h2>Cars</h2>
+        <p>Each car lives in its own <code>cars/&lt;id&gt;/</code> folder. Pick a car:</p>
+        <div class="car-list" id="car-list"></div>
+      </div>
+      <div class="card">
+        <h2>EV Bikes</h2>
+        <p>Separate category — lives in <code>bikes/&lt;id&gt;/</code>:</p>
+        <div class="car-list" id="bike-list"></div>
+      </div>
+      <div class="card">
+        <h2>EV 3-Wheelers</h2>
+        <p>Separate category — <code>three-wheelers/&lt;id&gt;/&lt;color&gt;/&lt;variant&gt;/</code>:</p>
+        <div class="car-list" id="threewheeler-list"></div>
+      </div>
+      <div class="card">
+        <h2>How it feels like CarDekho / CarWale</h2>
+        <ul>
+          <li>Exterior / Open: image-sequence spin — infinite wrap, inertia, auto-rotate after 3s idle, rAF lerp</li>
+          <li>Interior: true panorama (Pano2VR cube → Pannellum) — drag to look, scroll to zoom</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h2>Add another vehicle</h2>
+        <p>CarDekho: <code>python download_car.py "…-360-view.htm"</code><br/>
+           CarWale: <code>python download_carwale.py "…/360-view/"</code><br/>
+           BikeWale: <code>python download_bikewale.py "…/360-view/"</code><br/>
+           Then add 1 line in <code>cars/cars.js</code> or <code>bikes/bikes.js</code></p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<footer>Tip: ← → keys spin • Esc exits fullscreen • Works offline via <code>file://</code> (pannellum vendored locally)</footer>
+
+<script src="cars/cars.js"></script>
+<script src="bikes/bikes.js"></script>
+<script src="three-wheelers/three-wheelers.js"></script>
+<script src="js/viewer360.js"></script>
+<script src="vendor/pannellum.js"></script>
+<script>
+(async function () {
+  const listEl = document.getElementById('car-list');
+  const titleEl = document.getElementById('car-title');
+  const subEl = document.getElementById('car-sub');
+  const metaEl = document.getElementById('car-meta');
+  const tabsEl = document.getElementById('view-tabs');
+  const variantTabsEl = document.getElementById('variant-tabs');
+  const colorTabsEl = document.getElementById('color-tabs');
+  const stageEl = document.getElementById('stage');
+  const panoStageEl = document.getElementById('pano-stage');
+  const toolbarEl = document.getElementById('spin-toolbar');
+  const viewerRoot = document.getElementById('viewer');
+  let spin = null, pano = null, currentCfg = null, currentView = 'exterior';
+  let twColor = 'white', twVariant = 'fixed-side-deck';
+
+  function selectVehicle(el, active) {
+    document.querySelectorAll('.car-item').forEach(x => x.classList.remove('active'));
+    el.classList.add('active');
+    loadCar(active);
+  }
+
+  CARS.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.className = 'car-item' + (i === 0 ? ' active' : '');
+    b.innerHTML = `<img src="${c.thumb}" alt="${c.name}"/><div><b>${c.name}</b><span>360° view</span></div>`;
+    b.onclick = () => selectVehicle(b, c);
+    listEl.appendChild(b);
+  });
+
+  const bikeListEl = document.getElementById('bike-list');
+  (typeof BIKES !== 'undefined' ? BIKES : []).forEach((bk) => {
+    const b = document.createElement('button');
+    b.className = 'car-item';
+    b.innerHTML = `<img src="${bk.thumb}" alt="${bk.name}"/><div><b>${bk.name}</b><span>360° bike • EV</span></div>`;
+    b.onclick = () => selectVehicle(b, bk);
+    bikeListEl.appendChild(b);
+  });
+
+  const twListEl = document.getElementById('threewheeler-list');
+  (typeof THREE_WHEELERS !== 'undefined' ? THREE_WHEELERS : []).forEach((tw) => {
+    const b = document.createElement('button');
+    b.className = 'car-item';
+    b.innerHTML = `<img src="${tw.thumb}" alt="${tw.name}"/><div><b>${tw.name}</b><span>360° 3-wheeler • 4 variants</span></div>`;
+    b.onclick = () => selectVehicle(b, tw);
+    twListEl.appendChild(b);
+  });
+
+  tabsEl.querySelectorAll('button').forEach(b => {
+    b.onclick = () => {
+      tabsEl.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      loadView(b.dataset.view);
+    };
+  });
+
+  async function loadCar(car) {
+    teardown();
+    const cfg = await (await fetch(car.configUrl)).json();
+    currentCfg = cfg;
+    titleEl.textContent = `${cfg.name} — 360° View`;
+    variantTabsEl.classList.remove('show');
+    colorTabsEl.classList.remove('show');
+    if (cfg.category === 'three-wheeler') {
+      // TVS 3-wheeler: variant tabs (body) + color tabs
+      tabsEl.classList.remove('show');
+      twVariant = Object.keys(cfg.views[twColor] ? cfg.views[twColor] : cfg.views[Object.keys(cfg.views)[0]])[0] || 'fixed-side-deck';
+      if (!cfg.views[twColor]) twColor = Object.keys(cfg.views)[0];
+      if (!cfg.views[twColor][twVariant]) twVariant = Object.keys(cfg.views[twColor])[0];
+      buildTwTabs(cfg);
+      metaEl.textContent = '2 colors × 4 variants × 12 frames • webp';
+      loadThreeWheeler();
+    } else if (cfg.views) {
+      // Multi-view car (CarWale style) — hide tabs for missing views (e.g. no interior)
+      tabsEl.classList.add('show');
+      tabsEl.querySelectorAll('button').forEach(x => {
+        x.style.display = cfg.views[x.dataset.view] ? '' : 'none';
+      });
+      const parts = [];
+      if (cfg.views.exterior) parts.push(`${cfg.views.exterior.frames} ext`);
+      if (cfg.views.open) parts.push(`${cfg.views.open.frames} open`);
+      if (cfg.views.interior) parts.push('6-face interior');
+      metaEl.textContent = parts.join(' + ');
+      loadView(cfg.views.exterior ? 'exterior' : Object.keys(cfg.views)[0]);
+    } else {
+      // Classic single-spin car (CarDekho style)
+      tabsEl.classList.remove('show');
+      metaEl.textContent = `${cfg.frames} frames • ${cfg.width}×${cfg.height} • no library`;
+      subEl.textContent = cfg.tagline || 'Drag left / right to spin • Auto-spins when idle';
+      showSpin(cfg);
+    }
+  }
+
+  function buildTwTabs(cfg) {
+    const colors = Object.keys(cfg.views);
+    const variants = Object.keys(cfg.views[colors[0]]);
+    variantTabsEl.innerHTML = '';
+    variants.forEach((v, i) => {
+      const b = document.createElement('button');
+      b.textContent = cfg.variants[v] || v;
+      b.dataset.variant = v;
+      if (v === twVariant) b.classList.add('active');
+      b.onclick = () => {
+        twVariant = v;
+        variantTabsEl.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+        loadThreeWheeler();
+      };
+      variantTabsEl.appendChild(b);
+    });
+    colorTabsEl.innerHTML = '';
+    colors.forEach((c) => {
+      const b = document.createElement('button');
+      b.textContent = '● ' + (cfg.colors[c] || c);
+      b.dataset.color = c;
+      if (c === twColor) b.classList.add('active');
+      b.onclick = () => {
+        twColor = c;
+        colorTabsEl.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+        loadThreeWheeler();
+      };
+      colorTabsEl.appendChild(b);
+    });
+    variantTabsEl.classList.add('show');
+    colorTabsEl.classList.add('show');
+  }
+
+  function loadThreeWheeler() {
+    teardown();
+    const v = currentCfg.views[twColor][twVariant];
+    subEl.textContent = v.label + ' — drag to spin';
+    showSpin({ folder: v.folder, pattern: v.pattern, frames: v.frames, autoRotate: true, autoRotateDelay: 3000 });
+  }
+
+  function loadView(name) {
+    teardown();
+    currentView = name;
+    const v = currentCfg.views[name];
+    tabsEl.querySelectorAll('button').forEach(x => x.classList.toggle('active', x.dataset.view === name));
+    if (v.type === 'spin') {
+      subEl.textContent = v.label + ' — drag to spin';
+      showSpin({ folder: v.folder, pattern: v.pattern, frames: v.frames, autoRotate: true, autoRotateDelay: 3000 });
+    } else {
+      subEl.textContent = v.label + ' — drag to look around';
+      showInterior(v);
+    }
+  }
+
+  function showSpin(cfg) {
+    panoStageEl.classList.remove('show');
+    stageEl.style.display = '';
+    toolbarEl.style.display = '';
+    stageEl.querySelector('.spin-frame').removeAttribute('src');
+    stageEl.querySelector('.spin-loader').classList.remove('done');
+    stageEl.querySelector('.spin-hint').classList.remove('hide');
+    viewerRoot.querySelector('[data-spin="play"]').textContent = '⏸ Pause spin';
+    spin = new SpinViewer(viewerRoot, cfg);
+  }
+
+  function showInterior(v) {
+    if (spin) { spin.destroy(); spin = null; }
+    stageEl.style.display = 'none';
+    toolbarEl.style.display = 'none';
+    panoStageEl.classList.add('show');
+    // Pannellum cubeMap order: [front, right, back, left, up, down]
+    // CarWale Pano2VR tiles 1..6 map to face-0..5 in the same order.
+    // If up/down ever look swapped on a future car, swap faces[4] and faces[5].
+    const base = v.folder + '/';
+    pano = pannellum.viewer('pano', {
+      type: 'cubemap',
+      cubeMap: v.faces.map(f => base + f),
+      autoRotate: -2,
+      autoRotateInactivityDelay: 3000,
+      showControls: true,
+      compass: false,
+    });
+  }
+
+  function teardown() {
+    if (spin) { spin.destroy(); spin = null; }
+    if (pano) { try { pano.destroy(); } catch (e) {} pano = null; document.getElementById('pano').innerHTML = ''; }
+  }
+
+  loadCar(CARS[0]);
+})();
+</script>
+</body>
+</html>

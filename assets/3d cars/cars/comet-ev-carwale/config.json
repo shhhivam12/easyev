@@ -1,0 +1,21 @@
+{
+  "id": "comet-ev-carwale",
+  "name": "MG Comet EV",
+  "source": "https://www.carwale.com/mg-cars/comet-ev/360-view/",
+  "views": {
+    "exterior": {
+      "type": "spin",
+      "folder": "cars/comet-ev-carwale/exterior",
+      "pattern": "frame-{nn}.jpg",
+      "frames": 72,
+      "label": "Exterior 360\u00b0 (doors closed)"
+    },
+    "open": {
+      "type": "spin",
+      "folder": "cars/comet-ev-carwale/open",
+      "pattern": "frame-{nn}.jpg",
+      "frames": 72,
+      "label": "Open-door 360\u00b0"
+    }
+  }
+}
