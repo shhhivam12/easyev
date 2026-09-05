@@ -6,6 +6,8 @@ import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
+import { CrmCalendar } from './crm-calendar.mjs';
+import { Mailer } from './mailer.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import {
   AgoraClient,
@@ -56,6 +58,18 @@ const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes
 // which is fine on a laptop but should never be the case on a public deployment.
 const REP_DESK_KEY = process.env.REP_DESK_KEY?.trim() || '';
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL?.trim() || '';
+
+const crmCalendar = new CrmCalendar({
+  hubspotToken: process.env.HUBSPOT_TOKEN || '',
+  calcomApiKey: process.env.CALCOM_API_KEY || '',
+  calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
+  timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
+});
+const mailer = new Mailer({
+  user: process.env.GMAIL_USER || '',
+  appPassword: process.env.GMAIL_APP_PASSWORD || '',
+  fromName: process.env.MAIL_FROM_NAME || 'EasyEV',
+});
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -72,13 +86,15 @@ const startup = { startedAt: Date.now(), phase: 'Waking backend', ready: false }
 const tools = new EasyEVToolEngine({
   databaseUrl: process.env.DATABASE_URL?.trim(),
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
-  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash',
+  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash',
   openChargeMapKey: process.env.OPENCHARGEMAP_API_KEY?.trim(),
   publicBaseUrl: PUBLIC_BASE_URL,
   onEscalation: (record) => {
     broadcast(record, 'handoff', handoffState(record));
     notifySlack(record);
   },
+  crm: crmCalendar,
+  mailer,
 });
 
 const handoffCodes = new Map();
@@ -274,15 +290,21 @@ The shopper selected category: ${category}. Their preferred conversation languag
 
 Language and voice style: ${languageStyle}
 
-You have six real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
+You have eight real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
 - compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said. Set presentation to "photo" for picture/image requests and "3d" for 3D/360/AR requests; for two vehicles use one call with both names.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
 - analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
 - generate_decision_report for a report, PDF, summary or download.
 - escalate_to_human to bring a live human EasyEV specialist onto this same call.
+- capture_lead the moment the buyer gives a name, phone number or email address.
+- book_test_drive for a test drive, demo, appointment or visit.
 
-Call escalate_to_human when the buyer asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; when a trust concern or complaint stays open after you have addressed it once; or when they are ready to buy and need a human to close. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
+Contact details and bookings are real, not simulated. Call capture_lead as soon as the buyer says their name, number or email, and again if they correct it; never invent a detail they did not say. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose. A booking needs an email address for the confirmation, so ask for one if you do not have it. Read an email address back to the buyer once to confirm you heard it correctly before saving. Do not promise a booking before the tool has confirmed it.
+
+Call escalate_to_human only when the buyer explicitly asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
+
+Routing rule that overrides everything else: any request to book, schedule or arrange a test drive, demo, showroom visit, dealership visit or appointment goes to book_test_drive, never to escalate_to_human. "Test drive book karni hai", "demo dikhao", "appointment lagao" and "showroom aana hai" all mean book_test_drive. Wanting a test drive is not the same as wanting to talk to a human; only escalate if the buyer actually asks for a person. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
 
 Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
 
@@ -292,7 +314,7 @@ Do not answer catalog comparisons, pictures, 3D requests, ownership calculations
 
 After a tool succeeds, begin with “It’s ready on your screen,” then explain the two most decision-useful points visible in that result. For a comparison, describe both vehicles and one trade-off. For ownership, mention the daily-kilometre assumption and annual running-cost difference. For a map, say it is centred on the browser-shared or selected city location and tell the buyer to use Improve location if the blue marker is wrong. Do not keep narrating while nothing is changing.
 
-Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
+Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory or finance quotes. Prices and claims require verification. Lead capture and test-drive booking are real writes to the CRM and calendar, so state a booking as confirmed only after book_test_drive returns a confirmation. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
 
 function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl }) {
@@ -799,6 +821,10 @@ function waitingCard(record) {
     chargingAccess: profile.chargingAccess || '',
     shortlist: (record.passport?.shortlist || []).map((item) => item.name).slice(0, 3),
     transcriptLines: record.transcript?.length || 0,
+    hasContact: Boolean(record.passport?.lead?.email || record.passport?.lead?.phone),
+    leadLive: Boolean(record.passport?.lead?.live),
+    bookingWhen: record.passport?.booking?.when || null,
+    bookingConfirmed: Boolean(record.passport?.booking?.confirmed),
   };
 }
 
@@ -1047,7 +1073,7 @@ async function handleHandoffApi(req, res, url) {
     return json(res, 200, { waiting, activeCalls: sessions.size, deskSecured: Boolean(REP_DESK_KEY) });
   }
 
-  const match = url.pathname.match(/^\/api\/handoff\/([A-Z0-9]{6,16})(?:\/(events|join|handback|transcript))?$/);
+  const match = url.pathname.match(/^\/api\/handoff\/([A-Z0-9]{6,16})(?:\/(events|join|handback|transcript|tool))?$/);
   if (!match) return false;
   const sessionKey = handoffCodes.get(match[1]);
   const record = sessionKey ? sessions.get(sessionKey) : null;
@@ -1156,6 +1182,25 @@ async function handleHandoffApi(req, res, url) {
     return json(res, 200, { success: true, stored });
   }
 
+  // Lets the specialist drive the buyer's screen mid-call: a tool run here reaches
+  // the buyer through the same tool-event stream the AI's own tool calls use, so
+  // the result appears live on their side while the specialist is talking.
+  // Deliberately a narrow allowlist and gated on an active handover — this is not
+  // the general tool-call surface the AI has, just the handful that make sense to
+  // trigger by hand while holding the call.
+  if (req.method === 'POST' && action === 'tool') {
+    if (record.escalation?.status !== 'rep-joined') {
+      return json(res, 409, { error: 'Join the call before driving the buyer’s screen.' });
+    }
+    const body = await readJson(req);
+    const REP_DRIVABLE_TOOLS = new Set(['compare_vehicles', 'calculate_ownership', 'find_nearby_chargers', 'book_test_drive', 'generate_decision_report']);
+    if (!REP_DRIVABLE_TOOLS.has(body.tool)) {
+      return json(res, 400, { error: 'That is not available from the specialist console.' });
+    }
+    const result = await tools.run(record, body.tool, body.args || {});
+    return json(res, 200, { success: true, result: result.structuredContent });
+  }
+
   return json(res, 405, { error: 'Method not allowed' });
 }
 
@@ -1179,6 +1224,7 @@ async function handleApi(req, res, url) {
       database: tools.databaseMode,
       databaseFallback: tools.databaseMode === 'ephemeral',
       visionConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
+      mail: mailer.status(),
       speech: {
         hindiRecognition: 'Agora ARES hi-IN',
         provider: AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',
@@ -1390,7 +1436,9 @@ async function handleApi(req, res, url) {
         phase: 'ready',
         stage: 'welcome',
         payload: {
-          message: mcpUrl ? 'Five live decision tools connected' : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
+          message: mcpUrl
+            ? `${Object.keys(tools.definitions()).length} live decision tools connected`
+            : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
           passport: tools.publicPassport(record),
         },
       });

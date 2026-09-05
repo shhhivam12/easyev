@@ -3,6 +3,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import PDFDocument from 'pdfkit';
 import pg from 'pg';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { CrmCalendar, isEmail, normalizePhone, parseSpokenEmail } from './crm-calendar.mjs';
 import * as z from 'zod/v4';
 
 const { Pool } = pg;
@@ -145,6 +146,24 @@ function money(value) {
   return `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
 }
 
+// A real booking attempt failed at Cal.com — the buyer needs to hear why in
+// plain language, not the provider's error code. Falling back to "I have held
+// it, a specialist will confirm" here was the bug: it told the buyer nothing
+// went wrong when it had, so a real failure looked identical to success.
+function humanizeBookingError(error) {
+  const code = String(error || '').toLowerCase();
+  if (code.includes('email_domain_cannot_receive_mail') || code.includes('invalid_email')) {
+    return 'that email address does not look like it can receive mail';
+  }
+  if (code.includes('no_available_users') || code.includes('slot') && code.includes('taken')) {
+    return 'that time was just taken by someone else';
+  }
+  if (code.includes('timeout') || code.includes('timed out')) {
+    return 'the booking calendar took too long to respond';
+  }
+  return 'there was a problem reaching the booking calendar';
+}
+
 function safeError(error) {
   return cleanText(error instanceof Error ? error.message : String(error || 'Tool failed'), 400);
 }
@@ -176,8 +195,10 @@ const HANDOFF_LINES = Object.freeze({
 });
 
 export class EasyEVToolEngine {
-  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-2.0-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null } = {}) {
+  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-3.6-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null, crm = null, mailer = null } = {}) {
     this.onEscalation = onEscalation;
+    this.crm = crm || new CrmCalendar({});
+    this.mailer = mailer;
     this.databaseUrl = databaseUrl;
     this.geminiApiKey = geminiApiKey;
     this.geminiModel = geminiModel;
@@ -240,6 +261,8 @@ export class EasyEVToolEngine {
       ownership: null,
       readiness: null,
       escalation: null,
+      lead: null,
+      booking: null,
       unanswered: [],
       nextActions: [],
       updatedAt: new Date().toISOString(),
@@ -357,7 +380,7 @@ export class EasyEVToolEngine {
         run: this.generateReport.bind(this),
       },
       escalate_to_human: {
-        description: 'Bring a live human EasyEV specialist into this same voice call, carrying the full Buyer Passport and transcript. Use when the buyer asks for a person, manager, dealer or salesperson; when they want a fleet, bulk or corporate purchase; when they want to negotiate price, discount, exchange or a finance case you cannot quote; when an objection about trust, quality or a complaint stays unresolved after you have addressed it once; or when they are clearly ready to buy and need a human to close. Do not use this for questions the catalog, ownership calculator, charger search or report can answer.',
+        description: 'Bring a live human EasyEV specialist into this same voice call, carrying the full Buyer Passport and transcript. Use ONLY when the buyer explicitly asks to speak to a person, manager, dealer or salesperson; when they want a fleet, bulk or corporate purchase; when they want to negotiate a price, discount or exchange value; when they need a finance or loan case you cannot quote; or when an objection about trust, quality or a complaint stays unresolved after you have addressed it once. NEVER use this to arrange a test drive, demo, showroom visit or appointment — book_test_drive handles all of those directly and no human is needed. Wanting a test drive is not the same as wanting to talk to a person. Also do not use it for anything the catalog, ownership calculator, charger search or report can answer.',
         inputSchema: {
           reason: z.enum(['explicit-request', 'fleet-or-bulk', 'price-negotiation', 'finance-case', 'unresolved-objection', 'trust-or-complaint', 'ready-to-buy']).optional().describe('Why a human is needed'),
           summary: z.string().optional().describe('One or two sentences the human specialist should read before they speak, in English'),
@@ -365,6 +388,239 @@ export class EasyEVToolEngine {
         },
         run: this.escalateToHuman.bind(this),
       },
+      capture_lead: {
+        description: 'Save the buyer as a real lead in the EasyEV CRM, together with everything qualified so far. Call this as soon as the buyer gives a name, phone number or email address, and again if they correct any of those details. Never invent contact details; only pass what the buyer actually said.',
+        inputSchema: {
+          name: z.string().optional().describe('The buyer name exactly as they said it'),
+          email: z.string().optional(),
+          phone: z.string().optional().describe('Digits as spoken; the tool normalises Indian numbers'),
+          notes: z.string().optional().describe('Anything the sales team should know that is not already in the Passport'),
+        },
+        run: this.captureLead.bind(this),
+      },
+      book_test_drive: {
+        description: 'Check real calendar availability and book a real test drive or demo. This is the correct and only tool for any request to book, schedule or arrange a test drive, demo, showroom visit, dealership visit or appointment, in any language — including "test drive book karni hai", "demo chahiye" and "appointment lagao". Do not escalate those to a human. Call with no time to fetch and offer open slots. Call again with the slot the buyer chose to confirm the booking; a confirmation email is sent to them. An email address is required before a booking can be confirmed, so ask for it if the buyer has not given one.',
+        inputSchema: {
+          slot: z.string().optional().describe('The slot the buyer chose: "1", "2", the spoken label, or an ISO timestamp'),
+          demoType: z.string().optional().describe('At-home demo, Dealership visit or Video walk-through'),
+          name: z.string().optional(),
+          email: z.string().optional(),
+          phone: z.string().optional(),
+        },
+        run: this.bookTestDrive.bind(this),
+      },
+    };
+  }
+
+  // Everything the sales team should see on the CRM record, drawn from the
+  // Passport rather than re-asked.
+  leadSummary(record) {
+    const passport = record.passport;
+    const profile = passport.profile || {};
+    const lines = [
+      `Category: ${profile.category || 'not stated'}`,
+      `Language: ${profile.language}`,
+      profile.dailyKm ? `Daily travel: ${profile.dailyKm} km` : null,
+      profile.budgetLakh ? `Budget: around ₹${profile.budgetLakh} lakh` : null,
+      profile.chargingAccess && profile.chargingAccess !== 'Not discussed' ? `Charging: ${profile.chargingAccess}` : null,
+      profile.priorities?.length ? `Priorities: ${profile.priorities.join(', ')}` : null,
+      passport.shortlist?.length ? `Shortlist: ${passport.shortlist.map((item) => item.name).join(', ')}` : null,
+    ];
+    if (passport.ownership?.results) {
+      const results = passport.ownership.results;
+      const headline = Object.entries(results).slice(0, 3).map(([key, value]) => `${key}: ${value}`).join('; ');
+      if (headline) lines.push(`Ownership scenario: ${headline}`);
+    }
+    if (passport.escalation) {
+      lines.push(`Escalated to a human: ${passport.escalation.reasonLabel}${passport.escalation.repName ? ` (handled by ${passport.escalation.repName})` : ''}`);
+      if (passport.escalation.handbackNote) lines.push(`Specialist note: ${passport.escalation.handbackNote}`);
+    }
+    if (passport.nextActions?.length) lines.push(`Next actions: ${passport.nextActions.slice(-4).join(' | ')}`);
+    lines.push(`Captured by the EasyEV voice agent on ${new Date().toLocaleString('en-IN')}.`);
+    return lines.filter(Boolean).join('\n');
+  }
+
+  contactDetails(record, input) {
+    const existing = record.passport.lead || {};
+    const spoken = cleanText(firstDefined(input, ['email', 'emailAddress', 'email_address']) || '', 160);
+    const repaired = parseSpokenEmail(spoken);
+    // Fall back to an address already confirmed earlier in the call.
+    const email = repaired || (isEmail(existing.email) ? existing.email : '');
+    return {
+      name: cleanText(firstDefined(input, ['name', 'fullName', 'full_name']) || existing.name || '', 120),
+      email,
+      phone: normalizePhone(firstDefined(input, ['phone', 'phoneNumber', 'phone_number', 'mobile']) || existing.phone || ''),
+      // The buyer said something that was meant to be an email and it could not
+      // be read. Silently dropping it is what left bookings permanently stuck.
+      emailUnclear: Boolean(spoken) && !repaired,
+      emailHeard: spoken,
+    };
+  }
+
+  async captureLead(record, args) {
+    const input = unpackArgs(args);
+    const contact = this.contactDetails(record, input);
+    const notes = cleanText(firstDefined(input, ['notes', 'note', 'context']) || '', 600);
+    if (contact.emailUnclear && !contact.phone && !contact.name) {
+      return {
+        stage: 'lead-capture',
+        payload: { needsDetails: true, emailUnclear: true, heard: contact.emailHeard },
+        spoken: `I heard that as "${contact.emailHeard}" and I could not read it as an email address. Could you type it using the keyboard button, or spell it out slowly?`,
+      };
+    }
+    if (!contact.name && !contact.email && !contact.phone) {
+      return {
+        stage: 'lead-capture',
+        payload: { needsDetails: true, have: contact },
+        spoken: 'I can save this so a specialist can follow up properly. Could I take your name and either a phone number or an email address?',
+      };
+    }
+
+    const shortlisted = record.passport.shortlist?.[0]?.name;
+    const result = await this.crm.saveLead({
+      ...contact,
+      summary: [this.leadSummary(record), notes ? `Agent note: ${notes}` : ''].filter(Boolean).join('\n'),
+      dealName: shortlisted ? `${contact.name || 'EasyEV buyer'} — ${shortlisted}` : `${contact.name || 'EasyEV buyer'} — EasyEV enquiry`,
+      amountLakh: Number(record.passport.profile?.budgetLakh) || 0,
+      sessionKey: record.key,
+    });
+
+    record.passport.lead = {
+      name: result.name,
+      email: result.email,
+      phone: result.phone,
+      provider: result.provider,
+      contactId: result.contactId || null,
+      dealId: result.dealId || null,
+      savedAt: result.savedAt,
+      live: result.provider === 'hubspot',
+    };
+    record.passport.nextActions = unique([
+      ...record.passport.nextActions,
+      result.provider === 'hubspot' ? 'Lead saved to HubSpot with the full Passport.' : 'Lead captured; connect HubSpot to sync it to the CRM.',
+    ]);
+
+    return {
+      stage: 'lead-capture',
+      payload: {
+        ...record.passport.lead,
+        crmUrl: result.crmUrl || null,
+        failed: Boolean(result.failed),
+        error: result.error || null,
+      },
+      spoken: result.provider === 'hubspot'
+        ? `Saved. ${contact.name || 'You'} are now in our CRM with everything we have covered, so nobody will ask you to repeat it.`
+        : 'I have captured your details against this conversation so a specialist can pick it up with full context.',
+    };
+  }
+
+  async bookTestDrive(record, args) {
+    const input = unpackArgs(args);
+    const contact = this.contactDetails(record, input);
+    const demoType = cleanText(firstDefined(input, ['demoType', 'demo_type', 'type']) || '', 60);
+    const chosen = cleanText(firstDefined(input, ['slot', 'time', 'startISO', 'start', 'preferredTime', 'preferred_time']) || '', 80);
+
+    const offered = record.passport.booking?.offered || [];
+    let startISO = '';
+    if (chosen) {
+      const index = Number(chosen.replace(/[^\d]/g, ''));
+      if (/^\d{4}-\d{2}-\d{2}T/.test(chosen)) startISO = chosen;
+      else if (Number.isInteger(index) && index >= 1 && index <= offered.length && chosen.length <= 3) startISO = offered[index - 1].start;
+      else {
+        const match = offered.find((slot) => slot.label.toLowerCase().includes(chosen.toLowerCase()));
+        if (match) startISO = match.start;
+      }
+    }
+
+    // No slot resolved yet: fetch real availability and let the buyer pick.
+    if (!startISO) {
+      const availability = await this.crm.findSlots({ limit: 4 });
+      record.passport.booking = {
+        ...(record.passport.booking || {}),
+        offered: availability.slots,
+        availabilityProvider: availability.provider,
+        confirmed: false,
+      };
+      return {
+        stage: 'booking-slots',
+        payload: {
+          slots: availability.slots,
+          provider: availability.provider,
+          live: availability.provider === 'cal.com',
+          note: availability.note || null,
+          needsEmail: !contact.email,
+        },
+        spoken: availability.slots.length
+          ? `I have ${availability.slots.length} open times on the calendar. The earliest is ${availability.slots[0].label}. Which one suits you?`
+          : 'I could not find an open slot in the next few days. Shall I have a specialist call you to arrange one?',
+      };
+    }
+
+    if (!contact.email) {
+      return {
+        stage: 'booking-slots',
+        payload: { slots: offered, needsEmail: true, pendingStart: startISO, emailUnclear: contact.emailUnclear, heard: contact.emailHeard },
+        spoken: contact.emailUnclear
+          ? `I have the time held, but I heard your email as "${contact.emailHeard}" and could not read it. Please type it with the keyboard button so the confirmation reaches you.`
+          : 'I can lock that in. What email address should the confirmation go to?',
+      };
+    }
+
+    const booking = await this.crm.book({
+      ...contact,
+      startISO,
+      demoType,
+      notes: this.leadSummary(record),
+      sessionKey: record.key,
+    });
+
+    record.passport.booking = {
+      ...(record.passport.booking || {}),
+      confirmed: booking.confirmed,
+      when: booking.when,
+      startISO: booking.startISO,
+      demoType: booking.demoType,
+      provider: booking.provider,
+      bookingId: booking.bookingId || null,
+      meetingUrl: booking.meetingUrl || null,
+      live: booking.provider === 'cal.com',
+    };
+    record.passport.nextActions = unique([
+      ...record.passport.nextActions,
+      booking.confirmed
+        ? `${booking.demoType} confirmed for ${booking.when}; confirmation emailed to ${contact.email}.`
+        : booking.failed
+          ? `Booking attempt for ${booking.when} failed (${booking.error || 'unknown error'}); needs manual follow-up.`
+          : `${booking.demoType} pencilled in for ${booking.when}; confirm with the buyer before it is committed.`,
+    ]);
+
+    // The buyer should hear "booked" the moment the calendar confirms it. Saving
+    // to the CRM and sending the confirmation take about three seconds each and
+    // neither can change the booking, so they run after the reply and report back
+    // over the tool-event stream when they land.
+    const emailPending = Boolean(booking.confirmed && this.mailer?.live && contact.email);
+    this.finishBookingAsync(record, contact, booking);
+
+    return {
+      stage: 'booking-confirmed',
+      payload: {
+        ...record.passport.booking,
+        email: contact.email,
+        name: contact.name,
+        failed: Boolean(booking.failed),
+        error: booking.error || null,
+        note: booking.note || null,
+        emailPending,
+        emailSent: null,
+        emailError: null,
+      },
+      spoken: booking.confirmed
+        ? (emailPending
+          ? `Done. ${booking.demoType} is booked for ${booking.when}. Your confirmation and decision report are on their way to ${contact.email}.`
+          : `Done. ${booking.demoType} is booked for ${booking.when}.`)
+        : booking.failed
+          ? `I could not complete that booking — ${humanizeBookingError(booking.error)}. I have kept ${booking.when} noted as your preferred time. Would you like to try a different email address, or shall I bring in a specialist to confirm it directly?`
+          : `I have held ${booking.when} for your ${booking.demoType}. It is on your screen, and a specialist will confirm it with you.`,
     };
   }
 
@@ -391,6 +647,8 @@ export class EasyEVToolEngine {
       analyze_readiness_snapshot: 'Preparing privacy-first image check',
       generate_decision_report: 'Building report from your Passport',
       escalate_to_human: 'Paging a human EasyEV specialist',
+      capture_lead: 'Saving your details to the CRM',
+      book_test_drive: 'Checking real availability',
     };
     this.emit(record, { tool: toolName, toolRunId, phase: 'started', stage: toolName, payload: { message: messages[toolName] } });
     this.persistRun(record, { toolRunId, tool: toolName, phase: 'started', payload: args }).catch(() => {});
@@ -567,15 +825,29 @@ export class EasyEVToolEngine {
   }
 
   async fetchOverpass(lat, lng, radiusMeters, signal) {
-    const query = `[out:json][timeout:3];nwr(around:${radiusMeters},${lat},${lng})["amenity"="charging_station"];out center tags;`;
-    const response = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/2.0' },
-      body: new URLSearchParams({ data: query }),
-      signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]),
-    });
-    if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
-    const data = await response.json();
+    // Overpass regularly needs 1-3s and rate-limits bursts, so the old 1.5s budget
+    // aborted almost every call and quietly dropped the buyer onto demo pins. The
+    // mirror is tried when the main endpoint is busy.
+    const query = `[out:json][timeout:8];nwr(around:${radiusMeters},${lat},${lng})["amenity"="charging_station"];out center tags;`;
+    const providers = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+    let data = null;
+    let lastError = null;
+    for (const provider of providers) {
+      try {
+        const response = await fetch(provider, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/2.0' },
+          body: new URLSearchParams({ data: query }),
+          signal: AbortSignal.any([signal, AbortSignal.timeout(9000)]),
+        });
+        if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
+        data = await response.json();
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (!data) throw lastError || new Error('Overpass unavailable');
     return (Array.isArray(data.elements) ? data.elements : []).map((item) => {
       const stationLat = Number(item.lat ?? item.center?.lat);
       const stationLng = Number(item.lon ?? item.center?.lon);
@@ -617,11 +889,15 @@ export class EasyEVToolEngine {
       let stations = [];
       let source = '';
       const providerErrors = [];
-      try {
-        stations = await this.fetchOpenChargeMap(lat, lng, radiusKm, signal);
-        source = 'Open Charge Map';
-      } catch (error) {
-        providerErrors.push(safeError(error));
+      // Open Charge Map now rejects keyless requests outright, so without a key
+      // this call only burns time before the Overpass fallback that does work.
+      if (this.openChargeMapKey) {
+        try {
+          stations = await this.fetchOpenChargeMap(lat, lng, radiusKm, signal);
+          source = 'Open Charge Map';
+        } catch (error) {
+          providerErrors.push(safeError(error));
+        }
       }
       if (!stations.length && !signal.aborted) {
         try {
@@ -900,6 +1176,81 @@ export class EasyEVToolEngine {
     };
   }
 
+  // Runs after the buyer has already been told the booking is confirmed. Nothing
+  // here can undo the booking, so failures are recorded in the Passport and shown
+  // on screen rather than thrown.
+  async finishBookingAsync(record, contact, booking) {
+    try {
+      if (!record.passport.lead || record.passport.lead.email !== contact.email) {
+        await this.captureLead(record, { ...contact, notes: `Booked ${booking.demoType} for ${booking.when}.` }).catch(() => {});
+      }
+      if (!booking.confirmed || !this.mailer?.live || !contact.email) return;
+
+      const mail = await this.sendBookingMail(record, contact, booking).catch((error) => ({ sent: false, error: safeError(error) }));
+      if (record.closed) return;
+
+      record.passport.booking.emailSent = Boolean(mail?.sent);
+      record.passport.nextActions = unique([
+        ...record.passport.nextActions,
+        mail?.sent
+          ? `Confirmation with the decision report emailed to ${contact.email}.`
+          : `Confirmation email to ${contact.email} did not send (${mail?.error || 'unknown error'}).`,
+      ]);
+      this.persistSession(record).catch(() => {});
+
+      this.emit(record, {
+        tool: 'book_test_drive',
+        phase: 'completed',
+        stage: 'booking-confirmed',
+        payload: {
+          ...record.passport.booking,
+          email: contact.email,
+          name: contact.name,
+          emailPending: false,
+          emailSent: Boolean(mail?.sent),
+          emailError: mail?.sent ? null : (mail?.error || 'unknown error'),
+          reportAttached: Boolean(mail?.sent && mail.hadAttachment),
+          passport: this.publicPassport(record),
+        },
+      });
+    } catch (error) {
+      console.error('Booking follow-up failed:', safeError(error));
+    }
+  }
+
+  // Builds the buyer's confirmation mail from the Passport. The report is
+  // generated on the spot when the buyer never asked for one, so the email is
+  // always worth opening rather than being a bare "booked" line.
+  async sendBookingMail(record, contact, booking) {
+    if (!record.report) {
+      try {
+        const pdf = await this.buildReport(record);
+        record.report = { pdf, createdAt: Date.now(), filename: `EasyEV-decision-${record.key.slice(0, 8)}.pdf` };
+      } catch (error) {
+        console.error('Booking mail: report generation failed:', safeError(error));
+      }
+    }
+
+    const passport = record.passport;
+    const ownership = passport.ownership?.results && passport.ownership?.assumptions
+      ? `At ${passport.ownership.assumptions.dailyKm} km a day, we modelled your running costs against a petrol equivalent.`
+      : '';
+
+    return this.mailer.sendBookingConfirmation({
+      to: contact.email,
+      name: contact.name,
+      when: booking.when,
+      demoType: booking.demoType,
+      vehicle: passport.shortlist?.[0]?.name || '',
+      shortlist: (passport.shortlist || []).map((item) => item.name).slice(0, 3),
+      ownership,
+      specialistNote: passport.escalation?.handbackNote || '',
+      reportPdf: record.report?.pdf || null,
+      reportFilename: record.report?.filename,
+      calendarInviteSeparate: booking.provider === 'cal.com',
+    });
+  }
+
   async buildReport(record) {
     const passport = this.publicPassport(record);
     const document = new PDFDocument({
@@ -998,12 +1349,27 @@ export class EasyEVToolEngine {
       line('Handover completed', passport.escalation.resolvedAt || 'Call ended while escalated');
     }
 
+    if (passport.lead || passport.booking?.confirmed) {
+      heading('Lead and booking');
+      if (passport.lead) {
+        line('Saved as', [passport.lead.name, passport.lead.email, passport.lead.phone].filter(Boolean).join(' · '));
+        line('CRM', passport.lead.live ? `HubSpot (contact ${passport.lead.contactId}, deal ${passport.lead.dealId})` : 'Held in this session; HubSpot not connected');
+      }
+      if (passport.booking) {
+        line('Appointment', passport.booking.when || 'Not scheduled');
+        line('Type', passport.booking.demoType || 'Test drive');
+        line('Status', passport.booking.confirmed
+          ? `Confirmed via ${passport.booking.provider}${passport.booking.bookingId ? ` (booking ${passport.booking.bookingId})` : ''}`
+          : 'Held locally, not yet confirmed with the buyer');
+      }
+    }
+
     heading('Next actions and unanswered questions');
     const actions = passport.nextActions.length ? passport.nextActions : ['Discuss charging access and create a verified shortlist.'];
     for (const action of actions) document.fontSize(9.5).fillColor('#1f2a25').text(`• ${action}`);
     for (const question of passport.unanswered || []) document.text(`• Unanswered: ${question}`);
     document.moveDown().fontSize(8).fillColor('#6b625a').text(
-      'Safety and demo notice: This report supports shopping decisions; it is not financial, electrical, legal or safety certification. Prices, range, warranty, incentives, charger access and connector data must be independently verified. Dealer contact, WhatsApp, calendar and booking actions in this prototype remain simulated and do not create external commitments.',
+      'Safety and demo notice: This report supports shopping decisions; it is not financial, electrical, legal or safety certification. Prices, range, warranty, incentives, charger access and connector data must be independently verified. Any booking or CRM entry recorded above states the system that actually received it.',
     );
     document.end();
     await done;
