@@ -1,5 +1,1659 @@
 [
   {
+    "id": "EEV-DLR-2026-5931",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:23:43.948Z"
+  },
+  {
+    "id": "EEV-DLR-2026-5369",
+    "shopName": "Shakti Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "sales@shaktiev.com",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Plot 42, Okhla Phase 3 Industrial Area",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110020",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:23:33.854Z"
+  },
+  {
+    "id": "EEV-DLR-2026-2408",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:21:36.386Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8858",
+    "shopName": "Shakti Motors EV Hub",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "sales@shaktiev.com",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Plot 42, Okhla Phase 3 Industrial Area",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110020",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:21:24.815Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8796",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:21:10.498Z"
+  },
+  {
+    "id": "EEV-DLR-2026-2316",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:20:51.165Z"
+  },
+  {
+    "id": "EEV-DLR-2026-3418",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:20:19.370Z"
+  },
+  {
+    "id": "EEV-DLR-2026-2007",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:19:13.392Z"
+  },
+  {
+    "id": "EEV-DLR-2026-3918",
+    "shopName": "Apex EV World",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9822334455",
+      "email": "info@apexev.com",
+      "whatsapp": "9822334455"
+    },
+    "location": {
+      "address": "Senapati Bapat Road",
+      "landmark": "",
+      "city": "Pune",
+      "state": "Delhi",
+      "pincode": "411016",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:18:24.547Z"
+  },
+  {
+    "id": "EEV-DLR-2026-6196",
+    "shopName": "Shakti Motors",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811234567",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9811234567"
+    },
+    "location": {
+      "address": "Plot 10 South Extension",
+      "landmark": "",
+      "city": "Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra",
+      "MG Motor",
+      "Ather Energy",
+      "Ola Electric",
+      "TVS",
+      "BYD"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:18:12.492Z"
+  },
+  {
+    "id": "EEV-DLR-2026-9822",
+    "shopName": "aur doorstep dono",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811234567",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9811234567"
+    },
+    "location": {
+      "address": "Plot 10 South Extension",
+      "landmark": "",
+      "city": "Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:16:28.548Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8895",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T18:16:05.766Z"
+  },
+  {
+    "id": "EEV-DLR-2026-4014",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:12:33.495Z"
+  },
+  {
+    "id": "EEV-DLR-2026-7256",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:11:24.659Z"
+  },
+  {
+    "id": "EEV-DLR-2026-3471",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:10:42.861Z"
+  },
+  {
+    "id": "EEV-DLR-2026-6585",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:10:25.414Z"
+  },
+  {
+    "id": "EEV-DLR-2026-2457",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:10:05.909Z"
+  },
+  {
+    "id": "EEV-DLR-2026-4286",
+    "shopName": "Shree Ram EV",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9876543210",
+      "email": "satvik@gmail.com",
+      "whatsapp": "9876543210"
+    },
+    "location": {
+      "address": "Plot 10 South Ext",
+      "landmark": "",
+      "city": "New Delhi",
+      "state": "Delhi",
+      "pincode": "110049",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:09:53.693Z"
+  },
+  {
+    "id": "EEV-DLR-2026-6817",
+    "shopName": "टाटा मोटर्स",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9125475800",
+      "email": "dealer@easyev.in",
+      "whatsapp": "9125475800"
+    },
+    "location": {
+      "address": "सेक्टर 137",
+      "landmark": "",
+      "city": "Noida",
+      "state": "Delhi",
+      "pincode": "200300",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W",
+      "2W",
+      "3W",
+      "commercial"
+    ],
+    "brands": [
+      "Tata Motors",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:07:14.927Z"
+  },
+  {
+    "id": "EEV-DLR-2026-5556",
+    "shopName": "Eco Drive Hub Gmail Test",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Store Manager",
+      "role": "Showroom Lead",
+      "phone": "9811223344",
+      "email": "ecodrive.test@gmail.com",
+      "whatsapp": "9811223344"
+    },
+    "location": {
+      "address": "Plot 10, Connaught Place",
+      "landmark": "",
+      "city": "Delhi",
+      "state": "Delhi",
+      "pincode": "110001",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W"
+    ],
+    "brands": [
+      "Tata Motors"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T12:04:40.413Z"
+  },
+  {
     "id": "EEV-DLR-2026-2705",
     "shopName": "Apex EV Motors",
     "dealerType": "Authorized OEM Dealership",
