@@ -9053,6 +9053,475 @@
       font-weight: 600;
       cursor: pointer;
     }
+
+    /* ============================================================
+       SHOWROOM-GRADE DEALERS AI VOICE COPILOT STAGE & CHARACTER
+       ============================================================ */
+    .dealers-copilot-stage {
+      position: relative;
+      height: 100%;
+      min-height: 480px;
+      border-radius: 20px;
+      background: linear-gradient(175deg, #ffffff 0%, #f4faf6 55%, #eaf7ef 100%);
+      border: 1px solid #dbebe0;
+      box-shadow: 0 10px 32px rgba(7, 40, 20, 0.05);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    .dealers-stage-topbar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .dealers-stage-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(22, 191, 83, 0.25);
+      box-shadow: 0 4px 12px rgba(16, 43, 28, 0.06);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      font-size: 11px;
+      font-weight: 750;
+      color: var(--forest, #072113);
+      letter-spacing: -0.01em;
+    }
+
+    .pulse-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-bright, #16bf53);
+      box-shadow: 0 0 0 0 rgba(22, 191, 83, 0.7);
+      animation: pulseGreenDot 2s infinite;
+    }
+
+    @keyframes pulseGreenDot {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 191, 83, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 191, 83, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 191, 83, 0); }
+    }
+
+    .dealers-stage-hint {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink-2, #5a6b61);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    /* Virtual Salesman Character Container */
+    .dealers-virtual-salesman {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      z-index: 8;
+      cursor: pointer;
+    }
+
+    .dealers-virtual-salesman > img {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) scaleX(-1);
+      transform-origin: center bottom;
+      height: 62%;
+      max-height: 330px;
+      width: auto;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 14px 22px rgba(16, 43, 28, 0.16));
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), filter 0.35s ease;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .dealers-virtual-salesman:hover > img,
+    .dealers-virtual-salesman:focus-within > img,
+    .dealers-virtual-salesman[data-active="true"] > img,
+    .dealers-virtual-salesman[data-mode="speaking"] > img,
+    .dealers-virtual-salesman[data-mode="listening"] > img,
+    .dealers-virtual-salesman[data-mode="thinking"] > img {
+      transform: translateX(-50%) translateY(-5px) scaleX(-1) scale(1.02);
+      filter: drop-shadow(0 20px 28px rgba(16, 43, 28, 0.24));
+    }
+
+    /* Initial Hover Instruction Badge */
+    .dealers-hover-instruction {
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(7, 28, 16, 0.94);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 28px rgba(4, 24, 12, 0.26);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 12;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      animation: floatBadge 3s ease-in-out infinite;
+    }
+
+    @keyframes floatBadge {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-4px); }
+    }
+
+    .instruction-mic-dot {
+      display: grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #44c982, #16bf53);
+      color: #072113;
+    }
+
+    .dealers-virtual-salesman:hover .dealers-hover-instruction,
+    .dealers-virtual-salesman:focus-within .dealers-hover-instruction,
+    .dealers-virtual-salesman[data-active="true"] .dealers-hover-instruction,
+    .dealers-virtual-salesman[data-mode="speaking"] .dealers-hover-instruction,
+    .dealers-virtual-salesman[data-mode="listening"] .dealers-hover-instruction,
+    .dealers-virtual-salesman[data-mode="thinking"] .dealers-hover-instruction {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-50%) translateY(-10px);
+      pointer-events: none;
+    }
+
+    /* Salesman Speech Bubble */
+    .dealers-virtual-salesman .salesman-bubble {
+      position: absolute;
+      top: 44px;
+      left: 14px;
+      right: 14px;
+      max-height: 165px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 16px 42px rgba(16, 43, 28, 0.14);
+      border-radius: 18px;
+      padding: 12px 15px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(12px);
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 14;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+
+    .dealers-virtual-salesman .salesman-bubble::before {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.94);
+      border-right: 1px solid rgba(16, 43, 28, 0.08);
+      border-bottom: 1px solid rgba(16, 43, 28, 0.08);
+    }
+
+    .dealers-virtual-salesman:hover .salesman-bubble,
+    .dealers-virtual-salesman:focus-within .salesman-bubble,
+    .dealers-virtual-salesman[data-active="true"] .salesman-bubble,
+    .dealers-virtual-salesman[data-mode="speaking"] .salesman-bubble,
+    .dealers-virtual-salesman[data-mode="listening"] .salesman-bubble,
+    .dealers-virtual-salesman[data-mode="thinking"] .salesman-bubble {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .bubble-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .bubble-brand-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .bubble-brand-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+    }
+
+    .bubble-brand-title strong {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--forest, #072113);
+      letter-spacing: -0.01em;
+    }
+
+    .bubble-state-pill {
+      font-size: 10px;
+      font-weight: 800;
+      color: #074728;
+      background: #e6f9ed;
+      border: 1px solid #b4edd0;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .bubble-chat-stream {
+      flex: 1;
+      max-height: 130px;
+      overflow-y: auto;
+      margin-top: 4px;
+      padding-right: 2px;
+      scrollbar-width: thin;
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--ink, #07110b);
+    }
+
+    .first-greeting-msg {
+      margin: 0;
+      padding: 6px 10px;
+      background: rgba(22, 191, 83, 0.08);
+      border: 1px solid rgba(22, 191, 83, 0.18);
+      border-radius: 10px;
+      color: #104829;
+      font-weight: 550;
+    }
+
+    .dealers-virtual-salesman .copilot-progress-box {
+      margin-top: 10px;
+      background: rgba(0, 0, 0, 0.03);
+      border: 1px solid rgba(0, 0, 0, 0.04);
+      padding: 8px 10px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .dealers-virtual-salesman .copilot-progress-labels {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-2, #5a6b61);
+    }
+
+    .dealers-virtual-salesman .copilot-progress-labels strong {
+      color: var(--forest, #072113);
+    }
+
+    .dealers-virtual-salesman .copilot-progress-track {
+      background: rgba(0, 0, 0, 0.08);
+      height: 5px;
+      margin-top: 5px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .dealers-virtual-salesman .copilot-progress-fill {
+      background: linear-gradient(90deg, #16bf53, #44c982);
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+
+    /* Salesman Floating Controls Dock */
+    .dealers-virtual-salesman .salesman-controls {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      width: calc(100% - 24px);
+      max-width: 390px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 18px;
+      background: rgba(7, 28, 16, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 16px 36px rgba(4, 24, 12, 0.28);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 15;
+      box-sizing: border-box;
+      pointer-events: auto;
+    }
+
+    .dealers-virtual-salesman:hover .salesman-controls,
+    .dealers-virtual-salesman:focus-within .salesman-controls,
+    .dealers-virtual-salesman[data-active="true"] .salesman-controls,
+    .dealers-virtual-salesman[data-mode="speaking"] .salesman-controls,
+    .dealers-virtual-salesman[data-mode="listening"] .salesman-controls,
+    .dealers-virtual-salesman[data-mode="thinking"] .salesman-controls {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .voice-status-pill {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.85);
+      padding: 2px 6px;
+    }
+
+    .controls-action-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .btn-voice-primary {
+      flex: 1.2;
+      background: linear-gradient(135deg, #44c982, #16bf53);
+      color: #072113;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 12px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(22, 191, 83, 0.35);
+      transition: transform 0.2s ease, background 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-voice-primary:hover {
+      background: linear-gradient(135deg, #58e398, #18d45d);
+      transform: translateY(-1px);
+    }
+
+    .btn-ctrl-subtle {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn-ctrl-subtle:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .btn-ctrl-subtle.listening {
+      background: #ef4444;
+      border-color: #f87171;
+      color: #ffffff;
+      animation: pulseRedMic 1.2s infinite;
+    }
+
+    @keyframes pulseRedMic {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+      70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .ctrl-lang-select {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: 7px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .ctrl-lang-select option {
+      background: #0d281a;
+      color: #ffffff;
+    }
+
+    /* Thinking Dots */
+    .dealers-virtual-salesman .thinking-dots {
+      position: absolute;
+      top: 18%;
+      left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      display: flex;
+      gap: 6px;
+      opacity: 0;
+      transition: all 0.25s ease;
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .dealers-virtual-salesman .thinking-dots i {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--forest, #072113);
+      box-shadow: 0 2px 7px rgba(0, 0, 0, 0.16);
+      animation: thought 1s ease-in-out infinite;
+    }
+
+    .dealers-virtual-salesman .thinking-dots i:nth-child(2) { animation-delay: 0.16s; }
+    .dealers-virtual-salesman .thinking-dots i:nth-child(3) { animation-delay: 0.32s; }
+
+    .dealers-virtual-salesman[data-mode="thinking"] .thinking-dots {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
   </style>
 </head>
 
@@ -9845,33 +10314,20 @@
          FOR DEALERS ONBOARDING PORTAL VIEW (#dealers-view)
          ============================================================ -->
     <section id="dealers-view" class="view" hidden aria-hidden="true" aria-label="EasyEV Dealer Onboarding">
-      <!-- Top Navbar (EasyEV Standard Dark Pill Navbar) -->
-      <header class="dealers-navbar">
+      <!-- Standard Seamless Site Nav Header -->
+      <header class="site-nav" id="dealers-site-nav">
         <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
           <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
           <span class="brand__wordmark">EasyEV</span>
           <span class="brand__ai">AI</span>
         </a>
-        <nav class="dealers-nav-links">
-          <a href="#how-it-works" data-nav-action="how">How it works</a>
+        <nav class="primary-nav" aria-label="Dealer portal navigation">
+          <a href="#consultation-process" data-nav-action="how">How it works</a>
           <a href="/showroom/">Virtual Showroom</a>
           <a href="#compare" data-nav-action="compare">Compare EVs</a>
-          <a href="#dealers" class="active">For dealers</a>
+          <a href="#for-dealers" data-nav-action="dealers" style="color: var(--green); font-weight: 700;">For dealers</a>
         </nav>
-        <div class="dealers-nav-cta">
-          <button class="btn-talk-ai" type="button" data-open-prejoin>
-            <span>Talk to EasyEV AI</span>
-          <button class="btn-talk-ai" type="button" data-start-consultation>
-            <span>Talk to EasyEV</span>
-            <svg width="14" height="10" viewBox="0 0 16 12" fill="currentColor">
-              <rect x="0" y="3" width="2" height="6" rx="1"/>
-              <rect x="3.5" y="1" width="2" height="10" rx="1"/>
-              <rect x="7" y="0" width="2" height="12" rx="1"/>
-              <rect x="10.5" y="2" width="2" height="8" rx="1"/>
-              <rect x="14" y="4" width="2" height="4" rx="1"/>
-            </svg>
-          </button>
-        </div>
+        <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
       </header>
 
       <!-- Page Workspace Container -->
@@ -10334,89 +10790,84 @@
             </form>
           </div>
 
-          <!-- RIGHT: AI Voice Copilot Dark Card -->
-          <div class="dealers-copilot-dark-card">
-            <!-- Header Bar -->
-            <div class="copilot-top-meta">
-              <div class="copilot-brand-title">
-                <strong>EasyEV Voice Copilot</strong>
-                <span>Speak or type to fill showroom profile</span>
+          <!-- RIGHT: AI Voice Copilot Stage (Showroom Grade) -->
+          <div class="dealers-copilot-stage" id="dealers-copilot-stage">
+            <div class="studio-lines" aria-hidden="true"></div>
+            
+            <div class="dealers-stage-topbar">
+              <div class="dealers-stage-tag">
+                <span class="pulse-live-dot"></span>
+                <span>AI Voice Copilot</span>
               </div>
-              <div class="copilot-status-chips">
-                <select id="dealer-voice-lang-select" class="copilot-lang-select" title="Change Copilot Language">
-                  <option value="Hinglish" selected>Hinglish</option>
-                  <option value="Hindi">हिन्दी (Hindi)</option>
-                  <option value="English">English</option>
-                </select>
-                <span class="pill-ai-ready" id="d-voice-state-pill">
-                  <span class="live-dot"></span>
-                  <span>AI Ready</span>
+              <span class="dealers-stage-hint">Hinglish / हिन्दी</span>
+            </div>
+
+            <aside class="virtual-salesman dealers-virtual-salesman" id="dealers-virtual-salesman" data-mode="idle" tabindex="0" aria-label="EasyEV, your virtual vehicle salesperson">
+              <!-- Initial Hover / Focus Instruction Pill -->
+              <div class="dealers-hover-instruction" id="d-hover-instruction">
+                <span class="instruction-mic-dot">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 </span>
-                <div class="copilot-wave-visualizer" id="d-voice-waves">
-                  <span></span><span></span><span></span><span></span><span></span>
+                <span>Hover on character to Autofill with Voice</span>
+              </div>
+
+              <div class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></div>
+              <img id="d-guide-portrait" src="/assets/clay-guide-presenting.webp" alt="EasyEV virtual salesperson" />
+              
+              <!-- Speech / Dialogue Glass Bubble -->
+              <div class="salesman-bubble" aria-live="polite">
+                <div class="bubble-header-row">
+                  <div class="bubble-brand-title">
+                    <img src="/assets/icon.png" alt="" class="bubble-brand-icon" />
+                    <strong>EasyEV Copilot</strong>
+                  </div>
+                  <span id="d-voice-state-pill" class="bubble-state-pill">AI Ready</span>
+                </div>
+                
+                <div id="d-voice-chat-stream" class="bubble-chat-stream">
+                  <p id="d-voice-first-msg" class="first-greeting-msg">Namaste! Main aapka showroom register karne mein madad karunga. Aapke EV showroom ka kya naam hai?</p>
+                </div>
+                
+                <div class="copilot-progress-box">
+                  <div class="copilot-progress-labels">
+                    <span>Progress: <strong id="d-voice-progress-text">0 / 10</strong></span>
+                    <strong id="d-voice-progress-percent">0%</strong>
+                  </div>
+                  <div class="copilot-progress-track">
+                    <div class="copilot-progress-fill" id="d-voice-progress-bar" style="width: 0%;"></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Structured Progress Box -->
-            <div class="copilot-progress-box">
-              <div class="copilot-progress-labels">
-                <span>Progress: <strong id="d-voice-progress-text">0 / 10 details captured</strong></span>
-                <strong id="d-voice-progress-percent">0%</strong>
-              </div>
-              <div class="copilot-progress-track">
-                <div class="copilot-progress-fill" id="d-voice-progress-bar" style="width: 0%;"></div>
-              </div>
-            </div>
-
-            <!-- Central Conversation Stream Card -->
-            <div class="copilot-conversation-stream" id="d-voice-chat-stream">
-              <div class="copilot-agent-bubble">
-                <div class="agent-header-row">
-                  <span class="agent-role-badge">EASYEV COPILOT</span>
+              <!-- Floating Controls Dock -->
+              <div class="salesman-controls" aria-label="EasyEV controls">
+                <div class="voice-status-pill" id="d-voice-status" data-state="idle">
+                  <div class="copilot-wave-visualizer" id="d-voice-waves" style="display: none;">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <span id="d-voice-status-text">Voice ready</span>
                 </div>
-                <p id="d-voice-first-msg">Namaste! Main aapka showroom register karne mein madad karunga. Aapke EV showroom ka kya naam hai?</p>
-                <button type="button" class="btn-start-speaking" id="btn-start-speaking-cta">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                  <span>Start Voice (बोलकर बताएं)</span>
-                </button>
-              </div>
-
-              <div class="copilot-suggestions-section">
-                <span class="suggestions-heading">Quick suggestions:</span>
-                <div class="quick-chips-grid">
-                  <button type="button" class="reply-chip" data-prompt="Tata Motors & Mahindra 4-Wheeler EVs">🚗 Tata & Mahindra 4W</button>
-                  <button type="button" class="reply-chip" data-prompt="Ather Energy & Ola Electric 2-Wheelers">🛵 Ather & Ola 2W</button>
-                  <button type="button" class="reply-chip" data-prompt="Indiranagar Bengaluru, Pincode 560038">📍 Indiranagar Bengaluru</button>
-                  <button type="button" class="reply-chip" data-prompt="Yes, we provide EMI, Insurance and Test Drives">✅ EMI & Insurance Active</button>
+                
+                <div class="controls-action-group">
+                  <button type="button" class="btn-voice-primary" id="btn-start-speaking-cta">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                    <span>Start Voice</span>
+                  </button>
+                  <button type="button" class="btn-ctrl-subtle" id="btn-d-mic-toggle" title="Click to speak / mute mic">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+                    <span>Mic</span>
+                  </button>
+                  <button type="button" class="btn-ctrl-subtle" id="btn-d-voice-submit" title="Submit Dealership Registration">
+                    <span>Submit</span>
+                  </button>
+                  <select id="dealer-voice-lang-select" class="ctrl-lang-select" title="Voice Language">
+                    <option value="Hinglish" selected>Hinglish</option>
+                    <option value="Hindi">हिन्दी</option>
+                    <option value="English">English</option>
+                  </select>
                 </div>
               </div>
-            </div>
-
-            <!-- Bottom Voice & Input Dock -->
-            <div class="copilot-bottom-dock">
-              <div class="copilot-controls-row">
-                <button type="button" class="btn-voice-mic" id="btn-d-mic-toggle" title="Click to speak / mute mic">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                    <line x1="12" y1="19" x2="12" y2="23"/>
-                    <line x1="8" y1="23" x2="16" y2="23"/>
-                  </svg>
-                </button>
-                <form id="dealer-voice-input-form" class="copilot-input-form">
-                  <input type="text" id="dealer-voice-text-input" placeholder="Speak aloud or type your answer..." autocomplete="off">
-                </form>
-                <button type="submit" form="dealer-voice-input-form" class="btn-voice-send" id="btn-d-send-msg">Send</button>
-                <button type="button" class="btn-voice-submit" id="btn-d-voice-submit">Submit</button>
-              </div>
-              <p class="copilot-footer-notice">Supports English · हिन्दी · Hinglish</p>
-            </div>
+            </aside>
           </div>
         </div>
       </div>
@@ -13447,15 +13898,25 @@
         let selectedDealerLanguage = 'Hinglish';
 
         const setVoiceState = (mode, label) => {
+          const salesman = $('#dealers-virtual-salesman');
+          if (salesman) {
+            salesman.dataset.mode = mode || 'idle';
+            if (mode === 'speaking' || mode === 'listening' || mode === 'thinking') {
+              salesman.dataset.active = 'true';
+            }
+          }
           const pill = $('#d-voice-state-pill') || $('.pill-ai-ready');
           const waves = $('#d-voice-waves');
+          const statusText = $('#d-voice-status-text');
 
           if (pill) {
-            const spanText = pill.querySelector('span:last-child');
-            if (spanText) spanText.textContent = label || (mode === 'speaking' ? 'AI Speaking' : mode === 'thinking' ? 'Processing...' : mode === 'listening' ? 'Listening...' : 'AI Ready');
+            pill.textContent = label || (mode === 'speaking' ? 'AI Speaking' : mode === 'thinking' ? 'Processing...' : mode === 'listening' ? 'Listening...' : 'AI Ready');
+          }
+          if (statusText) {
+            statusText.textContent = label || (mode === 'speaking' ? 'AI Speaking' : mode === 'thinking' ? 'Processing...' : mode === 'listening' ? 'Listening...' : 'Voice ready');
           }
           if (waves) {
-            waves.style.opacity = mode === 'speaking' || mode === 'listening' ? '1' : '0.6';
+            waves.style.display = (mode === 'speaking' || mode === 'listening') ? 'flex' : 'none';
           }
         };
 
@@ -13587,23 +14048,30 @@
         const appendChatMessage = (role, text) => {
           const stream = $('#d-voice-chat-stream');
           if (!stream) return;
+          
+          // Hide initial static message if it exists
+          const firstMsg = $('#d-voice-first-msg');
+          if (firstMsg && firstMsg.style.display !== 'none') {
+            firstMsg.style.display = 'none';
+          }
+          
           const msg = document.createElement('div');
           msg.className = `d-chat-msg ${role}`;
-          msg.style.margin = '8px 0';
-          msg.style.padding = '8px 12px';
+          msg.style.margin = '4px 0';
+          msg.style.padding = '6px 10px';
           msg.style.borderRadius = '8px';
           msg.style.fontSize = '13px';
           msg.style.lineHeight = '1.4';
           if (role === 'user') {
             msg.style.background = 'rgba(22, 191, 83, 0.15)';
             msg.style.border = '1px solid rgba(22, 191, 83, 0.3)';
-            msg.style.color = '#86efac';
+            msg.style.color = 'var(--ink, #07110b)';
             msg.innerHTML = `<strong>You:</strong> <span>${escapeHtml(text)}</span>`;
           } else {
-            msg.style.background = 'rgba(255, 255, 255, 0.05)';
-            msg.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-            msg.style.color = '#f8fafc';
-            msg.innerHTML = `<strong style="color: var(--green-bright, #16bf53)">EasyEV Copilot:</strong> <span>${escapeHtml(text)}</span>`;
+            msg.style.background = 'rgba(0, 0, 0, 0.04)';
+            msg.style.border = '1px solid rgba(0, 0, 0, 0.05)';
+            msg.style.color = 'var(--ink, #07110b)';
+            msg.innerHTML = `<strong style="color: var(--green-forest, #10873a)">EasyEV Copilot:</strong> <span>${escapeHtml(text)}</span>`;
           }
           stream.appendChild(msg);
           stream.scrollTop = stream.scrollHeight;
