@@ -11,10 +11,7 @@
   <table>
     <tr>
       <td align="center" style="border: none; background: transparent; padding: 10px 20px;">
-        <picture>
-          <source srcset="assets/clay-guide-animated.webp" type="image/webp">
-          <img src="assets/clay-guide-animated.gif" alt="EasyEV Conversational AI Guide" width="220" style="display: block; margin: 0 auto; filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));" />
-        </picture>
+        <img src="assets/clay-guide-animated.webp" alt="EasyEV Conversational AI Guide" width="220" style="display: block; margin: 0 auto; filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.3));" />
         <br/>
         <span style="font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase;">Meet Clay &bull; India's First Autonomous Indic Conversational EV Advisor</span>
       </td>
