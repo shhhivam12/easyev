@@ -348,8 +348,10 @@ class AgoraAdapter {
     return this.scopedPost('context', payload);
   }
 
-  async runTool(tool, args = {}) {
-    return this.scopedPost('tool', { tool, args });
+  // announce:false suppresses the agent speaking this step's result — used when
+  // the caller is about to run another tool whose result is the one worth hearing.
+  async runTool(tool, args = {}, { announce = true } = {}) {
+    return this.scopedPost('tool', { tool, args, announce });
   }
 
   async uploadSnapshot(image) {

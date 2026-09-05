@@ -2431,7 +2431,10 @@
 
     .stage-content {
       min-height: 389px;
-      padding: 25px;
+      /* The call dock is sticky at the bottom of this scroller, so the last
+         thing in a stage - often the email input or a slot button - would sit
+         underneath it and be unclickable. */
+      padding: 25px 25px 96px;
       animation: stage-in .38s var(--ease-out) both;
     }
 
@@ -3287,6 +3290,64 @@
       gap: 18px;
     }
 
+    .mailform {
+      margin: 18px 0 4px;
+      padding: 16px 17px;
+      border: 1px solid rgba(22, 191, 83, .34);
+      border-radius: 13px;
+      background: rgba(22, 191, 83, .07);
+    }
+
+    .mailform__label {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c4a37;
+      font-size: 10px;
+      font-weight: 640;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .mailform__row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .mailform__input {
+      flex: 1 1 220px;
+      min-width: 0;
+      padding: 11px 13px;
+      border: 1px solid rgba(22, 191, 83, .38);
+      border-radius: 10px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+    }
+
+    .mailform__input:focus {
+      outline: none;
+      border-color: var(--green-bright);
+    }
+
+    .mailform__send {
+      flex: none;
+      padding: 11px 22px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--green-deep);
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+
+    .mailform__send[disabled] { opacity: .55; cursor: not-allowed; }
+
+    .mailform__note {
+      margin: 9px 0 0;
+      color: #4a5f52;
+      font-size: 11px;
+      line-height: 1.45;
+    }
     .crm-card {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -3329,9 +3390,10 @@
       align-items: center;
       gap: 10px;
       padding: 12px 14px;
-      border: 1px solid rgba(255, 255, 255, .16);
+      border: 1px solid rgba(7, 17, 11, .16);
       border-radius: 11px;
-      background: rgba(255, 255, 255, .04);
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(7, 17, 11, .06);
       color: inherit;
       font-size: 12.5px;
       font-weight: 620;
@@ -3340,8 +3402,8 @@
     }
 
     .slot-grid .slot-button:hover {
-      border-color: var(--green-bright);
-      background: rgba(85, 242, 123, .1);
+      border-color: var(--green-deep);
+      background: rgba(22, 191, 83, .08);
     }
 
     .slot-index {
@@ -3351,8 +3413,8 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: rgba(85, 242, 123, .18);
-      color: var(--green-bright);
+      background: rgba(22, 191, 83, .16);
+      color: var(--green-deep);
       font-size: 10px;
       font-weight: 700;
     }
@@ -3361,6 +3423,24 @@
       border-color: rgba(85, 242, 123, .3);
       background: rgba(85, 242, 123, .08);
     }
+    .mail-status {
+      display: flex; align-items: flex-start; gap: 11px;
+      margin-top: 14px; padding: 12px 14px; border-radius: 11px;
+      border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.04);
+      font-size: 11px;
+    }
+    .mail-status strong { display: block; font-size: 12px; font-weight: 680; margin-bottom: 2px; }
+    .mail-status span { color: rgba(255,255,255,.62); }
+    .mail-dot { flex: none; width: 8px; height: 8px; margin-top: 4px; border-radius: 50%; background: rgba(255,255,255,.4); }
+    .mail-status.is-pending .mail-dot { background: #ffc75a; animation: mailPulse 1.1s ease-in-out infinite; }
+    .mail-status.is-sent { border-color: rgba(85,242,123,.3); background: rgba(85,242,123,.08); }
+    .mail-status.is-sent .mail-dot { background: var(--green-bright); }
+    .mail-status.is-failed { border-color: rgba(255,107,107,.3); background: rgba(255,107,107,.07); }
+    .mail-status.is-failed .mail-dot { background: var(--danger); }
+    @keyframes mailPulse { 50% { opacity: .3; } }
+    @media (prefers-reduced-motion: reduce) { .mail-status.is-pending .mail-dot { animation: none; } }
+    .booking-done.is-failed .stage-content__intro h3 { color: var(--danger); }
+    .booking-done.is-failed .crm-card > div { border-color: rgba(255, 107, 107, .3); background: rgba(255, 107, 107, .07); }
 
     .handoff-wait,
     .handoff-strip {
@@ -10721,6 +10801,7 @@
         lastReliableStageAt: 0,
         handledFastIntentIds: new Set(),
         intentGuard: null,
+        lastToolAt: {},
         lastFinalUserEventId: '',
         outcomeSaved: false
       });
@@ -11271,24 +11352,58 @@
             ['Phone', payload.phone],
           ].filter(([, value]) => value);
           target.innerHTML = payload.needsDetails
-            ? `<div class="stage-content__intro"><h3>So a specialist can follow up</h3><p>Share a name and either a phone number or an email. Nothing is shared outside EasyEV.</p></div>`
+            ? `<div class="stage-content__intro"><h3>${payload.emailUnclear ? 'I did not catch that address' : 'So a specialist can follow up'}</h3><p>${payload.emailUnclear
+                ? `I heard "${escapeHtml(payload.heard || '')}", which I could not read as an email. Type it here instead — it goes straight through.`
+                : 'Type your email below, or just say your name and number. Nothing is shared outside EasyEV.'}</p></div>${emailFormHtml()}`
             : `<div class="stage-content__intro"><h3>Saved to the CRM</h3><p>Your details are attached to everything we have discussed, so nobody will ask you to repeat it.</p></div>
                <div class="crm-card">${rows.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
                <p class="tool-notice">${payload.live ? 'Written to HubSpot as a sales-qualified lead with the full Buyer Passport.' : 'Held against this conversation. Connect HubSpot to sync it to the CRM.'}</p>`;
+          if (payload.needsDetails) focusEmailForm();
         } else if (type === 'booking-slots') {
           const slots = Array.isArray(payload.slots) ? payload.slots : [];
           target.innerHTML = `<div class="stage-content__intro"><h3>Open times</h3><p>${payload.live ? 'Live availability from the EasyEV booking calendar.' : 'Indicative times; the live calendar is not connected.'}</p></div>
             <div class="slot-grid">${slots.map((slot, index) => `<button class="slot-button" type="button" data-book-slot="${escapeHtml(slot.start)}"><span class="slot-index">${index + 1}</span>${escapeHtml(slot.label)}</button>`).join('') || '<p class="stage-note">No open slots in this window.</p>'}</div>
-            ${payload.needsEmail ? '<p class="tool-notice">An email address is needed so the confirmation can be sent.</p>' : ''}`;
+            ${payload.needsEmail ? emailFormHtml({
+              booking: true,
+              pendingStart: payload.pendingStart || '',
+              heard: payload.emailUnclear ? payload.heard : '',
+              note: payload.emailUnclear
+                ? `I heard "${escapeHtml(payload.heard || '')}" and could not read it as an email.`
+                : 'The confirmation needs somewhere to go.',
+            }) : ''}`;
+          if (payload.needsEmail) focusEmailForm();
         } else if (type === 'booking-confirmed') {
-          target.innerHTML = `<div class="booking-done ${payload.confirmed ? 'is-live' : ''}">
-              <div class="stage-content__intro"><h3>${payload.confirmed ? 'Booked' : 'Time held'}</h3><p>${payload.confirmed ? `A confirmation is on its way to ${escapeHtml(payload.email || 'your inbox')}.` : 'A specialist will confirm this with you.'}</p></div>
+          const failed = Boolean(payload.failed);
+          const humanizeBookingError = (error) => {
+            const code = String(error || '').toLowerCase();
+            if (code.includes('email_domain_cannot_receive_mail') || code.includes('invalid_email')) return 'that email address does not look like it can receive mail';
+            if (code.includes('no_available_users') || (code.includes('slot') && code.includes('taken'))) return 'that time was just taken by someone else';
+            if (code.includes('timeout')) return 'the booking calendar took too long to respond';
+            return 'there was a problem reaching the booking calendar';
+          };
+          const heading = payload.confirmed ? 'Booked' : failed ? "Couldn't complete this booking" : 'Time held';
+          const lede = payload.confirmed
+            ? `A confirmation is on its way to ${escapeHtml(payload.email || 'your inbox')}.`
+            : failed
+              ? `${escapeHtml(humanizeBookingError(payload.error).replace(/^./, (c) => c.toUpperCase()))}. This time is noted, but nothing is booked yet.`
+              : 'A specialist will confirm this with you.';
+          target.innerHTML = `<div class="booking-done ${payload.confirmed ? 'is-live' : ''} ${failed ? 'is-failed' : ''}">
+              <div class="stage-content__intro"><h3>${heading}</h3><p>${lede}</p></div>
               <div class="crm-card">
                 <div><span>When</span><strong>${escapeHtml(payload.when || '')}</strong></div>
                 <div><span>Type</span><strong>${escapeHtml(payload.demoType || 'Test drive')}</strong></div>
                 ${payload.bookingId ? `<div><span>Reference</span><strong>${escapeHtml(String(payload.bookingId))}</strong></div>` : ''}
               </div>
-              <p class="tool-notice">${payload.confirmed ? `Created on the real booking calendar via ${escapeHtml(payload.provider)}.` : escapeHtml(payload.note || 'Held in this session only.')}</p>
+              ${payload.confirmed ? `<div class="mail-status ${payload.emailSent ? 'is-sent' : payload.emailSent === false ? 'is-failed' : 'is-pending'}">
+                <span class="mail-dot" aria-hidden="true"></span>
+                <div>${payload.emailSent
+                  ? `<strong>Emailed to ${escapeHtml(payload.email || 'you')}</strong><span>${payload.reportAttached ? 'Your decision report is attached as a PDF.' : 'Confirmation sent.'}</span>`
+                  : payload.emailSent === false
+                    ? `<strong>Email could not be sent</strong><span>${escapeHtml(payload.emailError || 'Please check the address.')} Your booking is still confirmed.</span>`
+                    : `<strong>Sending your confirmation…</strong><span>Emailing ${escapeHtml(payload.email || 'you')} with the decision report attached.</span>`}</div>
+              </div>` : ''}
+              <p class="tool-notice">${payload.confirmed ? `Created on the real booking calendar via ${escapeHtml(payload.provider)}.` : failed ? 'Try a different email address, or ask to speak to a specialist and they can lock it in for you.' : escapeHtml(payload.note || 'Held in this session only.')}</p>
+              ${failed ? '<button class="stage-action" type="button" data-request-human>Talk to a specialist</button>' : ''}
             </div>`;
         } else if (type === 'handoff') {
           const handoff = state.handoff || payload || {};
@@ -11396,7 +11511,9 @@
           readyStatus.textContent = state.integrationMode === 'demo'
             ? 'Offline demo mode is active. No live Agora or external tool call will run.'
             : state.backendReady
-              ? `Ready · Agora voice and five decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`
+              ? (state.mcpUnreachable
+                ? `Ready, but Agora cannot reach this server at its public address, so the AI has no tools — it will talk without anything happening on screen. ${state.mcpReachability || ''}`
+                : `Ready · Agora voice and ${state.toolCount || 8} decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`)
               : `${state.backendPhase} · ${elapsed}s elapsed. This is a real backend wake-up, not a countdown.`;
         }
         const stageTitleElement = document.getElementById('stage-title');
@@ -11535,7 +11652,14 @@
           state.backendReady = Boolean(data.ready);
           state.backendPhase = data.phase || (data.ready ? 'Ready' : 'Waking backend');
           state.backendElapsedMs = Number(data.elapsedMs || 0);
-          state.toolsMode = data.mcpPublic ? 'agora-mcp' : 'local-bridge';
+          // mcpPublic only means the base URL looks public. mcpReachable is the
+          // server proving Agora can actually reach it - a dead dev tunnel leaves
+          // the first true and the second false, and that is exactly when the
+           // browser fallbacks need to take over instead of standing down.
+          state.mcpUnreachable = Boolean(data.mcpPublic && data.mcpReachable === false);
+          state.mcpReachability = data.mcpReachability || '';
+          state.toolCount = Array.isArray(data.decisionTools) ? data.decisionTools.length : 0;
+          state.toolsMode = (data.mcpPublic && data.mcpReachable !== false) ? 'agora-mcp' : 'local-bridge';
         } catch {
           state.backendReady = false;
           state.backendPhase = 'Waking backend';
@@ -11841,6 +11965,27 @@
         capture_lead: payload?.live ? 'Written to HubSpot CRM' : 'Held in this session',
         book_test_drive: payload?.live || payload?.confirmed ? 'Live Cal.com calendar' : 'Indicative times'
       }[tool] || 'EasyEV decision tool');
+      // Saying an email out loud is the least reliable thing in the whole call:
+      // Hinglish recognition writes digits in Devanagari and guesses at spellings.
+      // Typing it removes the recogniser from the path entirely.
+      // The form usually renders below the fold of the stage, and a buyer who is
+      // being asked to type will not think to scroll for the box.
+      const focusEmailForm = () => scheduleLifecycle(() => {
+        const form = document.querySelector('[data-email-form]');
+        if (!form) return;
+        form.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      }, 120);
+      const emailFormHtml = ({ pendingStart = '', note = '', heard = '', booking = false } = {}) => `
+        <form class="mailform" data-email-form${pendingStart ? ` data-pending-start="${escapeHtml(pendingStart)}"` : ''}${booking ? ' data-booking' : ''}>
+          <label class="mailform__label" for="stage-email-input">Your email address</label>
+          <div class="mailform__row">
+            <input class="mailform__input" id="stage-email-input" name="email" type="email"
+                   inputmode="email" autocomplete="email" spellcheck="false"
+                   placeholder="you@example.com" value="${escapeHtml(heard && heard.includes('@') ? heard : '')}" required>
+            <button class="mailform__send" type="submit">Send</button>
+          </div>
+          <p class="mailform__note">${escapeHtml(note || 'Typing is more reliable than saying it out loud.')}</p>
+        </form>`;
       const stageTypeForTool = (stage) => stage === 'ownership' ? 'ownership-cost' : stage;
       const presentToolStage = (stage, payload, tool) => {
         const next = {
@@ -11871,6 +12016,7 @@
         if (toolEvent.eventId && state.processedToolEventIds.has(toolEvent.eventId)) return;
         if (toolEvent.eventId) state.processedToolEventIds.add(toolEvent.eventId);
         if (state.intentGuard && state.intentGuard.until > Date.now() && toolEvent.tool && toolEvent.tool !== state.intentGuard.tool) return;
+        if (toolEvent.tool) state.lastToolAt[toolEvent.tool] = Date.now();
         updateToolRun(toolEvent);
         const data = toolEvent.payload || {};
         if (data.passport) syncStructuredPassport(data.passport);
@@ -11917,8 +12063,10 @@
           }
           state.agentMode = toolEvent.phase === 'completed' ? 'success' : 'listening';
           state.activityMessage = '';
-          presentToolStage(toolEvent.stage, data, toolEvent.tool);
-          if (toolEvent.phase === 'completed') showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
+          // A background update reports where an async write landed. It must not
+          // pull the stage back to a screen the buyer has already moved past.
+          if (!data.backgroundUpdate) presentToolStage(toolEvent.stage, data, toolEvent.tool);
+          if (toolEvent.phase === 'completed' && !data.backgroundUpdate) showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
           if (toolEvent.phase === 'completed') scheduleLifecycle(() => {
             if (state.view === 'room' && state.agentMode === 'success') setAgentMode('listening');
           }, 900);
@@ -11991,7 +12139,7 @@
           ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
           : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
         runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
-        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 60_000 };
+        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 15_000 };
         return true;
       };
       // Escalation is the one intent that must survive the agent losing its tools —
@@ -12001,6 +12149,25 @@
       const HUMAN_ASK = /\b(talk|speak|connect|transfer|put me|get me|call)\b|baat\s*kar|baat\s*karn|बात\s*कर|जोड़(?:ि|ो|े)|मिला(?:इ|ओ)/i;
       const HUMAN_TARGET = /\b(human|person|someone|somebody|agent|representative|manager|advisor|salesperson|sales\s?man|sales\s?team|customer\s?care|dealer)\b|insaan|इंसान|आदमी|aadmi|banda|बंदा|vyakti|व्यक्ति|मैनेजर|सेल्स|डीलर|असली/i;
       const AI_SELF_REFERENCE = /\b(ai|bot|assistant|easyev)\b\s*(agent|se)?/i;
+      // The agent usually calls these tools itself over MCP. Usually is not good
+      // enough for the two that end the conversation somewhere: gpt-4o-mini does
+      // sometimes answer without calling anything, and the buyer is then left
+      // talking to an agent that agreed to book a test drive and did nothing.
+      // Rather than choosing between the agent and the browser, wait briefly and
+      // step in only if no tool event arrived.
+      const AGENT_GRACE_MS = 4500;
+      const runIfAgentDoesNot = (tool, args, label) => {
+        const askedAt = Date.now();
+        scheduleLifecycle(() => {
+          const ranAt = state.lastToolAt[tool] || 0;
+          if (ranAt >= askedAt) return;
+          if (state.callStatus !== 'live') return;
+          const adapter = activeAdapter();
+          if (typeof adapter?.runTool !== 'function') return;
+          state.activityMessage = label;
+          adapter.runTool(tool, args).catch((error) => showToast(error?.message || 'That could not be completed.'));
+        }, AGENT_GRACE_MS);
+      };
       const fastHumanIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
@@ -12012,12 +12179,18 @@
         if (state.handledFastIntentIds.has(key)) return true;
         state.handledFastIntentIds.add(key);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
-        const adapter = activeAdapter();
-        if (typeof adapter?.requestHuman !== 'function') return false;
-        state.activityMessage = 'Paging a human specialist…';
-        adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
-          .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
-        return true;
+        const askedAt = Date.now();
+        scheduleLifecycle(() => {
+          if ((state.lastToolAt.escalate_to_human || 0) >= askedAt) return;
+          if (state.callStatus !== 'live') return;
+          if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return;
+          const adapter = activeAdapter();
+          if (typeof adapter?.requestHuman !== 'function') return;
+          state.activityMessage = 'Paging a human specialist…';
+          adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
+            .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
+        }, AGENT_GRACE_MS);
+        return false;
       };
       // A booking request must not depend on the model routing correctly: it is the
       // demo's closing beat, and "test drive chahiye" reads a lot like "ready to buy",
@@ -12032,19 +12205,17 @@
         const wants = BOOK_STRONG.test(spoken) || (BOOK_DEMO.test(spoken) && BOOK_VERB.test(spoken));
         if (!wants) return false;
         const key = eventId ? `book:${eventId}` : `book:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
-        if (state.handledFastIntentIds.has(key)) return true;
+        if (state.handledFastIntentIds.has(key)) return false;
         state.handledFastIntentIds.add(key);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
-        const adapter = activeAdapter();
-        if (typeof adapter?.runTool !== 'function') return false;
-        state.activityMessage = 'Checking real availability…';
         const demoType = /at[- ]?home|ghar/i.test(spoken) ? 'At-home demo'
           : /video|online/i.test(spoken) ? 'Video walk-through'
           : /dealer|showroom|शोरूम/i.test(spoken) ? 'Dealership visit'
           : '';
-        adapter.runTool('book_test_drive', demoType ? { demoType } : {})
-          .catch((error) => showToast(error?.message || 'Availability could not be checked.'));
-        return true;
+        runIfAgentDoesNot('book_test_drive', demoType ? { demoType } : {}, 'Checking real availability…');
+        // Not treated as handled: the agent is expected to answer this itself,
+        // and the net above only covers it when the agent does not.
+        return false;
       };
       const toolForTurn = (turnName) => ({
         compare: ['compare_vehicles', { vehicles: defaultCompareNames(), priorities: ['daily usability', 'running cost'] }],
@@ -12399,10 +12570,16 @@
           const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
+          // A new spoken intent supersedes whatever the last one pinned to the
+          // stage. Without clearing first, saying a vehicle name pinned
+          // compare_vehicles for a full minute and every other tool event in that
+          // window was dropped on line ~9141 - the agent would say "here are your
+          // slots" while the screen sat on the previous view and the email input
+          // never appeared.
+          state.intentGuard = null;
           if (fastHumanIntent(latestUser.text, finalEventId)) return;
           if (fastBookingIntent(latestUser.text, finalEventId)) return;
-          const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
-          if (!handledVisually) state.intentGuard = null;
+          fastVisualIntent(latestUser.text, finalEventId);
         }
       };
       const handleAdapterEvent = (event) => {
@@ -12543,16 +12720,17 @@
         }
         if (target.matches('[data-book-slot]')) {
           const start = target.dataset.bookSlot;
+          // An explicit click is a new intent; a guard from an earlier utterance
+          // must not filter out the booking event it is about to produce.
+          state.intentGuard = null;
           target.disabled = true;
           try {
             const adapter = activeAdapter();
             if (typeof adapter?.runTool !== 'function') throw new Error('Booking needs the live consultation.');
-            const lead = state.decisionPassport?.lead || {};
-            if (!lead.email) {
-              showToast('Tell EasyEV your email so the confirmation can be sent.');
-              target.disabled = false;
-              return;
-            }
+            // Always send the choice, even with no address on file yet. The tool
+            // holds it as pendingStart and the email form finishes the booking on
+            // submit; short-circuiting here threw the chosen time away and made
+            // the buyer pick a slot a second time after typing their email.
             await adapter.runTool('book_test_drive', { slot: start, demoType: state.booking.demoType || 'Dealership visit' });
           } catch (error) {
             showToast(error?.message || 'That slot could not be booked.');
@@ -12802,6 +12980,44 @@
         if (event.key.toLowerCase() === 't') openPromptDrawer();
         if (event.key.toLowerCase() === 'm') $('#mic-control')?.click();
       });
+      document.addEventListener('submit', async (event) => {
+        const form = event.target instanceof Element ? event.target.closest('[data-email-form]') : null;
+        if (!form) return;
+        event.preventDefault();
+        const input = form.querySelector('input[name="email"]');
+        const email = String(input?.value || '').trim();
+        if (!email) return;
+        state.intentGuard = null;
+        const send = form.querySelector('.mailform__send');
+        const pendingStart = form.dataset.pendingStart || '';
+        const inBooking = form.hasAttribute('data-booking');
+        if (send) { send.disabled = true; send.textContent = 'Sending…'; }
+        try {
+          const adapter = activeAdapter();
+          if (typeof adapter?.runTool !== 'function') throw new Error('Email capture needs the live consultation.');
+          appendTranscript('you', `My email is ${email}.`, { localText: true });
+          // When a slot is already waiting, the booking confirmation is the line
+          // worth hearing; announcing the email capture first would be cut off by it.
+          await adapter.runTool('capture_lead', { email }, { announce: !pendingStart });
+          // If the buyer had already picked a slot and only the address was
+          // missing, finish the booking rather than making them choose again.
+          if (pendingStart) {
+            state.activityMessage = 'Confirming your booking…';
+            await adapter.runTool('book_test_drive', { slot: pendingStart, demoType: state.booking.demoType || 'Dealership visit' });
+          } else if (inBooking) {
+            // No slot chosen yet. Capturing the email swapped the slots stage for
+            // the CRM card, so bring the times back — now that a confirmation has
+            // somewhere to go — instead of stranding the buyer on a dead end.
+            state.activityMessage = 'Bringing your times back…';
+            await adapter.runTool('book_test_drive', {});
+          }
+        } catch (error) {
+          showToast(error?.message || 'That email could not be saved.');
+        } finally {
+          if (send) { send.disabled = false; send.textContent = 'Send'; }
+        }
+      });
+
       $('#prompt-form')?.addEventListener('submit', (event) => {
         event.preventDefault();
         const input = $('#prompt-input');
