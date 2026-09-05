@@ -9821,12 +9821,10 @@
           try {
             const adapter = activeAdapter();
             if (typeof adapter?.runTool !== 'function') throw new Error('Booking needs the live consultation.');
-            const lead = state.decisionPassport?.lead || {};
-            if (!lead.email) {
-              showToast('Tell EasyEV your email so the confirmation can be sent.');
-              target.disabled = false;
-              return;
-            }
+            // Always send the choice, even with no address on file yet. The tool
+            // holds it as pendingStart and the email form finishes the booking on
+            // submit; short-circuiting here threw the chosen time away and made
+            // the buyer pick a slot a second time after typing their email.
             await adapter.runTool('book_test_drive', { slot: start, demoType: state.booking.demoType || 'Dealership visit' });
           } catch (error) {
             showToast(error?.message || 'That slot could not be booked.');
