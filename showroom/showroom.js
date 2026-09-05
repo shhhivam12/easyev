@@ -90,6 +90,92 @@ app.innerHTML = `
     </aside>
   </div>
 </section>
+<div class="test-drive-modal-overlay" id="test-drive-modal" hidden>
+  <div class="test-drive-modal-card" role="dialog" aria-modal="true" aria-labelledby="td-modal-heading">
+    <div class="td-modal-header">
+      <div class="td-modal-header-info">
+        <img class="td-modal-thumb" id="td-modal-thumb" src="" alt="" />
+        <div class="td-modal-title">
+          <h3 id="td-modal-heading">Book Test Drive</h3>
+          <span id="td-modal-vehicle-name">Tata Punch.ev</span>
+        </div>
+      </div>
+      <button class="td-modal-close" id="td-modal-close" type="button" aria-label="Close dialog">✕</button>
+    </div>
+    
+    <div class="td-modal-body">
+      <!-- State 1: Form Input -->
+      <div id="td-form-state">
+        <div class="td-intro-box">
+          <span class="td-intro-icon">⚡</span>
+          <div>
+            <strong>Instant AI Voice Scheduling</strong><br>
+            Aarav, your EasyEV AI specialist, will call you immediately to confirm your preferred location and time.
+          </div>
+        </div>
+
+        <div class="td-error-banner" id="td-error-banner"></div>
+
+        <form id="td-booking-form">
+          <div class="td-form-group">
+            <label for="td-phone-input">Mobile Phone Number</label>
+            <div class="td-input-wrapper">
+              <span class="td-input-prefix">🇮🇳 +91</span>
+              <input type="tel" id="td-phone-input" class="td-input" placeholder="98765 43210" maxlength="14" required autocomplete="tel" />
+            </div>
+          </div>
+
+          <div class="td-form-group">
+            <label for="td-email-input">Email Address (for confirmation)</label>
+            <div class="td-input-wrapper">
+              <input type="email" id="td-email-input" class="td-input" placeholder="you@example.com" required autocomplete="email" />
+            </div>
+          </div>
+
+          <button type="submit" class="td-submit-btn" id="td-submit-btn">
+            <span>📞 Request Instant Voice Call</span>
+          </button>
+          <p class="td-trust-note">🔒 Zero spam. Live automated outbound call powered by Bland AI & EasyEV.</p>
+        </form>
+      </div>
+
+      <!-- State 2: Calling / In Progress -->
+      <div id="td-calling-state" hidden class="td-calling-card">
+        <div class="td-pulse-ring">📞</div>
+        <h4 id="td-calling-title">Calling your phone...</h4>
+        <p id="td-calling-subtitle">Please answer the incoming call from EasyEV to select your preferred location and test drive slot.</p>
+        
+        <div class="td-steps-list">
+          <div class="td-step-item is-done" id="td-step-1">
+            <i>✓</i><span>1. Outbound Call Initiated</span>
+          </div>
+          <div class="td-step-item is-active" id="td-step-2">
+            <i>●</i><span>2. Voice Conversation & Slot Matching</span>
+          </div>
+          <div class="td-step-item is-pending" id="td-step-3">
+            <i>○</i><span>3. Atomic Reservation & Email Sent</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- State 3: Confirmed -->
+      <div id="td-confirmed-state" hidden class="td-confirmed-card">
+        <div class="td-success-icon">✓</div>
+        <h4>Test Drive Confirmed!</h4>
+        <p>Your test drive slot has been locked in the dealership system.</p>
+
+        <div class="td-booking-ref-box">
+          <div class="td-booking-ref-id" id="td-confirmed-id">Ref: EEV-TD-10482</div>
+          <div class="td-booking-row"><span>Vehicle</span><strong id="td-confirmed-vehicle">Tata Punch.ev</strong></div>
+          <div class="td-booking-row"><span>Date & Time</span><strong id="td-confirmed-datetime">Saturday at 5:00 PM</strong></div>
+          <div class="td-booking-row"><span>Location</span><strong id="td-confirmed-location">Noida Sector 62</strong></div>
+        </div>
+
+        <button type="button" class="td-done-btn" id="td-confirmed-done-btn">Back to Virtual Showroom</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="loading-screen" id="loading-screen"><div class="loading-orbit"></div><strong>Preparing the showroom</strong><span>Loading real vehicle views</span></div>`;
 
 const ui = {
@@ -105,7 +191,30 @@ const ui = {
   voiceToggle: $("#voice-toggle"), muteToggle: $("#mute-toggle"), pauseAgent: $("#pause-agent"), voiceStatus: $("#voice-status"),
   voiceStatusText: $("#voice-status-text"), commandForm: $("#command-form"),
   commandInput: $("#command-input"), loading: $("#loading-screen"), mobileMenu: $("#showroom-mobile-menu"),
-  primaryNav: $("#showroom-primary-navigation")
+  primaryNav: $("#showroom-primary-navigation"),
+  bookTestDriveBtn: $(".book-test-drive-button"),
+  tdModal: $("#test-drive-modal"),
+  tdModalThumb: $("#td-modal-thumb"),
+  tdModalVehicleName: $("#td-modal-vehicle-name"),
+  tdModalClose: $("#td-modal-close"),
+  tdFormState: $("#td-form-state"),
+  tdCallingState: $("#td-calling-state"),
+  tdConfirmedState: $("#td-confirmed-state"),
+  tdBookingForm: $("#td-booking-form"),
+  tdPhoneInput: $("#td-phone-input"),
+  tdEmailInput: $("#td-email-input"),
+  tdSubmitBtn: $("#td-submit-btn"),
+  tdErrorBanner: $("#td-error-banner"),
+  tdCallingTitle: $("#td-calling-title"),
+  tdCallingSubtitle: $("#td-calling-subtitle"),
+  tdStep1: $("#td-step-1"),
+  tdStep2: $("#td-step-2"),
+  tdStep3: $("#td-step-3"),
+  tdConfirmedId: $("#td-confirmed-id"),
+  tdConfirmedVehicle: $("#td-confirmed-vehicle"),
+  tdConfirmedDatetime: $("#td-confirmed-datetime"),
+  tdConfirmedLocation: $("#td-confirmed-location"),
+  tdConfirmedDoneBtn: $("#td-confirmed-done-btn")
 };
 
 function renderCategories() {
@@ -629,6 +738,160 @@ ui.primaryNav.addEventListener("click", () => {
   ui.primaryNav.classList.remove("is-open");
   ui.mobileMenu.setAttribute("aria-expanded", "false");
 });
+/* ----------------- Test Drive Booking Modal Controller ----------------- */
+let tdActiveSessionId = null;
+let tdPollInterval = null;
+
+function openTestDriveModal() {
+  const vehicle = selectedVehicle();
+  ui.tdModalThumb.src = vehicle.thumbnail;
+  ui.tdModalVehicleName.textContent = vehicle.name;
+  
+  // Reset form & states
+  ui.tdErrorBanner.classList.remove("is-visible");
+  ui.tdErrorBanner.textContent = "";
+  ui.tdFormState.hidden = false;
+  ui.tdCallingState.hidden = true;
+  ui.tdConfirmedState.hidden = true;
+  ui.tdSubmitBtn.disabled = false;
+  ui.tdSubmitBtn.innerHTML = '<span>📞 Request Instant Voice Call</span>';
+  
+  ui.tdModal.hidden = false;
+  ui.tdPhoneInput.focus();
+}
+
+function closeTestDriveModal() {
+  ui.tdModal.hidden = true;
+  if (tdPollInterval) {
+    clearInterval(tdPollInterval);
+    tdPollInterval = null;
+  }
+}
+
+// Auto-format Indian phone number in input
+ui.tdPhoneInput.addEventListener("input", (e) => {
+  let val = e.target.value.replace(/\D/g, "");
+  if (val.startsWith("91") && val.length > 10) val = val.slice(2);
+  if (val.startsWith("0")) val = val.slice(1);
+  if (val.length > 10) val = val.slice(0, 10);
+  
+  if (val.length > 5) {
+    e.target.value = `${val.slice(0, 5)} ${val.slice(5)}`;
+  } else {
+    e.target.value = val;
+  }
+});
+
+ui.bookTestDriveBtn.addEventListener("click", openTestDriveModal);
+ui.tdModalClose.addEventListener("click", closeTestDriveModal);
+ui.tdConfirmedDoneBtn.addEventListener("click", closeTestDriveModal);
+ui.tdModal.addEventListener("click", (e) => {
+  if (e.target === ui.tdModal) closeTestDriveModal();
+});
+
+ui.tdBookingForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  ui.tdErrorBanner.classList.remove("is-visible");
+  ui.tdErrorBanner.textContent = "";
+
+  const vehicle = selectedVehicle();
+  const rawPhone = ui.tdPhoneInput.value.replace(/\D/g, "");
+  const email = ui.tdEmailInput.value.trim();
+
+  if (rawPhone.length !== 10) {
+    ui.tdErrorBanner.textContent = "Please enter a valid 10-digit mobile number.";
+    ui.tdErrorBanner.classList.add("is-visible");
+    ui.tdPhoneInput.focus();
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    ui.tdErrorBanner.textContent = "Please enter a valid email address for confirmation.";
+    ui.tdErrorBanner.classList.add("is-visible");
+    ui.tdEmailInput.focus();
+    return;
+  }
+
+  ui.tdSubmitBtn.disabled = true;
+  ui.tdSubmitBtn.innerHTML = '<span>⏳ Preparing Voice Call...</span>';
+
+  const idempotencyKey = `td_cli_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+
+  try {
+    const res = await fetch('/api/test-drive/initiate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vehicleId: vehicle.id,
+        phone: `+91${rawPhone}`,
+        email,
+        idempotencyKey,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to initiate call. Please try again.');
+    }
+
+    tdActiveSessionId = data.sessionId;
+
+    // Transition modal to Calling state
+    ui.tdFormState.hidden = true;
+    ui.tdCallingState.hidden = false;
+    ui.tdCallingTitle.textContent = `Calling +91 ${rawPhone.slice(0, 5)} ${rawPhone.slice(5)}...`;
+    ui.tdCallingSubtitle.textContent = `Aarav, your EasyEV AI specialist, is on the line to confirm your location and test drive slot for the ${vehicle.name}.`;
+
+    // Start polling status
+    startTestDrivePolling(tdActiveSessionId, vehicle.name);
+  } catch (err) {
+    ui.tdSubmitBtn.disabled = false;
+    ui.tdSubmitBtn.innerHTML = '<span>📞 Request Instant Voice Call</span>';
+    ui.tdErrorBanner.textContent = err.message || 'Network error initiating test drive call.';
+    ui.tdErrorBanner.classList.add("is-visible");
+  }
+});
+
+function startTestDrivePolling(sessionId, vehicleName) {
+  if (tdPollInterval) clearInterval(tdPollInterval);
+
+  tdPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/test-drive/status/${encodeURIComponent(sessionId)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.status === 'IN_PROGRESS' || data.status === 'COLLECTING_DETAILS' || data.status === 'SLOT_CHECKED') {
+        ui.tdStep1.className = 'td-step-item is-done';
+        ui.tdStep2.className = 'td-step-item is-active';
+        ui.tdStep3.className = 'td-step-item is-pending';
+      } else if (data.status === 'AWAITING_CONFIRMATION' || data.status === 'BOOKING') {
+        ui.tdStep1.className = 'td-step-item is-done';
+        ui.tdStep2.className = 'td-step-item is-done';
+        ui.tdStep3.className = 'td-step-item is-active';
+      } else if (data.status === 'BOOKED' && data.booking) {
+        clearInterval(tdPollInterval);
+        tdPollInterval = null;
+
+        // Transition to Confirmed state
+        ui.tdCallingState.hidden = true;
+        ui.tdConfirmedState.hidden = false;
+        ui.tdConfirmedId.textContent = `Ref ID: ${data.booking.id}`;
+        ui.tdConfirmedVehicle.textContent = data.vehicleName || vehicleName;
+        ui.tdConfirmedDatetime.textContent = `${data.booking.date} · ${data.booking.time}`;
+        ui.tdConfirmedLocation.textContent = data.booking.location || 'Dealership Hub';
+      } else if (data.status === 'FAILED' || data.status === 'NO_ANSWER' || data.status === 'BUSY') {
+        clearInterval(tdPollInterval);
+        tdPollInterval = null;
+        ui.tdCallingTitle.textContent = 'Call could not be completed';
+        ui.tdCallingSubtitle.textContent = `Status: ${data.status.replace('_', ' ')}. You can try again or arrange directly with our team.`;
+      }
+    } catch (e) {
+      console.warn('[TD Polling]', e);
+    }
+  }, 2500);
+}
+
 ui.commandForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = cleanText(ui.commandInput.value);

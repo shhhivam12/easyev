@@ -23,8 +23,14 @@ import {
   OpenAITTS,
   MicrosoftTTS,
 } from 'agora-agents';
+import { testDriveDb, FSM_STATES } from './test-drive-db.mjs';
+import { normalizePhone, validateEmail, resolveVehicle, checkAvailability, formatSlotSpoken } from './test-drive-service.mjs';
+import { BlandClient } from './bland-client.mjs';
+import { sendTestDriveConfirmationEmail } from './email-service.mjs';
 
 const ROOT = resolve(import.meta.dirname);
+loadLocalEnv(resolve(ROOT, '.env'));
+
 const PORT = Number(process.env.PORT || 4173);
 const AGENT_UID = '123456';
 const TOKEN_TTL_SECONDS = 3600;
@@ -40,8 +46,6 @@ const LLM_PARAMS = Object.freeze({ model: LLM_MODEL, ...LLM_TUNING });
 const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
-
-loadLocalEnv(resolve(ROOT, '.env'));
 
 const APP_ID = process.env.AGORA_APP_ID?.trim();
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE?.trim();
@@ -68,6 +72,31 @@ const crmCalendar = new CrmCalendar({
   calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
   timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
 });
+
+const BLAND_API_KEY = process.env.BLAND_API_KEY?.trim() || '';
+const BLAND_PATHWAY_ID = process.env.BLAND_PATHWAY_ID?.trim() || '';
+const BLAND_WEBHOOK_SECRET = process.env.BLAND_WEBHOOK_SECRET?.trim() || '';
+const BLAND_VOICE = process.env.BLAND_VOICE?.trim() || 'maya';
+
+const blandClient = new BlandClient({
+  apiKey: BLAND_API_KEY,
+  pathwayId: BLAND_PATHWAY_ID,
+  webhookSecret: BLAND_WEBHOOK_SECRET,
+  baseUrl: PUBLIC_BASE_URL,
+  voice: BLAND_VOICE,
+});
+
+function verifyBlandSignature(rawBodyBuffer, signatureHeader, secret = BLAND_WEBHOOK_SECRET) {
+  if (!signatureHeader || !secret) return true; // Permissive in local dev without keys
+  try {
+    const computed = createHmac('sha256', secret).update(rawBodyBuffer).digest('hex');
+    const sigBuf = Buffer.from(signatureHeader);
+    const compBuf = Buffer.from(computed);
+    return sigBuf.length === compBuf.length && timingSafeEqual(sigBuf, compBuf);
+  } catch {
+    return false;
+  }
+}
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -241,6 +270,21 @@ async function readJson(req, limit = BODY_LIMIT_BYTES) {
   }
   const text = Buffer.concat(chunks).toString('utf8').trim();
   return text ? JSON.parse(text) : {};
+}
+
+async function readRawBody(req, limit = BODY_LIMIT_BYTES) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) {
+      const error = new Error('Request body is too large');
+      error.statusCode = 413;
+      throw error;
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
 }
 
 function signSessionToken(sessionKey) {
@@ -1511,6 +1555,315 @@ async function handleApi(req, res, url) {
       auditTrail: session.stateMachine.auditTrail,
       canonicalState: session.stateMachine.getCanonicalState()
     });
+  }
+
+  /* ---------------------- Test Drive & Bland AI Endpoints ---------------------- */
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/initiate') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    const { vehicleId, phone, email, idempotencyKey } = body;
+
+    const vehicle = resolveVehicle(vehicleId);
+    if (!vehicle) {
+      return json(res, 400, { error: 'Invalid or unknown vehicleId' });
+    }
+
+    const normalizedPhone = normalizePhone(phone);
+    if (!normalizedPhone || normalizedPhone.length < 10) {
+      return json(res, 400, { error: 'Please enter a valid Indian phone number' });
+    }
+
+    if (!validateEmail(email)) {
+      return json(res, 400, { error: 'Please enter a valid email address' });
+    }
+
+    const { session, isExisting } = await testDriveDb.createSession({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      customerPhone: normalizedPhone,
+      customerEmail: email.trim().toLowerCase(),
+      idempotencyKey: idempotencyKey || null,
+    });
+
+    if (isExisting && session.bland_call_id) {
+      return json(res, 200, {
+        success: true,
+        sessionId: session.id,
+        status: session.status,
+        callId: session.bland_call_id,
+        isExisting: true,
+      });
+    }
+
+    // Initiate Bland AI outbound call
+    const callResult = await blandClient.initiateCall({
+      sessionId: session.id,
+      capabilityToken: session.capability_token,
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      customerPhone: normalizedPhone,
+      customerEmail: email.trim().toLowerCase(),
+    });
+
+    if (!callResult.success) {
+      await testDriveDb.transitionStatus(session.id, FSM_STATES.CALL_FAILED, { error: callResult.error });
+      return json(res, 500, {
+        error: 'Unable to initiate voice call right now. Please try again or complete online.',
+        detail: callResult.error,
+      });
+    }
+
+    await testDriveDb.transitionStatus(session.id, FSM_STATES.CALL_CREATED, {
+      bland_call_id: callResult.call_id,
+    });
+
+    return json(res, 200, {
+      success: true,
+      sessionId: session.id,
+      status: FSM_STATES.CALL_CREATED,
+      callId: callResult.call_id,
+      isSimulated: callResult.isSimulated || false,
+      message: 'Call initiated. You will receive a call shortly.',
+    });
+  }
+
+  // In-Call Custom Function 1: check_test_drive_availability
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/check-availability') {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    const signature = req.headers['x-webhook-signature'] || req.headers['x-bland-signature'] || '';
+
+    if (!verifyBlandSignature(rawBuffer, signature)) {
+      return json(res, 401, { error: 'Invalid webhook signature' });
+    }
+
+    let body = {};
+    try {
+      body = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    // Extract parameters (support args, input, or direct body)
+    const params = body.args || body.input || body;
+    const sessionId = params.session_id || body.request_data?.session_id;
+    const capabilityToken = params.capability_token || body.request_data?.capability_token;
+    const { location, date, time } = params;
+
+    const session = testDriveDb.getSession(sessionId);
+    if (!session || !testDriveDb.verifyCapabilityToken(sessionId, capabilityToken)) {
+      return json(res, 403, { error: 'Unauthorized: Invalid capability token or session' });
+    }
+
+    const avail = checkAvailability({
+      vehicleId: session.vehicle_id, // Authoritative from session
+      location,
+      date,
+      time,
+    });
+
+    if (avail.available) {
+      const checkRecord = await testDriveDb.saveAvailabilityCheck({
+        sessionId: sessionId,
+        vehicleId: session.vehicle_id,
+        location: avail.location,
+        date: avail.date,
+        time: avail.time,
+        available: true,
+        formattedSlot: avail.formatted_slot,
+      });
+
+      try {
+        await testDriveDb.transitionStatus(sessionId, FSM_STATES.SLOT_CHECKED, {
+          location: avail.location,
+          preferred_date: avail.date,
+          preferred_time: avail.time,
+        });
+        await testDriveDb.transitionStatus(sessionId, FSM_STATES.AWAITING_CONFIRMATION);
+      } catch (err) {
+        console.warn('[CheckAvailability] FSM note:', err.message);
+      }
+
+      return json(res, 200, {
+        available: true,
+        formatted_slot: avail.formatted_slot,
+        location: avail.location,
+        availability_check_id: checkRecord.id,
+      });
+    }
+
+    return json(res, 200, {
+      available: false,
+      reason: avail.reason || 'SLOT_UNAVAILABLE',
+      message: avail.message || 'The requested slot is not available.',
+      alternatives: avail.alternatives || [],
+    });
+  }
+
+  // In-Call Custom Function 2: book_test_drive
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/book') {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    const signature = req.headers['x-webhook-signature'] || req.headers['x-bland-signature'] || '';
+
+    if (!verifyBlandSignature(rawBuffer, signature)) {
+      return json(res, 401, { error: 'Invalid webhook signature' });
+    }
+
+    let body = {};
+    try {
+      body = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    const params = body.args || body.input || body;
+    const sessionId = params.session_id || body.request_data?.session_id;
+    const capabilityToken = params.capability_token || body.request_data?.capability_token;
+    const { availability_check_id, location, date, time } = params;
+
+    const session = testDriveDb.getSession(sessionId);
+    if (!session || !testDriveDb.verifyCapabilityToken(sessionId, capabilityToken)) {
+      return json(res, 403, { error: 'Unauthorized: Invalid capability token or session' });
+    }
+
+    // Atomic Booking Execution (binds customer data and vehicle strictly from session)
+    const bookingResult = await testDriveDb.createBookingAtomic({
+      sessionId: sessionId,
+      capabilityToken: capabilityToken,
+      availabilityCheckId: availability_check_id || null,
+      location,
+      date,
+      time,
+    });
+
+    if (!bookingResult.success) {
+      return json(res, 409, {
+        success: false,
+        reason: bookingResult.reason,
+        message: bookingResult.message,
+      });
+    }
+
+    const booking = bookingResult.booking;
+    const formatted = formatSlotSpoken(booking.date, booking.start_time);
+
+    // Asynchronously dispatch confirmation email
+    sendTestDriveConfirmationEmail({
+      bookingId: booking.id,
+      customerEmail: booking.customer_email,
+      customerPhone: booking.customer_phone,
+      vehicleName: booking.vehicle_name,
+      location: booking.location,
+      formattedDate: formatted.formattedDate,
+      formattedTime: formatted.formattedTime,
+    }).then(emailRes => {
+      testDriveDb.updateBookingEmailStatus(booking.id, emailRes.success ? 'SENT' : 'FAILED', emailRes);
+    }).catch(err => {
+      console.error('[BookTestDrive] Email trigger error:', err.message);
+      testDriveDb.updateBookingEmailStatus(booking.id, 'FAILED', { error: err.message });
+    });
+
+    return json(res, 200, {
+      success: true,
+      booking_id: booking.id,
+      vehicle_name: booking.vehicle_name,
+      location: booking.location,
+      formatted_date: formatted.formattedDate,
+      formatted_time: formatted.formattedTime,
+      formatted_slot: formatted.spoken,
+      is_duplicate: bookingResult.isDuplicate || false,
+    });
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/test-drive/status/')) {
+    const sessionId = decodeURIComponent(url.pathname.slice('/api/test-drive/status/'.length));
+    const session = testDriveDb.getSession(sessionId);
+    if (!session) {
+      return json(res, 404, { error: 'Session not found' });
+    }
+
+    let booking = null;
+    for (const b of testDriveDb.bookings.values()) {
+      if (b.session_id === sessionId) {
+        booking = b;
+        break;
+      }
+    }
+
+    return json(res, 200, {
+      success: true,
+      sessionId: session.id,
+      status: session.status,
+      vehicleId: session.vehicle_id,
+      vehicleName: session.vehicle_name,
+      location: session.location,
+      date: session.preferred_date,
+      time: session.preferred_time,
+      booking: booking ? {
+        id: booking.id,
+        date: booking.date,
+        time: booking.start_time,
+        location: booking.location,
+        status: booking.status,
+        emailStatus: booking.confirmation_email_status,
+      } : null,
+    });
+  }
+
+  // Bland AI Post-Call Webhook Handler
+  if (req.method === 'POST' && (url.pathname === '/api/bland/post-call' || url.pathname === '/api/test-drive/webhook')) {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    const signature = req.headers['x-webhook-signature'] || req.headers['x-bland-signature'] || '';
+
+    if (!verifyBlandSignature(rawBuffer, signature)) {
+      return json(res, 401, { error: 'Invalid webhook signature' });
+    }
+
+    let payload = {};
+    try {
+      payload = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    const sessionId = payload.metadata?.session_id || payload.request_data?.session_id;
+    const callStatus = payload.status || payload.call_status || 'completed';
+    const disconnectionReason = payload.disconnection_reason || '';
+    const transcript = payload.transcript || payload.concatenated_transcript || '';
+
+    if (sessionId) {
+      const session = testDriveDb.getSession(sessionId);
+      if (session) {
+        let nextFsmState = session.status;
+        if (callStatus === 'in-progress') {
+          nextFsmState = FSM_STATES.CALL_CONNECTED;
+        } else if (disconnectionReason === 'no-answer' || disconnectionReason === 'dial_no_answer') {
+          nextFsmState = FSM_STATES.NO_ANSWER;
+        } else if (disconnectionReason === 'busy' || disconnectionReason === 'dial_busy') {
+          nextFsmState = FSM_STATES.BUSY;
+        } else if (disconnectionReason === 'failed' || disconnectionReason === 'dial_failed') {
+          nextFsmState = FSM_STATES.CALL_FAILED;
+        }
+
+        try {
+          if (nextFsmState !== session.status) {
+            await testDriveDb.transitionStatus(sessionId, nextFsmState);
+          }
+        } catch (e) {
+          console.warn('[BlandWebhook] Status transition note:', e.message);
+        }
+
+        testDriveDb.recordAudit(sessionId, `BLAND_POST_CALL`, {
+          callId: payload.call_id || payload.id,
+          status: callStatus,
+          disconnectionReason,
+          durationSec: payload.call_length || payload.duration,
+          recordingUrl: payload.recording_url,
+          transcriptSummary: typeof transcript === 'string' ? transcript.slice(0, 500) : null,
+        });
+      }
+    }
+
+    return json(res, 200, { success: true, received: true });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {

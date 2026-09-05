@@ -1,0 +1,3217 @@
+{
+  "sessions": [
+    {
+      "id": "EEV-SES-89160F89",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "test@example.com",
+      "location": "Noida Sector 62",
+      "preferred_date": "2026-09-05",
+      "preferred_time": "17:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "bland_call_id": "call_test_1",
+      "capability_token": "27a70729445a284522c198e4543c6227df6dbed5f5d02446df4c666656500f76",
+      "idempotency_key": "test_key_1",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:16:19.144Z",
+      "updated_at": "2026-09-05T08:16:19.146Z"
+    },
+    {
+      "id": "EEV-SES-71964F01",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919999999999",
+      "customer_email": "user2@example.com",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "AWAITING_CONFIRMATION",
+      "bland_call_id": null,
+      "capability_token": "9cb2f7a67b3ea6430680e5b3fd26dc234230ab2479bad23d9794a491244e61fd",
+      "idempotency_key": "test_key_2",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:16:19.147Z",
+      "updated_at": "2026-09-05T08:16:19.148Z"
+    },
+    {
+      "id": "EEV-SES-0B255576",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "satvik@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALLING",
+      "bland_call_id": "bland_sim_1788596300744",
+      "capability_token": "0c85109dd05baa64850e426e4409853d06de7c124d1ed0aeef90db0f49e7919e",
+      "idempotency_key": "test_curl_1",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:18:20.742Z",
+      "updated_at": "2026-09-05T08:18:20.745Z"
+    },
+    {
+      "id": "EEV-SES-4397154E",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "satvikk005@gmail.com",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALLING",
+      "bland_call_id": "bland_sim_1788596323820",
+      "capability_token": "2f03b1dfdc9b549eeda9bb44723aa33abc6cbbadfb815e87355c5523369136bc",
+      "idempotency_key": null,
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:18:43.819Z",
+      "updated_at": "2026-09-05T08:18:43.820Z"
+    },
+    {
+      "id": "EEV-SES-B7FBB67C",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "satvik@easyev.in",
+      "location": "South Extension Showroom",
+      "preferred_date": "2026-09-07",
+      "preferred_time": "16:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "bland_call_id": "bland_sim_1788596351025",
+      "capability_token": "8b07b5a852266f38ac21892cfd27f372c4b80e4e86afb583e3e0ae52da9d46df",
+      "idempotency_key": "flow_test_1788596350851",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:19:11.023Z",
+      "updated_at": "2026-09-05T08:19:11.223Z"
+    },
+    {
+      "id": "EEV-SES-B4051C45",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919812345678",
+      "customer_email": "satvik.happy@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALLING",
+      "bland_call_id": "bland_sim_1788596445618",
+      "capability_token": "e1ac8174d8177de0b36d6f2eb9bdc550f2185e17a66f13c3ded9998411c4b438",
+      "idempotency_key": "curl_s1_1788596445533",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:20:45.616Z",
+      "updated_at": "2026-09-05T08:20:45.618Z"
+    },
+    {
+      "id": "EEV-SES-8848D6D3",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919812345678",
+      "customer_email": "satvik.happy@easyev.in",
+      "location": "Noida Sector 62",
+      "preferred_date": "2026-09-10",
+      "preferred_time": "17:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "bland_call_id": "bland_sim_1788596462298",
+      "capability_token": "c4b484cb1af8a2e382798b301ae73dc546aae5e7504e27e1a1162fa7c0ca824e",
+      "idempotency_key": "curl_s1_1788596462210",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:21:02.294Z",
+      "updated_at": "2026-09-05T08:21:02.332Z"
+    },
+    {
+      "id": "EEV-SES-5C370E8E",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919988776655",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALLING",
+      "bland_call_id": "bland_sim_1788596462341",
+      "capability_token": "4a05b74a6fb92ea93c600904f1fdef1fc99a643f2a220fb2f82684818ca27516",
+      "idempotency_key": "curl_s2_1788596462339",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:21:02.340Z",
+      "updated_at": "2026-09-05T08:21:02.341Z"
+    },
+    {
+      "id": "EEV-SES-4C3375A0",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919811223344",
+      "customer_email": "user@comet.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALLING",
+      "bland_call_id": "bland_sim_1788596462374",
+      "capability_token": "193a83f2df8d2e46e1cbb8995f9d9d93ea6dcdb01ad58bfe52a89f3334fc8fdb",
+      "idempotency_key": "same_user_click_1788596462371",
+      "attempts": {
+        "location": 0,
+        "date": 0,
+        "time": 0
+      },
+      "created_at": "2026-09-05T08:21:02.373Z",
+      "updated_at": "2026-09-05T08:21:02.374Z"
+    },
+    {
+      "id": "EEV-SES-7737F6A1",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Cyber City Hub, Gurgaon",
+      "preferred_date": "2026-09-06",
+      "preferred_time": "16:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": "retell_sim_1788597676521",
+      "bland_call_id": null,
+      "capability_token": "f2ed6a5fd5a563d0d80b013a2ffc97541d143782abd8c993a4ab80139d5f1d1a",
+      "capability_token_hash": "693692fcde8261b1722db58646e97c793c15b03906699f70b86f9c12f58fdcf4",
+      "token_expires_at": "2026-09-05T10:41:16.520Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s1_1788597676444",
+      "created_at": "2026-09-05T08:41:16.511Z",
+      "updated_at": "2026-09-05T08:41:16.605Z"
+    },
+    {
+      "id": "EEV-SES-1A9D39A5",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919911223344",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597676667",
+      "bland_call_id": null,
+      "capability_token": "75e065f0d79fafd32a904b3aab3b2f054ff254b6b9a181750f2dd9939530fe42",
+      "capability_token_hash": "0af4b25834c04266d23072fb748f016b8fe5f80988085ea944a914a58b7da1e3",
+      "token_expires_at": "2026-09-05T10:41:16.666Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s2_1788597676663",
+      "created_at": "2026-09-05T08:41:16.666Z",
+      "updated_at": "2026-09-05T08:41:16.667Z"
+    },
+    {
+      "id": "EEV-SES-03A51649",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CONNECTED",
+      "retell_call_id": "retell_sim_1788597686492",
+      "bland_call_id": null,
+      "capability_token": "d6cbb8635768d23cda146efda5b385f3f9b0247f70499aba24ab52ad56222a0e",
+      "capability_token_hash": "d13a2895789b73c2ff1812e1f4f6329d871483aeae6bbf3c4194d6ca9da954fd",
+      "token_expires_at": "2026-09-05T10:41:26.491Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s1_1788597686436",
+      "created_at": "2026-09-05T08:41:26.491Z",
+      "updated_at": "2026-09-05T08:41:26.502Z"
+    },
+    {
+      "id": "EEV-SES-4D43404E",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-9989, Gurgaon",
+      "preferred_date": "2026-09-20",
+      "preferred_time": "16:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": "retell_sim_1788597700092",
+      "bland_call_id": null,
+      "capability_token": "c44c84b4aa75cd7e529179d95b8f2ec68c347ed246604ca53186aab9980cc74c",
+      "capability_token_hash": "35433ec747443d7f474abc1fa8f1e64fa5d4097d976e18049d42da725dcdcd4f",
+      "token_expires_at": "2026-09-05T10:41:40.091Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s1_1788597699989",
+      "created_at": "2026-09-05T08:41:40.091Z",
+      "updated_at": "2026-09-05T08:41:40.120Z"
+    },
+    {
+      "id": "EEV-SES-C027BDBE",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919911223344",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597700131",
+      "bland_call_id": null,
+      "capability_token": "f30c81957232d76fd014350210c2aa2a16b9b9d120c737e7cd74abee58c3843e",
+      "capability_token_hash": "c521b8e6affdaf0e2cc1bc9a2b5fc8d6e1c4796b91b8e3b9dba7f0dc7f0ccff6",
+      "token_expires_at": "2026-09-05T10:41:40.130Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s2_1788597700128",
+      "created_at": "2026-09-05T08:41:40.130Z",
+      "updated_at": "2026-09-05T08:41:40.131Z"
+    },
+    {
+      "id": "EEV-SES-0A6999B6",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919988112233",
+      "customer_email": "mg.driver@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597700182",
+      "bland_call_id": null,
+      "capability_token": "ce6a8cdd0d54833e8931dee0e4395adbe6479681c65d56a93ce6d5047d85b9c1",
+      "capability_token_hash": "25b0e62112b9dc53e9bff6f7399452428e0ef4d65b0b8f82100516c521dab62e",
+      "token_expires_at": "2026-09-05T10:41:40.181Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_idempotency_test_1788597700179",
+      "created_at": "2026-09-05T08:41:40.181Z",
+      "updated_at": "2026-09-05T08:41:40.182Z"
+    },
+    {
+      "id": "EEV-SES-C6289770",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-7303, Gurgaon",
+      "preferred_date": "2026-09-20",
+      "preferred_time": "16:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": "retell_sim_1788597707371",
+      "bland_call_id": null,
+      "capability_token": "28ea3014e1f5cb7e2d2ba382e6897bc051399a9a89880113ceb37a0b0acec1dc",
+      "capability_token_hash": "42b382ce08835598fab9da426800dbf6da7b8b1ac85898fc3fe1cbd9881df86a",
+      "token_expires_at": "2026-09-05T10:41:47.370Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s1_1788597707303",
+      "created_at": "2026-09-05T08:41:47.370Z",
+      "updated_at": "2026-09-05T08:41:47.399Z"
+    },
+    {
+      "id": "EEV-SES-F8764436",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919911223344",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597707416",
+      "bland_call_id": null,
+      "capability_token": "0b76eb1236844ce814d64e61a684f9de6f24161fc62197250fcd0a4dce030bd9",
+      "capability_token_hash": "0edf4fc3229f9b57d0d41595afe6e356541855a8885d6c7da40f27c356f161d3",
+      "token_expires_at": "2026-09-05T10:41:47.415Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s2_1788597707412",
+      "created_at": "2026-09-05T08:41:47.415Z",
+      "updated_at": "2026-09-05T08:41:47.417Z"
+    },
+    {
+      "id": "EEV-SES-EAED8262",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919988112233",
+      "customer_email": "mg.driver@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597707474",
+      "bland_call_id": null,
+      "capability_token": "4bbfb14324295d038ccc71994faea013a9ad11ac585e94531150e90147386d2d",
+      "capability_token_hash": "ea60c731a968864c941fa49407d9bca436468ec471a642f90ebf83ad3326e9ce",
+      "token_expires_at": "2026-09-05T10:41:47.473Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_idempotency_test_1788597707470",
+      "created_at": "2026-09-05T08:41:47.473Z",
+      "updated_at": "2026-09-05T08:41:47.475Z"
+    },
+    {
+      "id": "EEV-SES-482031E8",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-3159, Gurgaon",
+      "preferred_date": "2026-09-20",
+      "preferred_time": "16:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": "retell_sim_1788597723216",
+      "bland_call_id": null,
+      "capability_token": "d51ed3c07c02e71b4f58cbde366ada8ad1f06684f00da45ee86db1607280826f",
+      "capability_token_hash": "b8b58dc4ec739e2189806ae08ff680530ae8206bd3093cc6b65e7bb979c6ba7f",
+      "token_expires_at": "2026-09-05T10:42:03.215Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s1_1788597723159",
+      "created_at": "2026-09-05T08:42:03.212Z",
+      "updated_at": "2026-09-05T08:42:03.286Z"
+    },
+    {
+      "id": "EEV-SES-4A6D37DA",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919911223344",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597723333",
+      "bland_call_id": null,
+      "capability_token": "19a93fb57edd4c90afc5d8cf5468f39811e19ebff7d38c5c4bf32105d5294619",
+      "capability_token_hash": "3e8d6d2774f146f38317cd5d531c7bd38a87d30d5692a0d3fabc605365812151",
+      "token_expires_at": "2026-09-05T10:42:03.332Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_s2_1788597723327",
+      "created_at": "2026-09-05T08:42:03.332Z",
+      "updated_at": "2026-09-05T08:42:03.333Z"
+    },
+    {
+      "id": "EEV-SES-11DF5EFC",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919988112233",
+      "customer_email": "mg.driver@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597723380",
+      "bland_call_id": null,
+      "capability_token": "e26f8fd3cb19e85301c1ae5bced45bdf58980b4667fb46c361c90b7d23ad6110",
+      "capability_token_hash": "f8ad3238c3a18f8beb92f70db2da4aa1eda067743cb0d1480f84276620e0afe0",
+      "token_expires_at": "2026-09-05T10:42:03.379Z",
+      "token_revoked": false,
+      "idempotency_key": "retell_idempotency_test_1788597723374",
+      "created_at": "2026-09-05T08:42:03.379Z",
+      "updated_at": "2026-09-05T08:42:03.380Z"
+    },
+    {
+      "id": "EEV-SES-357B3509",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788597785",
+      "preferred_date": "2026-10-15",
+      "preferred_time": "17:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": "retell_sim_1788597785241",
+      "bland_call_id": null,
+      "capability_token": "cd86e6fd69e0cfacf9b017a2fb3cb4eb962a577477299d2df14f8fc320142510",
+      "capability_token_hash": "8c409ec301aae730491becbec17708a9896266b7812da6014817384849153944",
+      "token_expires_at": "2026-09-05T10:43:05.237Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_run_1788597785",
+      "created_at": "2026-09-05T08:43:05.235Z",
+      "updated_at": "2026-09-05T08:43:05.824Z"
+    },
+    {
+      "id": "EEV-SES-5F015381",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919988112233",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": "retell_sim_1788597785893",
+      "bland_call_id": null,
+      "capability_token": "88ccd5b584082c741894e3b1c8c0df03d5b020e001369049c28ddeb4438c708f",
+      "capability_token_hash": "3af53963748c396a1333d754885ac9fb7f537307895909067a1c2a1c4dad04aa",
+      "token_expires_at": "2026-09-05T10:43:05.891Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_user2_1788597785",
+      "created_at": "2026-09-05T08:43:05.891Z",
+      "updated_at": "2026-09-05T08:43:05.893Z"
+    },
+    {
+      "id": "EEV-SES-D056F3CD",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919900112233",
+      "customer_email": "noanswer@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "NO_ANSWER",
+      "retell_call_id": "retell_sim_1788597786212",
+      "bland_call_id": null,
+      "capability_token": "cf83b9205fd6af034cf54d0ca7fb7290ae6c79c49fe90b4e974365d5fb0d3bbe",
+      "capability_token_hash": "2e278674f511b23935a16bc4f81feb117c2636bc7cf31c13514711d76ead64ba",
+      "token_expires_at": "2026-09-05T10:43:06.211Z",
+      "token_revoked": false,
+      "idempotency_key": "no_answer_1788597785",
+      "created_at": "2026-09-05T08:43:06.211Z",
+      "updated_at": "2026-09-05T08:43:06.313Z"
+    },
+    {
+      "id": "EEV-SES-26851B09",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919900445566",
+      "customer_email": "busy@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "BUSY",
+      "retell_call_id": "retell_sim_1788597786418",
+      "bland_call_id": null,
+      "capability_token": "6ee9a0a92637e9929308c3f15fcaa3856ff1a6c2eb78ce925cac87f5b59a6b8f",
+      "capability_token_hash": "d10ade33fc3dcd6078e46af51452c9abcac4588036bde75b9f02bfc1bc8ae5e5",
+      "token_expires_at": "2026-09-05T10:43:06.417Z",
+      "token_revoked": false,
+      "idempotency_key": "busy_1788597785",
+      "created_at": "2026-09-05T08:43:06.417Z",
+      "updated_at": "2026-09-05T08:43:06.517Z"
+    },
+    {
+      "id": "EEV-SES-3B6056EA",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919812345678",
+      "customer_email": "satvik.happy@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_FAILED",
+      "retell_call_id": null,
+      "bland_call_id": null,
+      "capability_token": "2096f29602a85b9bca1ecea4b93e0c507b11b7d3d7e958cd0305915a6fc3f380",
+      "capability_token_hash": "85fa711b971ae739cfc5a2edb91464f2960a230e362d642b7f0e996e75790426",
+      "token_expires_at": "2026-09-05T11:03:56.920Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_s1_1788599036720",
+      "created_at": "2026-09-05T09:03:56.913Z",
+      "updated_at": "2026-09-05T09:04:02.772Z"
+    },
+    {
+      "id": "EEV-SES-DF5AF9E5",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919812345678",
+      "customer_email": "satvik.happy@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599066892",
+      "capability_token": "3d611b4b9062d1e249e8e9dbcb3ed4b47cae114c1babcef9c8c945c2e9ad6c46",
+      "capability_token_hash": "cb8cb1325a90b30164015d788dc4c95aac5548215fb5a3397a6321978c4464bd",
+      "token_expires_at": "2026-09-05T11:04:21.306Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_s1_1788599061236",
+      "created_at": "2026-09-05T09:04:21.300Z",
+      "updated_at": "2026-09-05T09:04:26.892Z"
+    },
+    {
+      "id": "EEV-SES-8CE55FA7",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919988776655",
+      "customer_email": "userb@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599073170",
+      "capability_token": "a1c4e24b4aba5f02c28f89f8b5ec5f4385f8cad396f9b967ed9b00afc25e6fae",
+      "capability_token_hash": "e428e020ad7e704922d9d8821f042f5b3e7b3af8d665155a2c5d95bc91193b9b",
+      "token_expires_at": "2026-09-05T11:04:26.996Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_s2_1788599066993",
+      "created_at": "2026-09-05T09:04:26.996Z",
+      "updated_at": "2026-09-05T09:04:33.170Z"
+    },
+    {
+      "id": "EEV-SES-FFF332A5",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919811223344",
+      "customer_email": "user@comet.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599078498",
+      "capability_token": "bcdba365e7de16c3e8fbab5d6552dd61386a2f01359269cfbcb9e6f175ebeb7b",
+      "capability_token_hash": "41a4dfbfad735d0266b7b8c5ad7ec92e47468ece8d78e5c3b05ab1f045581d54",
+      "token_expires_at": "2026-09-05T11:04:33.238Z",
+      "token_revoked": false,
+      "idempotency_key": "same_user_click_1788599073236",
+      "created_at": "2026-09-05T09:04:33.238Z",
+      "updated_at": "2026-09-05T09:04:38.498Z"
+    },
+    {
+      "id": "EEV-SES-D1FE7020",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788599078",
+      "preferred_date": "2026-10-15",
+      "preferred_time": "17:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599079067",
+      "capability_token": "dea9d4719912a078187a2ef69f2d520f0e35632c3078b297b41c48f0714de33f",
+      "capability_token_hash": "f35fff3866e9c3263f7e337acf9dfe2ebf1860244f6da4419f3b67c3099b019a",
+      "token_expires_at": "2026-09-05T11:04:38.655Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_run_1788599078",
+      "created_at": "2026-09-05T09:04:38.655Z",
+      "updated_at": "2026-09-05T09:04:39.585Z"
+    },
+    {
+      "id": "EEV-SES-C723B2D5",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919988112233",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599080077",
+      "capability_token": "ca7362ecb1d143c57f8342bb2a2be309cd042a447299b7170588dc45905f263f",
+      "capability_token_hash": "27fee1eea7bde74b60fa44a0d4c11d8da7489165927933282859cabdcab8e851",
+      "token_expires_at": "2026-09-05T11:04:39.674Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_user2_1788599078",
+      "created_at": "2026-09-05T09:04:39.674Z",
+      "updated_at": "2026-09-05T09:04:40.077Z"
+    },
+    {
+      "id": "EEV-SES-B773C5B3",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788599093",
+      "preferred_date": "2026-10-15",
+      "preferred_time": "17:00",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599093886",
+      "capability_token": "92fb7efddfe2c8cac1921f49d04ee3225278981af7e22e6630a0e3253d9c6ba4",
+      "capability_token_hash": "e496e2c21330adb28ff652275f6bb8f214fda4365f6b0e935084d7dfbf0c0fc4",
+      "token_expires_at": "2026-09-05T11:04:53.448Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_run_1788599093",
+      "created_at": "2026-09-05T09:04:53.448Z",
+      "updated_at": "2026-09-05T09:04:54.384Z"
+    },
+    {
+      "id": "EEV-SES-EE667340",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919988112233",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599094855",
+      "capability_token": "97f4ede0c99d3faf729c67a5837c9a7978c0889bb8de8bfea2668f64eb1436c5",
+      "capability_token_hash": "46bea5127bd3ae897b2bfbafd01b3c9d8f636b39f9b49de2027dcb77de8e795b",
+      "token_expires_at": "2026-09-05T11:04:54.446Z",
+      "token_revoked": false,
+      "idempotency_key": "curl_user2_1788599093",
+      "created_at": "2026-09-05T09:04:54.446Z",
+      "updated_at": "2026-09-05T09:04:54.855Z"
+    },
+    {
+      "id": "EEV-SES-F38205AF",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919900112233",
+      "customer_email": "noanswer@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "NO_ANSWER",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599095605",
+      "capability_token": "f921c8f11f83d22ae5d4b2c6d3c38f5fce4238b50d1181c60654e58ee9ca72bb",
+      "capability_token_hash": "00fe2901dc2507efdb1567053bcf58d35a5a183a17386e374c00ea55cbe17a70",
+      "token_expires_at": "2026-09-05T11:04:55.195Z",
+      "token_revoked": false,
+      "idempotency_key": "no_answer_1788599093",
+      "created_at": "2026-09-05T09:04:55.195Z",
+      "updated_at": "2026-09-05T09:04:55.726Z"
+    },
+    {
+      "id": "EEV-SES-0A37870F",
+      "vehicle_id": "mg-comet-ev",
+      "vehicle_name": "MG Comet EV",
+      "customer_phone": "+919900445566",
+      "customer_email": "busy@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "BUSY",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599096230",
+      "capability_token": "4059058c118ebebd8859da95e29374c683bbf51ecf7503f9fa6737c7732bafab",
+      "capability_token_hash": "bf48a1db0dc7905712f542e9f138156afd6a497f742ac38bfc6826ff5316baa9",
+      "token_expires_at": "2026-09-05T11:04:55.833Z",
+      "token_revoked": false,
+      "idempotency_key": "busy_1788599093",
+      "created_at": "2026-09-05T09:04:55.833Z",
+      "updated_at": "2026-09-05T09:04:56.348Z"
+    },
+    {
+      "id": "EEV-SES-A1C9A1C4",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599175",
+      "preferred_date": "2026-11-20",
+      "preferred_time": "16:30",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599176026",
+      "capability_token": "74def5528fdcdeb59d3776242c7c3afde926e4d889386181442d78d546ceb583",
+      "capability_token_hash": "7c4eecfed0f733d4f49bead7b022460da1fd7966d4d686a0ed8d6a49110b275e",
+      "token_expires_at": "2026-09-05T11:06:15.396Z",
+      "token_revoked": false,
+      "idempotency_key": "deep_td_1788599175",
+      "created_at": "2026-09-05T09:06:15.396Z",
+      "updated_at": "2026-09-05T09:06:16.501Z"
+    },
+    {
+      "id": "EEV-SES-C1818C78",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919899001122",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599176955",
+      "capability_token": "79bc9fb176f1673bcd67131232aca30aafe59b1c7e6a641ee219a07aa4aee64f",
+      "capability_token_hash": "fd31fce8ab1be118e99fa24eb7eac51c8355206da0479f6053013c244e94c942",
+      "token_expires_at": "2026-09-05T11:06:16.549Z",
+      "token_revoked": false,
+      "idempotency_key": "td_col_1788599175",
+      "created_at": "2026-09-05T09:06:16.549Z",
+      "updated_at": "2026-09-05T09:06:16.955Z"
+    },
+    {
+      "id": "EEV-SES-FA9150DB",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599208",
+      "preferred_date": "2026-11-20",
+      "preferred_time": "16:30",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599209491",
+      "capability_token": "857fd102a01d060cf522ae338d2dda59a3de27de1a75ec0d015cefa146f2a725",
+      "capability_token_hash": "601ede7e7b007a6c95e607d6af83187834523ecce266817cb07d765b24886d1e",
+      "token_expires_at": "2026-09-05T11:06:49.020Z",
+      "token_revoked": false,
+      "idempotency_key": "deep_td_1788599208",
+      "created_at": "2026-09-05T09:06:49.020Z",
+      "updated_at": "2026-09-05T09:06:49.981Z"
+    },
+    {
+      "id": "EEV-SES-DCF2D4BD",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919899001122",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599210424",
+      "capability_token": "8d83c4b37f4bdd0cf030be17b79c94fca855a84d3765b51718e3ed1e27142940",
+      "capability_token_hash": "008b398ab1245dd8da4af35eecb97144e5d70cf49f512c099ad5613f05536c85",
+      "token_expires_at": "2026-09-05T11:06:50.020Z",
+      "token_revoked": false,
+      "idempotency_key": "td_col_1788599208",
+      "created_at": "2026-09-05T09:06:50.020Z",
+      "updated_at": "2026-09-05T09:06:50.424Z"
+    },
+    {
+      "id": "EEV-SES-69091640",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599591",
+      "preferred_date": "2026-11-20",
+      "preferred_time": "16:30",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599591777",
+      "capability_token": "1d644f1bb67d7dae866e07cc0ee1c8c7d13ee823bdd9f993c9cb0ce89e719729",
+      "capability_token_hash": "5bd6643c7fff808fcbde685f98e1c6098d3fc9f29b530b322108f776d7e1881f",
+      "token_expires_at": "2026-09-05T11:13:11.303Z",
+      "token_revoked": false,
+      "idempotency_key": "deep_td_1788599591",
+      "created_at": "2026-09-05T09:13:11.303Z",
+      "updated_at": "2026-09-05T09:13:12.218Z"
+    },
+    {
+      "id": "EEV-SES-3EE9F663",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919899001122",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599592726",
+      "capability_token": "037df4eb7b637ecc40532f6b960f39d760b43c80d2dcdb6f05d4997c2c506125",
+      "capability_token_hash": "51c37590ca5a132dfe476cd946fea95aa08324a96fdd1c11b5ee7a7958e17252",
+      "token_expires_at": "2026-09-05T11:13:12.317Z",
+      "token_revoked": false,
+      "idempotency_key": "td_col_1788599591",
+      "created_at": "2026-09-05T09:13:12.317Z",
+      "updated_at": "2026-09-05T09:13:12.726Z"
+    },
+    {
+      "id": "EEV-SES-D2CE99B4",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599608",
+      "preferred_date": "2026-11-20",
+      "preferred_time": "16:30",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599609002",
+      "capability_token": "97d95e6e23d4c2b25fcf770d8a0d2ef4ee3493b6e1118b6d6e3eb41c12db895b",
+      "capability_token_hash": "f57443ce6337a8915f0fd6c11c67198cf12bb77c876843a43fb35696fc8d8dbc",
+      "token_expires_at": "2026-09-05T11:13:28.529Z",
+      "token_revoked": false,
+      "idempotency_key": "deep_td_1788599608",
+      "created_at": "2026-09-05T09:13:28.529Z",
+      "updated_at": "2026-09-05T09:13:29.499Z"
+    },
+    {
+      "id": "EEV-SES-B264B025",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919899001122",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599609983",
+      "capability_token": "b664ff671befa488fa9267f1bac12c94768a7dcefff5a1709c160a6f7696795e",
+      "capability_token_hash": "82288f87dffe2d2e3dd21dccc6dc9a832d7d743eec206cf9cd8edb9d608ad9be",
+      "token_expires_at": "2026-09-05T11:13:29.567Z",
+      "token_revoked": false,
+      "idempotency_key": "td_col_1788599608",
+      "created_at": "2026-09-05T09:13:29.567Z",
+      "updated_at": "2026-09-05T09:13:29.983Z"
+    },
+    {
+      "id": "EEV-SES-ADCF27B0",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599621",
+      "preferred_date": "2026-11-20",
+      "preferred_time": "16:30",
+      "timezone": "Asia/Kolkata",
+      "status": "BOOKED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599621826",
+      "capability_token": "ad325b88221d0781ceb7918dd2900265088651e64b583c3b2b56b6382af0d673",
+      "capability_token_hash": "2632dc5619e5d97269a52686d90a768f5b74ffca0571d1ad109c32a9f15e6b28",
+      "token_expires_at": "2026-09-05T11:13:41.328Z",
+      "token_revoked": false,
+      "idempotency_key": "deep_td_1788599621",
+      "created_at": "2026-09-05T09:13:41.328Z",
+      "updated_at": "2026-09-05T09:13:42.218Z"
+    },
+    {
+      "id": "EEV-SES-151C74CF",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919899001122",
+      "customer_email": "user2@easyev.in",
+      "location": null,
+      "preferred_date": null,
+      "preferred_time": null,
+      "timezone": "Asia/Kolkata",
+      "status": "CALL_CREATED",
+      "retell_call_id": null,
+      "bland_call_id": "bland_sim_1788599622662",
+      "capability_token": "c43f94edb8cd32650e863f3af174db41dd640367b92478f330eb02a17ef82b67",
+      "capability_token_hash": "5cf489dd3728be5c20d01eba225489a59fa7c5b24cbdb93ddd5bf32ce403fbfd",
+      "token_expires_at": "2026-09-05T11:13:42.255Z",
+      "token_revoked": false,
+      "idempotency_key": "td_col_1788599621",
+      "created_at": "2026-09-05T09:13:42.255Z",
+      "updated_at": "2026-09-05T09:13:42.662Z"
+    }
+  ],
+  "availabilityChecks": [
+    {
+      "id": "av_15064",
+      "session_id": "EEV-SES-7737F6A1",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Cyber City Hub, Gurgaon",
+      "date": "2026-09-06",
+      "time": "16:00",
+      "available": true,
+      "formatted_slot": "Sunday, 6 September 2026 at 4:00 pm",
+      "expires_at": "2026-09-05T08:56:16.597Z",
+      "created_at": "2026-09-05T08:41:16.597Z"
+    },
+    {
+      "id": "av_98830",
+      "session_id": "EEV-SES-4D43404E",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Hub-9989, Gurgaon",
+      "date": "2026-09-20",
+      "time": "16:00",
+      "available": true,
+      "formatted_slot": "Sunday, 20 September 2026 at 4:00 pm",
+      "expires_at": "2026-09-05T08:56:40.114Z",
+      "created_at": "2026-09-05T08:41:40.114Z"
+    },
+    {
+      "id": "av_54807",
+      "session_id": "EEV-SES-C6289770",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Hub-7303, Gurgaon",
+      "date": "2026-09-20",
+      "time": "16:00",
+      "available": true,
+      "formatted_slot": "Sunday, 20 September 2026 at 4:00 pm",
+      "expires_at": "2026-09-05T08:56:47.393Z",
+      "created_at": "2026-09-05T08:41:47.393Z"
+    },
+    {
+      "id": "av_38352",
+      "session_id": "EEV-SES-482031E8",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Hub-3159, Gurgaon",
+      "date": "2026-09-20",
+      "time": "16:00",
+      "available": true,
+      "formatted_slot": "Sunday, 20 September 2026 at 4:00 pm",
+      "expires_at": "2026-09-05T08:57:03.281Z",
+      "created_at": "2026-09-05T08:42:03.281Z"
+    },
+    {
+      "id": "av_49398",
+      "session_id": "EEV-SES-357B3509",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Noida Cyber Hub 1788597785",
+      "date": "2026-10-15",
+      "time": "17:00",
+      "available": true,
+      "formatted_slot": "Thursday, 15 October 2026 at 5:00 pm",
+      "expires_at": "2026-09-05T08:58:05.650Z",
+      "created_at": "2026-09-05T08:43:05.650Z"
+    },
+    {
+      "id": "av_61300",
+      "session_id": "EEV-SES-D1FE7020",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Noida Cyber Hub 1788599078",
+      "date": "2026-10-15",
+      "time": "17:00",
+      "available": true,
+      "formatted_slot": "Thursday, 15 October 2026 at 5:00 pm",
+      "expires_at": "2026-09-05T09:19:39.411Z",
+      "created_at": "2026-09-05T09:04:39.411Z"
+    },
+    {
+      "id": "av_28628",
+      "session_id": "EEV-SES-B773C5B3",
+      "vehicle_id": "tata-punch-ev",
+      "location": "Noida Cyber Hub 1788599093",
+      "date": "2026-10-15",
+      "time": "17:00",
+      "available": true,
+      "formatted_slot": "Thursday, 15 October 2026 at 5:00 pm",
+      "expires_at": "2026-09-05T09:19:54.205Z",
+      "created_at": "2026-09-05T09:04:54.205Z"
+    },
+    {
+      "id": "av_92211",
+      "session_id": "EEV-SES-A1C9A1C4",
+      "vehicle_id": "tata-nexon-ev",
+      "location": "EasyEV Superhub DLF Phase 5 1788599175",
+      "date": "2026-11-20",
+      "time": "16:30",
+      "available": true,
+      "formatted_slot": "Friday, 20 November 2026 at 4:30 pm",
+      "expires_at": "2026-09-05T09:21:16.354Z",
+      "created_at": "2026-09-05T09:06:16.354Z"
+    },
+    {
+      "id": "av_47855",
+      "session_id": "EEV-SES-FA9150DB",
+      "vehicle_id": "tata-nexon-ev",
+      "location": "EasyEV Superhub DLF Phase 5 1788599208",
+      "date": "2026-11-20",
+      "time": "16:30",
+      "available": true,
+      "formatted_slot": "Friday, 20 November 2026 at 4:30 pm",
+      "expires_at": "2026-09-05T09:21:49.829Z",
+      "created_at": "2026-09-05T09:06:49.829Z"
+    },
+    {
+      "id": "av_41787",
+      "session_id": "EEV-SES-69091640",
+      "vehicle_id": "tata-nexon-ev",
+      "location": "EasyEV Superhub DLF Phase 5 1788599591",
+      "date": "2026-11-20",
+      "time": "16:30",
+      "available": true,
+      "formatted_slot": "Friday, 20 November 2026 at 4:30 pm",
+      "expires_at": "2026-09-05T09:28:12.058Z",
+      "created_at": "2026-09-05T09:13:12.058Z"
+    },
+    {
+      "id": "av_57431",
+      "session_id": "EEV-SES-D2CE99B4",
+      "vehicle_id": "tata-nexon-ev",
+      "location": "EasyEV Superhub DLF Phase 5 1788599608",
+      "date": "2026-11-20",
+      "time": "16:30",
+      "available": true,
+      "formatted_slot": "Friday, 20 November 2026 at 4:30 pm",
+      "expires_at": "2026-09-05T09:28:29.252Z",
+      "created_at": "2026-09-05T09:13:29.252Z"
+    },
+    {
+      "id": "av_24269",
+      "session_id": "EEV-SES-ADCF27B0",
+      "vehicle_id": "tata-nexon-ev",
+      "location": "EasyEV Superhub DLF Phase 5 1788599621",
+      "date": "2026-11-20",
+      "time": "16:30",
+      "available": true,
+      "formatted_slot": "Friday, 20 November 2026 at 4:30 pm",
+      "expires_at": "2026-09-05T09:28:42.073Z",
+      "created_at": "2026-09-05T09:13:42.073Z"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "EEV-TD-42329",
+      "session_id": "EEV-SES-89160F89",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "test@example.com",
+      "location": "Noida Sector 62",
+      "date": "2026-09-05",
+      "start_time": "17:00",
+      "end_time": "17:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "PENDING",
+      "created_at": "2026-09-05T08:16:19.146Z",
+      "updated_at": "2026-09-05T08:16:19.146Z"
+    },
+    {
+      "id": "EEV-TD-91364",
+      "session_id": "EEV-SES-B7FBB67C",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "satvik@easyev.in",
+      "location": "South Extension Showroom",
+      "date": "2026-09-07",
+      "start_time": "16:00",
+      "end_time": "16:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:19:11.223Z",
+      "updated_at": "2026-09-05T08:19:14.631Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<53396c65-e7d4-26db-2f31-1d6c54bc6c77@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-63793",
+      "session_id": "EEV-SES-8848D6D3",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919812345678",
+      "customer_email": "satvik.happy@easyev.in",
+      "location": "Noida Sector 62",
+      "date": "2026-09-10",
+      "start_time": "17:00",
+      "end_time": "17:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:21:02.332Z",
+      "updated_at": "2026-09-05T08:21:05.382Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<cf26d8b8-a11f-4591-a8f8-9d2e89f1994f@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-74840",
+      "idempotency_key": "EEV-SES-7737F6A1_av_15064",
+      "session_id": "EEV-SES-7737F6A1",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Cyber City Hub, Gurgaon",
+      "date": "2026-09-06",
+      "start_time": "16:00",
+      "end_time": "16:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:41:16.605Z",
+      "updated_at": "2026-09-05T08:41:19.763Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<38b9579d-5a5e-0ac3-8dac-0af05593e6c6@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-17253",
+      "idempotency_key": "EEV-SES-4D43404E_av_98830",
+      "session_id": "EEV-SES-4D43404E",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-9989, Gurgaon",
+      "date": "2026-09-20",
+      "start_time": "16:00",
+      "end_time": "16:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:41:40.120Z",
+      "updated_at": "2026-09-05T08:41:42.938Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<92b7028e-7d43-6385-b865-c6f2041c28af@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-27354",
+      "idempotency_key": "EEV-SES-C6289770_av_54807",
+      "session_id": "EEV-SES-C6289770",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-7303, Gurgaon",
+      "date": "2026-09-20",
+      "start_time": "16:00",
+      "end_time": "16:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:41:47.399Z",
+      "updated_at": "2026-09-05T08:41:50.320Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<7f2f1a0a-6974-0aaa-b0d2-4bf77beaa0d0@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-22207",
+      "idempotency_key": "EEV-SES-482031E8_av_38352",
+      "session_id": "EEV-SES-482031E8",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "customer@easyev.in",
+      "location": "Hub-3159, Gurgaon",
+      "date": "2026-09-20",
+      "start_time": "16:00",
+      "end_time": "16:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:42:03.286Z",
+      "updated_at": "2026-09-05T08:42:06.105Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<4ddfd6b6-f976-508c-ca02-206ccf1df606@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-48562",
+      "idempotency_key": "EEV-SES-357B3509_av_49398",
+      "session_id": "EEV-SES-357B3509",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788597785",
+      "date": "2026-10-15",
+      "start_time": "17:00",
+      "end_time": "17:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T08:43:05.824Z",
+      "updated_at": "2026-09-05T08:43:08.765Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<48e854a0-b727-3796-7c37-89bf037c9684@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-44416",
+      "idempotency_key": "EEV-SES-D1FE7020_av_61300",
+      "session_id": "EEV-SES-D1FE7020",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788599078",
+      "date": "2026-10-15",
+      "start_time": "17:00",
+      "end_time": "17:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:04:39.585Z",
+      "updated_at": "2026-09-05T09:04:42.810Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<763643bc-35cc-6685-2a67-951f6addd615@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-91289",
+      "idempotency_key": "EEV-SES-B773C5B3_av_28628",
+      "session_id": "EEV-SES-B773C5B3",
+      "vehicle_id": "tata-punch-ev",
+      "vehicle_name": "Tata Punch.ev",
+      "customer_phone": "+919876543210",
+      "customer_email": "buyer.punch@easyev.in",
+      "location": "Noida Cyber Hub 1788599093",
+      "date": "2026-10-15",
+      "start_time": "17:00",
+      "end_time": "17:45",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:04:54.384Z",
+      "updated_at": "2026-09-05T09:04:57.411Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<e2bec7fc-2d2c-e4bc-9e21-80666f90bcd8@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-16900",
+      "idempotency_key": "EEV-SES-A1C9A1C4_av_92211",
+      "session_id": "EEV-SES-A1C9A1C4",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599175",
+      "date": "2026-11-20",
+      "start_time": "16:30",
+      "end_time": "17:15",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:06:16.501Z",
+      "updated_at": "2026-09-05T09:06:19.392Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<2f14bb43-c0cb-c44c-754a-0e72802e6fc9@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-11709",
+      "idempotency_key": "EEV-SES-FA9150DB_av_47855",
+      "session_id": "EEV-SES-FA9150DB",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599208",
+      "date": "2026-11-20",
+      "start_time": "16:30",
+      "end_time": "17:15",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:06:49.981Z",
+      "updated_at": "2026-09-05T09:06:52.928Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<2aff7ee6-86fe-7576-42f6-18231a49ab95@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-88840",
+      "idempotency_key": "EEV-SES-69091640_av_41787",
+      "session_id": "EEV-SES-69091640",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599591",
+      "date": "2026-11-20",
+      "start_time": "16:30",
+      "end_time": "17:15",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "PENDING",
+      "created_at": "2026-09-05T09:13:12.218Z",
+      "updated_at": "2026-09-05T09:13:12.218Z"
+    },
+    {
+      "id": "EEV-TD-99777",
+      "idempotency_key": "EEV-SES-D2CE99B4_av_57431",
+      "session_id": "EEV-SES-D2CE99B4",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599608",
+      "date": "2026-11-20",
+      "start_time": "16:30",
+      "end_time": "17:15",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:13:29.499Z",
+      "updated_at": "2026-09-05T09:13:33.006Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<ef66b4e8-668e-5130-71da-5176a937df27@gmail.com>"
+      }
+    },
+    {
+      "id": "EEV-TD-86538",
+      "idempotency_key": "EEV-SES-ADCF27B0_av_24269",
+      "session_id": "EEV-SES-ADCF27B0",
+      "vehicle_id": "tata-nexon-ev",
+      "vehicle_name": "Tata Nexon.ev",
+      "customer_phone": "+919811122233",
+      "customer_email": "nexon.driver@easyev.in",
+      "location": "EasyEV Superhub DLF Phase 5 1788599621",
+      "date": "2026-11-20",
+      "start_time": "16:30",
+      "end_time": "17:15",
+      "timezone": "Asia/Kolkata",
+      "status": "CONFIRMED",
+      "confirmation_email_status": "SENT",
+      "created_at": "2026-09-05T09:13:42.218Z",
+      "updated_at": "2026-09-05T09:13:45.158Z",
+      "email_detail": {
+        "success": true,
+        "provider": "smtp",
+        "messageId": "<12d3f010-69ba-ef9e-a791-40a9b8754e71@gmail.com>"
+      }
+    }
+  ],
+  "auditLogs": [
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "test@example.com"
+      },
+      "timestamp": "2026-09-05T08:16:19.144Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "call_test_1"
+      },
+      "timestamp": "2026-09-05T08:16:19.145Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALLING",
+        "to": "IN_PROGRESS"
+      },
+      "timestamp": "2026-09-05T08:16:19.145Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "IN_PROGRESS",
+        "to": "COLLECTING_DETAILS"
+      },
+      "timestamp": "2026-09-05T08:16:19.145Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "COLLECTING_DETAILS",
+        "to": "SLOT_CHECKED",
+        "location": "Noida Sector 62",
+        "preferred_date": "2026-09-05",
+        "preferred_time": "17:00"
+      },
+      "timestamp": "2026-09-05T08:16:19.145Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:16:19.146Z"
+    },
+    {
+      "sessionId": "EEV-SES-89160F89",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-42329",
+        "date": "2026-09-05",
+        "time": "17:00",
+        "location": "Noida Sector 62"
+      },
+      "timestamp": "2026-09-05T08:16:19.146Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919999999999",
+        "customerEmail": "user2@example.com"
+      },
+      "timestamp": "2026-09-05T08:16:19.147Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING"
+      },
+      "timestamp": "2026-09-05T08:16:19.147Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALLING",
+        "to": "IN_PROGRESS"
+      },
+      "timestamp": "2026-09-05T08:16:19.147Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "IN_PROGRESS",
+        "to": "COLLECTING_DETAILS"
+      },
+      "timestamp": "2026-09-05T08:16:19.148Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "COLLECTING_DETAILS",
+        "to": "SLOT_CHECKED"
+      },
+      "timestamp": "2026-09-05T08:16:19.148Z"
+    },
+    {
+      "sessionId": "EEV-SES-71964F01",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:16:19.148Z"
+    },
+    {
+      "sessionId": "EEV-SES-0B255576",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "satvik@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:18:20.742Z"
+    },
+    {
+      "sessionId": "EEV-SES-0B255576",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596300744"
+      },
+      "timestamp": "2026-09-05T08:18:20.745Z"
+    },
+    {
+      "sessionId": "EEV-SES-4397154E",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "satvikk005@gmail.com"
+      },
+      "timestamp": "2026-09-05T08:18:43.819Z"
+    },
+    {
+      "sessionId": "EEV-SES-4397154E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596323820"
+      },
+      "timestamp": "2026-09-05T08:18:43.820Z"
+    },
+    {
+      "sessionId": "EEV-SES-B7FBB67C",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "satvik@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:19:11.023Z"
+    },
+    {
+      "sessionId": "EEV-SES-B7FBB67C",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596351025"
+      },
+      "timestamp": "2026-09-05T08:19:11.026Z"
+    },
+    {
+      "sessionId": "EEV-SES-B7FBB67C",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALLING",
+        "to": "SLOT_CHECKED",
+        "location": "South Extension Showroom",
+        "preferred_date": "2026-09-07",
+        "preferred_time": "16:00"
+      },
+      "timestamp": "2026-09-05T08:19:11.208Z"
+    },
+    {
+      "sessionId": "EEV-SES-B7FBB67C",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:19:11.209Z"
+    },
+    {
+      "sessionId": "EEV-SES-B7FBB67C",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-91364",
+        "date": "2026-09-07",
+        "time": "16:00",
+        "location": "South Extension Showroom"
+      },
+      "timestamp": "2026-09-05T08:19:11.223Z"
+    },
+    {
+      "sessionId": "EEV-SES-B4051C45",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919812345678",
+        "customerEmail": "satvik.happy@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:20:45.617Z"
+    },
+    {
+      "sessionId": "EEV-SES-B4051C45",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596445618"
+      },
+      "timestamp": "2026-09-05T08:20:45.618Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919812345678",
+        "customerEmail": "satvik.happy@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:21:02.295Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596462298"
+      },
+      "timestamp": "2026-09-05T08:21:02.299Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALLING",
+        "to": "SLOT_CHECKED",
+        "location": "Noida Sector 62",
+        "preferred_date": "2026-09-10",
+        "preferred_time": "17:00"
+      },
+      "timestamp": "2026-09-05T08:21:02.324Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:21:02.325Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-63793",
+        "date": "2026-09-10",
+        "time": "17:00",
+        "location": "Noida Sector 62"
+      },
+      "timestamp": "2026-09-05T08:21:02.332Z"
+    },
+    {
+      "sessionId": "EEV-SES-5C370E8E",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919988776655",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:21:02.340Z"
+    },
+    {
+      "sessionId": "EEV-SES-5C370E8E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596462341"
+      },
+      "timestamp": "2026-09-05T08:21:02.341Z"
+    },
+    {
+      "sessionId": "EEV-SES-4C3375A0",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919811223344",
+        "customerEmail": "user@comet.in"
+      },
+      "timestamp": "2026-09-05T08:21:02.373Z"
+    },
+    {
+      "sessionId": "EEV-SES-4C3375A0",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALLING",
+        "bland_call_id": "bland_sim_1788596462374"
+      },
+      "timestamp": "2026-09-05T08:21:02.374Z"
+    },
+    {
+      "sessionId": "EEV-SES-8848D6D3",
+      "event": "BLAND_POST_CALL_WEBHOOK",
+      "payload": {
+        "callId": "bland_sim_1788596462298",
+        "status": "completed",
+        "duration": 145,
+        "recordingUrl": "https://bland.ai/recording/123.mp3",
+        "transcriptSummary": "User: Saturday 5 PM in Noida. Agent: Your slot is confirmed!"
+      },
+      "timestamp": "2026-09-05T08:21:02.379Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "customer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:16.520Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597676521"
+      },
+      "timestamp": "2026-09-05T08:41:16.521Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "CALL_CONNECTED"
+      },
+      "timestamp": "2026-09-05T08:41:16.534Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_sim_1788597676521",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:41:16.534Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CONNECTED",
+        "to": "SLOT_CHECKED",
+        "location": "Cyber City Hub, Gurgaon",
+        "preferred_date": "2026-09-06",
+        "preferred_time": "16:00"
+      },
+      "timestamp": "2026-09-05T08:41:16.598Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:41:16.598Z"
+    },
+    {
+      "sessionId": "EEV-SES-7737F6A1",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-74840",
+        "date": "2026-09-06",
+        "time": "16:00",
+        "location": "Cyber City Hub, Gurgaon"
+      },
+      "timestamp": "2026-09-05T08:41:16.605Z"
+    },
+    {
+      "sessionId": "EEV-SES-1A9D39A5",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919911223344",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:16.666Z"
+    },
+    {
+      "sessionId": "EEV-SES-1A9D39A5",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597676667"
+      },
+      "timestamp": "2026-09-05T08:41:16.667Z"
+    },
+    {
+      "sessionId": "EEV-SES-03A51649",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "customer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:26.491Z"
+    },
+    {
+      "sessionId": "EEV-SES-03A51649",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597686492"
+      },
+      "timestamp": "2026-09-05T08:41:26.492Z"
+    },
+    {
+      "sessionId": "EEV-SES-03A51649",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "CALL_CONNECTED"
+      },
+      "timestamp": "2026-09-05T08:41:26.502Z"
+    },
+    {
+      "sessionId": "EEV-SES-03A51649",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_sim_1788597686492",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:41:26.502Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "customer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:40.091Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597700092"
+      },
+      "timestamp": "2026-09-05T08:41:40.092Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "CALL_CONNECTED"
+      },
+      "timestamp": "2026-09-05T08:41:40.106Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_sim_1788597700092",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:41:40.107Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CONNECTED",
+        "to": "SLOT_CHECKED",
+        "location": "Hub-9989, Gurgaon",
+        "preferred_date": "2026-09-20",
+        "preferred_time": "16:00"
+      },
+      "timestamp": "2026-09-05T08:41:40.115Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:41:40.115Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-17253",
+        "date": "2026-09-20",
+        "time": "16:00",
+        "location": "Hub-9989, Gurgaon"
+      },
+      "timestamp": "2026-09-05T08:41:40.120Z"
+    },
+    {
+      "sessionId": "EEV-SES-C027BDBE",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919911223344",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:40.130Z"
+    },
+    {
+      "sessionId": "EEV-SES-C027BDBE",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597700131"
+      },
+      "timestamp": "2026-09-05T08:41:40.131Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A6999B6",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "mg.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:40.181Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A6999B6",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597700182"
+      },
+      "timestamp": "2026-09-05T08:41:40.182Z"
+    },
+    {
+      "sessionId": "EEV-SES-4D43404E",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_sim_1788597700092",
+        "status": "ended",
+        "disconnectionReason": "user_hangup",
+        "durationMs": 124000,
+        "transcriptSummary": "Customer confirmed test drive booking for tomorrow at 4 PM in Gurgaon."
+      },
+      "timestamp": "2026-09-05T08:41:40.189Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "customer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:47.370Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597707371"
+      },
+      "timestamp": "2026-09-05T08:41:47.371Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "CALL_CONNECTED"
+      },
+      "timestamp": "2026-09-05T08:41:47.388Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_sim_1788597707371",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:41:47.388Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CONNECTED",
+        "to": "SLOT_CHECKED",
+        "location": "Hub-7303, Gurgaon",
+        "preferred_date": "2026-09-20",
+        "preferred_time": "16:00"
+      },
+      "timestamp": "2026-09-05T08:41:47.394Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:41:47.394Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-27354",
+        "date": "2026-09-20",
+        "time": "16:00",
+        "location": "Hub-7303, Gurgaon"
+      },
+      "timestamp": "2026-09-05T08:41:47.399Z"
+    },
+    {
+      "sessionId": "EEV-SES-F8764436",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919911223344",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:47.415Z"
+    },
+    {
+      "sessionId": "EEV-SES-F8764436",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597707416"
+      },
+      "timestamp": "2026-09-05T08:41:47.417Z"
+    },
+    {
+      "sessionId": "EEV-SES-EAED8262",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "mg.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:41:47.473Z"
+    },
+    {
+      "sessionId": "EEV-SES-EAED8262",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597707474"
+      },
+      "timestamp": "2026-09-05T08:41:47.475Z"
+    },
+    {
+      "sessionId": "EEV-SES-C6289770",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_sim_1788597707371",
+        "status": "ended",
+        "disconnectionReason": "user_hangup",
+        "durationMs": 124000,
+        "transcriptSummary": "Customer confirmed test drive booking for tomorrow at 4 PM in Gurgaon."
+      },
+      "timestamp": "2026-09-05T08:41:47.485Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "customer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:42:03.215Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597723216"
+      },
+      "timestamp": "2026-09-05T08:42:03.217Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "CALL_CONNECTED"
+      },
+      "timestamp": "2026-09-05T08:42:03.229Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_sim_1788597723216",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:42:03.229Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CONNECTED",
+        "to": "SLOT_CHECKED",
+        "location": "Hub-3159, Gurgaon",
+        "preferred_date": "2026-09-20",
+        "preferred_time": "16:00"
+      },
+      "timestamp": "2026-09-05T08:42:03.282Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:42:03.283Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-22207",
+        "date": "2026-09-20",
+        "time": "16:00",
+        "location": "Hub-3159, Gurgaon"
+      },
+      "timestamp": "2026-09-05T08:42:03.286Z"
+    },
+    {
+      "sessionId": "EEV-SES-4A6D37DA",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919911223344",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:42:03.332Z"
+    },
+    {
+      "sessionId": "EEV-SES-4A6D37DA",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597723333"
+      },
+      "timestamp": "2026-09-05T08:42:03.333Z"
+    },
+    {
+      "sessionId": "EEV-SES-11DF5EFC",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "mg.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:42:03.379Z"
+    },
+    {
+      "sessionId": "EEV-SES-11DF5EFC",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597723380"
+      },
+      "timestamp": "2026-09-05T08:42:03.380Z"
+    },
+    {
+      "sessionId": "EEV-SES-482031E8",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_sim_1788597723216",
+        "status": "ended",
+        "disconnectionReason": "user_hangup",
+        "durationMs": 124000,
+        "transcriptSummary": "Customer confirmed test drive booking for tomorrow at 4 PM in Gurgaon."
+      },
+      "timestamp": "2026-09-05T08:42:03.386Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "buyer.punch@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:43:05.237Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597785241"
+      },
+      "timestamp": "2026-09-05T08:43:05.242Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "Noida Cyber Hub 1788597785",
+        "preferred_date": "2026-10-15",
+        "preferred_time": "17:00"
+      },
+      "timestamp": "2026-09-05T08:43:05.651Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T08:43:05.651Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-48562",
+        "date": "2026-10-15",
+        "time": "17:00",
+        "location": "Noida Cyber Hub 1788597785"
+      },
+      "timestamp": "2026-09-05T08:43:05.825Z"
+    },
+    {
+      "sessionId": "EEV-SES-5F015381",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:43:05.891Z"
+    },
+    {
+      "sessionId": "EEV-SES-5F015381",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597785893"
+      },
+      "timestamp": "2026-09-05T08:43:05.893Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "RETELL_CALL_STARTED",
+      "payload": {
+        "callId": "retell_call_1788597785",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:43:06.173Z"
+    },
+    {
+      "sessionId": "EEV-SES-357B3509",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_call_1788597785",
+        "status": "ended",
+        "disconnectionReason": "user_hangup",
+        "durationMs": 142000,
+        "transcriptSummary": "User confirmed booking for Tata Punch.ev."
+      },
+      "timestamp": "2026-09-05T08:43:06.193Z"
+    },
+    {
+      "sessionId": "EEV-SES-D056F3CD",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919900112233",
+        "customerEmail": "noanswer@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:43:06.211Z"
+    },
+    {
+      "sessionId": "EEV-SES-D056F3CD",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597786212"
+      },
+      "timestamp": "2026-09-05T08:43:06.212Z"
+    },
+    {
+      "sessionId": "EEV-SES-D056F3CD",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "NO_ANSWER"
+      },
+      "timestamp": "2026-09-05T08:43:06.313Z"
+    },
+    {
+      "sessionId": "EEV-SES-D056F3CD",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_na_1788597785",
+        "status": "completed",
+        "disconnectionReason": "dial_no_answer",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:43:06.313Z"
+    },
+    {
+      "sessionId": "EEV-SES-26851B09",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919900445566",
+        "customerEmail": "busy@easyev.in"
+      },
+      "timestamp": "2026-09-05T08:43:06.417Z"
+    },
+    {
+      "sessionId": "EEV-SES-26851B09",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "retell_call_id": "retell_sim_1788597786418"
+      },
+      "timestamp": "2026-09-05T08:43:06.418Z"
+    },
+    {
+      "sessionId": "EEV-SES-26851B09",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "BUSY"
+      },
+      "timestamp": "2026-09-05T08:43:06.517Z"
+    },
+    {
+      "sessionId": "EEV-SES-26851B09",
+      "event": "RETELL_CALL_ENDED",
+      "payload": {
+        "callId": "retell_busy_1788597785",
+        "status": "completed",
+        "disconnectionReason": "dial_busy",
+        "durationMs": null,
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T08:43:06.518Z"
+    },
+    {
+      "sessionId": "EEV-SES-3B6056EA",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919812345678",
+        "customerEmail": "satvik.happy@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:03:56.921Z"
+    },
+    {
+      "sessionId": "EEV-SES-3B6056EA",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_FAILED",
+        "error": "International calling requires a completed purchase. Adding a card by itself does not enable it — buy credits or turn on auto-recharge, and international calling unlocks once your payment settles."
+      },
+      "timestamp": "2026-09-05T09:04:02.772Z"
+    },
+    {
+      "sessionId": "EEV-SES-DF5AF9E5",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919812345678",
+        "customerEmail": "satvik.happy@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:21.306Z"
+    },
+    {
+      "sessionId": "EEV-SES-DF5AF9E5",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599066892"
+      },
+      "timestamp": "2026-09-05T09:04:26.892Z"
+    },
+    {
+      "sessionId": "EEV-SES-8CE55FA7",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919988776655",
+        "customerEmail": "userb@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:26.996Z"
+    },
+    {
+      "sessionId": "EEV-SES-8CE55FA7",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599073170"
+      },
+      "timestamp": "2026-09-05T09:04:33.170Z"
+    },
+    {
+      "sessionId": "EEV-SES-FFF332A5",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919811223344",
+        "customerEmail": "user@comet.in"
+      },
+      "timestamp": "2026-09-05T09:04:33.238Z"
+    },
+    {
+      "sessionId": "EEV-SES-FFF332A5",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599078498"
+      },
+      "timestamp": "2026-09-05T09:04:38.499Z"
+    },
+    {
+      "sessionId": "EEV-SES-DF5AF9E5",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_sim_1788599066892",
+        "status": "completed",
+        "disconnectionReason": "",
+        "durationSec": 145,
+        "recordingUrl": "https://bland.ai/recording/123.mp3",
+        "transcriptSummary": "User: Saturday 5 PM in Noida. Agent: Your slot is confirmed!"
+      },
+      "timestamp": "2026-09-05T09:04:38.612Z"
+    },
+    {
+      "sessionId": "EEV-SES-D1FE7020",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "buyer.punch@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:38.655Z"
+    },
+    {
+      "sessionId": "EEV-SES-D1FE7020",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599079067"
+      },
+      "timestamp": "2026-09-05T09:04:39.067Z"
+    },
+    {
+      "sessionId": "EEV-SES-D1FE7020",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "Noida Cyber Hub 1788599078",
+        "preferred_date": "2026-10-15",
+        "preferred_time": "17:00"
+      },
+      "timestamp": "2026-09-05T09:04:39.412Z"
+    },
+    {
+      "sessionId": "EEV-SES-D1FE7020",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:04:39.414Z"
+    },
+    {
+      "sessionId": "EEV-SES-D1FE7020",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-44416",
+        "date": "2026-10-15",
+        "time": "17:00",
+        "location": "Noida Cyber Hub 1788599078"
+      },
+      "timestamp": "2026-09-05T09:04:39.585Z"
+    },
+    {
+      "sessionId": "EEV-SES-C723B2D5",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:39.674Z"
+    },
+    {
+      "sessionId": "EEV-SES-C723B2D5",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599080077"
+      },
+      "timestamp": "2026-09-05T09:04:40.077Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919876543210",
+        "customerEmail": "buyer.punch@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:53.448Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599093886"
+      },
+      "timestamp": "2026-09-05T09:04:53.886Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "Noida Cyber Hub 1788599093",
+        "preferred_date": "2026-10-15",
+        "preferred_time": "17:00"
+      },
+      "timestamp": "2026-09-05T09:04:54.206Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:04:54.207Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-91289",
+        "date": "2026-10-15",
+        "time": "17:00",
+        "location": "Noida Cyber Hub 1788599093"
+      },
+      "timestamp": "2026-09-05T09:04:54.384Z"
+    },
+    {
+      "sessionId": "EEV-SES-EE667340",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-punch-ev",
+        "customerPhone": "+919988112233",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:54.446Z"
+    },
+    {
+      "sessionId": "EEV-SES-EE667340",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599094855"
+      },
+      "timestamp": "2026-09-05T09:04:54.855Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_call_1788599093",
+        "status": "in-progress",
+        "disconnectionReason": "",
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T09:04:55.154Z"
+    },
+    {
+      "sessionId": "EEV-SES-B773C5B3",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_call_1788599093",
+        "status": "completed",
+        "disconnectionReason": "user_hangup",
+        "durationSec": 142,
+        "transcriptSummary": "User confirmed booking for Tata Punch.ev."
+      },
+      "timestamp": "2026-09-05T09:04:55.174Z"
+    },
+    {
+      "sessionId": "EEV-SES-F38205AF",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919900112233",
+        "customerEmail": "noanswer@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:55.195Z"
+    },
+    {
+      "sessionId": "EEV-SES-F38205AF",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599095605"
+      },
+      "timestamp": "2026-09-05T09:04:55.605Z"
+    },
+    {
+      "sessionId": "EEV-SES-F38205AF",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "NO_ANSWER"
+      },
+      "timestamp": "2026-09-05T09:04:55.726Z"
+    },
+    {
+      "sessionId": "EEV-SES-F38205AF",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_na_1788599093",
+        "status": "completed",
+        "disconnectionReason": "no-answer",
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T09:04:55.728Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A37870F",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "mg-comet-ev",
+        "customerPhone": "+919900445566",
+        "customerEmail": "busy@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:04:55.833Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A37870F",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599096230"
+      },
+      "timestamp": "2026-09-05T09:04:56.230Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A37870F",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "BUSY"
+      },
+      "timestamp": "2026-09-05T09:04:56.348Z"
+    },
+    {
+      "sessionId": "EEV-SES-0A37870F",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_busy_1788599093",
+        "status": "completed",
+        "disconnectionReason": "busy",
+        "transcriptSummary": ""
+      },
+      "timestamp": "2026-09-05T09:04:56.350Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "nexon.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:06:15.396Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599176026"
+      },
+      "timestamp": "2026-09-05T09:06:16.026Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "EasyEV Superhub DLF Phase 5 1788599175",
+        "preferred_date": "2026-11-20",
+        "preferred_time": "16:30"
+      },
+      "timestamp": "2026-09-05T09:06:16.355Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:06:16.356Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-16900",
+        "date": "2026-11-20",
+        "time": "16:30",
+        "location": "EasyEV Superhub DLF Phase 5 1788599175"
+      },
+      "timestamp": "2026-09-05T09:06:16.501Z"
+    },
+    {
+      "sessionId": "EEV-SES-C1818C78",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919899001122",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:06:16.549Z"
+    },
+    {
+      "sessionId": "EEV-SES-C1818C78",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599176955"
+      },
+      "timestamp": "2026-09-05T09:06:16.955Z"
+    },
+    {
+      "sessionId": "EEV-SES-A1C9A1C4",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_deep_1788599175",
+        "status": "completed",
+        "disconnectionReason": "user_hangup",
+        "durationSec": 180,
+        "transcriptSummary": "Customer confirmed test drive booking."
+      },
+      "timestamp": "2026-09-05T09:06:17.498Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "nexon.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:06:49.020Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599209491"
+      },
+      "timestamp": "2026-09-05T09:06:49.492Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "EasyEV Superhub DLF Phase 5 1788599208",
+        "preferred_date": "2026-11-20",
+        "preferred_time": "16:30"
+      },
+      "timestamp": "2026-09-05T09:06:49.830Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:06:49.835Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-11709",
+        "date": "2026-11-20",
+        "time": "16:30",
+        "location": "EasyEV Superhub DLF Phase 5 1788599208"
+      },
+      "timestamp": "2026-09-05T09:06:49.981Z"
+    },
+    {
+      "sessionId": "EEV-SES-DCF2D4BD",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919899001122",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:06:50.020Z"
+    },
+    {
+      "sessionId": "EEV-SES-DCF2D4BD",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599210424"
+      },
+      "timestamp": "2026-09-05T09:06:50.424Z"
+    },
+    {
+      "sessionId": "EEV-SES-FA9150DB",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_deep_1788599208",
+        "status": "completed",
+        "disconnectionReason": "user_hangup",
+        "durationSec": 180,
+        "transcriptSummary": "Customer confirmed test drive booking."
+      },
+      "timestamp": "2026-09-05T09:06:50.672Z"
+    },
+    {
+      "sessionId": "EEV-SES-69091640",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "nexon.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:11.303Z"
+    },
+    {
+      "sessionId": "EEV-SES-69091640",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599591777"
+      },
+      "timestamp": "2026-09-05T09:13:11.778Z"
+    },
+    {
+      "sessionId": "EEV-SES-69091640",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "EasyEV Superhub DLF Phase 5 1788599591",
+        "preferred_date": "2026-11-20",
+        "preferred_time": "16:30"
+      },
+      "timestamp": "2026-09-05T09:13:12.058Z"
+    },
+    {
+      "sessionId": "EEV-SES-69091640",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:13:12.060Z"
+    },
+    {
+      "sessionId": "EEV-SES-69091640",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-88840",
+        "date": "2026-11-20",
+        "time": "16:30",
+        "location": "EasyEV Superhub DLF Phase 5 1788599591"
+      },
+      "timestamp": "2026-09-05T09:13:12.218Z"
+    },
+    {
+      "sessionId": "EEV-SES-3EE9F663",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919899001122",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:12.317Z"
+    },
+    {
+      "sessionId": "EEV-SES-3EE9F663",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599592726"
+      },
+      "timestamp": "2026-09-05T09:13:12.726Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "nexon.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:28.529Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599609002"
+      },
+      "timestamp": "2026-09-05T09:13:29.003Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "EasyEV Superhub DLF Phase 5 1788599608",
+        "preferred_date": "2026-11-20",
+        "preferred_time": "16:30"
+      },
+      "timestamp": "2026-09-05T09:13:29.253Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:13:29.254Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-99777",
+        "date": "2026-11-20",
+        "time": "16:30",
+        "location": "EasyEV Superhub DLF Phase 5 1788599608"
+      },
+      "timestamp": "2026-09-05T09:13:29.499Z"
+    },
+    {
+      "sessionId": "EEV-SES-B264B025",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919899001122",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:29.567Z"
+    },
+    {
+      "sessionId": "EEV-SES-B264B025",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599609983"
+      },
+      "timestamp": "2026-09-05T09:13:29.983Z"
+    },
+    {
+      "sessionId": "EEV-SES-D2CE99B4",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_deep_1788599608",
+        "status": "completed",
+        "disconnectionReason": "user_hangup",
+        "durationSec": 180,
+        "transcriptSummary": "Customer confirmed test drive booking."
+      },
+      "timestamp": "2026-09-05T09:13:30.235Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919811122233",
+        "customerEmail": "nexon.driver@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:41.328Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599621826"
+      },
+      "timestamp": "2026-09-05T09:13:41.826Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "CALL_CREATED",
+        "to": "SLOT_CHECKED",
+        "location": "EasyEV Superhub DLF Phase 5 1788599621",
+        "preferred_date": "2026-11-20",
+        "preferred_time": "16:30"
+      },
+      "timestamp": "2026-09-05T09:13:42.073Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "SLOT_CHECKED",
+        "to": "AWAITING_CONFIRMATION"
+      },
+      "timestamp": "2026-09-05T09:13:42.075Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "BOOKING_CREATED",
+      "payload": {
+        "bookingId": "EEV-TD-86538",
+        "date": "2026-11-20",
+        "time": "16:30",
+        "location": "EasyEV Superhub DLF Phase 5 1788599621"
+      },
+      "timestamp": "2026-09-05T09:13:42.218Z"
+    },
+    {
+      "sessionId": "EEV-SES-151C74CF",
+      "event": "SESSION_CREATED",
+      "payload": {
+        "vehicleId": "tata-nexon-ev",
+        "customerPhone": "+919899001122",
+        "customerEmail": "user2@easyev.in"
+      },
+      "timestamp": "2026-09-05T09:13:42.255Z"
+    },
+    {
+      "sessionId": "EEV-SES-151C74CF",
+      "event": "STATUS_TRANSITION",
+      "payload": {
+        "from": "INITIATED",
+        "to": "CALL_CREATED",
+        "bland_call_id": "bland_sim_1788599622662"
+      },
+      "timestamp": "2026-09-05T09:13:42.662Z"
+    },
+    {
+      "sessionId": "EEV-SES-ADCF27B0",
+      "event": "BLAND_POST_CALL",
+      "payload": {
+        "callId": "bland_deep_1788599621",
+        "status": "completed",
+        "disconnectionReason": "user_hangup",
+        "durationSec": 180,
+        "transcriptSummary": "Customer confirmed test drive booking."
+      },
+      "timestamp": "2026-09-05T09:13:42.899Z"
+    }
+  ],
+  "lastUpdated": "2026-09-05T09:13:45.158Z"
+}

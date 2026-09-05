@@ -217,6 +217,102 @@ button { color:inherit; }
 @keyframes pulse { 50% { opacity:.45;transform:scale(.82); } }
 @keyframes thought { 50% { transform:translateY(-6px);opacity:.45; } }
 
+/* ------------------ Test Drive Modal Styles ------------------ */
+.test-drive-modal-overlay {
+  position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:16px;
+  background:rgba(5,20,12,.7);backdrop-filter:blur(8px);
+  opacity:1;visibility:visible;transition:opacity .25s ease,visibility .25s ease;
+}
+.test-drive-modal-overlay[hidden] {
+  opacity:0;visibility:hidden;display:none;
+}
+.test-drive-modal-card {
+  position:relative;width:min(440px,100%);max-height:90vh;overflow-y:auto;
+  background:#fff;border-radius:22px;border:1px solid rgba(16,36,28,.1);
+  box-shadow:0 24px 64px rgba(5,20,12,.3);animation:tdModalIn .25s cubic-bezier(0.16,1,0.3,1);
+}
+@keyframes tdModalIn {
+  from { opacity:0;transform:scale(.95) translateY(12px); }
+  to { opacity:1;transform:scale(1) translateY(0); }
+}
+.td-modal-header {
+  display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;
+  border-bottom:1px solid #eef2ef;background:#fafbfa;border-radius:22px 22px 0 0;
+}
+.td-modal-header-info { display:flex;align-items:center;gap:12px; }
+.td-modal-thumb { width:46px;height:46px;border-radius:12px;object-fit:cover;background:#eef2ef;border:1px solid #e2e8e4; }
+.td-modal-title h3 { margin:0;font-size:16px;font-weight:800;letter-spacing:-.025em;color:var(--forest); }
+.td-modal-title span { font-size:11px;color:#189658;font-weight:700; }
+.td-modal-close {
+  width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:50%;
+  background:#edf2ee;color:#536158;cursor:pointer;font-size:16px;font-weight:700;transition:.2s ease;
+}
+.td-modal-close:hover { background:#dce4df;color:#111; }
+.td-modal-body { padding:20px; }
+
+.td-intro-box {
+  display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:14px;
+  background:#f0faf4;border:1px solid #c9eed7;color:#135936;font-size:11.5px;line-height:1.45;margin-bottom:18px;
+}
+.td-intro-icon { font-size:18px;flex:0 0 auto;margin-top:1px; }
+
+.td-form-group { margin-bottom:14px;text-align:left; }
+.td-form-group label { display:block;margin-bottom:6px;font-size:11px;font-weight:750;color:#334038;text-transform:uppercase;letter-spacing:.04em; }
+.td-input-wrapper { display:flex;align-items:center;border:1.5px solid #dce4df;border-radius:12px;background:#fff;transition:border-color .2s;overflow:hidden; }
+.td-input-wrapper:focus-within { border-color:#189658;box-shadow:0 0 0 3px rgba(24,150,88,.12); }
+.td-input-prefix { padding:0 12px;font-size:12px;font-weight:700;color:#6b7870;background:#f3f6f4;border-right:1px solid #dce4df;line-height:42px;user-select:none; }
+.td-input { width:100%;height:42px;padding:0 14px;border:0;outline:none;font-size:13px;color:#111714;font-weight:600;background:transparent; }
+.td-input::placeholder { color:#a1ada5;font-weight:400; }
+
+.td-error-banner {
+  padding:10px 14px;margin-bottom:14px;border-radius:10px;background:#fef2f2;border:1px solid #fecaca;
+  color:#991b1b;font-size:11.5px;line-height:1.4;display:none;
+}
+.td-error-banner.is-visible { display:block; }
+
+.td-submit-btn {
+  width:100%;padding:14px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,#10241c 0%,#184533 100%);
+  color:#fff;font-size:13px;font-weight:800;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,background .2s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 10px 24px rgba(16,36,28,.18);
+}
+.td-submit-btn:hover { transform:translateY(-1px);background:linear-gradient(135deg,#0c1d16 0%,#133728 100%);box-shadow:0 14px 30px rgba(16,36,28,.25); }
+.td-submit-btn:disabled { opacity:.6;cursor:not-allowed;transform:none;box-shadow:none; }
+.td-trust-note { margin:10px 0 0;text-align:center;font-size:10px;color:#85928a; }
+
+/* Calling State */
+.td-calling-card { text-align:center;padding:12px 6px; }
+.td-pulse-ring {
+  width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:rgba(24,150,88,.12);
+  display:grid;place-items:center;font-size:28px;position:relative;
+}
+.td-pulse-ring::before {
+  content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid #28b66d;
+  animation:tdRingPulse 1.4s cubic-bezier(0.24,0,0.38,1) infinite;
+}
+@keyframes tdRingPulse { 0% { transform:scale(.8);opacity:.9; } 100% { transform:scale(1.35);opacity:0; } }
+.td-calling-card h4 { margin:0 0 6px;font-size:17px;font-weight:800;color:#10241c; }
+.td-calling-card p { margin:0 0 18px;font-size:12px;color:#5f6e65;line-height:1.45; }
+.td-steps-list { text-align:left;background:#f7f9f7;border-radius:14px;padding:14px;margin-bottom:18px;display:grid;gap:10px; }
+.td-step-item { display:flex;align-items:center;gap:10px;font-size:11.5px;color:#445249;font-weight:600; }
+.td-step-item i { width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-style:normal;font-weight:800; }
+.td-step-item.is-done i { background:#22c55e;color:#fff; }
+.td-step-item.is-active i { background:#f59e0b;color:#fff;animation:tdDotPulse 1s infinite alternate; }
+.td-step-item.is-pending i { background:#e2e8e4;color:#85928a; }
+@keyframes tdDotPulse { from { opacity:.6; } to { opacity:1; } }
+
+/* Confirmed State */
+.td-confirmed-card { text-align:center;padding:10px 4px; }
+.td-success-icon { width:58px;height:58px;margin:0 auto 14px;border-radius:50%;background:#dcfce7;color:#15803d;display:grid;place-items:center;font-size:28px; }
+.td-confirmed-card h4 { margin:0 0 6px;font-size:18px;font-weight:850;color:#10241c; }
+.td-confirmed-card p { margin:0 0 16px;font-size:12px;color:#5f6e65;line-height:1.45; }
+.td-booking-ref-box { background:#f8faf8;border:1px solid #dce8e0;border-radius:14px;padding:14px;margin-bottom:18px;text-align:left; }
+.td-booking-ref-id { font-size:11px;font-weight:800;color:#15803d;letter-spacing:.05em;margin-bottom:8px;text-transform:uppercase; }
+.td-booking-row { display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed #e5ece7; }
+.td-booking-row:last-child { border-bottom:0; }
+.td-booking-row span { color:#75857c; }
+.td-booking-row strong { color:#10241c;font-weight:700; }
+.td-done-btn { width:100%;padding:12px;border:0;border-radius:12px;background:#10241c;color:#fff;font-weight:750;font-size:12px;cursor:pointer; }
+
 @media (max-width:1180px) {
   .workspace { grid-template-columns:235px minmax(420px,1fr); }
   .detail-panel { display:none; }

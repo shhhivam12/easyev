@@ -1,5 +1,167 @@
 [
   {
+    "id": "EEV-DLR-2026-2831",
+    "shopName": "Apex EV Motors",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Vikram Malhotra",
+      "role": "Showroom Lead",
+      "phone": "+919811223344",
+      "email": "vikram@apexev.in",
+      "whatsapp": "+919811223344"
+    },
+    "location": {
+      "address": "Main Road",
+      "landmark": "",
+      "city": "Gurgaon",
+      "state": "Haryana",
+      "pincode": "122002",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W"
+    ],
+    "brands": [
+      "Tata",
+      "MG",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T09:13:43.005Z"
+  },
+  {
+    "id": "EEV-DLR-2026-2604",
+    "shopName": "Apex EV Motors",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Vikram Malhotra",
+      "role": "Showroom Lead",
+      "phone": "+919811223344",
+      "email": "vikram@apexev.in",
+      "whatsapp": "+919811223344"
+    },
+    "location": {
+      "address": "Main Road",
+      "landmark": "",
+      "city": "Gurgaon",
+      "state": "Haryana",
+      "pincode": "122002",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W"
+    ],
+    "brands": [
+      "Tata",
+      "MG",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T09:13:30.342Z"
+  },
+  {
     "id": "EEV-DLR-2026-8859",
     "shopName": "Eco Drive Hub Gmail Test",
     "dealerType": "Authorized OEM Dealership",
@@ -5500,21 +5662,21 @@
   },
   {
     "id": "EEV-DLR-2026-3647",
-    "shopName": "GreenRide EV Hub",
+    "shopName": "Electra Wheels EV Studio",
     "dealerType": "Authorized OEM Dealership",
     "contactPerson": {
       "name": "Store Manager",
       "role": "Showroom Lead",
-      "phone": "9988776655",
-      "email": "amit.ev@greenride.in",
-      "whatsapp": "9988776655"
+      "phone": "9988774410",
+      "email": "rakesh.electra@gmail.com",
+      "whatsapp": "9988774410"
     },
     "location": {
-      "address": "Sector 62 Electronic",
+      "address": "Plot 42, Opposite Apollo Hospital, Bannerghatta Main Road",
       "landmark": "",
-      "city": "Noida",
+      "city": "Bengaluru",
       "state": "Delhi",
-      "pincode": "201301",
+      "pincode": "560076",
       "coordinates": {
         "lat": 28.6139,
         "lng": 77.209
@@ -5523,7 +5685,7 @@
     "timings": {
       "openTime": "09:30 AM",
       "closeTime": "08:30 PM",
-      "workingDays": "All 7 Days",
+      "workingDays": "Monday to Saturday",
       "allDaysOpen": true
     },
     "categories": [
@@ -5534,7 +5696,7 @@
     ],
     "brands": [
       "Tata Motors",
-      "Mahindra"
+      "Ather Energy"
     ],
     "inventoryScale": "5-15 EVs",
     "services": {
@@ -5579,7 +5741,7 @@
       ]
     },
     "verificationStatus": "verified",
-    "registeredAt": "2026-09-04T21:01:21.330Z"
+    "registeredAt": "2026-09-04T20:40:41.315Z"
   },
   {
     "id": "EEV-DLR-2026-9142",
@@ -7645,89 +7807,6 @@
     },
     "verificationStatus": "verified",
     "registeredAt": "2026-09-04T20:40:41.548Z"
-  },
-  {
-    "id": "EEV-DLR-2026-3647",
-    "shopName": "Electra Wheels EV Studio",
-    "dealerType": "Authorized OEM Dealership",
-    "contactPerson": {
-      "name": "Store Manager",
-      "role": "Showroom Lead",
-      "phone": "9988774410",
-      "email": "rakesh.electra@gmail.com",
-      "whatsapp": "9988774410"
-    },
-    "location": {
-      "address": "Plot 42, Opposite Apollo Hospital, Bannerghatta Main Road",
-      "landmark": "",
-      "city": "Bengaluru",
-      "state": "Delhi",
-      "pincode": "560076",
-      "coordinates": {
-        "lat": 28.6139,
-        "lng": 77.209
-      }
-    },
-    "timings": {
-      "openTime": "09:30 AM",
-      "closeTime": "08:30 PM",
-      "workingDays": "Monday to Saturday",
-      "allDaysOpen": true
-    },
-    "categories": [
-      "4W",
-      "2W",
-      "3W",
-      "commercial"
-    ],
-    "brands": [
-      "Tata Motors",
-      "Ather Energy"
-    ],
-    "inventoryScale": "5-15 EVs",
-    "services": {
-      "emiAvailable": true,
-      "emiPartners": [
-        "HDFC Bank",
-        "SBI",
-        "Tata Capital",
-        "Bajaj Finserv"
-      ],
-      "minDownPaymentPercent": 10,
-      "insuranceAvailable": true,
-      "insuranceTypes": [
-        "Comprehensive",
-        "Zero-Depreciation",
-        "Battery Cover"
-      ],
-      "extendedWarranty": true,
-      "batteryAssurance": true,
-      "chargingOnSite": true,
-      "chargerType": "Fast DC (50kW)"
-    },
-    "testDrive": {
-      "showroomTestDrive": true,
-      "homeTestDrive": true,
-      "availableSlots": [
-        {
-          "id": "morning",
-          "label": "Morning (10:00 AM - 01:00 PM)",
-          "active": true
-        },
-        {
-          "id": "afternoon",
-          "label": "Afternoon (01:00 PM - 05:00 PM)",
-          "active": true
-        },
-        {
-          "id": "evening",
-          "label": "Evening (05:00 PM - 08:00 PM)",
-          "active": true
-        }
-      ]
-    },
-    "verificationStatus": "verified",
-    "registeredAt": "2026-09-04T20:40:41.315Z"
   },
   {
     "id": "EEV-DLR-2026-4077",
@@ -14160,7 +14239,7 @@
       ]
     },
     "verificationStatus": "verified",
-    "registeredAt": "2026-09-04T14:41:04.794Z"
+    "registeredAt": "2026-09-04T14:40:24.931Z"
   },
   {
     "id": "EEV-DLR-2026-3124",
@@ -14244,89 +14323,6 @@
     },
     "verificationStatus": "verified",
     "registeredAt": "2026-09-04T14:40:40.585Z"
-  },
-  {
-    "id": "EEV-DLR-2026-7742",
-    "shopName": "शक्ति मोटर्स",
-    "dealerType": "Authorized OEM Dealership",
-    "contactPerson": {
-      "name": "Store Manager",
-      "role": "Showroom Lead",
-      "phone": "9876543210",
-      "email": "dealer@easyev.in",
-      "whatsapp": "9876543210"
-    },
-    "location": {
-      "address": "बानेर रोड",
-      "landmark": "",
-      "city": "Pune",
-      "state": "Karnataka",
-      "pincode": "411045",
-      "coordinates": {
-        "lat": 28.6139,
-        "lng": 77.209
-      }
-    },
-    "timings": {
-      "openTime": "09:30 AM",
-      "closeTime": "08:30 PM",
-      "workingDays": "All 7 Days",
-      "allDaysOpen": true
-    },
-    "categories": [
-      "4W",
-      "2W",
-      "3W"
-    ],
-    "brands": [
-      "Tata Motors",
-      "Ather Energy",
-      "Ola Electric"
-    ],
-    "inventoryScale": "5-15 EVs",
-    "services": {
-      "emiAvailable": true,
-      "emiPartners": [
-        "HDFC Bank",
-        "SBI",
-        "Tata Capital",
-        "Bajaj Finserv"
-      ],
-      "minDownPaymentPercent": 10,
-      "insuranceAvailable": true,
-      "insuranceTypes": [
-        "Comprehensive",
-        "Zero-Depreciation",
-        "Battery Cover"
-      ],
-      "extendedWarranty": true,
-      "batteryAssurance": true,
-      "chargingOnSite": true,
-      "chargerType": "Fast DC (50kW - 60kW)"
-    },
-    "testDrive": {
-      "showroomTestDrive": true,
-      "homeTestDrive": true,
-      "availableSlots": [
-        {
-          "id": "morning",
-          "label": "Morning (10:00 AM - 01:00 PM)",
-          "active": true
-        },
-        {
-          "id": "afternoon",
-          "label": "Afternoon (01:00 PM - 05:00 PM)",
-          "active": true
-        },
-        {
-          "id": "evening",
-          "label": "Evening (05:00 PM - 08:00 PM)",
-          "active": true
-        }
-      ]
-    },
-    "verificationStatus": "verified",
-    "registeredAt": "2026-09-04T14:40:24.931Z"
   },
   {
     "id": "EEV-DLR-2026-9858",
@@ -16114,5 +16110,86 @@
     },
     "verificationStatus": "verified",
     "registeredAt": "2026-09-03T16:20:00.000Z"
+  },
+  {
+    "id": "EEV-DLR-2026-8301",
+    "shopName": "Apex EV Motors",
+    "dealerType": "Authorized OEM Dealership",
+    "contactPerson": {
+      "name": "Vikram Malhotra",
+      "role": "Showroom Lead",
+      "phone": "+919811223344",
+      "email": "vikram@apexev.in",
+      "whatsapp": "+919811223344"
+    },
+    "location": {
+      "address": "Main Road",
+      "landmark": "",
+      "city": "Gurgaon",
+      "state": "Haryana",
+      "pincode": "122002",
+      "coordinates": {
+        "lat": 28.6139,
+        "lng": 77.209
+      }
+    },
+    "timings": {
+      "openTime": "09:30 AM",
+      "closeTime": "08:30 PM",
+      "workingDays": "All 7 Days",
+      "allDaysOpen": true
+    },
+    "categories": [
+      "4W"
+    ],
+    "brands": [
+      "Tata",
+      "MG",
+      "Mahindra"
+    ],
+    "inventoryScale": "5-15 EVs",
+    "services": {
+      "emiAvailable": true,
+      "emiPartners": [
+        "HDFC Bank",
+        "SBI",
+        "Tata Capital",
+        "Bajaj Finserv"
+      ],
+      "minDownPaymentPercent": 10,
+      "insuranceAvailable": true,
+      "insuranceTypes": [
+        "Comprehensive",
+        "Zero-Depreciation",
+        "Battery Cover"
+      ],
+      "extendedWarranty": true,
+      "batteryAssurance": true,
+      "chargingOnSite": true,
+      "chargerType": "Fast DC (50kW)"
+    },
+    "testDrive": {
+      "showroomTestDrive": true,
+      "homeTestDrive": true,
+      "availableSlots": [
+        {
+          "id": "morning",
+          "label": "Morning (10:00 AM - 01:00 PM)",
+          "active": true
+        },
+        {
+          "id": "afternoon",
+          "label": "Afternoon (01:00 PM - 05:00 PM)",
+          "active": true
+        },
+        {
+          "id": "evening",
+          "label": "Evening (05:00 PM - 08:00 PM)",
+          "active": true
+        }
+      ]
+    },
+    "verificationStatus": "verified",
+    "registeredAt": "2026-09-05T09:06:50.773Z"
   }
 ]
