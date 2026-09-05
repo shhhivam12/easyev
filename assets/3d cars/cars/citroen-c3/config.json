@@ -1,0 +1,14 @@
+{
+  "id": "citroen-c3",
+  "name": "Citroen C3",
+  "tagline": "Exterior 360\u00b0 \u2014 drag to spin",
+  "folder": "cars/citroen-c3/images",
+  "pattern": "frame-{nn}.jpg",
+  "frames": 24,
+  "width": 930,
+  "height": 620,
+  "sensitivity": 10,
+  "autoRotate": true,
+  "autoRotateSpeed": 0.6,
+  "autoRotateDelay": 3000
+}

@@ -1,0 +1,19 @@
+{
+  "page": "https://www.carwale.com/mg-cars/comet-ev/360-view/",
+  "parsed": {
+    "url_make": "mg",
+    "model_id": "1923",
+    "v_closed": "20240308023505",
+    "v_open": "20240308023601",
+    "v_int": "20260904081744",
+    "var_closed": "20157",
+    "var_open": "20157",
+    "var_int": "0",
+    "col_closed": "92c73d",
+    "col_open": "92c73d"
+  },
+  "xml": {
+    "closed": "https://www.carwale.com/api/xml/360/v1/1923/20157/closed/?v=20240308023505&isMsite=false&getHotspots=true",
+    "open": "https://www.carwale.com/api/xml/360/v1/1923/20157/open/?v=20240308023601&isMsite=false&getHotspots=true"
+  }
+}

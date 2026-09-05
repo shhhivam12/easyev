@@ -1,0 +1,78 @@
+{
+  "id": "king-kargo-ev-hd",
+  "name": "TVS King Kargo EV HD",
+  "category": "three-wheeler",
+  "source": "https://www.tvsmotor.com/three-wheelers/king-kargo-ev-hd",
+  "colors": {
+    "white": "Pristine White",
+    "blue": "Neptune Blue"
+  },
+  "variants": {
+    "fixed-side-deck": "Fixed Side Deck",
+    "platform": "PF Platform",
+    "cab-chassis": "Chassis",
+    "container": "Container"
+  },
+  "views": {
+    "white": {
+      "fixed-side-deck": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/white/fixed-side-deck",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Fixed Side Deck \u2014 Pristine White"
+      },
+      "platform": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/white/platform",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "PF Platform \u2014 Pristine White"
+      },
+      "cab-chassis": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/white/cab-chassis",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Chassis \u2014 Pristine White"
+      },
+      "container": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/white/container",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Container \u2014 Pristine White"
+      }
+    },
+    "blue": {
+      "fixed-side-deck": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/blue/fixed-side-deck",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Fixed Side Deck \u2014 Neptune Blue"
+      },
+      "platform": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/blue/platform",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "PF Platform \u2014 Neptune Blue"
+      },
+      "cab-chassis": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/blue/cab-chassis",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Chassis \u2014 Neptune Blue"
+      },
+      "container": {
+        "type": "spin",
+        "folder": "three-wheelers/king-kargo-ev-hd/blue/container",
+        "pattern": "frame-{nn}.webp",
+        "frames": 12,
+        "label": "Container \u2014 Neptune Blue"
+      }
+    }
+  }
+}

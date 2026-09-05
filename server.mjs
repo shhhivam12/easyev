@@ -8,6 +8,7 @@ import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
 import { CrmCalendar } from './crm-calendar.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
+import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
 import { dealerDb } from './dealer-db.mjs';
 import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
 import { sendDealerOnboardingEmail } from './dealer-mailer.mjs';
@@ -388,7 +389,7 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
 }
 
 function createVehicleAgentSession({ channel, uid, vehicleId, language, voice }) {
-  const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
+  const vehicle = getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
   const greeting = language === 'Hindi'
@@ -403,6 +404,18 @@ function createVehicleAgentSession({ channel, uid, vehicleId, language, voice })
       ? 'Speak in modern Indian Hinglish with natural pacing and warm automotive terminology.'
       : 'Speak in warm Indian English with clear automotive terminology.';
 
+  const availableViews = vehicle.makeView
+    ? ['configurable exterior']
+    : Object.values(vehicle.views || {}).map((view) => view.label);
+  const availableColors = Object.values(vehicle.colors || {});
+  const availableBodies = Object.values(vehicle.variants || {});
+  const showroomControls = [
+    'views: ' + (availableViews.join(', ') || 'none'),
+    'angles: front, rear, left side, right side',
+    'colours: ' + (availableColors.join(', ') || 'not switchable'),
+    'body styles: ' + (availableBodies.join(', ') || 'not switchable'),
+  ].join('; ');
+
   const stt = language === 'English'
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: [vehicle.name, vehicle.company, 'EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस'] });
@@ -414,8 +427,11 @@ function createVehicleAgentSession({ channel, uid, vehicleId, language, voice })
   const agent = new Agent({
     client,
     instructions: `${vehicle.knowledgePrompt}
+Price context: the showroom currently displays ${vehicle.price || 'no verified public price'} (${vehicle.priceNote || 'pricing must be verified'}). You may quote this only as an indicative starting price, clearly say ex-showroom, and recommend confirming the current local on-road price. Never invent discounts, finance, inventory or a final payable amount.
+Interactive showroom controls for this exact vehicle: ${showroomControls}.
+The browser executes supported visual commands directly from the live transcript, without waiting for an AI tool round-trip. When the buyer asks for a supported view, angle, colour, or body style, acknowledge it immediately in one short present-tense sentence in the active language, such as "Main aapko car ka back view dikha raha hoon." Never claim to show a control that is listed as unavailable. A top, roof, overhead, underside, or underbody angle is not available; say so briefly and offer front, rear, left, or right instead.
 Language Guideline: ${agentInstructions({ category: vehicle.category, language })}
-Keep answers concise, accurate, and conversational. Help the buyer understand real benefits, highway charging nuances, and total cost of ownership.`,
+Keep answers concise, accurate, and conversational. For visual commands use one sentence; for factual questions prefer two short sentences. Help the buyer understand real benefits, highway charging nuances, and total cost of ownership.`,
     greeting,
     failureMessage: 'I had trouble answering that. Please ask once more.',
     maxHistory: TOOL_SAFE_MAX_HISTORY,
@@ -429,7 +445,7 @@ Keep answers concise, accurate, and conversational. Help the buyer understand re
         },
         end_of_speech: {
           mode: 'vad',
-          vad_config: { silence_duration_ms: 360 },
+          vad_config: { silence_duration_ms: 300 },
         },
       },
     },
@@ -447,7 +463,7 @@ Keep answers concise, accurate, and conversational. Help the buyer understand re
       greetingMessage: greeting,
       failureMessage: 'I had trouble answering that. Please ask once more.',
       maxHistory: TOOL_SAFE_MAX_HISTORY,
-      params: { max_tokens: 360, temperature: 0.25, top_p: 0.9 },
+      params: { max_tokens: 180, temperature: 0.2, top_p: 0.9 },
     }))
     .withTts(tts);
 
@@ -1281,7 +1297,7 @@ async function handleApi(req, res, url) {
     }
     bootstraps.delete(body.bootstrapKey);
     const vehicleId = body.vehicleId || pending.vehicleId || 'tata-punch-ev';
-    const vehicle = getVehicleById(vehicleId) || TOP_12_EVS[0];
+    const vehicle = getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
     const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
     const voice = selectedVoice(body.voice).id;
     const key = randomUUID();
@@ -1664,6 +1680,11 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
+    if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(res, 'showroom/index.html');
+    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
+    if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|webp|js|css)$/i.test(url.pathname)) {
+      return serveFile(res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);
+    }
     if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
     if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
