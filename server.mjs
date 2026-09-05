@@ -93,6 +93,43 @@ const sessions = new Map();
 const completedSessions = new Map();
 const mcpTransports = new Map();
 const startup = { startedAt: Date.now(), phase: 'Waking backend', ready: false };
+
+// PUBLIC_BASE_URL being an https address only means it looks reachable. Agora's
+// cloud has to actually reach /mcp on it, and a dev tunnel dies silently — when
+// that happens the agent keeps talking but has no tools, so it improvises
+// ("here are your slots") while nothing runs and the screen never changes. That
+// failure is invisible from inside the process, so it is probed from outside.
+const INSTANCE_ID = randomBytes(8).toString('hex');
+const reachability = { checked: false, ok: false, at: 0, detail: MCP_PUBLIC ? 'not checked yet' : 'no public HTTPS base URL' };
+
+async function checkPublicReachability() {
+  if (!MCP_PUBLIC) {
+    Object.assign(reachability, { checked: true, ok: false, at: Date.now(), detail: 'no public HTTPS base URL' });
+    return;
+  }
+  try {
+    const response = await fetch(`${PUBLIC_BASE_URL}/api/health`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+      headers: { 'x-easyev-probe': INSTANCE_ID },
+    });
+    const body = await response.json().catch(() => ({}));
+    // A tunnel can survive while pointing at a different process; only our own
+    // instance id proves Agora would land here.
+    const ok = response.ok && body.instanceId === INSTANCE_ID;
+    Object.assign(reachability, {
+      checked: true,
+      ok,
+      at: Date.now(),
+      detail: ok ? 'reachable' : (response.ok ? 'public URL answers a different process' : `public URL returned ${response.status}`),
+    });
+  } catch (error) {
+    Object.assign(reachability, { checked: true, ok: false, at: Date.now(), detail: `unreachable: ${safeMessage(error, 'no response')}` });
+  }
+  if (!reachability.ok) {
+    console.error(`Agora cannot reach this server at ${PUBLIC_BASE_URL} (${reachability.detail}). The agent will have no tools until this is fixed.`);
+  }
+}
 const tools = new EasyEVToolEngine({
   databaseUrl: process.env.DATABASE_URL?.trim(),
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
@@ -752,6 +789,8 @@ function pruneExpired() {
 }
 
 setInterval(pruneExpired, 60_000).unref();
+checkPublicReachability();
+setInterval(checkPublicReachability, 60_000).unref();
 
 function requireSession(id, res) {
   const record = sessions.get(id);
@@ -1287,6 +1326,9 @@ async function handleApi(req, res, url) {
       mode: 'live',
       activeSessions: sessions.size,
       mcpPublic: MCP_PUBLIC,
+      mcpReachable: reachability.ok,
+      mcpReachability: reachability.detail,
+      instanceId: INSTANCE_ID,
       decisionTools: Object.keys(tools.definitions()),
       database: tools.databaseMode,
       databaseFallback: tools.databaseMode === 'ephemeral',

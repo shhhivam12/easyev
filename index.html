@@ -8757,7 +8757,9 @@
           readyStatus.textContent = state.integrationMode === 'demo'
             ? 'Offline demo mode is active. No live Agora or external tool call will run.'
             : state.backendReady
-              ? `Ready · Agora voice and five decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`
+              ? (state.mcpUnreachable
+                ? `Ready, but Agora cannot reach this server at its public address, so the AI has no tools — it will talk without anything happening on screen. ${state.mcpReachability || ''}`
+                : `Ready · Agora voice and ${state.toolCount || 8} decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`)
               : `${state.backendPhase} · ${elapsed}s elapsed. This is a real backend wake-up, not a countdown.`;
         }
         const stageTitleElement = document.getElementById('stage-title');
@@ -8880,7 +8882,14 @@
           state.backendReady = Boolean(data.ready);
           state.backendPhase = data.phase || (data.ready ? 'Ready' : 'Waking backend');
           state.backendElapsedMs = Number(data.elapsedMs || 0);
-          state.toolsMode = data.mcpPublic ? 'agora-mcp' : 'local-bridge';
+          // mcpPublic only means the base URL looks public. mcpReachable is the
+          // server proving Agora can actually reach it - a dead dev tunnel leaves
+          // the first true and the second false, and that is exactly when the
+           // browser fallbacks need to take over instead of standing down.
+          state.mcpUnreachable = Boolean(data.mcpPublic && data.mcpReachable === false);
+          state.mcpReachability = data.mcpReachability || '';
+          state.toolCount = Array.isArray(data.decisionTools) ? data.decisionTools.length : 0;
+          state.toolsMode = (data.mcpPublic && data.mcpReachable !== false) ? 'agora-mcp' : 'local-bridge';
         } catch {
           state.backendReady = false;
           state.backendPhase = 'Waking backend';
