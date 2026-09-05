@@ -217,6 +217,492 @@ button { color:inherit; }
 @keyframes pulse { 50% { opacity:.45;transform:scale(.82); } }
 @keyframes thought { 50% { transform:translateY(-6px);opacity:.45; } }
 
+/* ------------------ Test Drive Modal Styles (Clean Light & Green) ------------------ */
+.test-drive-modal-overlay {
+  position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:16px;
+  background:rgba(15, 23, 42, 0.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:1;visibility:visible;transition:opacity .2s ease,visibility .2s ease;
+}
+.test-drive-modal-overlay[hidden] {
+  opacity:0;visibility:hidden;display:none;
+}
+.test-drive-modal-card {
+  position:relative;width:min(460px,100%);max-height:90vh;overflow-y:auto;
+  background:#ffffff;border-radius:20px;border:1px solid #e2e8f0;
+  box-shadow:0 24px 50px -12px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.04);
+  animation:tdModalIn .22s cubic-bezier(0.16,1,0.3,1);color:#0f172a;
+}
+@keyframes tdModalIn {
+  from { opacity:0;transform:scale(.96) translateY(8px); }
+  to { opacity:1;transform:scale(1) translateY(0); }
+}
+
+.td-modal-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 22px;border-bottom:1px solid #f1f5f9;background:#fafafa;
+  border-radius:20px 20px 0 0;
+}
+.td-modal-header-info { display:flex;align-items:center;gap:12px; }
+.td-modal-thumb { width:44px;height:44px;border-radius:10px;object-fit:cover;background:#f1f5f9;border:1px solid #e2e8f0; }
+.td-modal-title h3 { margin:0;font-size:15.5px;font-weight:700;letter-spacing:-.015em;color:#0f172a; }
+.td-modal-title span { display:block;margin-top:2px;font-size:12px;color:#15803d;font-weight:600; }
+
+.td-modal-close {
+  width:32px;height:32px;display:grid;place-items:center;border:1px solid #e2e8f0;
+  border-radius:50%;background:#ffffff;color:#64748b;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .15s ease;line-height:1;
+}
+.td-modal-close:hover { background:#f1f5f9;color:#0f172a;border-color:#cbd5e1; }
+
+.td-modal-body {
+  padding: 18px 20px 22px;
+}
+
+/* ------------------ Voice Agent Interactive Session Layout ------------------ */
+.td-voice-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Agent Identity Card */
+.td-agent-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: linear-gradient(135deg, #041f14 0%, #062b1b 100%);
+  border: 1px solid rgba(0, 240, 144, 0.28);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.td-agent-avatar-wrap {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.td-avatar-pulse-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid #00f090;
+  animation: tdPulseRing 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes tdPulseRing {
+  0% { transform: scale(0.9); opacity: 0.9; }
+  50% { transform: scale(1.18); opacity: 0.35; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
+.td-agent-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #00f090;
+  box-shadow: 0 0 10px rgba(0, 240, 144, 0.35);
+  background: #02140d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.td-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.td-avatar-fallback {
+  font-size: 20px;
+  display: grid;
+  place-items: center;
+}
+
+.td-live-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -4px;
+  background: #00f090;
+  color: #021a10;
+  font-size: 8px;
+  font-weight: 800;
+  padding: 1px 5px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.td-live-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #021a10;
+  animation: tdLiveBlink 1s infinite alternate;
+}
+
+.td-agent-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  text-align: left;
+}
+
+.td-agent-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.td-agent-name {
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
+}
+
+.td-agent-badge {
+  background: rgba(0, 240, 144, 0.15);
+  border: 1px solid rgba(0, 240, 144, 0.3);
+  color: #00f090;
+  font-size: 10px;
+  font-weight: 650;
+  padding: 1.5px 7px;
+  border-radius: 10px;
+}
+
+.td-agent-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: #a7f3d0;
+  font-weight: 500;
+}
+
+.td-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f090;
+  box-shadow: 0 0 6px #00f090;
+  animation: tdLiveBlink 1.2s ease-in-out infinite alternate;
+}
+
+/* Dialogue Speech Bubble */
+.td-speech-bubble {
+  position: relative;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+  border: 1.5px solid #86efac;
+  border-radius: 16px;
+  padding: 14px 16px 14px 40px;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.td-speech-quote-icon {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  color: #16a34a;
+  opacity: 0.75;
+}
+
+#td-agent-speech {
+  margin: 0;
+  color: #14532d;
+  font-size: 13.5px;
+  font-weight: 550;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  text-align: left;
+  width: 100%;
+}
+
+.td-user-echo {
+  display: inline-block;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding: 2px 7px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+}
+
+.td-typing-dots {
+  display: inline-block;
+  color: #059669;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-style: italic;
+}
+
+/* Quick Suggestion Chips */
+.td-chips-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  justify-content: center;
+  width: 100%;
+}
+
+.td-chip-btn {
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 6px 13px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.td-chip-btn:hover {
+  border-color: #00f090;
+  background: #ecfdf5;
+  color: #065f46;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 240, 144, 0.2);
+}
+
+.td-chip-btn:active {
+  transform: translateY(0);
+}
+
+/* Controls: Mic Toggle & Text Form Row */
+.td-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.td-mic-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.td-mic-btn:hover {
+  border-color: #00f090;
+  background: #f0fdf4;
+  transform: scale(1.04);
+}
+
+.td-mic-btn.is-listening {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.45);
+  animation: tdMicGlow 1s ease-in-out infinite alternate;
+}
+
+.td-mic-tooltip {
+  display: none;
+}
+
+.td-text-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 3px 4px 3px 13px;
+  transition: all 0.2s ease;
+}
+
+.td-text-form:focus-within {
+  border-color: #00f090;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 240, 144, 0.16);
+}
+
+.td-text-input {
+  border: none;
+  background: transparent;
+  flex: 1;
+  font-size: 13px;
+  color: #0f172a;
+  outline: none;
+  min-width: 0;
+  padding: 5px 0;
+  font-family: inherit;
+}
+
+.td-text-input::placeholder {
+  color: #94a3b8;
+}
+
+.td-text-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #071c10;
+  color: #00f090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.18s ease;
+}
+
+.td-text-send-btn:hover {
+  background: #0f3d24;
+  transform: scale(1.06);
+}
+
+.td-text-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* ------------------ State 2: Confirmed Pass ------------------ */
+.td-confirmed-card {
+  text-align: center;
+  padding: 6px 0;
+}
+
+.td-success-icon-wrap {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: #dcfce7;
+  border: 2px solid #86efac;
+  display: grid;
+  place-items: center;
+}
+
+.td-success-check {
+  color: #15803d;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.td-confirmed-card h4 {
+  margin: 0 0 4px;
+  font-size: 17.5px;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.td-confirmed-subtitle {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.td-booking-pass-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.td-booking-pass-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 9px;
+  margin-bottom: 9px;
+}
+
+.td-booking-pass-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #059669;
+  letter-spacing: 0.06em;
+}
+
+.td-booking-pass-id {
+  font-size: 11.5px;
+  font-weight: 750;
+  color: #0f172a;
+}
+
+.td-booking-pass-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.td-pass-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+}
+
+.td-pass-label {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.td-pass-val {
+  color: #0f172a;
+  font-weight: 650;
+  text-align: right;
+}
+
+.td-email-val {
+  color: #059669;
+}
+
+.td-done-btn {
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #10241c;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.td-done-btn:hover {
+  background: #163b2a;
+}
+
 @media (max-width:1180px) {
   .workspace { grid-template-columns:235px minmax(420px,1fr); }
   .detail-panel { display:none; }
