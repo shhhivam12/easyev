@@ -900,47 +900,35 @@ Questions spoken on this call are being asked of the human specialist, not of yo
 Return an empty response for every turn. Do not call any tool.
 Keep listening so the conversation continues to be transcribed and recorded.`;
 
-// Tells the agent about something the buyer did on screen rather than by voice.
-// The agent's own tool calls come back through its history automatically; a tool
-// the browser ran does not, so the agent would otherwise carry on as if it never
-// happened. Kept factual and short, and it tells the agent not to re-ask.
-function screenActionBrief(tool, result) {
-  if (!result) return '';
-  if (tool === 'capture_lead') {
-    if (result.needsDetails) return '';
-    const parts = [result.name && `name ${result.name}`, result.email && `email ${result.email}`, result.phone && `phone ${result.phone}`].filter(Boolean);
-    if (!parts.length) return '';
-    return `The buyer just typed their details into the screen: ${parts.join(', ')}. This is saved. Do not ask for any of it again. Acknowledge in one short sentence and continue where you left off.`;
-  }
-  if (tool === 'book_test_drive') {
-    if (result.stage === 'booking-slots') {
-      if (result.needsEmail) return 'The buyer still needs to give an email address before the booking can be confirmed. A typed input is now on their screen.';
-      return 'Open appointment times are now on the buyer\'s screen. Read out the earliest one or two and ask which suits them.';
-    }
-    if (result.confirmed) {
-      return `The buyer confirmed the booking on screen: ${result.demoType || 'test drive'} on ${result.when}. It is done and a confirmation email is on its way. Do not ask them to pick a time again. Confirm it back in one short sentence.`;
-    }
-    return `A booking for ${result.when || 'the chosen time'} is held but not confirmed. Tell the buyer a specialist will confirm it.`;
-  }
-  return '';
-}
-
-async function notifyAgentOfScreenAction(record, tool, result) {
-  const brief = screenActionBrief(tool, result);
-  if (!brief || !record.session || record.closed) return;
+// Speaks the result of something the buyer did on screen rather than by voice.
+//
+// A tool the browser ran never reaches the agent, so without this the agent
+// falls silent after a booking and keeps asking for an email it already has.
+// say() is used rather than think(): think() only injects context and leaves it
+// to the model whether to speak at all, which is how the agent ended up saying
+// nothing after a slot was clicked. The tool already produced the right sentence
+// in the buyer's language, so speaking it verbatim is both reliable and faster
+// than a second model round trip — and because the agent speaks it, the line
+// enters its own history, so it stops re-asking.
+async function notifyAgentOfScreenAction(record, tool, result, spoken) {
+  if (!record.session || record.closed) return;
   // A silenced agent is mid-handover; the human is talking and must not be cut off.
   if (record.escalation?.status === 'rep-joined') return;
+  // Nothing was captured yet — the screen is asking for input, not reporting it.
+  if (tool === 'capture_lead' && result?.needsDetails) return;
+  if (tool === 'book_test_drive' && result?.needsEmail) return;
+
+  const line = String(spoken || '').trim();
+  if (!line) return;
+
   try {
-    await record.session.think(brief, {
-      on_listening_action: 'interrupt',
-      on_thinking_action: 'interrupt',
-      on_speaking_action: 'interrupt',
-      interruptable: true,
-      metadata: { source: 'easyev-screen-action' },
-    });
+    // INTERRUPT rather than APPEND: the agent is usually mid-question ("what is
+    // your email?") at exactly the moment the buyer answers it on screen, and
+    // letting that question finish first is what made the reply feel detached.
+    await record.session.say(line, { priority: 'INTERRUPT', interruptable: true });
   } catch (error) {
     // The buyer's action already succeeded; failing to narrate it must not undo it.
-    console.error('Could not tell the agent about a screen action:', safeMessage(error));
+    console.error('Could not voice a screen action:', safeMessage(error));
   }
 }
 
@@ -1102,9 +1090,13 @@ async function handleScopedSessionApi(req, res, url) {
     // A tool the buyer ran from the screen never reaches the agent's history,
     // so without this the agent keeps asking for something it already has —
     // most visibly, asking for an email address the buyer just typed in.
-    // Deliberately not awaited: telling the agent takes a couple of seconds and
-    // the buyer's screen should update the moment the tool itself is done.
-    notifyAgentOfScreenAction(record, body.tool, result.structuredContent);
+    // Deliberately not awaited: speaking takes a couple of seconds and the
+    // buyer's screen should update the moment the tool itself is done.
+    // announce:false is for a step the caller knows is about to be followed by
+    // another — announcing both would cut the first one off mid-sentence.
+    if (body.announce !== false) {
+      notifyAgentOfScreenAction(record, body.tool, result.structuredContent, result.content?.[0]?.text);
+    }
     return json(res, 200, { success: true, result: result.structuredContent });
   }
 

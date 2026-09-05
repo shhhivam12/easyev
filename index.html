@@ -10015,7 +10015,9 @@
           const adapter = activeAdapter();
           if (typeof adapter?.runTool !== 'function') throw new Error('Email capture needs the live consultation.');
           appendTranscript('you', `My email is ${email}.`, { localText: true });
-          await adapter.runTool('capture_lead', { email });
+          // When a slot is already waiting, the booking confirmation is the line
+          // worth hearing; announcing the email capture first would be cut off by it.
+          await adapter.runTool('capture_lead', { email }, { announce: !pendingStart });
           // If the buyer had already picked a slot and only the address was
           // missing, finish the booking rather than making them choose again.
           if (pendingStart) {
