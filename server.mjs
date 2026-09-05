@@ -21,6 +21,7 @@ import {
   OpenAI,
   OpenAITTS,
   MicrosoftTTS,
+  SarvamTTS,
 } from 'agora-agents';
 
 const ROOT = resolve(import.meta.dirname);
@@ -52,6 +53,14 @@ if (!APP_ID || !APP_CERTIFICATE) {
 const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
 const AZURE_SPEECH_REGION = process.env.AZURE_SPEECH_REGION?.trim();
 const AZURE_SPEECH_READY = Boolean(AZURE_SPEECH_KEY && AZURE_SPEECH_REGION);
+const SARVAM_API_KEY = process.env.SARVAM_API_KEY?.trim();
+const SARVAM_MALE_SPEAKERS = new Set([
+  'shubh', 'aditya', 'rahul', 'rohan', 'amit', 'dev', 'ratan', 'varun', 'manan', 'sumit', 'kabir', 'aayan',
+  'ashutosh', 'advait', 'anand', 'tarun', 'sunny', 'mani', 'gokul', 'vijay', 'mohit', 'rehan', 'soham',
+]);
+const requestedSarvamSpeaker = process.env.SARVAM_TTS_SPEAKER?.trim().toLowerCase() || 'shubh';
+const SARVAM_TTS_SPEAKER = SARVAM_MALE_SPEAKERS.has(requestedSarvamSpeaker) ? requestedSarvamSpeaker : 'shubh';
+const SARVAM_TTS_READY = Boolean(SARVAM_API_KEY);
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
 const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
 const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
@@ -74,6 +83,26 @@ const VOICES = Object.freeze({
 });
 const mapCache = new Map();
 const voicePreviewCache = new Map();
+
+// agora-agents 2.7.0 does not expose Sarvam's model option yet and otherwise
+// falls back to the now-deprecated bulbul:v2. Agora accepts provider-specific
+// params, so retain its native Sarvam adapter and explicitly select v3.
+class SarvamV3TTS extends SarvamTTS {
+  toConfig() {
+    const config = super.toConfig();
+    return { ...config, params: { ...config.params, model: 'bulbul:v3' } };
+  }
+}
+
+function sarvamTts(pace) {
+  return new SarvamV3TTS({
+    key: SARVAM_API_KEY,
+    speaker: SARVAM_TTS_SPEAKER,
+    targetLanguageCode: 'hi-IN',
+    pace,
+    sampleRate: 24000,
+  });
+}
 
 const bootstraps = new Map();
 const sessions = new Map();
@@ -126,7 +155,7 @@ function json(res, status, payload) {
 
 function safeMessage(error, fallback) {
   const message = error instanceof Error ? error.message : String(error || fallback);
-  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY, process.env.GEMINI_API_KEY, process.env.DATABASE_URL, MCP_SIGNING_SECRET]
+  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY, SARVAM_API_KEY, process.env.GEMINI_API_KEY, process.env.DATABASE_URL, MCP_SIGNING_SECRET]
     .filter(Boolean)
     .reduce((safe, secret) => safe.replaceAll(secret, '[secret]'), message)
     .slice(0, 600);
@@ -277,16 +306,33 @@ function normalizeChoice(value, allowed, fallback) {
   return allowed.includes(normalized) ? normalized : fallback;
 }
 
-function agentInstructions({ category, language }) {
+function normalizeBuyer(value) {
+  const input = value && typeof value === 'object' ? value : {};
+  const name = String(input.name || '').trim().replace(/[^\p{L}\p{M}\s'.-]/gu, '').replace(/\s+/g, ' ').slice(0, 80);
+  const email = String(input.email || '').trim().toLowerCase().slice(0, 120);
+  const phone = String(input.phone || '').trim().replace(/[^+\d ()-]/g, '').slice(0, 18);
+  const phoneDigits = phone.replace(/\D/g, '');
+  return {
+    name,
+    email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? email : '',
+    phone: phoneDigits.length >= 8 && phoneDigits.length <= 15 ? phone : '',
+  };
+}
+
+function agentInstructions({ category, language, buyer }) {
   const languageStyle = language === 'Hindi'
     ? 'Speak natural contemporary Hindi in Devanagari. Use common English EV terms only where Indian shoppers normally use them. Do not answer in romanized Hindi.'
     : language === 'Hinglish'
       ? 'Speak warm, natural Indian Hinglish. Use Devanagari for Hindi words and familiar English for EV, charging, range, budget, finance, test drive, and model names. Avoid a foreign accent or over-formal Hindi.'
     : 'Speak clear Indian English with familiar Indian automotive vocabulary and a calm, efficient conversational pace.';
 
+  const buyerContext = buyer?.name
+    ? 'The shopper supplied a confirmed name, email and phone number before joining. Those details are already attached to this consultation.'
+    : 'The shopper has not provided contact details yet.';
+
   return `You are EasyEV AI, a fast, calm and practical voice guide for people in India choosing an electric car, scooter, or 3-wheeler.
 
-The shopper selected category: ${category}. Their preferred conversation language is ${language}.
+The shopper selected category: ${category}. Their preferred conversation language is ${language}. ${buyerContext}
 
 Language and voice style: ${languageStyle}
 
@@ -300,7 +346,7 @@ You have eight real EasyEV decision tools. Autonomously select the one best tool
 - capture_lead the moment the buyer gives a name, phone number or email address.
 - book_test_drive for a test drive, demo, appointment or visit.
 
-Contact details and bookings are real, not simulated. Call capture_lead as soon as the buyer says their name, number or email, and again if they correct it; never invent a detail they did not say. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose. A booking needs an email address for the confirmation, so ask for one if you do not have it. Read an email address back to the buyer once to confirm you heard it correctly before saving. Do not promise a booking before the tool has confirmed it.
+Contact details and bookings are real, not simulated. The prejoin details are already saved with this consultation, so do not ask for them again or call capture_lead unless the buyer corrects a detail. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose. The booking tool can reuse the attached email, name and phone. Do not promise a booking before the tool has confirmed it.
 
 Call escalate_to_human only when the buyer explicitly asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
 
@@ -317,13 +363,15 @@ After a tool succeeds, begin with “It’s ready on your screen,” then explai
 Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory or finance quotes. Prices and claims require verification. Lead capture and test-drive booking are real writes to the CRM and calendar, so state a booking as confirmed only after book_test_drive returns a confirmation. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
 
-function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl }) {
+function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl, buyer }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
+  const firstName = String(buyer?.name || '').split(/\s+/)[0];
+  const greetingName = firstName ? ` ${firstName}` : '';
   const greeting = language === 'Hindi'
-    ? 'नमस्ते! मैं आपका EasyEV गाइड हूँ। अपनी रोज़ की दूरी और ज़रूरत बताइए—मैं आपके सामने तुलना, खर्च और चार्जिंग विकल्प जाँच सकता हूँ।'
+    ? `नमस्ते${greetingName}! मैं आपका EasyEV गाइड हूँ। आपकी जानकारी इस consultation से जुड़ गई है। अपनी रोज़ की दूरी और ज़रूरत बताइए—मैं आपके सामने तुलना, खर्च और चार्जिंग विकल्प जाँच सकता हूँ।`
     : language === 'English'
-      ? 'Hello! I am your EasyEV guide. Tell me about your daily travel—I can compare vehicles, calculate ownership and check charging options with you.'
-      : 'नमस्ते! मैं आपका EasyEV guide हूँ। अपनी daily travel need बताइए—मैं आपके सामने vehicles compare, cost calculate और charging options check कर सकता हूँ।';
+      ? `Hello${greetingName}! I am your EasyEV guide. Your details are already attached to this consultation. Tell me about your daily travel—I can compare vehicles, calculate ownership and check charging options with you.`
+      : `नमस्ते${greetingName}! मैं आपका EasyEV guide हूँ। आपकी details इस consultation से जुड़ गई हैं। अपनी daily travel need बताइए—मैं vehicles compare, cost calculate और charging options check कर सकता हूँ।`;
   const recognitionLanguage = language === 'English' ? 'en-IN' : 'hi-IN';
   const speechInstructions = language === 'Hindi'
     ? 'Speak in a calm Indian male Hindi voice. Use clear contemporary Hindi, a confident gentle pace, short pauses, and natural Indian pronunciation for EV terms.'
@@ -334,13 +382,15 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: ['EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बजट', 'स्कूटर', 'थ्री व्हीलर', 'test drive'] });
 
-  const tts = AZURE_SPEECH_READY
-    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
-    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
+  const tts = language !== 'English' && SARVAM_TTS_READY
+    ? sarvamTts(1.08)
+    : AZURE_SPEECH_READY
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const agent = new Agent({
     client,
-    instructions: agentInstructions({ category, language }),
+    instructions: agentInstructions({ category, language, buyer }),
     greeting,
     failureMessage: 'I had trouble responding. Please try that once more.',
     maxHistory: TOOL_SAFE_MAX_HISTORY,
@@ -419,9 +469,11 @@ function createVehicleAgentSession({ channel, uid, vehicleId, language, voice })
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: [vehicle.name, vehicle.company, 'EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस'] });
 
-  const tts = AZURE_SPEECH_READY
-    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
-    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
+  const tts = language !== 'English' && SARVAM_TTS_READY
+    ? sarvamTts(1.08)
+    : AZURE_SPEECH_READY
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const agent = new Agent({
     client,
@@ -556,9 +608,11 @@ function createDebateAgentSession({ channel, uid, vehicleIdA, vehicleIdB, langua
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: [vehicleA.name, vehicleB.name, vehicleA.company, vehicleB.company, 'EasyEV', 'डिबेट', 'Debate', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस', 'Punch', 'Nexon', 'Windsor', 'Ather', 'Rizta', 'TVS'] });
 
-  const tts = AZURE_SPEECH_READY
-    ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: 0.88 })
-    : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: 0.88 });
+  const tts = language !== 'English' && SARVAM_TTS_READY
+    ? sarvamTts(0.88)
+    : AZURE_SPEECH_READY
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: 0.88 })
+      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: 0.88 });
 
   const debatePrompt = `You are staging a full, multi-turn, high-energy live EV debate between two AI automotive advocates defending their vehicles:
 1. ADVOCATE A (Defending ${vehicleA.name} by ${vehicleA.company}):
@@ -668,11 +722,26 @@ function newHandoffCode() {
   return randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase();
 }
 
-function createRecord({ key, channel, uid, category, language, voice }) {
+function createRecord({ key, channel, uid, category, language, voice, buyer }) {
   // The specialist UID is reserved up front so the agent can subscribe to it from
   // the start; that is what lets the agent keep transcribing the human once they join.
   let repUid = String(randomInt(1000, 9_999_000));
   while (repUid === String(uid) || repUid === AGENT_UID) repUid = String(randomInt(1000, 9_999_000));
+  const normalizedBuyer = normalizeBuyer(buyer);
+  const passport = tools.createPassport(category, language);
+  passport.lead = {
+    name: normalizedBuyer.name,
+    email: normalizedBuyer.email,
+    phone: normalizedBuyer.phone,
+    provider: 'prejoin',
+    contactId: null,
+    dealId: null,
+    savedAt: new Date().toISOString(),
+    live: false,
+  };
+  if (normalizedBuyer.name || normalizedBuyer.email || normalizedBuyer.phone) {
+    passport.nextActions = ['Contact details captured for this consultation.'];
+  }
   return {
     key,
     channel,
@@ -684,6 +753,7 @@ function createRecord({ key, channel, uid, category, language, voice }) {
     category,
     language,
     voice,
+    buyer: normalizedBuyer,
     agentId: null,
     session: null,
     createdAt: Date.now(),
@@ -695,7 +765,7 @@ function createRecord({ key, channel, uid, category, language, voice }) {
     sseClients: new Set(),
     events: [],
     context: { location: null, assumptions: {} },
-    passport: tools.createPassport(category, language),
+    passport,
     pendingSnapshot: null,
     report: null,
   };
@@ -1218,8 +1288,10 @@ async function handleApi(req, res, url) {
       visionConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
       speech: {
         hindiRecognition: 'Agora ARES hi-IN',
-        provider: AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',
-        voice: AZURE_SPEECH_READY ? VOICES.madhur.voiceName : 'onyx',
+        provider: SARVAM_TTS_READY ? 'Sarvam for Hindi/Hinglish; existing fallback for English' : AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',
+        voice: SARVAM_TTS_READY ? SARVAM_TTS_SPEAKER : AZURE_SPEECH_READY ? VOICES.madhur.voiceName : 'onyx',
+        model: SARVAM_TTS_READY ? 'bulbul:v3' : null,
+        sarvamConfigured: SARVAM_TTS_READY,
         azureConfigured: AZURE_SPEECH_READY,
       },
     });
@@ -1542,13 +1614,17 @@ async function handleApi(req, res, url) {
     const category = normalizeChoice(body.category, ['Electric car', 'Electric scooter', 'Electric 3-wheeler', 'Not sure'], 'Not sure');
     const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
     const voice = selectedVoice(body.voice).id;
+    const buyer = normalizeBuyer(body.buyer);
+    if (!buyer.name || !buyer.email || !buyer.phone) {
+      return json(res, 400, { error: 'A valid name, email address and phone number are required to start the consultation.' });
+    }
     const key = randomUUID();
-    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category, language, voice });
+    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category, language, voice, buyer });
     sessions.set(key, record);
     handoffCodes.set(record.handoffCode, key);
     const mcpUrl = MCP_PUBLIC ? `${MCP_BASE_URL}/${encodeURIComponent(signSessionToken(key))}` : null;
     try {
-      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, repUid: record.repUid, category, language, voice, mcpUrl });
+      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, repUid: record.repUid, category, language, voice, mcpUrl, buyer });
       record.agentId = await record.session.start();
       await tools.persistSession(record);
       tools.emit(record, {
