@@ -82,6 +82,24 @@
 
 ---
 
+<p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #00c9ff; margin-bottom: -10px;">Evaluation Compliance</p>
+
+## Hackathon Submission Deliverables
+
+This repository fulfills all seven mandatory submission criteria for the **Adaptive AI Sales and Negotiation Agent Hackathon Track**:
+
+| # | Submission Requirement | Implementation & Asset Location in Repository | Verification Status |
+|---|---|---|---|
+| 1 | **Working Prototype** | Full-duplex local dev server on port `4173` (`npm run dev`), Render IaC (`render.yaml`), multi-container `docker-compose.yml`, and 5 operational browser experiences (`/`, `/showroom/`, `#compare`, `#for-dealers`, `/rep.html`). | Operational & Verified |
+| 2 | **GitHub Repository** | Public open-source repository with full version history, automated test suites, and clean documentation: [shhhivam12/easyev](https://github.com/shhhivam12/easyev). | Live on GitHub |
+| 3 | **Project Description** | Comprehensive [Executive Overview](#executive-overview), strategic problem analysis, legacy portal comparison matrix, and end-to-end [User Journey](#3-end-to-end-user-experience--journey-flow). | Documented |
+| 4 | **Demo Video** | Recorded end-to-end consultation demo: [`assets/easyev-hero-consultation.mp4`](assets/easyev-hero-consultation.mp4) (H.264/AAC), [`assets/easyev-hero-consultation.webm`](assets/easyev-hero-consultation.webm), and live animated mascot visual. | Included in Repo |
+| 5 | **Technical Architecture** | 6 complete Mermaid architectural specifications: [High-Level Topology](#1-high-level-system-architecture-topology), [Level 1 DFD](#2-level-1-data-flow-diagram-dfd), [User Journey](#3-end-to-end-user-experience--journey-flow), [Voice & MCP Sequence](#4-real-time-voice-pipeline--mcp-tool-execution-sequence), [Dealer FSM](#5-autonomous-dealer-onboarding-finite-state-machine-fsm), and [Specialist Escalation](#6-human-in-the-loop-specialist-escalation-sequence). | Fully Visualized |
+| 6 | **Agora Technology Integration** | In-depth breakdown of [Agora Conversational AI SDK & RTC/RTM 2.x](#1-agora-real-time-voice-pipeline--multi-tier-audio-stack), dual client/server Voice Activity Detection (VAD), [Sub-300ms Latency Budget Waterfall](#1-sub-300ms-end-to-end-voice-latency-budget-waterfall), dynamic token generation, and channel security isolation. | Production Integrated |
+| 7 | **Pitch Deck** | Official 12-slide Round II Idea & Technical Presentation deck: [`PPT.pdf`](PPT.pdf) and PowerPoint source file [`output/EasyEV_AI_Mentor_Discussion.pptx`](output/EasyEV_AI_Mentor_Discussion.pptx). | Included in Repo |
+
+---
+
 <p style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #10b981; margin-bottom: -10px;">Strategic Context</p>
 
 ## Executive Overview
