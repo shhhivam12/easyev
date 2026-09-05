@@ -10,24 +10,79 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 24.19.0
-      - key: PUBLIC_BASE_URL
-        sync: false
+
+      # --- Required: nothing works without these ---
       - key: AGORA_APP_ID
         sync: false
       - key: AGORA_APP_CERTIFICATE
         sync: false
+
+      # Leave unset on Render. The server falls back to RENDER_EXTERNAL_URL,
+      # which Render injects, and that is the address Agora's cloud must reach
+      # for the agent to have any tools at all.
+      - key: PUBLIC_BASE_URL
+        sync: false
+
+      # Must persist across restarts: signs the short-lived MCP session URLs.
       - key: MCP_SIGNING_SECRET
         generateValue: true
+
+      # --- Booking, CRM and confirmation mail ---
+      # Without these the agent still offers times but books nothing and sends
+      # no confirmation; it says so rather than pretending.
+      - key: HUBSPOT_TOKEN
+        sync: false
+      - key: CALCOM_API_KEY
+        sync: false
+      - key: CALCOM_EVENT_TYPE_ID
+        sync: false
+      - key: BOOKING_TIMEZONE
+        value: Asia/Kolkata
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: EasyEV
+
+      # --- Specialist handoff ---
+      - key: REP_DESK_KEY
+        sync: false
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+
+      # --- Voice ---
+      - key: SARVAM_API_KEY
+        sync: false
+      - key: SARVAM_TTS_SPEAKER
+        value: shubh
+      - key: AZURE_SPEECH_KEY
+        sync: false
+      - key: AZURE_SPEECH_REGION
+        sync: false
+
+      # --- Dealer portal mail (separate subsystem) ---
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+
+      # --- Optional extras ---
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
         value: gemini-2.0-flash
       - key: OPENCHARGEMAP_API_KEY
         sync: false
-      - key: AZURE_SPEECH_KEY
-        sync: false
-      - key: AZURE_SPEECH_REGION
-        sync: false
+
       - key: DATABASE_URL
         fromDatabase:
           name: easyev-db
