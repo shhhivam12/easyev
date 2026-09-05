@@ -53,27 +53,84 @@ export function isEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(value || '').trim());
 }
 
-// Speech-to-text never returns a clean address. People say "jatin at the rate
-// gmail dot com", and Indian speakers commonly use "at the rate" for @. Without
-// this the address is silently dropped and a booking can never be confirmed.
+// Speech-to-text never returns a clean address, and in a Hinglish call it is
+// worse than untidy: the recogniser hears an English address but writes parts of
+// it in Devanagari. "jatin vats 653 at gmail dot com" can come back with
+// Devanagari digits, a Devanagari name, or Hindi words for @ and dot. Each of
+// those silently produces an address that looks right on screen but that no mail
+// server will ever accept, so the confirmation never arrives.
+// What an address may actually contain once the guesswork is done. Deliberately
+// stricter than isEmail(), whose loose character class happily accepts a "?" the
+// recogniser substituted for a sound it could not place.
+const MAILABLE = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+const DEVANAGARI_DIGITS = '\u0966\u0967\u0968\u0969\u096A\u096B\u096C\u096D\u096E\u096F';
+
+// Spoken digits, in the three ways a Hinglish speaker says them.
+const SPOKEN_DIGITS = [
+  ['zero', 0], ['oh', 0], ['shunya', 0], ['\u0936\u0942\u0928\u094D\u092F', 0],
+  ['one', 1], ['ek', 1], ['\u090F\u0915', 1],
+  ['two', 2], ['do', 2], ['\u0926\u094B', 2],
+  ['three', 3], ['teen', 3], ['\u0924\u0940\u0928', 3],
+  ['four', 4], ['char', 4], ['\u091A\u093E\u0930', 4],
+  ['five', 5], ['paanch', 5], ['panch', 5], ['\u092A\u093E\u0902\u091A', 5],
+  ['six', 6], ['chhah', 6], ['chhe', 6], ['\u091B\u0939', 6],
+  ['seven', 7], ['saat', 7], ['\u0938\u093E\u0924', 7],
+  ['eight', 8], ['aath', 8], ['\u0906\u0920', 8],
+  ['nine', 9], ['nau', 9], ['\u0928\u094C', 9],
+];
+
+function foldDigits(text) {
+  let out = '';
+  for (const ch of text) {
+    const idx = DEVANAGARI_DIGITS.indexOf(ch);
+    out += idx >= 0 ? String(idx) : ch;
+  }
+  return out;
+}
+
 export function parseSpokenEmail(value) {
   const raw = String(value || '').trim();
   if (!raw) return '';
-  if (isEmail(raw)) return raw.toLowerCase();
-  let text = raw.toLowerCase();
+  if (MAILABLE.test(raw.toLowerCase())) return raw.toLowerCase();
+
+  let text = foldDigits(raw.toLowerCase());
+
+  // Hindi and Hinglish words for the two symbols that matter, before the
+  // English ones, so "at the rate" is not eaten by the bare "at" rule.
   text = text.replace(/\s*\(\s*at\s*\)\s*/g, '@');
   text = text.replace(/\s*\bat the rate\b\s*/g, '@');
   text = text.replace(/\s*\batrate\b\s*/g, '@');
   text = text.replace(/\s*\bat sign\b\s*/g, '@');
+  text = text.replace(/\s*(?:\u090F\u091F|\u0910\u091F|\u0905\u0948\u091F)\s*/g, '@');
   text = text.replace(/\s*\bat\b\s*/g, '@');
   text = text.replace(/\s*\(\s*dot\s*\)\s*/g, '.');
+  text = text.replace(/\s*\u0921\u0949\u091F\s*/g, '.');
   text = text.replace(/\s*\bdot\b\s*/g, '.');
   text = text.replace(/\s*\bunderscore\b\s*/g, '_');
   text = text.replace(/\s*\b(?:dash|hyphen|minus)\b\s*/g, '-');
+
+  // Spoken digit words only become digits once the symbols are resolved, so a
+  // name that genuinely contains "one" is not rewritten before the @ is placed.
+  for (const [word, digit] of SPOKEN_DIGITS) {
+    text = text.replace(new RegExp('(?<![a-z0-9])' + word + '(?![a-z0-9])', 'g'), String(digit));
+  }
+
+  // Common recogniser spellings of the domain.
+  text = text.replace(/\u091C\u0940\u092E\u0947\u0932/g, 'gmail');
+  text = text.replace(/\u0915\u0949\u092E/g, 'com');
+  text = text.replace(/\bg\s*mail\b/g, 'gmail');
+
   text = text.replace(/\s+/g, '');
   text = text.replace(/[.,;:]+$/, '');
+
   // A repaired address with more than one @ means the guesswork went wrong.
   if ((text.match(/@/g) || []).length !== 1) return '';
+  // Anything the recogniser could not place - Devanagari it never converted,
+  // or a "?" it substituted - would produce an address that looks plausible on
+  // screen and then bounces. Restrict to what an address can actually hold, so
+  // a guess is refused rather than written to the CRM and silently never mailed.
+  if (!MAILABLE.test(text)) return '';
   return isEmail(text) ? text : '';
 }
 

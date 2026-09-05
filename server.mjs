@@ -34,6 +34,16 @@ const LLM_TUNING = Object.freeze({ max_tokens: 360, temperature: 0.25, top_p: 0.
 // The update endpoint overwrites params wholesale, so the handoff swap has to
 // resend the model alongside the tuning it is preserving.
 const LLM_PARAMS = Object.freeze({ model: LLM_MODEL, ...LLM_TUNING });
+
+// Spoken while a tool is still running. Deliberately vague about what is being
+// checked, because the same phrases cover a catalog lookup, a charger search and
+// a calendar booking — and deliberately short, so the real answer is not delayed
+// behind the filler.
+const FILLER_PHRASES = Object.freeze({
+  English: ['One moment.', 'Let me check that.', 'Just pulling that up.', 'Checking now.'],
+  Hindi: ['एक सेकंड।', 'मैं देख रहा हूँ।', 'अभी चेक करता हूँ।', 'बस एक पल।'],
+  Hinglish: ['Ek second.', 'Main check kar raha hoon.', 'Bas ek pal.', 'Abhi dekhta hoon.'],
+});
 const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
@@ -375,7 +385,22 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
       params: { ...LLM_TUNING },
       ...(mcpUrl ? { mcpServers: [createAgoraMcpServer(mcpUrl)] } : {}),
     }))
-    .withTts(tts);
+    .withTts(tts)
+    // Confirming a booking on Cal.com takes about two seconds, and checking
+    // availability or the CRM is not instant either. Without this the buyer
+    // hears dead air and assumes the call dropped; Agora fills the gap in the
+    // buyer's own language while the tool is still running.
+    .withFillerWords({
+      enable: true,
+      trigger: { mode: 'fixed_time', fixed_time_config: { response_wait_ms: 700 } },
+      content: {
+        mode: 'static',
+        static_config: {
+          phrases: FILLER_PHRASES[language] || FILLER_PHRASES.Hinglish,
+          selection_rule: 'shuffle',
+        },
+      },
+    });
 
   return agent.createSession({
     channel,
