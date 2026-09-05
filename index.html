@@ -9272,6 +9272,7 @@
       const fastHumanIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        if (state.toolsMode === 'agora-mcp') return false;
         if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
         if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
         // "talk to the AI agent" is not a request for a person.
@@ -9296,6 +9297,10 @@
       const fastBookingIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        // Only a fallback. With Agora MCP live the agent calls this tool itself,
+        // and running it from here too starts a second tool run that cancels the
+        // first - the buyer hears "Cancelled because the conversation moved on."
+        if (state.toolsMode === 'agora-mcp') return false;
         if (state.decisionPassport?.booking?.confirmed) return false;
         const wants = BOOK_STRONG.test(spoken) || (BOOK_DEMO.test(spoken) && BOOK_VERB.test(spoken));
         if (!wants) return false;

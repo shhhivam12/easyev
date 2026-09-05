@@ -544,7 +544,11 @@ export class EasyEVToolEngine {
           needsEmail: !contact.email,
         },
         spoken: availability.slots.length
-          ? `I have ${availability.slots.length} open times on the calendar. The earliest is ${availability.slots[0].label}. Which one suits you?`
+          ? [
+            `I have ${availability.slots.length} open times. ${availability.slots.slice(0, 3).map((slot, index) => `${index + 1}, ${slot.label}`).join('. ')}.`,
+            'They are on your screen too, so you can just tap one or tell me the number.',
+            contact.email ? '' : 'Please type your email in the box on screen so I can send the confirmation there.',
+          ].filter(Boolean).join(' ')
           : 'I could not find an open slot in the next few days. Shall I have a specialist call you to arrange one?',
       };
     }
@@ -554,8 +558,8 @@ export class EasyEVToolEngine {
         stage: 'booking-slots',
         payload: { slots: offered, needsEmail: true, pendingStart: startISO, emailUnclear: contact.emailUnclear, heard: contact.emailHeard },
         spoken: contact.emailUnclear
-          ? `I have the time held, but I heard your email as "${contact.emailHeard}" and could not read it. Please type it with the keyboard button so the confirmation reaches you.`
-          : 'I can lock that in. What email address should the confirmation go to?',
+          ? `I have the time held, but I heard your email as "${contact.emailHeard}" and could not read it. There is a box on your screen now — please type it there and press Send.`
+          : 'I have that time held. Please type your email in the box on your screen and press Send, and the confirmation will go straight there.',
       };
     }
 
