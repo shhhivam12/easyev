@@ -1,0 +1,14 @@
+{
+  "id": "punch-ev",
+  "name": "Tata Punch EV",
+  "tagline": "Exterior 360° — drag to spin",
+  "folder": "cars/punch-ev/images",
+  "pattern": "frame-{nn}.jpg",
+  "frames": 24,
+  "width": 930,
+  "height": 620,
+  "sensitivity": 10,
+  "autoRotate": true,
+  "autoRotateSpeed": 0.6,
+  "autoRotateDelay": 3000
+}

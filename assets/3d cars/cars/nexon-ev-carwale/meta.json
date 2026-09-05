@@ -1,0 +1,19 @@
+{
+  "page": "https://www.carwale.com/tata-cars/nexon-ev/360-view/",
+  "parsed": {
+    "url_make": "tata",
+    "model_id": "2503",
+    "v_closed": "20241108034142",
+    "v_open": "20241108034305",
+    "v_int": "20241118050941",
+    "var_closed": "22019",
+    "var_open": "22019",
+    "var_int": "22019",
+    "col_closed": "d8d8da",
+    "col_open": "d8d8da"
+  },
+  "xml": {
+    "closed": "https://www.carwale.com/api/xml/360/v1/2503/22019/closed/?v=20241108034142&isMsite=false&getHotspots=true",
+    "open": "https://www.carwale.com/api/xml/360/v1/2503/22019/open/?v=20241108034305&isMsite=false&getHotspots=true"
+  }
+}

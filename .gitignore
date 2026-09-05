@@ -5,4 +5,6 @@ node_modules/
 *.log
 .easyev-server.json
 test-artifacts/
-
+data/emails/
+data/dealer-emails.log
+data/test-drives.json
