@@ -90,6 +90,105 @@ app.innerHTML = `
     </aside>
   </div>
 </section>
+<div class="test-drive-modal-overlay" id="test-drive-modal" hidden>
+  <div class="test-drive-modal-card" role="dialog" aria-modal="true" aria-labelledby="td-modal-heading">
+    <div class="td-modal-header">
+      <div class="td-modal-header-info">
+        <img class="td-modal-thumb" id="td-modal-thumb" src="" alt="" />
+        <div class="td-modal-title">
+          <h3 id="td-modal-heading">Book Test Drive</h3>
+          <span id="td-modal-vehicle-name">Tata Punch.ev</span>
+        </div>
+      </div>
+      <button class="td-modal-close" id="td-modal-close" type="button" aria-label="Close dialog">✕</button>
+    </div>
+    
+    <div class="td-modal-body">
+      <!-- Voice Agent Interactive Session -->
+      <div id="td-voice-state" class="td-voice-layout">
+        <!-- Agent Identity & Audio Visualizer -->
+        <div class="td-agent-card" id="td-agent-card">
+          <div class="td-agent-avatar-wrap">
+            <div class="td-avatar-pulse-ring" id="td-avatar-ring"></div>
+            <div class="td-agent-avatar" id="td-agent-avatar">
+              <img src="/images/guide-portrait.webp" alt="Aarav" class="td-avatar-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid'" />
+              <div class="td-avatar-fallback" style="display:none">🎙️</div>
+            </div>
+            <span class="td-live-badge"><span class="td-live-dot"></span> LIVE</span>
+          </div>
+          <div class="td-agent-meta">
+            <div class="td-agent-name-row">
+              <span class="td-agent-name">Aarav</span>
+              <span class="td-agent-badge">Voice Specialist</span>
+            </div>
+            <div class="td-agent-status-pill" id="td-agent-status" data-state="speaking">
+              <span class="td-status-dot"></span>
+              <span id="td-status-text">Speaking...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Agent Dialogue Box -->
+        <div class="td-speech-bubble" id="td-speech-bubble">
+          <div class="td-speech-quote-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
+          </div>
+          <p id="td-agent-speech">Connecting to Aarav...</p>
+        </div>
+
+        <!-- Realtime Suggested Chips -->
+        <div class="td-chips-container" id="td-chips-container"></div>
+
+        <!-- Voice & Text Dual-Modality Controls -->
+        <div class="td-controls-row">
+          <button type="button" class="td-mic-btn" id="td-mic-toggle" aria-label="Microphone" title="Toggle Voice Input">
+            <svg class="td-mic-svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+            <span class="td-mic-tooltip" id="td-mic-label">Listening...</span>
+          </button>
+          
+          <form class="td-text-form" id="td-voice-text-form">
+            <input type="text" id="td-voice-text-input" class="td-text-input" placeholder="Or type reply (e.g. Saturday 5 PM)..." autocomplete="off" />
+            <button type="submit" class="td-text-send-btn" id="td-text-send-btn" aria-label="Send">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- State 2: Confirmed Pass -->
+      <div id="td-confirmed-state" hidden class="td-confirmed-card">
+        <div class="td-success-icon-wrap">
+          <div class="td-success-check">✓</div>
+        </div>
+        <h4>Test Drive Confirmed!</h4>
+        <p class="td-confirmed-subtitle">Your slot has been locked in the dealership network & official pass sent to your Gmail.</p>
+
+        <div class="td-booking-pass-card">
+          <div class="td-booking-pass-header">
+            <span class="td-booking-pass-tag">OFFICIAL TEST DRIVE PASS</span>
+            <span class="td-booking-pass-id" id="td-confirmed-id">EEV-TD-10482</span>
+          </div>
+          <div class="td-booking-pass-body">
+            <div class="td-pass-row"><span class="td-pass-label">Vehicle</span><strong class="td-pass-val" id="td-confirmed-vehicle">Tata Nexon.ev</strong></div>
+            <div class="td-pass-row"><span class="td-pass-label">Date & Time</span><strong class="td-pass-val" id="td-confirmed-datetime">Saturday, Nov 21 · 5:00 PM</strong></div>
+            <div class="td-pass-row"><span class="td-pass-label">Location</span><strong class="td-pass-val" id="td-confirmed-location">EasyEV Superhub CyberCity, Gurgaon</strong></div>
+            <div class="td-pass-row"><span class="td-pass-label">Email Dispatched</span><strong class="td-pass-val td-email-val" id="td-confirmed-email">satvikk005@gmail.com</strong></div>
+          </div>
+        </div>
+
+        <button type="button" class="td-done-btn" id="td-confirmed-done-btn">Back to Showroom</button>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="loading-screen" id="loading-screen"><div class="loading-orbit"></div><strong>Preparing the showroom</strong><span>Loading real vehicle views</span></div>`;
 
 const ui = {
@@ -105,7 +204,32 @@ const ui = {
   voiceToggle: $("#voice-toggle"), muteToggle: $("#mute-toggle"), pauseAgent: $("#pause-agent"), voiceStatus: $("#voice-status"),
   voiceStatusText: $("#voice-status-text"), commandForm: $("#command-form"),
   commandInput: $("#command-input"), loading: $("#loading-screen"), mobileMenu: $("#showroom-mobile-menu"),
-  primaryNav: $("#showroom-primary-navigation")
+  primaryNav: $("#showroom-primary-navigation"),
+  bookTestDriveBtn: $(".book-test-drive-button"),
+  tdModal: $("#test-drive-modal"),
+  tdModalThumb: $("#td-modal-thumb"),
+  tdModalVehicleName: $("#td-modal-vehicle-name"),
+  tdModalClose: $("#td-modal-close"),
+  tdVoiceState: $("#td-voice-state"),
+  tdAgentCard: $("#td-agent-card"),
+  tdAgentAvatar: $("#td-agent-avatar"),
+  tdAvatarRing: $("#td-avatar-ring"),
+  tdAgentStatus: $("#td-agent-status"),
+  tdStatusText: $("#td-status-text"),
+  tdSpeechBubble: $("#td-speech-bubble"),
+  tdAgentSpeech: $("#td-agent-speech"),
+  tdChipsContainer: $("#td-chips-container"),
+  tdMicToggle: $("#td-mic-toggle"),
+  tdMicLabel: $("#td-mic-label"),
+  tdVoiceTextForm: $("#td-voice-text-form"),
+  tdVoiceTextInput: $("#td-voice-text-input"),
+  tdConfirmedState: $("#td-confirmed-state"),
+  tdConfirmedId: $("#td-confirmed-id"),
+  tdConfirmedVehicle: $("#td-confirmed-vehicle"),
+  tdConfirmedDatetime: $("#td-confirmed-datetime"),
+  tdConfirmedLocation: $("#td-confirmed-location"),
+  tdConfirmedEmail: $("#td-confirmed-email"),
+  tdConfirmedDoneBtn: $("#td-confirmed-done-btn")
 };
 
 function renderCategories() {
@@ -629,6 +753,295 @@ ui.primaryNav.addEventListener("click", () => {
   ui.primaryNav.classList.remove("is-open");
   ui.mobileMenu.setAttribute("aria-expanded", "false");
 });
+/* ----------------- Test Drive In-Browser Voice Agent Controller ----------------- */
+let tdSessionId = null;
+let tdSpeechRec = null;
+let tdIsListening = false;
+let tdSpeechSynth = typeof window !== 'undefined' ? window.speechSynthesis : null;
+let tdCurrentUtterance = null;
+let tdIsMuted = false;
+
+function setTdAgentState(state, text) {
+  if (!ui.tdAgentStatus) return;
+  ui.tdAgentStatus.dataset.state = state;
+  ui.tdStatusText.textContent = text || (state === 'speaking' ? 'Aarav is speaking...' : state === 'listening' ? 'Listening...' : state === 'thinking' ? 'Thinking...' : 'Ready');
+  if (ui.tdAvatarRing) {
+    ui.tdAvatarRing.className = `td-avatar-pulse-ring is-${state}`;
+  }
+}
+
+function speakTdAgent(text, onEnd) {
+  if (tdSpeechSynth) {
+    try { tdSpeechSynth.cancel(); } catch {}
+  }
+  if (!text || tdIsMuted) {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  setTdAgentState('speaking', 'Aarav is speaking...');
+  
+  if (typeof SpeechSynthesisUtterance !== 'undefined' && tdSpeechSynth) {
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.rate = 1.05;
+    utter.pitch = 1.0;
+    
+    // Pick an Indian English or Hindi voice if available
+    const voices = tdSpeechSynth.getVoices() || [];
+    const inVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.includes('India'));
+    if (inVoice) utter.voice = inVoice;
+
+    utter.onend = () => {
+      setTdAgentState('listening', 'Listening to you...');
+      if (!tdIsMuted) startTdListening();
+      if (onEnd) onEnd();
+    };
+    utter.onerror = () => {
+      setTdAgentState('listening', 'Ready for response');
+      if (!tdIsMuted) startTdListening();
+      if (onEnd) onEnd();
+    };
+
+    tdCurrentUtterance = utter;
+    tdSpeechSynth.speak(utter);
+  } else {
+    setTimeout(() => {
+      setTdAgentState('listening', 'Listening to you...');
+      if (!tdIsMuted) startTdListening();
+      if (onEnd) onEnd();
+    }, 1200);
+  }
+}
+
+function startTdListening() {
+  if (tdIsMuted) return;
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    if (ui.tdMicLabel) ui.tdMicLabel.textContent = 'Speak or type below';
+    return;
+  }
+
+  try {
+    if (tdSpeechRec) {
+      try { tdSpeechRec.abort(); } catch {}
+    }
+
+    tdSpeechRec = new SpeechRec();
+    tdSpeechRec.continuous = false;
+    tdSpeechRec.interimResults = false;
+    tdSpeechRec.lang = 'en-IN';
+
+    tdSpeechRec.onstart = () => {
+      tdIsListening = true;
+      if (ui.tdMicToggle) ui.tdMicToggle.classList.add('is-listening');
+      if (ui.tdMicLabel) ui.tdMicLabel.textContent = 'Listening... (Speak now)';
+      setTdAgentState('listening', 'Listening to you...');
+    };
+
+    tdSpeechRec.onresult = (e) => {
+      const transcript = Array.from(e.results).map(r => r[0].transcript).join(' ').trim();
+      if (transcript) {
+        processTdUserTurn(transcript);
+      }
+    };
+
+    tdSpeechRec.onerror = () => {
+      tdIsListening = false;
+      if (ui.tdMicToggle) ui.tdMicToggle.classList.remove('is-listening');
+      if (ui.tdMicLabel) ui.tdMicLabel.textContent = 'Tap to Speak';
+      setTdAgentState('idle', 'Ready for reply');
+    };
+
+    tdSpeechRec.onend = () => {
+      tdIsListening = false;
+      if (ui.tdMicToggle) ui.tdMicToggle.classList.remove('is-listening');
+      if (ui.tdMicLabel) ui.tdMicLabel.textContent = 'Tap to Speak';
+    };
+
+    tdSpeechRec.start();
+  } catch (err) {
+    console.warn('[TD SpeechRec]', err);
+  }
+}
+
+function stopTdListening() {
+  if (tdSpeechRec) {
+    try { tdSpeechRec.abort(); } catch {}
+    tdSpeechRec = null;
+  }
+  tdIsListening = false;
+  if (ui.tdMicToggle) {
+    ui.tdMicToggle.classList.remove('is-listening');
+    if (ui.tdMicLabel) ui.tdMicLabel.textContent = 'Tap to Speak';
+  }
+}
+
+function renderTdChips(step, vehicleName) {
+  if (!ui.tdChipsContainer) return;
+  let chips = [];
+
+  if (step === 'LOCATION' || step === 'GREETING') {
+    chips = ['DLF CyberCity, Gurgaon', 'Sector 62, Noida', 'Connaught Place, Delhi', 'Indiranagar, Bengaluru'];
+  } else if (step === 'DATE_TIME') {
+    chips = ['This Saturday at 5 PM', 'Sunday at 11 AM', 'Tomorrow afternoon at 3 PM'];
+  } else if (step === 'SLOT_VERIFY') {
+    chips = ['Yes, confirm slot', 'Choose different time'];
+  } else if (step === 'EMAIL') {
+    chips = ['satvikk005@gmail.com', 'satvik005@gmail.com', 'buyer@gmail.com'];
+  }
+
+  ui.tdChipsContainer.innerHTML = chips.map(c => `<button type="button" class="td-chip-btn">${c}</button>`).join('');
+
+  ui.tdChipsContainer.querySelectorAll('.td-chip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      processTdUserTurn(btn.textContent.trim());
+    });
+  });
+}
+
+async function openTestDriveModal() {
+  const vehicle = selectedVehicle();
+  ui.tdModalThumb.src = vehicle.thumbnail;
+  ui.tdModalVehicleName.textContent = vehicle.name;
+
+  ui.tdVoiceState.hidden = false;
+  ui.tdConfirmedState.hidden = true;
+  ui.tdModal.hidden = false;
+  ui.tdAgentSpeech.textContent = 'Connecting with Aarav...';
+  setTdAgentState('thinking', 'Connecting...');
+
+  try {
+    const res = await fetch('/api/test-drive-session/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.name,
+        language: 'Hinglish',
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Failed to start session');
+
+    tdSessionId = data.sessionId;
+    const initialTurn = data.initialTurn;
+
+    ui.tdAgentSpeech.textContent = initialTurn.spoken;
+    renderTdChips(initialTurn.step, vehicle.name);
+    speakTdAgent(initialTurn.spoken);
+  } catch (err) {
+    ui.tdAgentSpeech.textContent = `Hello! Which dealership or city location would you like to schedule your ${vehicle.name} test drive in?`;
+    renderTdChips('LOCATION', vehicle.name);
+    setTdAgentState('listening', 'Ready for response');
+  }
+}
+
+function closeTestDriveModal() {
+  ui.tdModal.hidden = true;
+  stopTdListening();
+  if (tdSpeechSynth) {
+    try { tdSpeechSynth.cancel(); } catch {}
+  }
+  if (tdSessionId) {
+    fetch('/api/test-drive-session/stop', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: tdSessionId }),
+    }).catch(() => {});
+    tdSessionId = null;
+  }
+}
+
+async function processTdUserTurn(text) {
+  if (!text) return;
+  stopTdListening();
+  if (tdSpeechSynth) {
+    try { tdSpeechSynth.cancel(); } catch {}
+  }
+
+  setTdAgentState('thinking', 'Aarav is thinking...');
+  ui.tdAgentSpeech.innerHTML = `<span class="td-user-echo">You: “${text}”</span><br/><span class="td-typing-dots">Aarav is processing...</span>`;
+
+  try {
+    const res = await fetch('/api/test-drive-session/process-turn', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: tdSessionId,
+        text,
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Turn failed');
+
+    ui.tdAgentSpeech.textContent = data.spoken;
+    renderTdChips(data.step, data.vehicleName || selectedVehicle().name);
+
+    if (ui.tdVoiceTextInput) {
+      if (data.step === 'EMAIL') {
+        ui.tdVoiceTextInput.placeholder = 'Enter your Gmail (e.g. satvik005@gmail.com)...';
+      } else if (data.step === 'DATE_TIME') {
+        ui.tdVoiceTextInput.placeholder = 'Type preferred day & time (e.g. Tomorrow 4 PM)...';
+      } else if (data.step === 'LOCATION') {
+        ui.tdVoiceTextInput.placeholder = 'Type your city or dealership (e.g. Gurgaon)...';
+      } else if (data.step === 'SLOT_VERIFY') {
+        ui.tdVoiceTextInput.placeholder = 'Type yes to confirm or suggest another time...';
+      }
+    }
+
+    if (data.isCompleted && data.booking) {
+      speakTdAgent(data.spoken, () => {
+        setTimeout(() => {
+          ui.tdVoiceState.hidden = true;
+          ui.tdConfirmedState.hidden = false;
+          ui.tdConfirmedId.textContent = data.booking.id || 'EEV-TD-CONFIRMED';
+          ui.tdConfirmedVehicle.textContent = data.vehicleName || selectedVehicle().name;
+          ui.tdConfirmedDatetime.textContent = `${data.booking.date} · ${data.booking.time || '5:00 PM'}`;
+          ui.tdConfirmedLocation.textContent = data.booking.location || 'EasyEV Superhub CyberCity, Gurgaon';
+          if (ui.tdConfirmedEmail) {
+            ui.tdConfirmedEmail.textContent = data.values?.customerEmail || 'Your Gmail';
+          }
+        }, 1200);
+      });
+    } else {
+      speakTdAgent(data.spoken);
+    }
+  } catch (err) {
+    ui.tdAgentSpeech.textContent = 'Sorry, could you please repeat that?';
+    setTdAgentState('listening', 'Ready for response');
+    startTdListening();
+  }
+}
+
+ui.bookTestDriveBtn.addEventListener("click", openTestDriveModal);
+ui.tdModalClose.addEventListener("click", closeTestDriveModal);
+ui.tdConfirmedDoneBtn.addEventListener("click", closeTestDriveModal);
+ui.tdModal.addEventListener("click", (e) => {
+  if (e.target === ui.tdModal) closeTestDriveModal();
+});
+
+ui.tdMicToggle.addEventListener("click", () => {
+  if (tdIsListening) {
+    stopTdListening();
+    tdIsMuted = true;
+    ui.tdMicLabel.textContent = 'Muted (Tap to Speak)';
+    setTdAgentState('idle', 'Microphone muted');
+  } else {
+    tdIsMuted = false;
+    startTdListening();
+  }
+});
+
+ui.tdVoiceTextForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = ui.tdVoiceTextInput.value.trim();
+  if (!text) return;
+  ui.tdVoiceTextInput.value = '';
+  processTdUserTurn(text);
+});
+
 ui.commandForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = cleanText(ui.commandInput.value);
