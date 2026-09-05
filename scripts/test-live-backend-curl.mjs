@@ -40,7 +40,7 @@ function test(name, fn) {
 console.log('--- 1. Session Lifecycle & Initial State ---');
 let sessionId = null;
 
-test('POST /api/dealer-session/start creates session with 0/10 progress & ASKING mode', () => {
+test('POST /api/dealer-session/start creates session with 0/11 progress & ASKING mode', () => {
   const res = runCurl('POST', '/api/dealer-session/start', { language: 'Hinglish' });
   assert.strictEqual(res.success, true);
   assert.ok(res.sessionId);
@@ -51,7 +51,7 @@ test('POST /api/dealer-session/start creates session with 0/10 progress & ASKING
   assert.strictEqual(initial.step, 1);
   assert.strictEqual(initial.targetField, 'shopName');
   assert.strictEqual(initial.completionStats.filledCount, 0);
-  assert.strictEqual(initial.completionStats.totalRequired, 10);
+  assert.strictEqual(initial.completionStats.totalRequired, 11);
   assert.strictEqual(initial.completionStats.percentage, 0);
 });
 
@@ -166,11 +166,12 @@ test('POST /api/dealer-session/process-turn handles "I don\'t know" smoothly wit
 // --------------------------------------------------------------------
 console.log('\n--- 7. Tip 20: Multi-Stage Transactional Submission via cURL ---');
 
-test('POST /api/dealer-session/submit executes 7-stage transaction pipeline and commits', () => {
-  // Sync remaining valid fields
+test('POST /api/dealer-session/submit executes 8-stage transaction pipeline and commits with email audit', () => {
+  // Sync remaining valid fields including required email
   runCurl('POST', '/api/dealer-session/sync-state', {
     sessionId,
     patch: {
+      email: 'voltdrive.contact@easyev.in',
       brands: ['Tata Motors', 'Mahindra'],
       emiAvailable: true,
       showroomTestDrive: true
@@ -184,6 +185,7 @@ test('POST /api/dealer-session/submit executes 7-stage transaction pipeline and 
   assert.ok(submitRes.partnerId.startsWith('EEV-DLR-2026-'));
   assert.ok(submitRes.registeredDealer);
   assert.strictEqual(submitRes.registeredDealer.shopName, 'Volt Drive Hub');
+  assert.strictEqual(submitRes.registeredDealer.email, 'voltdrive.contact@easyev.in');
   
   // Verify transaction stages audit
   assert.ok(submitRes.transactionAudit);
@@ -195,6 +197,7 @@ test('POST /api/dealer-session/submit executes 7-stage transaction pipeline and 
   assert.ok(stageNames.includes('CROSS_FIELD_CONFLICT_CHECK'));
   assert.ok(stageNames.includes('SERVER_SIDE_VALIDATION'));
   assert.ok(stageNames.includes('IDEMPOTENT_SUBMISSION'));
+  assert.ok(stageNames.includes('EMAIL_CONFIRMATION_DISPATCHED'));
 });
 
 // --------------------------------------------------------------------

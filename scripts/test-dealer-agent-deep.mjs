@@ -36,12 +36,13 @@ function logSection(title) {
 
 logSection('--- Section 1: Canonical Form State Machine & Provenance ---');
 
-test('VOICE_INTERVIEW_FIELDS contains exactly 10 questions without categories', () => {
-  assert.strictEqual(VOICE_INTERVIEW_FIELDS.length, 10);
+test('VOICE_INTERVIEW_FIELDS contains exactly 11 questions without categories', () => {
+  assert.strictEqual(VOICE_INTERVIEW_FIELDS.length, 11);
   assert.ok(!VOICE_INTERVIEW_FIELDS.includes('categories'), 'categories must not be in voice interview fields');
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('shopName'));
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('managerName'));
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('phone'));
+  assert.ok(VOICE_INTERVIEW_FIELDS.includes('email'));
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('city'));
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('address'));
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('pincode'));
@@ -51,7 +52,7 @@ test('VOICE_INTERVIEW_FIELDS contains exactly 10 questions without categories', 
   assert.ok(VOICE_INTERVIEW_FIELDS.includes('showroomTestDrive'));
 });
 
-test('Initial blank form starts with 0 / 10 (0% completion) with strict field metadata', () => {
+test('Initial blank form starts with 0 / 11 (0% completion) with strict field metadata', () => {
   const sm = new DealerFormStateMachine({
     categories: ['4W', '2W', '3W', 'commercial'],
     openTime: '09:30 AM',
@@ -60,7 +61,7 @@ test('Initial blank form starts with 0 / 10 (0% completion) with strict field me
     insuranceAvailable: true
   });
   const stats = sm.getCompletionStats();
-  assert.strictEqual(stats.totalRequired, 10);
+  assert.strictEqual(stats.totalRequired, 11);
   assert.strictEqual(stats.filledCount, 0);
   assert.strictEqual(stats.percentage, 0);
   assert.strictEqual(stats.isComplete, false);
@@ -166,17 +167,18 @@ asyncTest('3-Attempt progressive fallback escalation to MANUAL_FALLBACK', async 
 
 logSection('\n--- Section 5: Compound Extraction & Out-of-Order Answers ---');
 
-asyncTest('Compound single sentence extracts shopName, managerName, phone, and city in one turn', async () => {
+asyncTest('Compound single sentence extracts shopName, managerName, phone, email, and city in one turn', async () => {
   const session = dealerVoiceAgentManager.createSession({});
-  const utterance = 'Mera showroom name Shakti Motors EV, manager Rajesh Sharma, phone 9811223344, located in New Delhi';
+  const utterance = 'Mera showroom name Shakti Motors EV, manager Rajesh Sharma, phone 9811223344, email sales@shaktiev.com, located in New Delhi';
   
   const turnRes = await session.processTurn({ text: utterance });
   assert.strictEqual(session.stateMachine.fields.shopName.value, 'Shakti Motors EV');
   assert.strictEqual(session.stateMachine.fields.managerName.value, 'Rajesh Sharma');
   assert.strictEqual(session.stateMachine.fields.phone.value, '9811223344');
+  assert.strictEqual(session.stateMachine.fields.email.value, 'sales@shaktiev.com');
   assert.strictEqual(session.stateMachine.fields.city.value, 'New Delhi');
-  assert.strictEqual(turnRes.completionStats.filledCount, 4);
-  assert.strictEqual(turnRes.completionStats.percentage, 40);
+  assert.strictEqual(turnRes.completionStats.filledCount, 5);
+  assert.strictEqual(turnRes.completionStats.percentage, 45);
   // Automatically advances past completed step 1 fields to step 2
   assert.strictEqual(turnRes.step, 2);
 });
@@ -223,7 +225,7 @@ asyncTest('Irrelevant answer (e.g. Pune) when phone is expected does not pollute
 
 logSection('\n--- Section 8: End-to-End Onboarding Journey Simulation ---');
 
-asyncTest('Simulate full 10-turn voice onboarding interview from 0/10 to 10/10 and Submit', async () => {
+asyncTest('Simulate full 11-turn voice onboarding interview from 0/11 to 11/11 and Submit', async () => {
   const session = dealerVoiceAgentManager.createSession({ language: 'Hinglish' });
 
   // Initial check
@@ -247,54 +249,59 @@ asyncTest('Simulate full 10-turn voice onboarding interview from 0/10 to 10/10 a
   assert.strictEqual(session.stateMachine.fields.phone.value, '9811223344');
   assert.strictEqual(t3.completionStats.filledCount, 3);
 
-  // Turn 4: City
-  const t4 = await session.processTurn({ text: 'New Delhi' });
-  assert.strictEqual(session.stateMachine.fields.city.value, 'New Delhi');
+  // Turn 4: Email
+  const t4 = await session.processTurn({ text: 'Official email is sales at the rate shaktiev dot com' });
+  assert.strictEqual(session.stateMachine.fields.email.value, 'sales@shaktiev.com');
   assert.strictEqual(t4.completionStats.filledCount, 4);
+
+  // Turn 5: City
+  const t5 = await session.processTurn({ text: 'New Delhi' });
+  assert.strictEqual(session.stateMachine.fields.city.value, 'New Delhi');
+  assert.strictEqual(t5.completionStats.filledCount, 5);
 
   // Step 1 Confirmation -> Move to Step 2
   await session.processTurn({ text: 'Haan agle step par chalo' });
   assert.strictEqual(session.stateMachine.currentStep, 2);
 
-  // Turn 5: Address
-  const t5 = await session.processTurn({ text: 'Plot 42, Okhla Phase 3 Industrial Area' });
-  assert.strictEqual(t5.completionStats.filledCount, 5);
-
-  // Turn 6: Pincode
-  const t6 = await session.processTurn({ text: 'Pincode 110020' });
-  assert.strictEqual(session.stateMachine.fields.pincode.value, '110020');
+  // Turn 6: Address
+  const t6 = await session.processTurn({ text: 'Plot 42, Okhla Phase 3 Industrial Area' });
   assert.strictEqual(t6.completionStats.filledCount, 6);
 
-  // Turn 7: Working Days
-  const t7 = await session.processTurn({ text: 'All 7 Days open rehta hai' });
-  assert.strictEqual(session.stateMachine.fields.workingDays.value, 'All 7 Days');
+  // Turn 7: Pincode
+  const t7 = await session.processTurn({ text: 'Pincode 110020' });
+  assert.strictEqual(session.stateMachine.fields.pincode.value, '110020');
   assert.strictEqual(t7.completionStats.filledCount, 7);
+
+  // Turn 8: Working Days
+  const t8 = await session.processTurn({ text: 'All 7 Days open rehta hai' });
+  assert.strictEqual(session.stateMachine.fields.workingDays.value, 'All 7 Days');
+  assert.strictEqual(t8.completionStats.filledCount, 8);
 
   // Step 2 Confirmation -> Move to Step 3
   await session.processTurn({ text: 'Ji haan aage badhein' });
   assert.strictEqual(session.stateMachine.currentStep, 3);
 
-  // Turn 8: Brands
-  const t8 = await session.processTurn({ text: 'Hum Tata Motors aur Mahindra deal karte hain' });
+  // Turn 9: Brands
+  const t9 = await session.processTurn({ text: 'Hum Tata Motors aur Mahindra deal karte hain' });
   assert.ok(session.stateMachine.fields.brands.value.includes('Tata Motors'));
-  assert.strictEqual(t8.completionStats.filledCount, 8);
+  assert.strictEqual(t9.completionStats.filledCount, 9);
 
   // Step 3 Confirmation -> Move to Step 4
   await session.processTurn({ text: 'Haan Step 4 par chalo' });
   assert.strictEqual(session.stateMachine.currentStep, 4);
 
-  // Turn 9: EMI Loan
-  const t9 = await session.processTurn({ text: 'Haan hum loan aur EMI provide karte hain' });
+  // Turn 10: EMI Loan
+  const t10 = await session.processTurn({ text: 'Haan hum loan aur EMI provide karte hain' });
   assert.strictEqual(session.stateMachine.fields.emiAvailable.value, true);
-  assert.strictEqual(t9.completionStats.filledCount, 9);
-
-  // Turn 10: Test Drive
-  const t10 = await session.processTurn({ text: 'Haan showroom test drive facility hai' });
-  assert.strictEqual(session.stateMachine.fields.showroomTestDrive.value, true);
   assert.strictEqual(t10.completionStats.filledCount, 10);
-  assert.strictEqual(t10.completionStats.percentage, 100);
 
-  // Turn 11: Final Voice Submission
+  // Turn 11: Test Drive
+  const t11 = await session.processTurn({ text: 'Haan showroom test drive facility hai' });
+  assert.strictEqual(session.stateMachine.fields.showroomTestDrive.value, true);
+  assert.strictEqual(t11.completionStats.filledCount, 11);
+  assert.strictEqual(t11.completionStats.percentage, 100);
+
+  // Turn 12: Final Voice Submission
   const tSubmit = await session.processTurn({ text: 'Submit my verified registration' });
   assert.strictEqual(tSubmit.action, 'SUBMIT_SUCCESS');
   assert.strictEqual(tSubmit.step, 5);
@@ -520,6 +527,7 @@ asyncTest('Tip 20: Submission is a multi-stage transaction with audit records', 
       shopName: 'Apex EV World',
       managerName: 'Priya Sharma',
       phone: '9822334455',
+      email: 'info@apexev.com',
       city: 'Pune',
       address: 'Senapati Bapat Road',
       pincode: '411016',

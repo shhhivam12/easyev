@@ -321,6 +321,10 @@ class DealerDatabase {
     if (!phone) {
       throw new Error('Contact phone number is required');
     }
+    const email = String(input.contactPerson?.email || input.email || '').trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error('Valid official email address is required');
+    }
 
     const city = String(input.location?.city || input.city || '').trim();
     const address = String(input.location?.address || input.address || '').trim();
@@ -335,14 +339,14 @@ class DealerDatabase {
       : ['Tata Motors'];
 
     const newDealer = {
-      id: this.generateId(),
+      id: input.id || this.generateId(),
       shopName,
       dealerType: input.dealerType || 'Authorized OEM Dealership',
       contactPerson: {
         name: contactName || 'Store Manager',
         role: input.contactPerson?.role || input.role || 'Showroom Lead',
         phone,
-        email: String(input.contactPerson?.email || input.email || '').trim(),
+        email,
         whatsapp: String(input.contactPerson?.whatsapp || input.whatsapp || phone).trim()
       },
       location: {
@@ -437,7 +441,12 @@ class DealerDatabase {
 
   getDealerById(id) {
     if (!id) return null;
-    return this.dealers.find(d => d.id.toLowerCase() === String(id).trim().toLowerCase()) || null;
+    const target = String(id).trim().toLowerCase();
+    return this.dealers.find(d => 
+      (d.id && d.id.toLowerCase() === target) ||
+      (d.partnerId && d.partnerId.toLowerCase() === target) ||
+      (d.contactPerson?.phone && d.contactPerson.phone.replace(/\D/g, '') === target.replace(/\D/g, ''))
+    ) || null;
   }
 
   getDealerStats() {

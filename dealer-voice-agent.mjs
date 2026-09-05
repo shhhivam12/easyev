@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { dealerDb } from './dealer-db.mjs';
+import { sendDealerOnboardingEmail } from './dealer-mailer.mjs';
 
 /**
  * Canonical Schema & Default State for Dealer Onboarding Form
@@ -9,9 +10,9 @@ export const CANONICAL_DEALER_FIELDS = {
   shopName: { step: 1, label: 'Dealership / Shop Name', required: true, type: 'string', group: 'profile' },
   managerName: { step: 1, label: 'Owner / Manager Name', required: true, type: 'string', group: 'profile' },
   phone: { step: 1, label: 'Mobile / WhatsApp Number', required: true, type: 'phone', group: 'profile', highRisk: true },
+  email: { step: 1, label: 'Business Email Address', required: true, type: 'email', group: 'profile' },
   city: { step: 1, label: 'City', required: true, type: 'string', group: 'profile' },
   dealerType: { step: 1, label: 'Dealership Type', required: false, type: 'enum', default: 'Authorized OEM Dealership', group: 'profile', isDefault: true },
-  email: { step: 1, label: 'Business Email Address', required: false, type: 'email', group: 'profile' },
 
   // Step 2: Location & Timings
   address: { step: 2, label: 'Showroom Street Address', required: true, type: 'string', group: 'location' },
@@ -40,12 +41,13 @@ export const CANONICAL_DEALER_FIELDS = {
 };
 
 /**
- * 10 Active Core Voice Interview Questions
+ * 11 Active Core Voice Interview Questions
  */
 export const VOICE_INTERVIEW_FIELDS = [
   'shopName',
   'managerName',
   'phone',
+  'email',
   'city',
   'address',
   'pincode',
@@ -371,16 +373,41 @@ export function parseSpokenNumberWords(text = '') {
  */
 export function normalizeSttTranscript(text = '') {
   if (!text) return '';
-  return text
+  const devanagariDigits = { '०': '0', '१': '1', '२': '2', '३': '3', '४': '4', '५': '5', '६': '6', '७': '7', '८': '8', '९': '9' };
+  let normalized = text.replace(/[०-९]/g, (d) => devanagariDigits[d] || d);
+
+  // Devanagari spoken email keywords
+  normalized = normalized
+    .replace(/(?:एट\s*द\s*रेट|ऐट\s*द\s*रेट|एट\s*रेट|ऐट\s*रेट)/gi, '@')
+    .replace(/(?:डॉट\s*कॉम|डोट\s*कॉम)/gi, '.com')
+    .replace(/(?:डॉट\s*इन|डोट\s*इन)/gi, '.in')
+    .replace(/(?:डॉट\s*को\s*डॉट\s*इन)/gi, '.co.in')
+    .replace(/डॉट|डोट/gi, '.')
+    .replace(/जीमेल/gi, 'gmail')
+    .replace(/याहू/gi, 'yahoo')
+    .replace(/आउटलुक/gi, 'outlook')
+    .replace(/रेडिफमेल/gi, 'rediffmail');
+
+  // English & Hinglish spoken email keywords
+  normalized = normalized
+    .replace(/\s*underscore\s*/gi, '_')
+    .replace(/\s*(?:hyphen|dash)\s*/gi, '-')
     .replace(/\bat\s+the\s+rate\b/gi, '@')
     .replace(/\bat\s+rate\b/gi, '@')
+    .replace(/\bdot\s+co\s+dot\s+in\b/gi, '.co.in')
     .replace(/\bdot\s+com\b/gi, '.com')
     .replace(/\bdot\s+in\b/gi, '.in')
     .replace(/\bdot\s+org\b/gi, '.org')
     .replace(/\bdot\s+co\b/gi, '.co')
+    .replace(/\bdot\s+net\b/gi, '.net')
+    .replace(/\bdot\s+io\b/gi, '.io')
+    .replace(/([a-zA-Z0-9_-])\s+dot\s+([a-zA-Z0-9_-])/gi, '$1.$2')
+    .replace(/([a-zA-Z0-9._%+-]+)\s*@\s*([a-zA-Z0-9.-]+)/g, '$1@$2')
     .replace(/\s*@\s*/g, '@')
     .replace(/\s*\.\s*(com|in|org|net|co|io)/gi, '.$1')
     .trim();
+
+  return normalized;
 }
 
 /**
@@ -436,22 +463,35 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   const tenDigitPhone = spokenSequences.find(s => s.length === 10 && /^[6-9]/.test(s));
   const sixDigitPin = spokenSequences.find(s => s.length === 6 && /^[1-9]/.test(s));
 
-  // Explicit Compound Extraction: Shop Name
-  const shopMatch = cleanedText.match(/(?:(?:mera|humara|hamara)\s+)?(?:showroom|dealership|hub|agency|shop|store)(?:\s*ka)?\s*(?:name|naam)\s*(?:hai|is)?\s*[:=]?\s*([A-Za-z0-9\s&]+)/i);
-  if (shopMatch && shopMatch[1]) {
-    let sName = shopMatch[1].split(/(?:,\s*|\s+(?:manager|owner|contact|phone|mobile|city|address|location|pin|pincode|email))/i)[0].trim();
-    sName = sName.replace(/^(?:name|naam|is|hai)\s+/i, '').replace(/\s+(?:hai|hoon|h)$/i, '').trim();
-    if (sName.length >= 2 && !/^(?:hai|mera|hamara|naam|step|skip)$/i.test(sName)) {
+  // Explicit Compound Extraction: Shop Name (only when shopName is not yet captured)
+  const shopNameNotYetFilled = !currentForm.shopName || currentForm.shopName.length === 0;
+  const _shopMatchResult = shopNameNotYetFilled ? (
+    cleanedText.match(/(?:(?:showroom|dealership|hub|agency|shop|store)\s*(?:name|naam)?\s*(?:badlo|change|badal|update|galat)[^,]*,\s*(?:actual|sahi|real|new)?\s*(?:name|naam)?\s*(?:hai|is)?\s*([A-Za-z0-9\s&]+))/i)
+    || cleanedText.match(/(?:(?:actual|sahi|real)\s+(?:showroom|dealership|shop)?\s*(?:name|naam)\s*(?:hai|is)?\s*([A-Za-z0-9\s&]+))/i)
+    || cleanedText.match(/(?:(?:mera|humara|hamara)\s+)?(?:showroom|dealership|hub|agency|shop|store)(?:\s*(?:ka|ki))?\s*(?:name|naam)?\s*(?:hai|is|:|=)?\s*([A-Za-z0-9\s&]+)/i)
+    || cleanedText.match(/(?:शोरूम|डीलरशिप)\s*(?:का\s*नाम)?\s*(?:है)?\s*([^\s,.-]+(?:\s+[^\s,.-]+)*)/)
+  ) : null;
+  if (_shopMatchResult && _shopMatchResult[1]) {
+    let sName = _shopMatchResult[1].split(/(?:,\s*|\s+(?:hai\s+|is\s+|manager|owner|proprietor|contact|phone|mobile|city|address|location|pin|pincode|email|aur\s*mera|aur\s*owner|aur\s*hamara|और|मालिक|फोन))/i)[0].trim();
+    sName = sName.replace(/^(?:name|naam|is|hai|ka|ki|ke|actual|sahi|real|new)\s+/i, '').replace(/\s+(?:hai|hoon|h|me|mein|city|है)$/i, '').trim();
+    sName = sName.replace(/^(?:showroom|dealership|agency|store)\s+/i, '').trim();
+    if (sName.length >= 2 && !/^(?:hai|mera|hamara|naam|step|skip|badlo|change|badal|galat|update)$/i.test(sName)) {
       extracted.shopName = sName;
     }
   }
 
   // Explicit Compound Extraction: Manager / Owner Name
-  const mgrMatch = cleanedText.match(/(?:(?:manager|owner|contact\s*person|mera|apna|hamara|humara)\s*(?:ka\s*)?(?:naam|name)|(?:manager|owner|contact\s*person))\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z\s]+)/i);
+  const mgrMatch = cleanedText.match(/(?:(?:manager|owner|proprietor|contact\s*person)\s*(?:badlo|change|badal|galat)[^,]*,\s*(?:actual|sahi|real|new)?\s*(?:manager|owner)?\s*(?:name|naam)?\s*(?:is|hai)?\s*([A-Za-z\s]+))/i)
+    || cleanedText.match(/(?:(?:actual|sahi|real)\s+(?:manager|owner|proprietor)?\s*(?:name|naam)\s*(?:hai|is)?\s*([A-Za-z\s]+))/i)
+    || cleanedText.match(/(?:(?:manager|owner|proprietor|contact\s*person)\s*(?:ka\s*)?(?:naam|name)?|(?:mera|apna|humara)\s*(?:naam|name))\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z\s]+)/i)
+    || cleanedText.match(/(?:(?:main|me|mein)\s+)([A-Za-z\s]+?)\s+(?:baat\s*kar\s*raha|bol\s*raha|hu|hoon|proprietor|owner|manager|here)/i)
+    || cleanedText.match(/(?:मेरा\s*नाम|मालिक\s*का\s*नाम|ओनर\s*का\s*नाम)\s+([^\s,.-]+(?:\s+[^\s,.-]+)?)/);
   if (mgrMatch && mgrMatch[1]) {
-    let mName = mgrMatch[1].split(/(?:,\s*|\s+(?:phone|mobile|city|address|location|pin|pincode|email))/i)[0].trim();
-    mName = mName.replace(/^(?:naam|name|is|hai|ka|ki|ke)\s+/i, '').replace(/\s+(?:hai|hoon|h|sir|ji|kardo)$/i, '').trim();
-    if (mName.length >= 2 && !/^(?:hai|naam|name|is|step|skip|phone|city|address)$/i.test(mName)) {
+    let mName = mgrMatch[1].split(/(?:,\s*|\s+(?:phone|mobile|city|address|location|pin|pincode|email|baat\s*kar|bol\s*raha|yaha\s*ka))/i)[0].trim();
+    mName = mName.replace(/^(?:naam|name|is|hai|ka|ki|ke|main|mera|hu|hoon|actual|sahi|real|new)\s+/i, '').replace(/\s+(?:hai|hoon|h|sir|ji|kardo|kar\s*do|proprietor|owner|manager|है)$/i, '').trim();
+    // Guard: don't extract if name contains shop/business words
+    const isLikeShopName = /\b(?:motors|hub|agency|dealership|showroom|ev\s*hub|center|centre|store|shop|garage|auto)\b/i.test(mName);
+    if (mName.length >= 2 && !/^(?:hai|naam|name|is|step|skip|phone|city|address|badlo|change|badal|galat)$/i.test(mName) && !isLikeShopName) {
       extracted.managerName = mName;
     }
   }
@@ -466,24 +506,29 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     }
   }
 
-  const noisePattern = /\b(?:blah|gibberish|uh+|uhm+|um+|umm+|hmm+|ahem+|err+|kuch\s*bhi|pata\s*nahi|dont\s*know|don't\s*know|hello|hi|namaste|test|testing|kya|kyu|why|what|ruko|wait|sunno|suno|ek\s*min|nahi\s*pata|maloom\s*nahi)\b/i;
+  const noisePattern = /\b(?:blah|gibberish|uh+|uhm+|um+|umm+|hmm+|ahem+|err+|kuch\s*bhi|pata\s*nahi|dont\s*know|don't\s*know|hello|hi|namaste|test|testing|kya|kyu|why|what|ruko|wait|sunno|suno|ek\s*min|nahi\s*pata|maloom\s*nahi|biryani|khani)\b/i;
 
   // Fallback Contextual Direct Answer for shopName
-  const cleanUtterance = cleanedText.replace(/^(?:mera|humara|hamara|dealership\s*ka|showroom\s*ka|my)\s*(?:name\s*is|naam\s*hai)?\s*/i, '').trim();
-  if (!extracted.shopName && (currentTargetField === 'shopName' || (!currentForm.shopName && currentStep === 1)) && cleanUtterance.length >= 2) {
-    if (!noisePattern.test(cleanUtterance) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update|yes|haan|no|nahi)\b/i.test(cleanUtterance) && !/^[0-9]{10}$/.test(cleanUtterance)) {
+  let cleanUtterance = cleanedText.replace(/^(?:mera|humara|hamara|dealership\s*ka|showroom\s*ka|my)\s*(?:name\s*is|naam\s*hai)?\s*/i, '').trim();
+  cleanUtterance = cleanUtterance.replace(/^(?:showroom|dealership|agency|store)\s+/i, '').trim();
+  cleanUtterance = cleanUtterance.replace(/^(?:name|naam)\s*(?:hai|is)?\s*/i, '').trim();
+  // Only apply shopName fallback when explicitly targeting shopName or when it's not yet filled
+  const shopNameIsMissing = !currentForm.shopName || currentForm.shopName.length === 0;
+  if (!extracted.shopName && shopNameIsMissing && (currentTargetField === 'shopName' || currentStep === 1) && cleanUtterance.length >= 2) {
+    if (!noisePattern.test(cleanUtterance) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update|yes|haan|no|nahi|biryani|test\s*drive|drive|facility|emi|loan)\b/i.test(cleanUtterance) && !/^[0-9]{10}$/.test(cleanUtterance)) {
       extracted.shopName = cleanUtterance;
     }
   }
 
   // Fallback Contextual Direct Answer for managerName
   const nonDigitText = cleanUtterance.replace(/(?:\+?91[\s-]?)?([6-9]\d{9})/g, '').replace(/[0-9]/g, '').replace(/[,.-]/g, ' ').trim();
-  if (!extracted.managerName && (currentTargetField === 'managerName' || (currentForm.shopName && !currentForm.managerName && currentStep === 1)) && nonDigitText.length >= 2) {
+  const shopNameAlreadyFilled = currentForm.shopName && currentForm.shopName.length > 0;
+  if (!extracted.managerName && (currentTargetField === 'managerName' || (shopNameAlreadyFilled && !currentForm.managerName && currentStep === 1)) && nonDigitText.length >= 2) {
     let cleanMgr = nonDigitText
-      .replace(/^(?:namaste|hello|hi|haan|mera|humara|my)?\s*(?:manager|owner|contact\s*person)?\s*(?:ka)?\s*(?:naam|name)?\s*(?:is|hai)?\s*[:=]?\s*/i, '')
-      .replace(/\s+(?:hai|hoon|h|sir|ji)$/i, '')
+      .replace(/^(?:namaste|hello|hi|haan|mera|humara|my|main)?\s*(?:manager|owner|contact\s*person)?\s*(?:ka)?\s*(?:naam|name)?\s*(?:is|hai)?\s*[:=]?\s*/i, '')
+      .replace(/\s+(?:baat\s*kar\s*raha\s*(?:hu|hoon)?|bol\s*raha\s*(?:hu|hoon)?|yaha\s*ka\s*proprietor|yaha\s*ka\s*owner|proprietor|owner|manager|hai|hoon|h|sir|ji)$/i, '')
       .trim();
-    if (!noisePattern.test(cleanMgr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change|yes|haan|no|nahi)\b/i.test(cleanMgr)) {
+    if (!noisePattern.test(cleanMgr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change|yes|haan|no|nahi|biryani|khani|horn|sound|beep|showroom|dealership|motors|hub|agency|ev\s*hub)\b/i.test(cleanMgr)) {
       extracted.managerName = cleanMgr;
     }
   }
@@ -506,21 +551,32 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     if (valid.valid) extracted.phone = valid.value;
   }
 
-  // Email extraction
-  const emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  // Email extraction (Standard Regex + Contextual STT Speech Variations)
+  let emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  if (!emailMatch && (currentTargetField === 'email' || /(?:email|ईमेल|gmail|yahoo|outlook|mail)/i.test(cleanedText))) {
+    const contextualCandidate = cleanedText
+      .replace(/\b([a-zA-Z0-9._%+-]+)\s+at\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi, '$1@$2')
+      .replace(/\b([a-zA-Z0-9._%+-]+)\s+at\s+([a-zA-Z0-9.-]+)\s*\.\s*(com|in|org|net|co|io)/gi, '$1@$2.$3');
+    emailMatch = contextualCandidate.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+  }
   if (emailMatch) {
     const valid = validators.email(emailMatch[0]);
     if (valid.valid) extracted.email = valid.value;
   }
 
-  // Pincode extraction
-  const pinMatch = cleanedText.match(/\b([1-9][0-9]{5})\b/);
-  if (pinMatch) {
-    const valid = validators.pincode(pinMatch[1]);
-    if (valid.valid) extracted.pincode = valid.value;
-  } else if (sixDigitPin) {
-    const valid = validators.pincode(sixDigitPin);
-    if (valid.valid) extracted.pincode = valid.value;
+  // Pincode extraction (Guard against 6-digit phone number fragments)
+  const hasPhoneContext = /(?:phone|mobile|contact|call|फ़ोन|फोन|मोबाइल)/i.test(cleanedText);
+  const hasPinContext = /(?:pin|pincode|postal|zip|पिनकोड|पिन)/i.test(cleanedText) || currentTargetField === 'pincode' || currentStep === 2;
+
+  if (hasPinContext || !hasPhoneContext) {
+    const pinMatch = cleanedText.match(/(?:(?:pin|pincode|postal|zip)\s*(?:code)?(?:\s*hai)?\s*[:=]?\s*)?\b([1-9][0-9]{5})\b/i);
+    if (pinMatch && (!hasPhoneContext || /(?:pin|pincode|postal|zip)/i.test(cleanedText) || currentTargetField === 'pincode')) {
+      const valid = validators.pincode(pinMatch[1]);
+      if (valid.valid) extracted.pincode = valid.value;
+    } else if (sixDigitPin && (!hasPhoneContext || /(?:pin|pincode|postal|zip)/i.test(cleanedText) || currentTargetField === 'pincode')) {
+      const valid = validators.pincode(sixDigitPin);
+      if (valid.valid) extracted.pincode = valid.value;
+    }
   }
 
   // City extraction (Prioritizing multi-word cities)
@@ -585,7 +641,7 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
 
   // Services: EMI & Insurance
   if (/(?:emi|loan|financing|finance|kist|ईएमआई|लोन|किस्त)/i.test(lower) || currentTargetField === 'emiAvailable') {
-    if (/(?:nahi|no|dont|do not|without emi|नहीं)/i.test(lower)) {
+    if (/\b(?:nahi|no|dont|do\s*not|without\s*emi|nahi\s*hai|नहीं)\b/i.test(lower)) {
       extracted.emiAvailable = false;
     } else if (/(?:haan|yes|available|dete|provide|milta|हाँ|ज़रूर|जरूर)/i.test(lower) || /(?:emi|loan|financing|finance|kist)/i.test(lower)) {
       extracted.emiAvailable = true;
@@ -594,7 +650,7 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   }
 
   if (/(?:insurance|bima|zero dep|policy|बीमा|इंश्योरेंस)/i.test(lower)) {
-    if (/(?:nahi|no|dont|do not|without insurance|नहीं)/i.test(lower)) {
+    if (/\b(?:nahi|no|dont|do\s*not|without\s*insurance|nahi\s*hai|नहीं)\b/i.test(lower)) {
       extracted.insuranceAvailable = false;
     } else {
       extracted.insuranceAvailable = true;
@@ -603,11 +659,11 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
 
   // Services: Charging & Test Drive
   if (/(?:charger|charging|fast charger|on-site charge|चार्जर|चार्जिंग)/i.test(lower)) {
-    extracted.chargingOnSite = !/(?:nahi|no|नहीं)/i.test(lower);
+    extracted.chargingOnSite = !/\b(?:nahi|no|nahi\s*hai|नहीं)\b/i.test(lower);
   }
 
   if (/(?:test drive|home test drive|doorstep|ghar pe|टेस्ट\s*ड्राइव)/i.test(lower) || currentTargetField === 'showroomTestDrive') {
-    if (/(?:nahi|no|dont|do not|not available|नहीं)/i.test(lower)) {
+    if (/\b(?:nahi|no|dont|do\s*not|not\s*available|nahi\s*hai|नहीं)\b/i.test(lower)) {
       extracted.showroomTestDrive = false;
     } else if (/(?:haan|yes|available|dete|provide|milta|हाँ|ज़रूर|जरूर)/i.test(lower) || /(?:test drive|doorstep)/i.test(lower)) {
       if (/(?:home|doorstep|ghar pe|घर)/i.test(lower)) extracted.homeTestDrive = true;
@@ -700,6 +756,26 @@ export const FIELD_PROMPTS = {
       'I couldn\'t register that number. Please repeat your 10-digit mobile number.',
       'One last time — please say your phone number digit by digit, e.g. "9-8-1-1-2-3-4-5-6-7".',
       'Unable to capture the phone number. Please enter it manually in the field.'
+    ]
+  },
+  email: {
+    Hindi: [
+      'डीलरशिप कन्फर्मेशन और डिजिटल किट के लिए आपका ऑफिशियल ईमेल आईडी क्या है?',
+      'माफ़ कीजियेगा, ईमेल स्पष्ट नहीं हुआ। कृपया ईमेल आईडी बताएं जैसे "name at the rate gmail dot com"।',
+      'कृपया ईमेल का नाम और डोमेन स्पष्ट बोलें, जैसे "sharma.motors at the rate gmail dot com"।',
+      'ईमेल आईडी रिकॉर्ड नहीं हो सकी। आप इसे स्क्रीन पर दर्ज कर सकते हैं।'
+    ],
+    Hinglish: [
+      'Showroom confirmation aur digital certificate receive karne ke liye aapka official email address kya hai?',
+      'Email samajh nahi aaya. Kripya apna email address batayein jaise "name at the rate gmail dot com".',
+      'Kripya email address domain ke saath bolein, jaise "sharmamotors at the rate gmail dot com".',
+      'Email address record nahi ho saka. Aap ise screen par manually type kar sakte hain.'
+    ],
+    English: [
+      'What is your official business email address to receive your verified partner kit and certificate?',
+      'I didn\'t catch that email. Please state your business email address.',
+      'Please say your email address including domain, for example "dealer at the rate gmail dot com".',
+      'Unable to record email. You can enter it directly on the screen.'
     ]
   },
   city: {
@@ -898,7 +974,7 @@ export function classifyIntent(text = '') {
   if (/(?:(?:go to|open|jump to|chalo|dikhao|par\s*jao|jao)\s*(?:step\s*4|fourth\s*step|chautha\s*step|chauthe\s*step|services\s*step)|(?:step\s*4|fourth\s*step|chautha\s*step|chauthe\s*step|services\s*step)\s*(?:par\s*chalo|par\s*jao|kholo|dikhao|me\s*jao|jao)|चौथा\s*स्टेप\s*खोलो|स्टेप\s*4)/i.test(trimmed)) {
     return INTENT.NAVIGATE_STEP;
   }
-  if (/(?:pichla\s*(?:step|page)|go back|peeche chalo|previous\s*(?:step|page)|पिछला\s*स्टेप|back\s*jao)/i.test(trimmed)) {
+  if (/(?:pichla\s*(?:step|page)?|go back|peeche\s*(?:chalo|jao)?|piche\s*(?:chalo|jao)?|previous\s*(?:step|page)?|पिछला\s*स्टेप|back\s*jao|peeche|piche)/i.test(trimmed)) {
     return INTENT.GO_BACK;
   }
   if (/(?:submit|sabmit|register|registration\s*submit|verified\s*registration|final\s*submit|kar\s*do\s*register|सबमिट|जमा)/i.test(trimmed) && !/(?:fee|fees|charge|cost|document|paper|upload|kyc|kya|why|kaise|kitna|help|फायदा|शुल्क)/i.test(trimmed)) {
@@ -1001,12 +1077,14 @@ export class DealerFormStateMachine {
       field: key,
       from: prev,
       to: value,
+      value,
       source,
       utterance,
       reason
     });
 
     this.recalculateCurrentStep();
+    this.updateCurrentTargetField();
     return { field: key, from: prev, to: value };
   }
 
@@ -1086,6 +1164,7 @@ export class DealerFormStateMachine {
         updatedAt: v.updatedAt
       };
     }
+    res.fields = { ...res };
     return res;
   }
 
@@ -1119,7 +1198,7 @@ export class DealerFormStateMachine {
 
   isStepComplete(stepNum) {
     const stepFields = {
-      1: ['shopName', 'managerName', 'phone', 'city'],
+      1: ['shopName', 'managerName', 'phone', 'email', 'city'],
       2: ['address', 'pincode', 'workingDays'],
       3: ['brands'],
       4: ['emiAvailable', 'showroomTestDrive']
@@ -1144,6 +1223,37 @@ export class DealerFormStateMachine {
       }
     }
     this.currentStep = 4;
+  }
+
+  updateCurrentTargetField() {
+    const validSources = new Set(['voice', 'voice_extracted', 'voice_compound', 'manual_ui', 'manual_ui_sync']);
+    const allStepFields = {
+      1: ['shopName', 'managerName', 'phone', 'email', 'city'],
+      2: ['address', 'pincode', 'workingDays'],
+      3: ['brands'],
+      4: ['emiAvailable', 'showroomTestDrive']
+    };
+
+    for (let s = this.currentStep; s <= 4; s++) {
+      for (const key of allStepFields[s]) {
+        const f = this.fields[key];
+        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          return;
+        }
+      }
+    }
+    for (let s = 1; s < this.currentStep; s++) {
+      for (const key of allStepFields[s]) {
+        const f = this.fields[key];
+        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
+          this.currentTargetField = key;
+          return;
+        }
+      }
+    }
   }
 
   /**
@@ -1172,7 +1282,7 @@ export class DealerFormStateMachine {
 
     // Step 1 Check
     if (this.currentStep === 1) {
-      const step1Order = ['shopName', 'managerName', 'phone', 'city'];
+      const step1Order = ['shopName', 'managerName', 'phone', 'email', 'city'];
       for (const key of step1Order) {
         const f = this.fields[key];
         const isFilled = f?.value && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
@@ -1180,20 +1290,20 @@ export class DealerFormStateMachine {
           this.currentTargetField = key;
           const attempt = Math.min(3, f?.attempts || 0);
           const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
           const promptText = promptList[attempt] || promptList[0] || 'Namaste! Aapke EV showroom ka kya naam hai?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          const ttsText = promptText;
           return { action: 'ASK_FIELD', targetField: key, step: 1, attempt, promptText, ttsText, stats };
         }
       }
 
+      this.updateCurrentTargetField();
       const promptText = language === 'Hindi'
         ? `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 (लोकेशन) पर आगे बढ़ें?`
         : language === 'English'
           ? `Dealership profile is saved! Shall we move to Step 2: Showroom Location?`
           : `Dealership profile note ho gayi hai! Kya hum Step 2 (Location) par chalein?`;
-      const ttsText = language === 'English' ? promptText : `डीलरशिप प्रोफाइल पूरी हो गई है! क्या हम स्टेप 2 लोकेशन पर आगे बढ़ें?`;
-      return { action: 'STEP_CONFIRMATION', nextStep: 2, step: 1, promptText, ttsText, stats };
+      const ttsText = promptText;
+      return { action: 'STEP_CONFIRMATION', nextStep: 2, step: 1, targetField: this.currentTargetField, promptText, ttsText, stats };
     }
 
     // Step 2 Check
@@ -1206,9 +1316,8 @@ export class DealerFormStateMachine {
           this.currentTargetField = key;
           const attempt = Math.min(3, f?.attempts || 0);
           const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
           const promptText = promptList[attempt] || promptList[0] || 'Step 2: Aapka showroom kis address par hai?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          const ttsText = promptText;
           return { action: 'ASK_FIELD', targetField: key, step: 2, attempt, promptText, ttsText, stats };
         }
       }
@@ -1218,7 +1327,7 @@ export class DealerFormStateMachine {
         : language === 'English'
           ? `Location and timings saved! Shall we move to Step 3: EV Brands?`
           : `Showroom location aur timings save ho gayi hain! Kya Step 3 (EV Brands) par chalein?`;
-      const ttsText = language === 'English' ? promptText : `शोरूम का पता और समय नोट हो चुका है! क्या स्टेप 3 ईवी ब्रांड्स पर चलें?`;
+      const ttsText = promptText;
       return { action: 'STEP_CONFIRMATION', nextStep: 3, step: 2, promptText, ttsText, stats };
     }
 
@@ -1232,9 +1341,8 @@ export class DealerFormStateMachine {
           this.currentTargetField = key;
           const attempt = Math.min(3, f?.attempts || 0);
           const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
           const promptText = promptList[attempt] || promptList[0] || 'Step 3: Aap kaunse EV brands deal karte hain?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          const ttsText = promptText;
           return { action: 'ASK_FIELD', targetField: key, step: 3, attempt, promptText, ttsText, stats };
         }
       }
@@ -1244,7 +1352,7 @@ export class DealerFormStateMachine {
         : language === 'English'
           ? `Brands recorded! Shall we proceed to Step 4: Services & Test Drives?`
           : `Brands select ho gaye! Kya last step (Step 4: Services & Test Drives) par chalein?`;
-      const ttsText = language === 'English' ? promptText : `ईवी ब्रांड्स सेव हो गए! क्या आखिरी स्टेप ईएमआई लोन, बीमा और टेस्ट ड्राइव देखें?`;
+      const ttsText = promptText;
       return { action: 'STEP_CONFIRMATION', nextStep: 4, step: 3, promptText, ttsText, stats };
     }
 
@@ -1258,9 +1366,8 @@ export class DealerFormStateMachine {
           this.currentTargetField = key;
           const attempt = Math.min(3, f?.attempts || 0);
           const promptList = FIELD_PROMPTS[key]?.[language] || FIELD_PROMPTS[key]?.['Hinglish'] || [];
-          const hindiList = FIELD_PROMPTS[key]?.['Hindi'] || [];
           const promptText = promptList[attempt] || promptList[0] || 'Step 4: Kya aap EMI aur Test Drive provide karte hain?';
-          const ttsText = language === 'English' ? promptText : (hindiList[attempt] || hindiList[0] || promptText);
+          const ttsText = promptText;
           return { action: 'ASK_FIELD', targetField: key, step: 4, attempt, promptText, ttsText, stats };
         }
       }
@@ -1272,7 +1379,7 @@ export class DealerFormStateMachine {
         : language === 'English'
           ? `All 4 steps are complete for "${vals.shopName || 'your showroom'}"! Shall I go ahead and submit your verified registration?`
           : `Awesome! Aapke showroom "${vals.shopName || 'EV Hub'}" ke sabhi 4 steps complete ho chuke hain. Kya main verified registration submit kar doon?`;
-      const ttsText = language === 'English' ? promptText : `बहुत बढ़िया! आपकी डीलरशिप ${vals.shopName || 'ईवी शोरूम'} की सभी जानकारियाँ पूरी हो गई हैं। क्या मैं अधिकृत पार्टनरशिप सबमिट कर दूँ?`;
+      const ttsText = promptText;
       return { action: 'COMPLETE', step: 4, promptText, ttsText, stats };
     }
 
@@ -1317,21 +1424,22 @@ export class DealerAgentSession {
 
   getInitialGreeting() {
     this.conversationMode = CONVERSATION_MODE.ASKING;
+    const next = this.stateMachine.decideNextAction(this.language);
     const isStep1Complete = this.stateMachine.isStepComplete(1);
     const text = this.language === 'Hindi'
       ? (isStep1Complete ? 'नमस्ते! आपकी डीलरशिप प्रोफाइल पहले से सेट है, क्या हम अगले स्टेप पर आगे बढ़ें?' : 'नमस्ते! मैं EasyEV वॉइस कोपायलट हूँ। आपके ईवी शोरूम का क्या नाम है?')
       : (isStep1Complete ? 'Namaste! Showroom profile ready hai. Shall we move to Location & Timings?' : 'Namaste! Welcome to EasyEV. Aapke EV showroom ka kya naam hai?');
     
-    const ttsText = this.language === 'English' ? text : (isStep1Complete ? 'नमस्ते! शोरूम प्रोफाइल तैयार है, क्या हम लोकेशन पर आगे बढ़ें?' : 'नमस्ते! मैं EasyEV वॉइस कोपायलट हूँ। आपके ईवी शोरूम का क्या नाम है?');
+    const ttsText = text;
 
     return {
       sessionId: this.sessionId,
       conversationMode: this.conversationMode,
       speechText: text,
       ttsText,
-      action: 'ASK_FIELD',
-      targetField: isStep1Complete ? 'address' : 'shopName',
-      step: isStep1Complete ? 2 : 1,
+      action: next.action || 'ASK_FIELD',
+      targetField: next.targetField || (isStep1Complete ? 'address' : 'shopName'),
+      step: this.stateMachine.currentStep,
       extractedFields: {},
       currentForm: this.stateMachine.getValues(),
       canonicalState: this.stateMachine.getCanonicalState(),
@@ -1413,6 +1521,27 @@ export class DealerAgentSession {
         text: userText.trim(),
         timestamp: Date.now()
       });
+
+      // 1. High-Priority FAQ Interception
+      const faqAnswer = handleDealerFaq(userText, this.language);
+      if (faqAnswer) {
+        const next = this.stateMachine.decideNextAction(this.language);
+        this.conversationMode = next.action === 'STEP_CONFIRMATION' ? CONVERSATION_MODE.CONFIRMING : CONVERSATION_MODE.ASKING;
+        return {
+          sessionId: this.sessionId,
+          conversationMode: this.conversationMode,
+          speechText: `${faqAnswer} ${next.promptText}`,
+          ttsText: next.ttsText || next.promptText,
+          action: next.action,
+          targetField: next.targetField,
+          step: next.step,
+          extractedFields: {},
+          currentForm: this.stateMachine.getValues(),
+          canonicalState: this.stateMachine.getCanonicalState(),
+          completionStats: next.stats,
+          isSubmitted: this.isSubmitted
+        };
+      }
 
       const intent = classifyIntent(userText);
 
@@ -1579,27 +1708,6 @@ export class DealerAgentSession {
         };
       }
 
-      // Handle FAQ Interception
-      const faqAnswer = handleDealerFaq(userText, this.language);
-      if (faqAnswer) {
-        const next = this.stateMachine.decideNextAction(this.language);
-        this.conversationMode = next.action === 'STEP_CONFIRMATION' ? CONVERSATION_MODE.CONFIRMING : CONVERSATION_MODE.ASKING;
-        return {
-          sessionId: this.sessionId,
-          conversationMode: this.conversationMode,
-          speechText: `${faqAnswer} ${next.promptText}`,
-          ttsText: next.ttsText || next.promptText,
-          action: next.action,
-          targetField: next.targetField,
-          step: next.step,
-          extractedFields: {},
-          currentForm: this.stateMachine.getValues(),
-          canonicalState: this.stateMachine.getCanonicalState(),
-          completionStats: next.stats,
-          isSubmitted: this.isSubmitted
-        };
-      }
-
       // Handle Hesitations / Pauses
       if (/(?:ek\s*minute|ek\s*second|ruko|wait|hold\s*on|sunno|suno|arre\s*suno|let\s*me\s*think|dekhta\s*hoon|ek\s*min|रुकिए|रुको|एक\s*मिनट)/i.test(userText) && userText.split(/\s+/).length <= 5) {
         this.conversationMode = CONVERSATION_MODE.PAUSED;
@@ -1627,7 +1735,9 @@ export class DealerAgentSession {
       if (intent === INTENT.CORRECT_FIELD) {
         this.conversationMode = CONVERSATION_MODE.CORRECTING;
         this.telemetry.correctionsCount++;
-        const corrExtract = normalizeEntities(userText, this.stateMachine.getValues(), this.stateMachine.currentTargetField, this.stateMachine.currentStep);
+        // During correction, allow shopName re-extraction by clearing it from context
+        const corrFormContext = { ...this.stateMachine.getValues(), shopName: '' };
+        const corrExtract = normalizeEntities(userText, corrFormContext, this.stateMachine.currentTargetField, this.stateMachine.currentStep);
         if (Object.keys(corrExtract).length > 0) {
           for (const [fKey, fVal] of Object.entries(corrExtract)) {
             this.stateMachine.updateField(fKey, fVal, 'voice_correction', userText, 0.98, 'User speech correction');
@@ -1757,6 +1867,9 @@ export class DealerAgentSession {
     };
     this.telemetry.latencyBreakdowns.push(latencyBreakdown);
 
+    const conflicts = detectCrossFieldConflicts(this.stateMachine.getValues());
+    const crossFieldConflictDetected = conflicts.length > 0;
+
     return {
       sessionId: this.sessionId,
       conversationMode: this.conversationMode,
@@ -1767,6 +1880,9 @@ export class DealerAgentSession {
       step: nextAction.step,
       extractedFields: extracted,
       turnQuality,
+      currentAttempt: nextAction.targetField && this.stateMachine.fields[nextAction.targetField] ? this.stateMachine.fields[nextAction.targetField].attempts : 1,
+      crossFieldConflictDetected,
+      conflicts,
       latencyBreakdown,
       currentForm: this.stateMachine.getValues(),
       canonicalState: this.stateMachine.getCanonicalState(),
@@ -1871,7 +1987,8 @@ export class DealerAgentSession {
         isSubmitted: true,
         partnerId: this.registeredDealer.partnerId,
         registeredDealer: this.registeredDealer,
-        transactionAudit: { status: 'IDEMPOTENT_EXISTING', stages: transactionStages }
+        transactionAudit: { status: 'IDEMPOTENT_EXISTING', stages: transactionStages },
+        transactionSummary: { completedStages: transactionStages.length, status: 'IDEMPOTENT_EXISTING' }
       };
     }
 
@@ -1913,6 +2030,7 @@ export class DealerAgentSession {
       chargingOnSite: vals.chargingOnSite ?? true,
       showroomTestDrive: vals.showroomTestDrive ?? true,
       homeTestDrive: vals.homeTestDrive ?? true,
+      verificationStatus: 'VERIFIED',
       registeredAt: new Date().toISOString(),
       onboardingSource: 'voice_copilot_aarav'
     };
@@ -1923,11 +2041,28 @@ export class DealerAgentSession {
     this.stateMachine.formStatus = FORM_STATE.COMPLETED;
     transactionStages.push({ stage: 'IDEMPOTENT_SUBMISSION', status: 'COMMITTED', partnerId });
 
+    // Automated Transactional Welcome Email Dispatch
+    try {
+      const mailResult = await sendDealerOnboardingEmail(newRecord);
+      transactionStages.push({
+        stage: 'EMAIL_CONFIRMATION_DISPATCHED',
+        status: mailResult.success ? 'COMMITTED' : 'LOGGED',
+        recipient: newRecord.email,
+        messageId: mailResult.messageId
+      });
+    } catch (mailErr) {
+      transactionStages.push({
+        stage: 'EMAIL_CONFIRMATION_DISPATCHED',
+        status: 'DEGRADED',
+        error: mailErr.message
+      });
+    }
+
     const congratsMsg = this.language === 'Hindi'
       ? `बधाई हो! आपका शोरूम "${newRecord.shopName}" आधिकारिक तौर पर EasyEV नेटवर्क में पार्टनर आईडी ${partnerId} के साथ रजिस्टर हो गया है! डिजिटल सर्टिफिकेट जारी हो चुका है।`
       : `Badhai ho! Aapka showroom "${newRecord.shopName}" successfully EasyEV network me Partner ID ${partnerId} ke saath register ho gaya hai! Screen par official certificate generate ho chuka hai.`;
 
-    const ttsText = this.language === 'English' ? congratsMsg : `बधाई हो! आपका शोरूम ${newRecord.shopName} सफलतापूर्वक रजिस्टर हो गया है। पार्टनर आईडी ${partnerId} का डिजिटल सर्टिफिकेट जारी हो चुका है।`;
+    const ttsText = congratsMsg;
 
     return {
       sessionId: this.sessionId,
@@ -1943,7 +2078,8 @@ export class DealerAgentSession {
       isSubmitted: true,
       partnerId,
       registeredDealer: newRecord,
-      transactionAudit: { status: 'COMMITTED', stages: transactionStages }
+      transactionAudit: { status: 'COMMITTED', stages: transactionStages },
+      transactionSummary: { completedStages: transactionStages.length, status: 'COMMITTED' }
     };
   }
 }

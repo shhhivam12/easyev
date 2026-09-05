@@ -10,6 +10,7 @@ import { CrmCalendar } from './crm-calendar.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import { dealerDb } from './dealer-db.mjs';
 import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
+import { sendDealerOnboardingEmail } from './dealer-mailer.mjs';
 import {
   AgoraClient,
   Agent,
@@ -1375,7 +1376,8 @@ async function handleApi(req, res, url) {
     const body = await readJson(req, BODY_LIMIT_BYTES);
     try {
       const dealer = dealerDb.registerDealer(body);
-      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer });
+      const emailResult = await sendDealerOnboardingEmail(dealer);
+      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer, emailNotification: emailResult });
     } catch (err) {
       return json(res, 400, { error: err.message || 'Failed to register dealer' });
     }
