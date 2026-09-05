@@ -1289,7 +1289,9 @@ export class EasyEVToolEngine {
   // on screen rather than thrown.
   async finishBookingAsync(record, contact, booking) {
     try {
-      if (!record.passport.lead || record.passport.lead.email !== contact.email) {
+      const lead = record.passport.lead;
+      const notInCrmYet = !lead?.live && lead?.provider !== 'hubspot';
+      if (!lead || lead.email !== contact.email || notInCrmYet) {
         await this.captureLead(record, { ...contact, notes: `Booked ${booking.demoType} for ${booking.when}.` }).catch(() => {});
       }
       if (!booking.confirmed || !this.mailer?.live || !contact.email) return;
