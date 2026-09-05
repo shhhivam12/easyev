@@ -7,6 +7,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
 import { CrmCalendar } from './crm-calendar.mjs';
+import { Mailer } from './mailer.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
 import { dealerDb } from './dealer-db.mjs';
@@ -44,6 +45,16 @@ const LLM_TUNING = Object.freeze({ max_tokens: 360, temperature: 0.25, top_p: 0.
 // The update endpoint overwrites params wholesale, so the handoff swap has to
 // resend the model alongside the tuning it is preserving.
 const LLM_PARAMS = Object.freeze({ model: LLM_MODEL, ...LLM_TUNING });
+
+// Spoken while a tool is still running. Deliberately vague about what is being
+// checked, because the same phrases cover a catalog lookup, a charger search and
+// a calendar booking — and deliberately short, so the real answer is not delayed
+// behind the filler.
+const FILLER_PHRASES = Object.freeze({
+  English: ['One moment.', 'Let me check that.', 'Just pulling that up.', 'Checking now.'],
+  Hindi: ['एक सेकंड।', 'मैं देख रहा हूँ।', 'अभी चेक करता हूँ।', 'बस एक पल।'],
+  Hinglish: ['Ek second.', 'Main check kar raha hoon.', 'Bas ek pal.', 'Abhi dekhta hoon.'],
+});
 const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
@@ -81,7 +92,11 @@ const crmCalendar = new CrmCalendar({
   calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
   timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
 });
-
+const mailer = new Mailer({
+  user: process.env.GMAIL_USER || '',
+  appPassword: process.env.GMAIL_APP_PASSWORD || '',
+  fromName: process.env.MAIL_FROM_NAME || 'EasyEV',
+});
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -115,10 +130,47 @@ const sessions = new Map();
 const completedSessions = new Map();
 const mcpTransports = new Map();
 const startup = { startedAt: Date.now(), phase: 'Waking backend', ready: false };
+
+// PUBLIC_BASE_URL being an https address only means it looks reachable. Agora's
+// cloud has to actually reach /mcp on it, and a dev tunnel dies silently — when
+// that happens the agent keeps talking but has no tools, so it improvises
+// ("here are your slots") while nothing runs and the screen never changes. That
+// failure is invisible from inside the process, so it is probed from outside.
+const INSTANCE_ID = randomBytes(8).toString('hex');
+const reachability = { checked: false, ok: false, at: 0, detail: MCP_PUBLIC ? 'not checked yet' : 'no public HTTPS base URL' };
+
+async function checkPublicReachability() {
+  if (!MCP_PUBLIC) {
+    Object.assign(reachability, { checked: true, ok: false, at: Date.now(), detail: 'no public HTTPS base URL' });
+    return;
+  }
+  try {
+    const response = await fetch(`${PUBLIC_BASE_URL}/api/health`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(8000),
+      headers: { 'x-easyev-probe': INSTANCE_ID },
+    });
+    const body = await response.json().catch(() => ({}));
+    // A tunnel can survive while pointing at a different process; only our own
+    // instance id proves Agora would land here.
+    const ok = response.ok && body.instanceId === INSTANCE_ID;
+    Object.assign(reachability, {
+      checked: true,
+      ok,
+      at: Date.now(),
+      detail: ok ? 'reachable' : (response.ok ? 'public URL answers a different process' : `public URL returned ${response.status}`),
+    });
+  } catch (error) {
+    Object.assign(reachability, { checked: true, ok: false, at: Date.now(), detail: `unreachable: ${safeMessage(error, 'no response')}` });
+  }
+  if (!reachability.ok) {
+    console.error(`Agora cannot reach this server at ${PUBLIC_BASE_URL} (${reachability.detail}). The agent will have no tools until this is fixed.`);
+  }
+}
 const tools = new EasyEVToolEngine({
   databaseUrl: process.env.DATABASE_URL?.trim(),
   geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
-  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-2.0-flash',
+  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash',
   openChargeMapKey: process.env.OPENCHARGEMAP_API_KEY?.trim(),
   publicBaseUrl: PUBLIC_BASE_URL,
   onEscalation: (record) => {
@@ -126,6 +178,7 @@ const tools = new EasyEVToolEngine({
     notifySlack(record);
   },
   crm: crmCalendar,
+  mailer,
 });
 
 const handoffCodes = new Map();
@@ -367,7 +420,7 @@ You have eight real EasyEV decision tools. Autonomously select the one best tool
 - capture_lead the moment the buyer gives a name, phone number or email address.
 - book_test_drive for a test drive, demo, appointment or visit.
 
-Contact details and bookings are real, not simulated. The prejoin details are already saved with this consultation, so do not ask for them again or call capture_lead unless the buyer corrects a detail. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose. The booking tool can reuse the attached email, name and phone. Do not promise a booking before the tool has confirmed it.
+Contact details and bookings are real, not simulated. Any details captured before the call are already saved with this consultation, so do not ask for them again or call capture_lead unless the buyer corrects one. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose; it reuses the attached email, name and phone. If an email address is still needed, do not try to collect it by ear: a typed box appears on the buyer's screen, so ask them to type it there and press Send. If they say it aloud anyway, read it back once before saving. Do not promise a booking before the tool has confirmed it.
 
 Call escalate_to_human when the buyer explicitly says human, insaan, manager or executive, or otherwise asks for a person, salesperson, representative or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
 
@@ -446,7 +499,22 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
       params: { ...LLM_TUNING },
       ...(mcpUrl ? { mcpServers: [createAgoraMcpServer(mcpUrl)] } : {}),
     }))
-    .withTts(tts);
+    .withTts(tts)
+    // Confirming a booking on Cal.com takes about two seconds, and checking
+    // availability or the CRM is not instant either. Without this the buyer
+    // hears dead air and assumes the call dropped; Agora fills the gap in the
+    // buyer's own language while the tool is still running.
+    .withFillerWords({
+      enable: true,
+      trigger: { mode: 'fixed_time', fixed_time_config: { response_wait_ms: 700 } },
+      content: {
+        mode: 'static',
+        static_config: {
+          phrases: FILLER_PHRASES[language] || FILLER_PHRASES.Hinglish,
+          selection_rule: 'shuffle',
+        },
+      },
+    });
 
   return agent.createSession({
     channel,
@@ -833,6 +901,8 @@ function pruneExpired() {
 }
 
 setInterval(pruneExpired, 60_000).unref();
+checkPublicReachability();
+setInterval(checkPublicReachability, 60_000).unref();
 
 function requireSession(id, res) {
   const record = sessions.get(id);
@@ -941,6 +1011,10 @@ function waitingCard(record) {
     chargingAccess: profile.chargingAccess || '',
     shortlist: (record.passport?.shortlist || []).map((item) => item.name).slice(0, 3),
     transcriptLines: record.transcript?.length || 0,
+    hasContact: Boolean(record.passport?.lead?.email || record.passport?.lead?.phone),
+    leadLive: Boolean(record.passport?.lead?.live),
+    bookingWhen: record.passport?.booking?.when || null,
+    bookingConfirmed: Boolean(record.passport?.booking?.confirmed),
   };
 }
 
@@ -990,6 +1064,38 @@ You are muted. Do not speak, greet, summarise, agree, confirm or add anything at
 Questions spoken on this call are being asked of the human specialist, not of you, even when they sound like questions you could answer.
 Return an empty response for every turn. Do not call any tool.
 Keep listening so the conversation continues to be transcribed and recorded.`;
+
+// Speaks the result of something the buyer did on screen rather than by voice.
+//
+// A tool the browser ran never reaches the agent, so without this the agent
+// falls silent after a booking and keeps asking for an email it already has.
+// say() is used rather than think(): think() only injects context and leaves it
+// to the model whether to speak at all, which is how the agent ended up saying
+// nothing after a slot was clicked. The tool already produced the right sentence
+// in the buyer's language, so speaking it verbatim is both reliable and faster
+// than a second model round trip — and because the agent speaks it, the line
+// enters its own history, so it stops re-asking.
+async function notifyAgentOfScreenAction(record, tool, result, spoken) {
+  if (!record.session || record.closed) return;
+  // A silenced agent is mid-handover; the human is talking and must not be cut off.
+  if (record.escalation?.status === 'rep-joined') return;
+  // Nothing was captured yet — the screen is asking for input, not reporting it.
+  if (tool === 'capture_lead' && result?.needsDetails) return;
+  if (tool === 'book_test_drive' && result?.needsEmail) return;
+
+  const line = String(spoken || '').trim();
+  if (!line) return;
+
+  try {
+    // INTERRUPT rather than APPEND: the agent is usually mid-question ("what is
+    // your email?") at exactly the moment the buyer answers it on screen, and
+    // letting that question finish first is what made the reply feel detached.
+    await record.session.say(line, { priority: 'INTERRUPT', interruptable: true });
+  } catch (error) {
+    // The buyer's action already succeeded; failing to narrate it must not undo it.
+    console.error('Could not voice a screen action:', safeMessage(error));
+  }
+}
 
 async function silenceAgentForHandoff(record) {
   if (!record.session) return;
@@ -1146,6 +1252,16 @@ async function handleScopedSessionApi(req, res, url) {
     const body = await readJson(req);
     if (!tools.definitions()[body.tool]) return json(res, 400, { error: 'Unknown tool.' });
     const result = await tools.run(record, body.tool, body.args || {});
+    // A tool the buyer ran from the screen never reaches the agent's history,
+    // so without this the agent keeps asking for something it already has —
+    // most visibly, asking for an email address the buyer just typed in.
+    // Deliberately not awaited: speaking takes a couple of seconds and the
+    // buyer's screen should update the moment the tool itself is done.
+    // announce:false is for a step the caller knows is about to be followed by
+    // another — announcing both would cut the first one off mid-sentence.
+    if (body.announce !== false) {
+      notifyAgentOfScreenAction(record, body.tool, result.structuredContent, result.content?.[0]?.text);
+    }
     return json(res, 200, { success: true, result: result.structuredContent });
   }
 
@@ -1189,7 +1305,7 @@ async function handleHandoffApi(req, res, url) {
     return json(res, 200, { waiting, activeCalls: sessions.size, deskSecured: Boolean(REP_DESK_KEY) });
   }
 
-  const match = url.pathname.match(/^\/api\/handoff\/([A-Z0-9]{6,16})(?:\/(events|join|handback|transcript))?$/);
+  const match = url.pathname.match(/^\/api\/handoff\/([A-Z0-9]{6,16})(?:\/(events|join|handback|transcript|tool))?$/);
   if (!match) return false;
   const sessionKey = handoffCodes.get(match[1]);
   const record = sessionKey ? sessions.get(sessionKey) : null;
@@ -1298,6 +1414,25 @@ async function handleHandoffApi(req, res, url) {
     return json(res, 200, { success: true, stored });
   }
 
+  // Lets the specialist drive the buyer's screen mid-call: a tool run here reaches
+  // the buyer through the same tool-event stream the AI's own tool calls use, so
+  // the result appears live on their side while the specialist is talking.
+  // Deliberately a narrow allowlist and gated on an active handover — this is not
+  // the general tool-call surface the AI has, just the handful that make sense to
+  // trigger by hand while holding the call.
+  if (req.method === 'POST' && action === 'tool') {
+    if (record.escalation?.status !== 'rep-joined') {
+      return json(res, 409, { error: 'Join the call before driving the buyer’s screen.' });
+    }
+    const body = await readJson(req);
+    const REP_DRIVABLE_TOOLS = new Set(['compare_vehicles', 'calculate_ownership', 'find_nearby_chargers', 'book_test_drive', 'generate_decision_report']);
+    if (!REP_DRIVABLE_TOOLS.has(body.tool)) {
+      return json(res, 400, { error: 'That is not available from the specialist console.' });
+    }
+    const result = await tools.run(record, body.tool, body.args || {});
+    return json(res, 200, { success: true, result: result.structuredContent });
+  }
+
   return json(res, 405, { error: 'Method not allowed' });
 }
 
@@ -1317,10 +1452,14 @@ async function handleApi(req, res, url) {
       mode: 'live',
       activeSessions: sessions.size,
       mcpPublic: MCP_PUBLIC,
+      mcpReachable: reachability.ok,
+      mcpReachability: reachability.detail,
+      instanceId: INSTANCE_ID,
       decisionTools: Object.keys(tools.definitions()),
       database: tools.databaseMode,
       databaseFallback: tools.databaseMode === 'ephemeral',
       visionConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
+      mail: mailer.status(),
       speech: {
         hindiRecognition: 'Agora ARES hi-IN',
         provider: SARVAM_TTS_READY ? 'Sarvam for Hindi/Hinglish; existing fallback for English' : AZURE_SPEECH_READY ? 'Microsoft Azure Speech' : 'Agora-managed OpenAI fallback',

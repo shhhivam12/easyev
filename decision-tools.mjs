@@ -187,8 +187,93 @@ function money(value) {
   return `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
 }
 
+// A real booking attempt failed at Cal.com — the buyer needs to hear why in
+// plain language, not the provider's error code. Falling back to "I have held
+// it, a specialist will confirm" here was the bug: it told the buyer nothing
+// went wrong when it had, so a real failure looked identical to success.
+function humanizeBookingError(error) {
+  const code = String(error || '').toLowerCase();
+  if (code.includes('email_domain_cannot_receive_mail') || code.includes('invalid_email')) {
+    return 'that email address does not look like it can receive mail';
+  }
+  if (code.includes('no_available_users') || code.includes('slot') && code.includes('taken')) {
+    return 'that time was just taken by someone else';
+  }
+  if (code.includes('timeout') || code.includes('timed out')) {
+    return 'the booking calendar took too long to respond';
+  }
+  return 'there was a problem reaching the booking calendar';
+}
+
 function safeError(error) {
   return cleanText(error instanceof Error ? error.message : String(error || 'Tool failed'), 400);
+}
+
+const ORDINAL_WORDS = [
+  [/\b(?:1st|first|pehla|pehli|pahla)\b/i, 1],
+  [/\b(?:2nd|second|dusra|doosra|dusri)\b/i, 2],
+  [/\b(?:3rd|third|teesra|tisra|teesri)\b/i, 3],
+  [/\b(?:4th|fourth|chautha|chotha)\b/i, 4],
+];
+
+// A buyer names a time however they like — "the first one", "10:30", "dus baje
+// wala", "Tuesday at noon" — and the agent passes that through more or less
+// verbatim. Matching only on an exact substring of the printed label meant most
+// spoken choices failed to resolve, and the buyer was handed the same list again.
+export function resolveSlot(chosen, offered, timezone = 'Asia/Kolkata') {
+  const raw = String(chosen || '').trim();
+  if (!raw || !offered.length) return '';
+  if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) return raw;
+
+  const text = raw.toLowerCase();
+
+  // "the second one", "pehla wala"
+  for (const [pattern, position] of ORDINAL_WORDS) {
+    if (pattern.test(text) && offered[position - 1]) return offered[position - 1].start;
+  }
+
+  // A bare small number, as read off the numbered list — but only when nothing
+  // in the phrase points at a clock, or "2 pm" is read as "item 2".
+  const looksLikeTime = /(am|pm|a\.m|p\.m|baje|o'clock|[:.]\d{2})/i.test(text);
+  const bare = text.replace(/[^\d]/g, '');
+  if (!looksLikeTime && bare && bare.length <= 2) {
+    const position = Number(bare);
+    if (position >= 1 && position <= offered.length) return offered[position - 1].start;
+  }
+
+  // Otherwise match on the clock. Compare against each slot's real time rather
+  // than its printed label, so wording and date order stop mattering.
+  const parts = text.match(/(\d{1,2})\s*[:.\s]?\s*(\d{2})?\s*(am|pm|a\.m|p\.m)?/);
+  if (parts) {
+    let hour = Number(parts[1]);
+    const minute = parts[2] ? Number(parts[2]) : 0;
+    const meridiem = (parts[3] || '').replace(/\./g, '');
+    if (Number.isFinite(hour) && hour <= 24 && minute < 60) {
+      const candidates = [];
+      if (meridiem === 'pm') candidates.push(hour === 12 ? 12 : hour + 12);
+      else if (meridiem === 'am') candidates.push(hour === 12 ? 0 : hour);
+      else {
+        // No am/pm given. Viewing hours are daytime, so try the sensible ones.
+        candidates.push(hour);
+        if (hour < 12) candidates.push(hour + 12);
+      }
+      for (const wanted of candidates) {
+        const hit = offered.find((slot) => {
+          const local = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone }).format(new Date(slot.start));
+          const [h, m] = local.split(':').map(Number);
+          return h === wanted && (parts[2] ? m === minute : true);
+        });
+        if (hit) return hit.start;
+      }
+    }
+  }
+
+  // Last resort: the printed label, in either direction.
+  const label = offered.find((slot) => {
+    const l = slot.label.toLowerCase();
+    return l.includes(text) || text.includes(l);
+  });
+  return label ? label.start : '';
 }
 
 export const REASON_LABELS = Object.freeze({
@@ -218,9 +303,10 @@ const HANDOFF_LINES = Object.freeze({
 });
 
 export class EasyEVToolEngine {
-  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-2.0-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null, crm = null } = {}) {
+  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-3.6-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null, crm = null, mailer = null } = {}) {
     this.onEscalation = onEscalation;
     this.crm = crm || new CrmCalendar({});
+    this.mailer = mailer;
     this.databaseUrl = databaseUrl;
     this.geminiApiKey = geminiApiKey;
     this.geminiModel = geminiModel;
@@ -498,41 +584,34 @@ export class EasyEVToolEngine {
       };
     }
 
-    const shortlisted = record.passport.shortlist?.[0]?.name;
-    const result = await this.crm.saveLead({
-      ...contact,
-      summary: [this.leadSummary(record), notes ? `Agent note: ${notes}` : ''].filter(Boolean).join('\n'),
-      dealName: shortlisted ? `${contact.name || 'EasyEV buyer'} — ${shortlisted}` : `${contact.name || 'EasyEV buyer'} — EasyEV enquiry`,
-      amountLakh: Number(record.passport.profile?.budgetLakh) || 0,
-      sessionKey: record.key,
-    });
-
+    // The buyer sees their details land the moment they are understood. Writing
+    // them to HubSpot takes about three seconds and cannot change what was
+    // captured, so it runs behind the reply and reports back over the event
+    // stream — the same shape the booking flow already uses.
     record.passport.lead = {
-      name: result.name,
-      email: result.email,
-      phone: result.phone,
-      provider: result.provider,
-      contactId: result.contactId || null,
-      dealId: result.dealId || null,
-      savedAt: result.savedAt,
-      live: result.provider === 'hubspot',
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      provider: 'pending',
+      contactId: null,
+      dealId: null,
+      savedAt: new Date().toISOString(),
+      live: false,
+      syncing: true,
     };
-    record.passport.nextActions = unique([
-      ...record.passport.nextActions,
-      result.provider === 'hubspot' ? 'Lead saved to HubSpot with the full Passport.' : 'Lead captured; connect HubSpot to sync it to the CRM.',
-    ]);
+    this.finishLeadAsync(record, contact, notes);
 
     return {
       stage: 'lead-capture',
       payload: {
         ...record.passport.lead,
-        crmUrl: result.crmUrl || null,
-        failed: Boolean(result.failed),
-        error: result.error || null,
+        crmUrl: null,
+        failed: false,
+        error: null,
       },
-      spoken: result.provider === 'hubspot'
-        ? `Saved. ${contact.name || 'You'} are now in our CRM with everything we have covered, so nobody will ask you to repeat it.`
-        : 'I have captured your details against this conversation so a specialist can pick it up with full context.',
+      // Deliberately does not claim the CRM write has landed — it is still in
+      // flight. The follow-up event says where it ended up.
+      spoken: `Got it. I have your ${contact.email ? 'email' : 'details'}, so nobody will ask you to repeat it.`,
     };
   }
 
@@ -543,16 +622,7 @@ export class EasyEVToolEngine {
     const chosen = cleanText(firstDefined(input, ['slot', 'time', 'startISO', 'start', 'preferredTime', 'preferred_time']) || '', 80);
 
     const offered = record.passport.booking?.offered || [];
-    let startISO = '';
-    if (chosen) {
-      const index = Number(chosen.replace(/[^\d]/g, ''));
-      if (/^\d{4}-\d{2}-\d{2}T/.test(chosen)) startISO = chosen;
-      else if (Number.isInteger(index) && index >= 1 && index <= offered.length && chosen.length <= 3) startISO = offered[index - 1].start;
-      else {
-        const match = offered.find((slot) => slot.label.toLowerCase().includes(chosen.toLowerCase()));
-        if (match) startISO = match.start;
-      }
-    }
+    const startISO = resolveSlot(chosen, offered, this.crm.timezone);
 
     // No slot resolved yet: fetch real availability and let the buyer pick.
     if (!startISO) {
@@ -573,7 +643,11 @@ export class EasyEVToolEngine {
           needsEmail: !contact.email,
         },
         spoken: availability.slots.length
-          ? `I have ${availability.slots.length} open times on the calendar. The earliest is ${availability.slots[0].label}. Which one suits you?`
+          ? [
+            `I have ${availability.slots.length} open times. ${availability.slots.slice(0, 3).map((slot, index) => `${index + 1}, ${slot.label}`).join('. ')}.`,
+            'They are on your screen too, so you can just tap one or tell me the number.',
+            contact.email ? '' : 'Please type your email in the box on screen so I can send the confirmation there.',
+          ].filter(Boolean).join(' ')
           : 'I could not find an open slot in the next few days. Shall I have a specialist call you to arrange one?',
       };
     }
@@ -583,8 +657,8 @@ export class EasyEVToolEngine {
         stage: 'booking-slots',
         payload: { slots: offered, needsEmail: true, pendingStart: startISO, emailUnclear: contact.emailUnclear, heard: contact.emailHeard },
         spoken: contact.emailUnclear
-          ? `I have the time held, but I heard your email as "${contact.emailHeard}" and could not read it. Please type it with the keyboard button so the confirmation reaches you.`
-          : 'I can lock that in. What email address should the confirmation go to?',
+          ? `I have the time held, but I heard your email as "${contact.emailHeard}" and could not read it. There is a box on your screen now — please type it there and press Send.`
+          : 'I have that time held. Please type your email in the box on your screen and press Send, and the confirmation will go straight there.',
       };
     }
 
@@ -611,13 +685,17 @@ export class EasyEVToolEngine {
       ...record.passport.nextActions,
       booking.confirmed
         ? `${booking.demoType} confirmed for ${booking.when}; confirmation emailed to ${contact.email}.`
-        : `${booking.demoType} pencilled in for ${booking.when}; confirm with the buyer before it is committed.`,
+        : booking.failed
+          ? `Booking attempt for ${booking.when} failed (${booking.error || 'unknown error'}); needs manual follow-up.`
+          : `${booking.demoType} pencilled in for ${booking.when}; confirm with the buyer before it is committed.`,
     ]);
 
-    // A booking is the outcome, so make sure the CRM has the person attached to it.
-    if (!record.passport.lead || record.passport.lead.email !== contact.email) {
-      await this.captureLead(record, { ...contact, notes: `Booked ${booking.demoType} for ${booking.when}.` }).catch(() => {});
-    }
+    // The buyer should hear "booked" the moment the calendar confirms it. Saving
+    // to the CRM and sending the confirmation take about three seconds each and
+    // neither can change the booking, so they run after the reply and report back
+    // over the tool-event stream when they land.
+    const emailPending = Boolean(booking.confirmed && this.mailer?.live && contact.email);
+    this.finishBookingAsync(record, contact, booking);
 
     return {
       stage: 'booking-confirmed',
@@ -628,10 +706,17 @@ export class EasyEVToolEngine {
         failed: Boolean(booking.failed),
         error: booking.error || null,
         note: booking.note || null,
+        emailPending,
+        emailSent: null,
+        emailError: null,
       },
       spoken: booking.confirmed
-        ? `Done. ${booking.demoType} is booked for ${booking.when}, and the confirmation is on its way to ${contact.email}.`
-        : `I have held ${booking.when} for your ${booking.demoType}. It is on your screen, and a specialist will confirm it with you.`,
+        ? (emailPending
+          ? `Done. ${booking.demoType} is booked for ${booking.when}. Your confirmation and decision report are on their way to ${contact.email}.`
+          : `Done. ${booking.demoType} is booked for ${booking.when}.`)
+        : booking.failed
+          ? `I could not complete that booking — ${humanizeBookingError(booking.error)}. I have kept ${booking.when} noted as your preferred time. Would you like to try a different email address, or shall I bring in a specialist to confirm it directly?`
+          : `I have held ${booking.when} for your ${booking.demoType}. It is on your screen, and a specialist will confirm it with you.`,
     };
   }
 
@@ -860,15 +945,29 @@ export class EasyEVToolEngine {
   }
 
   async fetchOverpass(lat, lng, radiusMeters, signal) {
-    const query = `[out:json][timeout:3];nwr(around:${radiusMeters},${lat},${lng})["amenity"="charging_station"];out center tags;`;
-    const response = await fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/2.0' },
-      body: new URLSearchParams({ data: query }),
-      signal: AbortSignal.any([signal, AbortSignal.timeout(1500)]),
-    });
-    if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
-    const data = await response.json();
+    // Overpass regularly needs 1-3s and rate-limits bursts, so the old 1.5s budget
+    // aborted almost every call and quietly dropped the buyer onto demo pins. The
+    // mirror is tried when the main endpoint is busy.
+    const query = `[out:json][timeout:8];nwr(around:${radiusMeters},${lat},${lng})["amenity"="charging_station"];out center tags;`;
+    const providers = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+    let data = null;
+    let lastError = null;
+    for (const provider of providers) {
+      try {
+        const response = await fetch(provider, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/2.0' },
+          body: new URLSearchParams({ data: query }),
+          signal: AbortSignal.any([signal, AbortSignal.timeout(9000)]),
+        });
+        if (!response.ok) throw new Error(`Overpass returned ${response.status}`);
+        data = await response.json();
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (!data) throw lastError || new Error('Overpass unavailable');
     return (Array.isArray(data.elements) ? data.elements : []).map((item) => {
       const stationLat = Number(item.lat ?? item.center?.lat);
       const stationLng = Number(item.lon ?? item.center?.lon);
@@ -910,11 +1009,15 @@ export class EasyEVToolEngine {
       let stations = [];
       let source = '';
       const providerErrors = [];
-      try {
-        stations = await this.fetchOpenChargeMap(lat, lng, radiusKm, signal);
-        source = 'Open Charge Map';
-      } catch (error) {
-        providerErrors.push(safeError(error));
+      // Open Charge Map now rejects keyless requests outright, so without a key
+      // this call only burns time before the Overpass fallback that does work.
+      if (this.openChargeMapKey) {
+        try {
+          stations = await this.fetchOpenChargeMap(lat, lng, radiusKm, signal);
+          source = 'Open Charge Map';
+        } catch (error) {
+          providerErrors.push(safeError(error));
+        }
       }
       if (!stations.length && !signal.aborted) {
         try {
@@ -1191,6 +1294,136 @@ export class EasyEVToolEngine {
       },
       spoken: HANDOFF_LINES[record.language] || HANDOFF_LINES.Hinglish,
     };
+  }
+
+  // Runs after the buyer has already been told the booking is confirmed. Nothing
+  // Writes the buyer to the CRM after their details are already on screen. A CRM
+  // outage must not cost the conversation the details it just captured, so the
+  // Passport keeps them either way and only the provider label changes.
+  async finishLeadAsync(record, contact, notes) {
+    try {
+      const shortlisted = record.passport.shortlist?.[0]?.name;
+      const result = await this.crm.saveLead({
+        ...contact,
+        summary: [this.leadSummary(record), notes ? `Agent note: ${notes}` : ''].filter(Boolean).join('\n'),
+        dealName: shortlisted ? `${contact.name || 'EasyEV buyer'} — ${shortlisted}` : `${contact.name || 'EasyEV buyer'} — EasyEV enquiry`,
+        amountLakh: Number(record.passport.profile?.budgetLakh) || 0,
+        sessionKey: record.key,
+      });
+      if (record.closed) return;
+
+      record.passport.lead = {
+        name: result.name,
+        email: result.email,
+        phone: result.phone,
+        provider: result.provider,
+        contactId: result.contactId || null,
+        dealId: result.dealId || null,
+        savedAt: result.savedAt,
+        live: result.provider === 'hubspot',
+        syncing: false,
+      };
+      record.passport.nextActions = unique([
+        ...record.passport.nextActions,
+        result.provider === 'hubspot' ? 'Lead saved to HubSpot with the full Passport.' : 'Lead captured; connect HubSpot to sync it to the CRM.',
+      ]);
+      this.persistSession(record).catch(() => {});
+
+      // The buyer has usually moved on by the time HubSpot answers - often back
+      // to choosing a slot. This is a status update, not a reason to pull the
+      // stage back to the CRM card they already saw.
+      this.emit(record, {
+        tool: 'capture_lead',
+        phase: 'completed',
+        stage: 'lead-capture',
+        payload: {
+          backgroundUpdate: true,
+          ...record.passport.lead,
+          crmUrl: result.crmUrl || null,
+          failed: Boolean(result.failed),
+          error: result.error || null,
+          passport: this.publicPassport(record),
+        },
+      });
+    } catch (error) {
+      console.error('Lead follow-up failed:', safeError(error));
+    }
+  }
+
+  // here can undo the booking, so failures are recorded in the Passport and shown
+  // on screen rather than thrown.
+  async finishBookingAsync(record, contact, booking) {
+    try {
+      const lead = record.passport.lead;
+      const notInCrmYet = !lead?.live && lead?.provider !== 'hubspot';
+      if (!lead || lead.email !== contact.email || notInCrmYet) {
+        await this.captureLead(record, { ...contact, notes: `Booked ${booking.demoType} for ${booking.when}.` }).catch(() => {});
+      }
+      if (!booking.confirmed || !this.mailer?.live || !contact.email) return;
+
+      const mail = await this.sendBookingMail(record, contact, booking).catch((error) => ({ sent: false, error: safeError(error) }));
+      if (record.closed) return;
+
+      record.passport.booking.emailSent = Boolean(mail?.sent);
+      record.passport.nextActions = unique([
+        ...record.passport.nextActions,
+        mail?.sent
+          ? `Confirmation with the decision report emailed to ${contact.email}.`
+          : `Confirmation email to ${contact.email} did not send (${mail?.error || 'unknown error'}).`,
+      ]);
+      this.persistSession(record).catch(() => {});
+
+      this.emit(record, {
+        tool: 'book_test_drive',
+        phase: 'completed',
+        stage: 'booking-confirmed',
+        payload: {
+          ...record.passport.booking,
+          email: contact.email,
+          name: contact.name,
+          emailPending: false,
+          emailSent: Boolean(mail?.sent),
+          emailError: mail?.sent ? null : (mail?.error || 'unknown error'),
+          reportAttached: Boolean(mail?.sent && mail.hadAttachment),
+          passport: this.publicPassport(record),
+        },
+      });
+    } catch (error) {
+      console.error('Booking follow-up failed:', safeError(error));
+    }
+  }
+
+  // Builds the buyer's confirmation mail from the Passport. The report is
+  // generated on the spot when the buyer never asked for one, so the email is
+  // always worth opening rather than being a bare "booked" line.
+  async sendBookingMail(record, contact, booking) {
+    if (!record.report) {
+      try {
+        const pdf = await this.buildReport(record);
+        record.report = { pdf, createdAt: Date.now(), filename: `EasyEV-decision-${record.key.slice(0, 8)}.pdf` };
+      } catch (error) {
+        console.error('Booking mail: report generation failed:', safeError(error));
+      }
+    }
+
+    const passport = record.passport;
+    const ownership = passport.ownership?.results && passport.ownership?.assumptions
+      ? `At ${passport.ownership.assumptions.dailyKm} km a day, we modelled your running costs against a petrol equivalent.`
+      : '';
+
+    return this.mailer.sendBookingConfirmation({
+      to: contact.email,
+      name: contact.name,
+      when: booking.when,
+      demoType: booking.demoType,
+      vehicle: passport.shortlist?.[0]?.name || '',
+      shortlist: (passport.shortlist || []).map((item) => item.name).slice(0, 3),
+      ownership,
+      specialistNote: passport.escalation?.handbackNote || '',
+      reportPdf: record.report?.pdf || null,
+      reportFilename: record.report?.filename,
+      calendarInviteSeparate: booking.provider === 'cal.com',
+    });
   }
 
   async buildReport(record) {

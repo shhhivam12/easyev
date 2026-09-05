@@ -154,6 +154,37 @@
   ul.list li span { color: var(--ink-3); font-size: 12px; }
   .empty { color: var(--ink-3); font-size: 13px; font-style: italic; margin: 0; }
 
+  /* Lead and booking: the two facts a specialist must not have to ask for. */
+  .lb { display: grid; gap: 8px; }
+  .lb-card {
+    border: 1px solid var(--rule); border-left: 3px solid var(--rule-2);
+    border-radius: 8px; padding: 12px 14px; background: var(--panel);
+  }
+  .lb-card.live { border-left-color: var(--accent); }
+  .lb-card.pending { border-left-color: var(--warn); }
+  .lb-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .lb-head strong { font-family: var(--font); font-size: 13.5px; font-weight: 650; }
+  .lb-src {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-3); white-space: nowrap;
+  }
+  .lb-card.live .lb-src { color: var(--accent); }
+  .lb-card.pending .lb-src { color: var(--warn); }
+  .lb-row { display: flex; gap: 8px; font-size: 13px; padding: 2px 0; }
+  .lb-row span { flex: none; width: 62px; color: var(--ink-3); font-size: 11.5px; padding-top: 1px; }
+  .lb-row b { font-weight: 600; overflow-wrap: anywhere; }
+  .lb-when { font-size: 15px; font-weight: 650; color: var(--accent); }
+  .lb-card.pending .lb-when { color: var(--warn); }
+  .lb-copy {
+    background: none; border: 1px solid var(--rule-2); border-radius: 5px;
+    color: var(--ink-2); font-family: var(--mono); font-size: 9.5px;
+    letter-spacing: .06em; text-transform: uppercase; padding: 3px 7px; margin-top: 8px;
+  }
+  .lb-copy:hover { border-color: var(--accent); color: var(--accent); }
+
   .figures { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .figures div { background: var(--panel); border: 1px solid var(--rule); border-radius: 7px; padding: 10px 12px; }
   .figures span { display: block; font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 3px; }
@@ -186,6 +217,19 @@
   .cta.ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule-2); }
   .cta.danger { background: transparent; color: var(--alert); border: 1px solid #4b2b23; }
   .stack { display: grid; gap: 9px; }
+  .drive-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .drive-btn {
+    padding: 12px 10px; border-radius: 7px; font-size: 13px; font-weight: 600;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--rule-2);
+    transition: border-color .12s, background .12s;
+  }
+  .drive-btn:hover { border-color: var(--accent-deep); }
+  .drive-btn:active { background: var(--panel-2); }
+  .drive-btn[disabled] { opacity: .5; cursor: wait; }
+  .drive-btn.is-sent { border-color: var(--accent); color: var(--accent); }
+  @keyframes driveSent { 0% { background: rgba(69,206,154,.28); } 100% { background: var(--panel); } }
+  .drive-btn.is-sent { animation: driveSent 1.1s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .drive-btn.is-sent { animation: none; } }
   textarea {
     width: 100%; min-height: 78px; resize: vertical; padding: 10px 12px; background: var(--panel);
     border: 1px solid var(--rule-2); border-radius: 7px; color: var(--ink); font: inherit; font-size: 13.5px;
@@ -263,6 +307,9 @@
         <p class="waited" id="brief-waited"></p>
       </div>
 
+      <h2 class="k">Lead and booking</h2>
+      <div id="leadbooking"></div>
+
       <h2 class="k">Buyer profile</h2>
       <dl class="kv" id="profile"></dl>
 
@@ -293,6 +340,17 @@
       <div class="stack hide" id="live-panel">
         <div class="meter" aria-hidden="true"><i id="level"></i></div>
         <button class="cta ghost" id="mute-button">Mute my microphone</button>
+
+        <h2 class="k" style="margin-top:18px">Show on their screen</h2>
+        <div class="drive-grid" id="drive-grid">
+          <button class="drive-btn" type="button" data-drive-tool="compare_vehicles">Comparison</button>
+          <button class="drive-btn" type="button" data-drive-tool="calculate_ownership">Ownership cost</button>
+          <button class="drive-btn" type="button" data-drive-tool="find_nearby_chargers">Nearby chargers</button>
+          <button class="drive-btn" type="button" data-drive-tool="book_test_drive">Open time slots</button>
+          <button class="drive-btn" type="button" data-drive-tool="generate_decision_report">Decision report</button>
+        </div>
+        <p class="hint">Puts the result on the buyer's screen instantly, without you describing it out loud.</p>
+
         <h2 class="k" style="margin-top:18px">Hand back to the AI</h2>
         <textarea id="handback-note" placeholder="What should the AI know? e.g. Agreed 8% exchange bonus, buyer wants Saturday delivery."></textarea>
         <button class="cta danger" id="handback-button">Hand back and leave</button>
@@ -381,6 +439,45 @@
     }
   }
 
+  // The specialist should never have to ask "what's your email" or "did you book
+  // anything" — both are already on the record by the time they join.
+  function renderLeadBooking(passport) {
+    const target = $('leadbooking');
+    if (!target) return;
+    const lead = passport.lead;
+    const booking = passport.booking;
+    if (!lead && !booking) {
+      target.innerHTML = '<p class="empty">No contact details or booking captured yet.</p>';
+      return;
+    }
+    const parts = [];
+
+    if (lead) {
+      const rows = [
+        ['Name', lead.name],
+        ['Email', lead.email],
+        ['Phone', lead.phone],
+      ].filter(([, v]) => v);
+      parts.push(`<div class="lb-card ${lead.live ? 'live' : 'pending'}">
+        <div class="lb-head"><strong>Lead</strong><span class="lb-src">${lead.live ? 'In HubSpot' : 'Session only'}</span></div>
+        ${rows.map(([k, v]) => `<div class="lb-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('')}
+        ${lead.email ? `<button class="lb-copy" type="button" data-copy="${esc(lead.email)}">Copy email</button>` : ''}
+      </div>`);
+    }
+
+    if (booking) {
+      const confirmed = booking.confirmed;
+      parts.push(`<div class="lb-card ${confirmed ? 'live' : 'pending'}">
+        <div class="lb-head"><strong>Booking</strong><span class="lb-src">${confirmed ? 'Confirmed · ' + esc(booking.provider || '') : 'Not confirmed'}</span></div>
+        <div class="lb-when">${esc(booking.when || 'No time chosen')}</div>
+        <div class="lb-row"><span>Type</span><b>${esc(booking.demoType || 'Test drive')}</b></div>
+        ${booking.bookingId ? `<div class="lb-row"><span>Ref</span><b>${esc(String(booking.bookingId))}</b></div>` : ''}
+      </div>`);
+    }
+
+    target.innerHTML = '<div class="lb">' + parts.join('') + '</div>';
+  }
+
   function renderPassport(passport) {
     if (!passport) return;
     state.passport = passport;
@@ -408,7 +505,9 @@
         </div>`
       : '<p class="empty">No ownership scenario run yet.</p>';
 
-    const charging = passport.charging;
+renderLeadBooking(passport);
+
+        const charging = passport.charging;
     $('charging').innerHTML = charging
       ? `<p class="hint">${esc(charging.stations?.length || 0)} stations found · source ${esc(charging.source || 'unknown')}</p>`
       : '<p class="empty">No charger search run yet.</p>';
@@ -509,7 +608,7 @@
     // Line counts tick constantly while people talk. Redrawing the whole board for
     // that would make cards blink on a projector, so it is patched in place and
     // left out of the signature that decides whether to redraw.
-    const signature = JSON.stringify(waiting.map((call) => [call.handoffCode, call.status, call.repName, call.urgency, call.reasonLabel, call.summary, call.dailyKm, call.budgetLakh, call.shortlist]));
+    const signature = JSON.stringify(waiting.map((call) => [call.handoffCode, call.status, call.repName, call.urgency, call.reasonLabel, call.summary, call.dailyKm, call.budgetLakh, call.shortlist, call.hasContact, call.leadLive, call.bookingWhen, call.bookingConfirmed]));
     if (signature === state.queueSignature) {
       for (const call of waiting) {
         const node = queue.querySelector(`[data-lines="${CSS.escape(call.handoffCode)}"]`);
@@ -530,6 +629,8 @@
         call.budgetLakh ? `₹${call.budgetLakh}L budget` : '',
         call.chargingAccess && call.chargingAccess !== 'Not discussed' ? call.chargingAccess : '',
         ...(call.shortlist || []),
+        call.bookingWhen ? (call.bookingConfirmed ? 'Booked ' + call.bookingWhen : 'Held ' + call.bookingWhen) : '',
+        call.hasContact ? (call.leadLive ? 'In CRM' : 'Contact captured') : '',
       ].filter(Boolean);
       return `<article class="call ${taken ? 'taken' : ''} ${call.urgency === 'high' ? 'urgent' : ''} ${isNew ? 'is-new' : ''}">
         <div>
@@ -566,6 +667,14 @@
     event.preventDefault();
     try { localStorage.setItem('easyev-desk-key', $('key-input').value.trim()); } catch {}
     pollQueue();
+  });
+
+  document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-copy]');
+    if (!button) return;
+    navigator.clipboard?.writeText(button.dataset.copy)
+      .then(() => toast('Copied ' + button.dataset.copy))
+      .catch(() => toast('Could not copy'));
   });
 
   $('queue').addEventListener('click', (event) => {
@@ -649,6 +758,36 @@
     } catch (error) {
       state.muted = !state.muted;
       toast(error.message);
+    }
+  });
+
+  const DRIVE_LABELS = {
+    compare_vehicles: 'Comparison',
+    calculate_ownership: 'Ownership cost',
+    find_nearby_chargers: 'Nearby chargers',
+    book_test_drive: 'Open time slots',
+    generate_decision_report: 'Decision report',
+  };
+
+  $('drive-grid').addEventListener('click', async (event) => {
+    const button = event.target.closest('[data-drive-tool]');
+    if (!button || button.disabled) return;
+    const tool = button.dataset.driveTool;
+    button.disabled = true;
+    button.classList.remove('is-sent');
+    try {
+      await api(`/api/handoff/${state.code}/tool`, {
+        method: 'POST',
+        body: JSON.stringify({ tool, args: {} }),
+      });
+      toast(`${DRIVE_LABELS[tool] || tool} is now on the buyer's screen.`);
+      // Retrigger the flash even on repeat clicks of the same button.
+      void button.offsetWidth;
+      button.classList.add('is-sent');
+    } catch (error) {
+      toast(error.message);
+    } finally {
+      button.disabled = false;
     }
   });
 
