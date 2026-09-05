@@ -168,6 +168,73 @@ function safeError(error) {
   return cleanText(error instanceof Error ? error.message : String(error || 'Tool failed'), 400);
 }
 
+const ORDINAL_WORDS = [
+  [/\b(?:1st|first|pehla|pehli|pahla)\b/i, 1],
+  [/\b(?:2nd|second|dusra|doosra|dusri)\b/i, 2],
+  [/\b(?:3rd|third|teesra|tisra|teesri)\b/i, 3],
+  [/\b(?:4th|fourth|chautha|chotha)\b/i, 4],
+];
+
+// A buyer names a time however they like — "the first one", "10:30", "dus baje
+// wala", "Tuesday at noon" — and the agent passes that through more or less
+// verbatim. Matching only on an exact substring of the printed label meant most
+// spoken choices failed to resolve, and the buyer was handed the same list again.
+export function resolveSlot(chosen, offered, timezone = 'Asia/Kolkata') {
+  const raw = String(chosen || '').trim();
+  if (!raw || !offered.length) return '';
+  if (/^\d{4}-\d{2}-\d{2}T/.test(raw)) return raw;
+
+  const text = raw.toLowerCase();
+
+  // "the second one", "pehla wala"
+  for (const [pattern, position] of ORDINAL_WORDS) {
+    if (pattern.test(text) && offered[position - 1]) return offered[position - 1].start;
+  }
+
+  // A bare small number, as read off the numbered list — but only when nothing
+  // in the phrase points at a clock, or "2 pm" is read as "item 2".
+  const looksLikeTime = /(am|pm|a\.m|p\.m|baje|o'clock|[:.]\d{2})/i.test(text);
+  const bare = text.replace(/[^\d]/g, '');
+  if (!looksLikeTime && bare && bare.length <= 2) {
+    const position = Number(bare);
+    if (position >= 1 && position <= offered.length) return offered[position - 1].start;
+  }
+
+  // Otherwise match on the clock. Compare against each slot's real time rather
+  // than its printed label, so wording and date order stop mattering.
+  const parts = text.match(/(\d{1,2})\s*[:.\s]?\s*(\d{2})?\s*(am|pm|a\.m|p\.m)?/);
+  if (parts) {
+    let hour = Number(parts[1]);
+    const minute = parts[2] ? Number(parts[2]) : 0;
+    const meridiem = (parts[3] || '').replace(/\./g, '');
+    if (Number.isFinite(hour) && hour <= 24 && minute < 60) {
+      const candidates = [];
+      if (meridiem === 'pm') candidates.push(hour === 12 ? 12 : hour + 12);
+      else if (meridiem === 'am') candidates.push(hour === 12 ? 0 : hour);
+      else {
+        // No am/pm given. Viewing hours are daytime, so try the sensible ones.
+        candidates.push(hour);
+        if (hour < 12) candidates.push(hour + 12);
+      }
+      for (const wanted of candidates) {
+        const hit = offered.find((slot) => {
+          const local = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone }).format(new Date(slot.start));
+          const [h, m] = local.split(':').map(Number);
+          return h === wanted && (parts[2] ? m === minute : true);
+        });
+        if (hit) return hit.start;
+      }
+    }
+  }
+
+  // Last resort: the printed label, in either direction.
+  const label = offered.find((slot) => {
+    const l = slot.label.toLowerCase();
+    return l.includes(text) || text.includes(l);
+  });
+  return label ? label.start : '';
+}
+
 export const REASON_LABELS = Object.freeze({
   'explicit-request': 'Buyer asked to speak to a person',
   'fleet-or-bulk': 'Fleet, bulk or corporate purchase',
@@ -514,16 +581,7 @@ export class EasyEVToolEngine {
     const chosen = cleanText(firstDefined(input, ['slot', 'time', 'startISO', 'start', 'preferredTime', 'preferred_time']) || '', 80);
 
     const offered = record.passport.booking?.offered || [];
-    let startISO = '';
-    if (chosen) {
-      const index = Number(chosen.replace(/[^\d]/g, ''));
-      if (/^\d{4}-\d{2}-\d{2}T/.test(chosen)) startISO = chosen;
-      else if (Number.isInteger(index) && index >= 1 && index <= offered.length && chosen.length <= 3) startISO = offered[index - 1].start;
-      else {
-        const match = offered.find((slot) => slot.label.toLowerCase().includes(chosen.toLowerCase()));
-        if (match) startISO = match.start;
-      }
-    }
+    const startISO = resolveSlot(chosen, offered, this.crm.timezone);
 
     // No slot resolved yet: fetch real availability and let the buyer pick.
     if (!startISO) {
