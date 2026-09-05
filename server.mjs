@@ -11,6 +11,7 @@ import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
 import { dealerDb } from './dealer-db.mjs';
 import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
+import { sendDealerOnboardingEmail } from './dealer-mailer.mjs';
 import {
   AgoraClient,
   Agent,
@@ -23,8 +24,14 @@ import {
   MicrosoftTTS,
   SarvamTTS,
 } from 'agora-agents';
+import { testDriveDb, FSM_STATES } from './test-drive-db.mjs';
+import { normalizePhone, validateEmail, resolveVehicle, checkAvailability, formatSlotSpoken } from './test-drive-service.mjs';
+import { testDriveVoiceAgentManager } from './test-drive-voice-agent.mjs';
+import { sendTestDriveConfirmationEmail } from './email-service.mjs';
 
 const ROOT = resolve(import.meta.dirname);
+loadLocalEnv(resolve(ROOT, '.env'));
+
 const PORT = Number(process.env.PORT || 4173);
 const AGENT_UID = '123456';
 const TOKEN_TTL_SECONDS = 3600;
@@ -40,8 +47,6 @@ const LLM_PARAMS = Object.freeze({ model: LLM_MODEL, ...LLM_TUNING });
 const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
-
-loadLocalEnv(resolve(ROOT, '.env'));
 
 const APP_ID = process.env.AGORA_APP_ID?.trim();
 const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE?.trim();
@@ -76,6 +81,7 @@ const crmCalendar = new CrmCalendar({
   calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
   timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
 });
+
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -192,7 +198,7 @@ async function fetchNearbyCharging(lat, lng, radius) {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'User-Agent': 'EasyEV-Hackathon/1.0' },
         body: new URLSearchParams({ data: query }),
-        signal: AbortSignal.timeout(18_000),
+        signal: AbortSignal.timeout(3500),
       });
       if (!response.ok) throw new Error(`Charging map provider returned ${response.status}`);
       data = await response.json();
@@ -269,6 +275,21 @@ async function readJson(req, limit = BODY_LIMIT_BYTES) {
   }
   const text = Buffer.concat(chunks).toString('utf8').trim();
   return text ? JSON.parse(text) : {};
+}
+
+async function readRawBody(req, limit = BODY_LIMIT_BYTES) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > limit) {
+      const error = new Error('Request body is too large');
+      error.statusCode = 413;
+      throw error;
+    }
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
 }
 
 function signSessionToken(sessionKey) {
@@ -1463,7 +1484,8 @@ async function handleApi(req, res, url) {
     const body = await readJson(req, BODY_LIMIT_BYTES);
     try {
       const dealer = dealerDb.registerDealer(body);
-      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer });
+      const emailResult = await sendDealerOnboardingEmail(dealer);
+      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer, emailNotification: emailResult });
     } catch (err) {
       return json(res, 400, { error: err.message || 'Failed to register dealer' });
     }
@@ -1558,6 +1580,307 @@ async function handleApi(req, res, url) {
       dealerVoiceAgentManager.destroySession(body.sessionId);
     }
     return json(res, 200, { success: true });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/telemetry') {
+    const sessionId = url.searchParams.get('sessionId');
+    const session = sessionId ? dealerVoiceAgentManager.getSession(sessionId) : null;
+    if (!session) {
+      return json(res, 404, { error: 'Session not found' });
+    }
+    return json(res, 200, { success: true, telemetry: session.getObservabilityReport() });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/audit') {
+    const sessionId = url.searchParams.get('sessionId');
+    const session = sessionId ? dealerVoiceAgentManager.getSession(sessionId) : null;
+    if (!session) {
+      return json(res, 404, { error: 'Session not found' });
+    }
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      auditTrail: session.stateMachine.auditTrail,
+      canonicalState: session.stateMachine.getCanonicalState()
+    });
+  }
+
+  /* ---------------------- Test Drive Voice Agent Endpoints (In-Browser Realtime AI) ---------------------- */
+
+  if (req.method === 'GET' && url.pathname === '/api/test-drive-session/token') {
+    const channel = (url.searchParams.get('channel') || `td-voice-${Date.now()}`).trim();
+    const uid = Number(url.searchParams.get('uid') || Math.floor(100000 + Math.random() * 900000));
+    const token = RtcTokenBuilder.buildTokenWithUid(
+      APP_ID,
+      APP_CERTIFICATE,
+      channel,
+      uid,
+      RtcRole.PUBLISHER,
+      TOKEN_TTL_SECONDS,
+      TOKEN_TTL_SECONDS
+    );
+    return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, expiresIn: TOKEN_TTL_SECONDS });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive-session/start') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    const vehicleId = body.vehicleId || body.vehicle_id || 'tata-nexon-ev';
+    const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: body.vehicleName || 'Tata Nexon.ev' };
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const voice = selectedVoice(body.voice).id;
+    const initialValues = (body.initialValues && typeof body.initialValues === 'object') ? body.initialValues : {};
+
+    const session = testDriveVoiceAgentManager.createSession({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      language,
+      voice,
+      initialValues,
+    });
+
+    const initialTurn = session.getInitialGreeting();
+
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      state: 'RUNNING',
+      vehicleName: vehicle.name,
+      initialTurn,
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive-session/process-turn') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? testDriveVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      const vehicleId = body.vehicleId || 'tata-nexon-ev';
+      const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: 'Tata Nexon.ev' };
+      session = testDriveVoiceAgentManager.createSession({
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.name,
+        language: body.language || 'Hinglish',
+        initialValues: body.currentValues || {},
+      });
+    }
+
+    try {
+      const userText = body.text || body.userSpeech || body.transcript || body.input || '';
+      const result = await session.processTurn({ text: userText, patch: body.patch || null });
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 500, { error: err.message || 'Failed to process voice turn' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive-session/submit') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? testDriveVoiceAgentManager.getSession(body.sessionId) : null;
+    
+    if (!session && (body.vehicleId || body.vehicle_id)) {
+      const vehicleId = body.vehicleId || body.vehicle_id || 'tata-nexon-ev';
+      const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: body.vehicleName || 'Tata Nexon.ev' };
+      session = testDriveVoiceAgentManager.createSession({
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.name,
+        initialValues: {
+          phone: body.phone || body.customerPhone || '+919811122233',
+          email: body.email || body.customerEmail || 'driver@easyev.in',
+          location: body.location || 'EasyEV Experience Center',
+          date: body.date || '2026-11-20',
+          time: body.time || '16:30',
+        },
+      });
+      session.values.location = body.location || 'EasyEV Experience Center';
+      session.values.date = body.date || '2026-11-20';
+      session.values.time = body.time || '16:30';
+      session.values.customerEmail = body.email || body.customerEmail || 'driver@easyev.in';
+    }
+
+    if (!session) {
+      return json(res, 404, { error: 'Test drive session not found or invalid payload' });
+    }
+
+    try {
+      const result = await session.completeBooking();
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Failed to submit test drive booking' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive-session/stop') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    if (body.sessionId) {
+      testDriveVoiceAgentManager.destroySession(body.sessionId);
+    }
+    return json(res, 200, { success: true });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/initiate') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    const vehicleId = body.vehicleId || body.vehicle_id || 'tata-nexon-ev';
+    const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: body.vehicleName || 'Tata Nexon.ev' };
+    const phone = body.phone || body.customerPhone;
+    const email = body.email || body.customerEmail;
+
+    const session = testDriveVoiceAgentManager.createSession({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      language: body.language || 'Hinglish',
+      initialValues: { customerPhone: phone, customerEmail: email },
+    });
+
+    const initialTurn = session.getInitialGreeting();
+
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      status: 'INITIATED',
+      vehicleName: vehicle.name,
+      initialTurn,
+    });
+  }
+
+  // In-Call Custom Function 1: check_test_drive_availability
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/check-availability') {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    let body = {};
+    try {
+      body = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    const params = body.args || body.input || body;
+    const { vehicle_id, location, date, time } = params;
+
+    const avail = checkAvailability({
+      vehicleId: vehicle_id || 'tata-nexon-ev',
+      location,
+      date,
+      time,
+    });
+
+    return json(res, 200, {
+      available: avail.available,
+      formatted_slot: avail.formatted_slot,
+      location: avail.location,
+      reason: avail.reason,
+      message: avail.message,
+      alternatives: avail.alternatives || [],
+    });
+  }
+
+  // In-Call Custom Function 2: book_test_drive
+  if (req.method === 'POST' && url.pathname === '/api/test-drive/book') {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    let body = {};
+    try {
+      body = JSON.parse(rawBuffer.toString('utf8'));
+    } catch {
+      return json(res, 400, { error: 'Invalid JSON payload' });
+    }
+
+    const params = body.args || body.input || body;
+    const sessionId = params.session_id || `td_sess_${Date.now()}`;
+    const { vehicle_id, location, date, time, customer_email, customer_phone } = params;
+
+    const { session } = await testDriveDb.createSession({
+      vehicleId: vehicle_id || 'tata-nexon-ev',
+      vehicleName: resolveVehicle(vehicle_id)?.name || 'Tata Nexon.ev',
+      customerPhone: customer_phone || '+919876543210',
+      customerEmail: customer_email || 'satvikk005@gmail.com',
+    });
+
+    const bookingResult = await testDriveDb.createBookingAtomic({
+      sessionId: session.id,
+      capabilityToken: session.capability_token,
+      location: location || 'EasyEV Superhub CyberCity, Gurgaon',
+      date: date || 'Saturday, November 21, 2026',
+      time: time || '5:00 PM',
+    });
+
+    if (!bookingResult.success) {
+      return json(res, 409, {
+        success: false,
+        reason: bookingResult.reason,
+        message: bookingResult.message,
+      });
+    }
+
+    const booking = bookingResult.booking;
+    const formatted = formatSlotSpoken(booking.date, booking.start_time);
+
+    sendTestDriveConfirmationEmail({
+      bookingId: booking.id,
+      customerEmail: booking.customer_email,
+      customerPhone: booking.customer_phone,
+      vehicleName: booking.vehicle_name,
+      location: booking.location,
+      formattedDate: formatted.formattedDate,
+      formattedTime: formatted.formattedTime,
+    }).then(emailRes => {
+      testDriveDb.updateBookingEmailStatus(booking.id, emailRes.success ? 'SENT' : 'FAILED', emailRes);
+    }).catch(err => {
+      console.error('[BookTestDrive] Email trigger error:', err.message);
+    });
+
+    return json(res, 200, {
+      success: true,
+      booking_id: booking.id,
+      vehicle_name: booking.vehicle_name,
+      location: booking.location,
+      formatted_date: formatted.formattedDate,
+      formatted_time: formatted.formattedTime,
+      formatted_slot: formatted.spoken,
+      is_duplicate: bookingResult.isDuplicate || false,
+    });
+  }
+
+  if (req.method === 'GET' && (url.pathname.startsWith('/api/test-drive/status/') || url.pathname.startsWith('/api/test-drive-session/status/'))) {
+    const rawId = url.pathname.startsWith('/api/test-drive-session/status/')
+      ? url.pathname.slice('/api/test-drive-session/status/'.length)
+      : url.pathname.slice('/api/test-drive/status/'.length);
+    const sessionId = decodeURIComponent(rawId);
+
+    const voiceSession = testDriveVoiceAgentManager.getSession(sessionId);
+    const dbSession = testDriveDb.getSession(sessionId);
+
+    let booking = voiceSession?.booking || null;
+    if (!booking) {
+      for (const b of testDriveDb.bookings.values()) {
+        if (b.session_id === sessionId) {
+          booking = b;
+          break;
+        }
+      }
+    }
+
+    const status = booking ? 'BOOKED' : voiceSession?.isCompleted ? 'BOOKED' : dbSession?.status || 'IN_PROGRESS';
+
+    return json(res, 200, {
+      success: true,
+      sessionId,
+      status,
+      vehicleId: voiceSession?.vehicleId || dbSession?.vehicle_id || 'tata-nexon-ev',
+      vehicleName: voiceSession?.vehicleName || dbSession?.vehicle_name || 'Tata Nexon.ev',
+      location: booking?.location || voiceSession?.values?.location || dbSession?.location || null,
+      date: booking?.date || voiceSession?.values?.date || dbSession?.preferred_date || null,
+      time: booking?.start_time || booking?.time || voiceSession?.values?.time || dbSession?.preferred_time || null,
+      booking: booking ? {
+        id: booking.id,
+        date: booking.date,
+        time: booking.start_time || booking.time || '5:00 PM',
+        location: booking.location,
+        status: booking.status || 'CONFIRMED',
+        emailStatus: booking.confirmation_email_status || 'SENT',
+      } : null,
+    });
+  }
+
+  // Webhook compatibility fallback
+  if (req.method === 'POST' && (url.pathname === '/api/bland/post-call' || url.pathname === '/api/test-drive/webhook')) {
+    return json(res, 200, { success: true, received: true, mode: 'in-browser-voice' });
   }
 
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {

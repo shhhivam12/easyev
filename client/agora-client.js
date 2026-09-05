@@ -984,8 +984,119 @@ class DealerAgoraAdapter extends AgoraAdapter {
   }
 }
 
+class TestDriveAgoraAdapter extends AgoraAdapter {
+  constructor() {
+    super();
+    this.tdSessionId = '';
+  }
+
+  async startTestDriveSession(context = {}) {
+    await this.leave({ skipStop: false });
+    const generation = ++this.generation;
+    this.context = context;
+    this.emit('CALL_STATUS', { status: 'connecting' });
+
+    try {
+      const startData = await postJson('/api/test-drive-session/start', {
+        vehicleId: context.vehicleId || 'tata-nexon-ev',
+        vehicleName: context.vehicleName || 'Tata Nexon.ev',
+        language: context.language || 'Hinglish',
+        voice: context.voice || 'aarav',
+        initialValues: context.initialValues || {},
+      });
+      if (generation !== this.generation) return;
+
+      this.tdSessionId = startData.sessionId;
+      this.emit('CALL_STATUS', { status: 'live', sessionId: this.tdSessionId });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+
+      if (startData.initialTurn) {
+        this.emit('AGENT_TURN', startData.initialTurn);
+        this.emit('SPEECH_TEXT', { text: startData.initialTurn.spoken });
+      }
+
+      // Try connecting Agora mic level streaming if available
+      try {
+        const tokenData = await getJson('/api/test-drive-session/token').catch(() => null);
+        if (tokenData && tokenData.appId && tokenData.token && typeof AgoraRTC !== 'undefined') {
+          this.appId = tokenData.appId;
+          this.channel = tokenData.channel;
+          this.uid = String(tokenData.uid);
+          this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+          await this.rtc.join(this.appId, this.channel, tokenData.token, Number(this.uid));
+          this.micTrack = await AgoraRTC.createMicrophoneAudioTrack({
+            encoderConfig: 'speech_standard',
+            AEC: true,
+            ANS: true,
+            AGC: true,
+          });
+          await this.rtc.publish([this.micTrack]);
+          this.levelTimer = window.setInterval(() => {
+            if (generation !== this.generation || !this.micTrack) return;
+            const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
+            this.emit('LOCAL_AUDIO_LEVEL', { level });
+          }, 100);
+        }
+      } catch (micErr) {
+        console.warn('TestDrive WebRTC mic fallback active:', micErr?.message || micErr);
+      }
+
+      return startData;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not start test drive voice session', recoverable: false });
+      throw error;
+    }
+  }
+
+  async sendUserTurn(text, patch = null) {
+    if (!this.tdSessionId) return null;
+    this.emit('AGENT_STATE', { mode: 'thinking' });
+    try {
+      const turnData = await postJson('/api/test-drive-session/process-turn', {
+        sessionId: this.tdSessionId,
+        text: String(text || ''),
+        patch: patch || null,
+      });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+      this.emit('AGENT_TURN', turnData);
+      this.emit('SPEECH_TEXT', { text: turnData.spoken });
+      return turnData;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Error processing speech turn', recoverable: true });
+      this.emit('AGENT_STATE', { mode: 'listening' });
+      throw error;
+    }
+  }
+
+  async completeBooking() {
+    if (!this.tdSessionId) return null;
+    this.emit('AGENT_STATE', { mode: 'thinking' });
+    try {
+      const res = await postJson('/api/test-drive-session/submit', {
+        sessionId: this.tdSessionId,
+      });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+      this.emit('AGENT_TURN', res);
+      this.emit('SPEECH_TEXT', { text: res.spoken });
+      return res;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not complete test drive booking', recoverable: true });
+      throw error;
+    }
+  }
+
+  async leave() {
+    if (this.tdSessionId) {
+      postJson('/api/test-drive-session/stop', { sessionId: this.tdSessionId }).catch(() => {});
+      this.tdSessionId = '';
+    }
+    return super.leave();
+  }
+}
+
 export const createAgoraAdapter = () => new AgoraAdapter();
 export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
 export const createRepAdapter = () => new RepAdapter();
 export const createCompareDebateAdapter = () => new CompareDebateAdapter();
 export const createDealerAgoraAdapter = () => new DealerAgoraAdapter();
+export const createTestDriveAgoraAdapter = () => new TestDriveAgoraAdapter();
