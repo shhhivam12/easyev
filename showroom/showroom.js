@@ -2,8 +2,10 @@ import { VEHICLES, CATEGORIES, SHOWROOM_ACTIONS } from "./vehicle-catalog.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const cleanText = (value) => String(value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const requestedVehicleId = new URLSearchParams(window.location.search).get("vehicle");
+const initialVehicle = VEHICLES.find((vehicle) => vehicle.id === requestedVehicleId) || VEHICLES[0];
 const state = {
-  selectedId: VEHICLES[0].id, category: "All", view: "exterior", color: "white",
+  selectedId: initialVehicle.id, category: "All", view: "exterior", color: "white",
   variant: "fixed-side-deck", spin: null, pano: null, voiceLive: false, muted: false,
   adapter: null, unsubscribe: null, tourTimer: null, sceneTimer: null,
   orientation: "front", transcriptKeys: new Set()

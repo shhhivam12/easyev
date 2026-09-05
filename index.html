@@ -6013,7 +6013,56 @@
       width: 100%;
       height: 100%;
       min-height: 270px;
-      object-fit: cover;
+      padding: 22px;
+      object-fit: contain;
+    }
+
+    .showroom-360-visual {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      width: 100%;
+      height: 100%;
+      min-height: 270px;
+      place-items: center;
+      overflow: hidden;
+      background: linear-gradient(155deg, #f7fbf8, #edf8f0);
+    }
+
+    .showroom-360-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      max-height: 420px;
+      padding: 18px;
+      object-fit: contain;
+      user-select: none;
+      filter: drop-shadow(0 22px 20px rgba(4, 35, 15, .12));
+    }
+
+    .verified-vehicle__media .showroom-360-visual {
+      min-height: 156px;
+    }
+
+    .verified-vehicle__media .showroom-360-image {
+      min-height: 156px;
+      padding: 10px;
+    }
+
+    .visual-ar>.showroom-360-visual,
+    .visual-ar>img {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
+      width: 76%;
+      height: 76%;
+      min-height: 0;
+      padding: 0;
+      object-fit: contain;
+      background: transparent;
+      transform: translate(-50%, -50%);
+      filter: drop-shadow(0 22px 18px rgba(0, 0, 0, .28));
     }
 
     .concept-ev {
@@ -10804,6 +10853,14 @@
       const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
+      const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive)';
+      const sanitizeAgentText = (value) => String(value || '')
+        .replace(new RegExp('\\(\\s*(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^)]*\\)', 'gi'), ' ')
+        .replace(new RegExp('(?:^|[.!?]\\s*)(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^.!?]*(?:[.!?]|$)', 'gi'), ' ')
+        .replace(new RegExp('\\b' + INTERNAL_TOOL_PATTERN + '\\b', 'gi'), 'the requested action')
+        .replace(/\s+([,.!?])/g, '$1')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
       const networkLabel = () => {
         const values = [state.networkQuality.uplink, state.networkQuality.downlink].filter((value) => value > 0);
         if (!values.length) return '';
@@ -10832,6 +10889,18 @@
       ]);
       const isLikelyInIndia = (lat, lng) => Number(lat) >= 6 && Number(lat) <= 38 && Number(lng) >= 67 && Number(lng) <= 99;
       const conceptVehicleMarkup = (angle = state.visualAngle) => `<div class="concept-ev" style="--spin:${Number(angle) || 0}deg" role="img" aria-label="Original interactive illustrative electric vehicle concept"><span class="concept-ev__body"></span><span class="concept-ev__cabin"></span><span class="concept-ev__front"></span><span class="concept-wheel concept-wheel--rear"></span><span class="concept-wheel concept-wheel--front"></span></div>`;
+      const showroomFrameUrl = (spin, angle = state.visualAngle) => {
+        if (!spin?.folder || !spin?.pattern) return '';
+        const frames = Math.max(1, Number(spin.frames) || 1);
+        const normalized = ((Number(angle) || 0) % 360 + 360) % 360;
+        const frame = Math.round((normalized / 360) * frames) % frames;
+        return `${spin.folder}/${spin.pattern.replace('{nn}', String(frame).padStart(2, '0'))}`;
+      };
+      const showroomVehicleMarkup = (vehicle, angle = state.visualAngle) => {
+        const spin = vehicle?.visual360;
+        if (!spin) return '';
+        return `<div class="showroom-360-visual" role="img" aria-label="${escapeHtml(vehicle.name)} exact-model 360 showroom view"><img class="showroom-360-image" src="${escapeHtml(showroomFrameUrl(spin, angle))}" alt="${escapeHtml(vehicle.name)} exterior at ${Math.round(Number(angle) || 0)} degrees" data-spin-folder="${escapeHtml(spin.folder)}" data-spin-pattern="${escapeHtml(spin.pattern)}" data-spin-frames="${Number(spin.frames) || 1}" draggable="false"></div>`;
+      };
 
       const DEMO_TURNS = {
         compare: {
@@ -11191,17 +11260,18 @@
         } else if (type === 'comparison' && Array.isArray(payload.vehicles)) {
           const cards = payload.vehicles.map((item) => {
             const ranking = payload.ranking?.find((entry) => entry.id === item.id);
-            const visual = payload.visualMode === 'concept'
-              ? conceptVehicleMarkup()
+            const showShowroom360 = payload.visualMode === 'showroom-360' && item.visual360;
+            const visual = showShowroom360
+              ? showroomVehicleMarkup(item)
               : item.media?.url
-                ? `<img data-vehicle-fallback="${escapeHtml(item.category)}" src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} licensed vehicle photograph" loading="eager">`
+                ? `<img data-vehicle-fallback="${escapeHtml(item.category)}" src="${escapeHtml(item.media.url)}" alt="${escapeHtml(item.name)} catalog image" loading="eager">`
                 : (item.category === 'Electric scooter' ? scooterSvg : item.category === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg);
-            const mediaCredit = payload.visualMode === 'concept'
-              ? '<span class="media-credit">Instant EasyEV 3D concept · illustrative, not exact-model geometry</span>'
+            const mediaCredit = showShowroom360
+              ? `<span class="media-credit">${escapeHtml(item.visual360.label || 'Exterior 360°')} · supplied EasyEV showroom sequence</span>`
               : item.media?.url
                 ? `<a class="media-credit" href="${escapeHtml(item.media.pageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.media.creator)} · ${escapeHtml(item.media.license)}${item.media.note ? ` · ${escapeHtml(item.media.note)}` : ''}</a>`
-                : '<span class="media-credit">Original EasyEV illustration · not the exact model</span>';
-            const tag = payload.visualMode === 'concept' ? '3D concept' : item.media?.url ? 'Licensed photo' : 'Illustrative';
+                : '<span class="media-credit">Category illustration · exact imagery unavailable</span>';
+            const tag = showShowroom360 ? 'Showroom 360°' : item.media?.url ? 'Catalog image' : 'Illustrative';
             return `<article class="verified-vehicle"><div class="verified-vehicle__media">${visual}<span class="option-card__tag">${tag}</span></div><div class="verified-vehicle__body"><span class="vehicle-rank">${ranking ? `#${ranking.rank} · ${ranking.reason}` : 'Verified option'}</span><h4>${escapeHtml(item.name)}</h4><div class="fact-grid"><div><span>Price</span><strong>${escapeHtml(item.priceLabel)}</strong></div><div><span>Range</span><strong>${escapeHtml(item.claimedRangeLabel)}</strong></div></div><a class="source-link" href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">OEM source · checked ${escapeHtml(item.verifiedAt)} ↗</a>${mediaCredit}</div><button class="vehicle-explore-button" type="button" data-visual-vehicle="${escapeHtml(item.id)}">Explore visuals</button></article>`;
           }).join('');
           const columns = payload.vehicles.map((item) => `<th scope="col">${escapeHtml(item.name)}</th>`).join('');
@@ -11215,13 +11285,22 @@
         } else if (type === 'vehicle-visual' && Array.isArray(payload.vehicles) && payload.vehicles.length) {
           const vehicle = payload.vehicles.find((item) => item.id === state.visualVehicleId) || payload.vehicles[0];
           state.visualVehicleId = vehicle.id;
-          const selector = payload.vehicles.map((item) => `<button class="location-preset" type="button" data-visual-vehicle="${escapeHtml(item.id)}">${escapeHtml(item.name)}</button>`).join('');
-          const photo = vehicle.media?.url ? `<img data-vehicle-fallback="${escapeHtml(vehicle.category)}" src="${escapeHtml(vehicle.media.url)}" alt="${escapeHtml(vehicle.name)} licensed vehicle photograph">` : conceptVehicleMarkup();
-          const showPhoto = state.visualMode === 'photo' && vehicle.media?.url && !state.visualArOpen;
+          const hasShowroom360 = Boolean(vehicle.visual360);
+          if (state.visualMode === 'showroom-360' && !hasShowroom360) state.visualMode = 'photo';
+          const selector = payload.vehicles.map((item) => `<button class="location-preset" type="button" data-visual-vehicle="${escapeHtml(item.id)}" aria-pressed="${item.id === vehicle.id}">${escapeHtml(item.name)}</button>`).join('');
+          const photo = vehicle.media?.url
+            ? `<img data-vehicle-fallback="${escapeHtml(vehicle.category)}" src="${escapeHtml(vehicle.media.url)}" alt="${escapeHtml(vehicle.name)} catalog image">`
+            : (vehicle.category === 'Electric scooter' ? scooterSvg : vehicle.category === 'Electric 3-wheeler' ? threeWheelerSvg : carSvg);
+          const showShowroom360 = state.visualMode === 'showroom-360' && hasShowroom360;
+          const selectedVisual = showShowroom360 ? showroomVehicleMarkup(vehicle) : photo;
           const visualScene = state.visualArOpen
-            ? `<div class="visual-ar"><video id="ar-preview-video" autoplay playsinline muted aria-label="Your camera view for illustrative vehicle overlay"></video>${conceptVehicleMarkup()}<span class="visual-ar-note">Camera overlay only · not scale-accurate WebXR or a safety/fit measurement</span></div>`
-            : `<div class="visual-scene"><span class="visual-badge">${showPhoto ? 'Licensed reference photo' : 'Interactive 3D concept · illustrative'}</span>${showPhoto ? photo : conceptVehicleMarkup()}</div>`;
-          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(vehicle.name)} visual explorer</h3><p>Inspect the sourced photo when available, then use the original interactive concept to discuss shape and parking questions. The concept is not exact-model geometry.</p></div><div class="location-presets">${selector}</div><div class="visual-stage">${visualScene}<div class="visual-controls"><h4>Explore while you talk</h4><p>Rotate the concept or open a user-controlled camera overlay. Exact-model 3D assets and spatial WebXR placement are not claimed.</p><div class="visual-actions"><button class="location-preset" type="button" data-visual-mode="photo" ${vehicle.media?.url ? '' : 'disabled'}>Photo</button><button class="location-preset" type="button" data-visual-mode="concept">3D concept</button></div>${vehicle.media?.note && showPhoto ? `<p class="tool-notice">${escapeHtml(vehicle.media.note)}</p>` : ''}<div class="visual-angle" ${showPhoto ? 'hidden' : ''}><label for="visual-angle-input"><span>Viewing angle</span><output id="visual-angle-output">${state.visualAngle}°</output></label><input id="visual-angle-input" data-visual-angle type="range" min="-70" max="70" step="1" value="${state.visualAngle}"></div><div class="visual-actions"><button class="stage-action" type="button" data-visual-ar>${state.visualArOpen ? 'Close camera overlay' : 'Preview in my space'}</button><button class="stage-pin" type="button" data-visual-back>Back to comparison</button></div><a class="source-link" href="${escapeHtml(vehicle.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open official model source ↗</a></div></div>`;
+            ? `<div class="visual-ar"><video id="ar-preview-video" autoplay playsinline muted aria-label="Your camera view for vehicle overlay"></video>${selectedVisual}<span class="visual-ar-note">Camera overlay only · not scale-accurate WebXR or a safety/fit measurement</span></div>`
+            : `<div class="visual-scene"><span class="visual-badge">${showShowroom360 ? escapeHtml(vehicle.visual360.label || 'Exact-model showroom 360°') : 'Catalog image'}</span>${selectedVisual}</div>`;
+          const intro = hasShowroom360
+            ? 'Rotate the exact-model exterior sequence supplied to the EasyEV virtual showroom, or switch to its catalog image.'
+            : 'This model is available for consultation and comparison with a catalog image. Exact-model 360° is reserved for vehicles currently in the EasyEV virtual showroom.';
+          const modeButtons = `<button class="location-preset" type="button" data-visual-mode="photo" ${vehicle.media?.url ? '' : 'disabled'} aria-pressed="${!showShowroom360}">Image</button>${hasShowroom360 ? `<button class="location-preset" type="button" data-visual-mode="showroom-360" aria-pressed="${showShowroom360}">Showroom 360°</button>` : ''}`;
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(vehicle.name)} visual explorer</h3><p>${intro}</p></div><div class="location-presets">${selector}</div><div class="visual-stage">${visualScene}<div class="visual-controls"><h4>Explore while you talk</h4><p>${hasShowroom360 ? 'Use the angle control to inspect the supplied vehicle sequence. The camera overlay remains a visual preview, not a size or fit measurement.' : 'Ask about price, range, charging, ownership or comparisons while the verified catalog image stays on screen.'}</p><div class="visual-actions">${modeButtons}</div>${vehicle.media?.note && !showShowroom360 ? `<p class="tool-notice">${escapeHtml(vehicle.media.note)}</p>` : ''}<div class="visual-angle" ${showShowroom360 ? '' : 'hidden'}><label for="visual-angle-input"><span>Viewing angle</span><output id="visual-angle-output">${state.visualAngle}°</output></label><input id="visual-angle-input" data-visual-angle type="range" min="-180" max="180" step="1" value="${state.visualAngle}"></div><div class="visual-actions"><button class="stage-action" type="button" data-visual-ar>${state.visualArOpen ? 'Close camera overlay' : 'Preview in my space'}</button><button class="stage-pin" type="button" data-visual-back>Back to comparison</button></div><a class="source-link" href="${escapeHtml(vehicle.sourceUrl)}" target="_blank" rel="noopener noreferrer">Open official model source ↗</a>${hasShowroom360 ? `<a class="source-link" href="${escapeHtml(vehicle.visual360.showroomUrl || '/showroom/')}" target="_blank" rel="noopener noreferrer">Open full virtual showroom ↗</a>` : ''}</div></div>`;
           window.requestAnimationFrame(() => { const video = $('#ar-preview-video'); if (video && localStream) video.srcObject = localStream; });
         } else if (type === 'comparison') {
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Options shaped around your usage')}</h3><p>Decision dimensions are visible so the conversation can stay grounded in fit, not pressure.</p></div><div class="comparison-grid"><article class="option-card"><div class="option-card__visual">${carSvg}<span class="option-card__tag">Illustrative</span></div><h4>City Compact</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Easy for 3–4</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Strong margin</strong></div><div class="fit-row"><span>Charging fit</span><strong>Home-friendly</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Compact band</strong></div><div class="fit-row"><span>Best for</span><strong>City families</strong></div></div></article><article class="option-card"><div class="option-card__visual">${scooterSvg}<span class="option-card__tag">Illustrative</span></div><h4>Family Tourer</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Light & agile</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Commute-ready</strong></div><div class="fit-row"><span>Charging fit</span><strong>Easy parking check</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Accessible band</strong></div><div class="fit-row"><span>Best for</span><strong>Solo commuters</strong></div></div></article><article class="option-card"><div class="option-card__visual">${threeWheelerSvg}<span class="option-card__tag">Illustrative</span></div><h4>Utility Pro</h4><div class="fit-list"><div class="fit-row"><span>Family fit</span><strong>Passenger utility</strong></div><div class="fit-row"><span>Daily-distance fit</span><strong>Workday fit</strong></div><div class="fit-row"><span>Charging fit</span><strong>Route dependent</strong></div><div class="fit-row"><span>Upfront-cost band</span><strong>Utility band</strong></div><div class="fit-row"><span>Best for</span><strong>Daily operations</strong></div></div></article></div><div class="comparison-foot"><p class="comparison-foot__note">Illustrative comparison. Verified live catalog sources remain a separate marketplace-data integration.</p><button class="stage-action" type="button" data-stage-action="ownership">Open cost model</button></div><div class="interruption-note" id="interruption-note" hidden><div class="interruption-note__copy"><span aria-hidden="true">↯</span><span>Try interrupting: “Wait—charging is not available at home.”</span></div><button class="interrupt-suggested" type="button" data-control="interrupt">Try it</button></div>`;
@@ -11396,7 +11475,7 @@
           readyStatus.textContent = state.integrationMode === 'demo'
             ? 'Offline demo mode is active. No live Agora or external tool call will run.'
             : state.backendReady
-              ? `Ready · Agora voice and five decision tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`
+              ? `Ready · Agora voice and eight consultation tools available. ${state.toolsMode === 'local-bridge' ? 'This local run uses the browser tool bridge; deployed HTTPS enables Agora MCP.' : ''}`
               : `${state.backendPhase} · ${elapsed}s elapsed. This is a real backend wake-up, not a countdown.`;
         }
         const stageTitleElement = document.getElementById('stage-title');
@@ -11789,7 +11868,9 @@
       };
       const appendTranscript = (speaker, text, meta = {}) => {
         const role = speaker === 'you' ? 'you' : speaker === 'rep' ? 'rep' : 'ai';
-        state.transcript.push({ speaker: role, text: String(text), timestamp: Date.now(), meta });
+        const safeText = role === 'ai' ? sanitizeAgentText(text) : String(text || '').trim();
+        if (!safeText) return;
+        state.transcript.push({ speaker: role, text: safeText, timestamp: Date.now(), meta });
         renderTranscript();
       };
       const patchProfile = (partialProfile) => {
@@ -11870,7 +11951,6 @@
       const handleToolEvent = (toolEvent) => {
         if (toolEvent.eventId && state.processedToolEventIds.has(toolEvent.eventId)) return;
         if (toolEvent.eventId) state.processedToolEventIds.add(toolEvent.eventId);
-        if (state.intentGuard && state.intentGuard.until > Date.now() && toolEvent.tool && toolEvent.tool !== state.intentGuard.tool) return;
         updateToolRun(toolEvent);
         const data = toolEvent.payload || {};
         if (data.passport) syncStructuredPassport(data.passport);
@@ -11930,16 +12010,17 @@
           if (actionId) markAction(actionId, 'pending', 'Cancelled when the conversation moved on');
           if (!state.stagePinned) state.agentMode = 'listening';
         }
+        if (state.intentGuard?.tool === toolEvent.tool && ['completed', 'awaiting_input', 'failed', 'cancelled'].includes(toolEvent.phase)) state.intentGuard = null;
         renderApp();
       };
       const defaultCompareNames = () => state.category === 'Electric scooter'
         ? ['Ather Rizta', 'TVS iQube']
         : state.category === 'Electric 3-wheeler'
-          ? ['Mahindra Treo Plus', 'Bajaj RE E-TEC 9.0']
-          : ['Tata Punch.ev', 'MG Windsor EV'];
+          ? ['TVS King Kargo HD EV', 'Mahindra Treo Plus']
+          : ['Tata Punch.ev', 'MG Comet EV'];
       const runDirectTool = async (tool, args = {}, userText = '') => {
         if (state.integrationMode !== 'live' || state.callStatus !== 'live') return;
-        state.intentGuard = { tool, until: Date.now() + 12_000 };
+        state.intentGuard = { tool };
         if (userText) appendTranscript('you', userText, { localText: true, directTool: tool });
         state.agentMode = 'tool-running';
         state.activityMessage = state.activityMessage || toolActivityLabel(tool);
@@ -11958,6 +12039,7 @@
         { name: 'Tata Punch EV', match: /tata\s*punch|punch[.\s-]*ev|टाटा\s*पंच|पंच\s*(?:ईवी|ev)?/i },
         { name: 'Citroen EC3', match: /citro[eë]n|e[\s-]*c3x?|ec3x?|सिट्रोएन|सिट्रोन/i },
         { name: 'Tata Nexon EV', match: /tata\s*nexon|nexon[.\s-]*ev|नेक्सॉन/i },
+        { name: 'MG Comet EV', match: /mg\s*comet|comet\s*ev|कॉमेट/i },
         { name: 'MG Windsor EV', match: /mg\s*windsor|windsor\s*ev|विंडसर/i },
         { name: 'Mahindra XUV400', match: /xuv\s*400|xuv400|एक्सयूवी\s*400/i },
         { name: 'Ather Rizta', match: /ather\s*rizta|rizta|रिज़्टा/i },
@@ -11965,7 +12047,10 @@
         { name: 'TVS iQube', match: /tvs\s*i\s*qube|iqube|i\s*qube|आईक्यूब/i },
         { name: 'Ola S1 Pro', match: /ola\s*s1|s1\s*pro|ओला\s*एस1/i },
         { name: 'Mahindra Treo Plus', match: /treo\s*plus|mahindra\s*treo|ट्रेओ/i },
-        { name: 'Bajaj RE E-TEC 9.0', match: /bajaj.*e[\s-]*tec|e[\s-]*tec\s*9|बजाज.*ई\s*टेक/i }
+        { name: 'Bajaj RE E-TEC 9.0', match: /bajaj.*e[\s-]*tec|e[\s-]*tec\s*9|बजाज.*ई\s*टेक/i },
+        { name: 'TVS King Kargo HD EV', match: /tvs\s*king\s*kargo|king\s*(?:kargo|cargo)|किंग\s*कार्गो/i },
+        { name: 'Piaggio Ape E-City', match: /piaggio.*e[\s-]*city|ape\s*e[\s-]*city|आपे\s*ई\s*सिटी/i },
+        { name: 'Euler HiLoad EV', match: /euler\s*hiload|hi\s*load|हाईलोड/i }
       ];
       const fastVisualIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
@@ -11973,8 +12058,9 @@
         const wants3d = /\b3\s*d\b|\b360\b|\bmodel\b|मॉडल|घुमा/i.test(spoken);
         const wantsPhoto = /\bphoto\b|\bpicture\b|\bimage\b|तस्वीर|फोटो|दिखा|दिखाओ|दिखा सकते/i.test(spoken);
         const wantsCompare = /compare|comparison|versus|\bvs\b|\bboth\b|between|difference|फर्क|तुलना|के बीच|दोनों/i.test(spoken);
-        if (!wants3d && !wantsPhoto && !wantsCompare) return false;
         let vehicles = SPOKEN_VEHICLES.filter((item) => item.match.test(spoken)).map((item) => item.name);
+        const wantsShow = /\bshow\b|\bdisplay\b|\bopen\b|\bsee\b/i.test(spoken) && vehicles.length > 0;
+        if (!wants3d && !wantsPhoto && !wantsCompare && !wantsShow) return false;
         const shortlisted = (state.decisionPassport?.shortlist || []).map((item) => item.name).filter(Boolean);
         if (wantsCompare && !vehicles.length) vehicles = [...new Set([...shortlisted, ...defaultCompareNames()])].slice(0, 2);
         if (!wantsCompare && !vehicles.length) vehicles = (shortlisted.length ? shortlisted : defaultCompareNames()).slice(0, 1);
@@ -11986,26 +12072,59 @@
         if (idKey) state.handledFastIntentIds.add(idKey);
         state.handledFastIntentIds.add(textKey);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(textKey), 8_000);
-        const presentation = wants3d ? '3d' : wantsPhoto ? 'photo' : 'comparison';
+        const presentation = wants3d ? '3d' : (wantsPhoto || wantsShow) ? 'photo' : 'comparison';
         state.activityMessage = wantsCompare && vehicles.length > 1
           ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
-          : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
+          : `Preparing ${vehicles[0]} ${wants3d ? '360° showroom view' : 'visual'}…`;
         runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
-        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 60_000 };
+        return true;
+      };
+      const fastDecisionIntent = (text, eventId = '') => {
+        const spoken = String(text || '').trim();
+        if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
+        const nearbyChargers = /\b(?:nearby|nearest|closest|near me|around me)\b.{0,36}\b(?:charger|charging|station)s?\b|\b(?:charger|charging|station)s?\b.{0,36}\b(?:nearby|nearest|closest|near me|around me)\b|(?:पास|नज़दीक|नजदीक|आसपास).{0,36}(?:चार्जर|चार्जिंग|स्टेशन)|(?:चार्जर|चार्जिंग|स्टेशन).{0,36}(?:पास|नज़दीक|नजदीक|आसपास)/i.test(spoken);
+        const ownership = /\b(?:ownership cost|cost of ownership|running cost|tco|emi|monthly payment|annual savings|fuel savings)\b|ओनरशिप\s*कॉस्ट|रनिंग\s*कॉस्ट|ईएमआई|सालाना\s*बचत/i.test(spoken);
+        const report = /\b(?:decision report|download(?:able)? report|generate (?:a )?report|create (?:a )?report|pdf report|download (?:the )?pdf)\b|रिपोर्ट\s*(?:बनाओ|बना|डाउनलोड)|पीडीएफ/i.test(spoken);
+        const snapshot = /\b(?:readiness snapshot|camera snapshot|check (?:my )?(?:parking|charger|connector|electrical label)|charging setup photo)\b|(?:पार्किंग|चार्जर|कनेक्टर).{0,24}(?:फोटो|कैमरा|जाँच|चेक)/i.test(spoken);
+        let tool = '';
+        let args = {};
+        if (nearbyChargers) {
+          tool = 'find_nearby_chargers';
+          args = { radiusKm: 10 };
+        } else if (ownership) {
+          tool = 'calculate_ownership';
+          args = { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 };
+        } else if (report) {
+          tool = 'generate_decision_report';
+        } else if (snapshot) {
+          tool = 'analyze_readiness_snapshot';
+        } else {
+          return false;
+        }
+        const normalized = spoken.toLowerCase().replace(/\s+/g, ' ');
+        const key = eventId ? `decision:${eventId}` : `decision:${normalized}`;
+        if (state.handledFastIntentIds.has(key)) return true;
+        state.handledFastIntentIds.add(key);
+        scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
+        runDirectTool(tool, args);
         return true;
       };
       // Escalation is the one intent that must survive the agent losing its tools —
       // a dropped MCP tunnel would otherwise leave the buyer asking for a person
-      // and nothing happening. Two-part match (an asking verb AND a human noun)
-      // keeps precision high enough to run without confirmation.
+      // and nothing happening. The four direct keywords work on their own;
+      // other phrases still require an asking verb plus a human role.
       const HUMAN_ASK = /\b(talk|speak|connect|transfer|put me|get me|call)\b|baat\s*kar|baat\s*karn|बात\s*कर|जोड़(?:ि|ो|े)|मिला(?:इ|ओ)/i;
-      const HUMAN_TARGET = /\b(human|person|someone|somebody|agent|representative|manager|advisor|salesperson|sales\s?man|sales\s?team|customer\s?care|dealer)\b|insaan|इंसान|आदमी|aadmi|banda|बंदा|vyakti|व्यक्ति|मैनेजर|सेल्स|डीलर|असली/i;
+      const HUMAN_TARGET = /\b(human|person|someone|somebody|agent|representative|manager|executive|advisor|salesperson|sales\s?man|sales\s?team|customer\s?care|dealer)\b|insaan|इंसान|आदमी|aadmi|banda|बंदा|vyakti|व्यक्ति|मैनेजर|एग्जीक्यूटिव|सेल्स|डीलर|असली/i;
+      const HUMAN_DIRECT_KEYWORD = /\b(human|manager|executive)\b|insaan|इंसान|मैनेजर|एग्जीक्यूटिव/i;
+      const HUMAN_NEGATION = /\b(?:no|not|don't|do not|without)\b.{0,24}\b(?:human|manager|executive)\b|(?:human|manager|executive).{0,24}\b(?:nahi|नहीं)\b/i;
       const AI_SELF_REFERENCE = /\b(ai|bot|assistant|easyev)\b\s*(agent|se)?/i;
       const fastHumanIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
         if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
-        if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
+        const directKeyword = HUMAN_DIRECT_KEYWORD.test(spoken);
+        if (directKeyword && HUMAN_NEGATION.test(spoken)) return false;
+        if (!directKeyword && (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken))) return false;
         // "talk to the AI agent" is not a request for a person.
         if (/\bagent\b/i.test(spoken) && AI_SELF_REFERENCE.test(spoken) && !/human|insaan|इंसान|आदमी|banda|बंदा/i.test(spoken)) return false;
         const key = eventId ? `human:${eventId}` : `human:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
@@ -12046,10 +12165,17 @@
           .catch((error) => showToast(error?.message || 'Availability could not be checked.'));
         return true;
       };
+      const routeFastLiveIntent = (text, eventId = '') => {
+        if (fastHumanIntent(text, eventId)) return true;
+        if (fastBookingIntent(text, eventId)) return true;
+        if (fastVisualIntent(text, eventId)) return true;
+        return fastDecisionIntent(text, eventId);
+      };
       const toolForTurn = (turnName) => ({
         compare: ['compare_vehicles', { vehicles: defaultCompareNames(), priorities: ['daily usability', 'running cost'] }],
         map: ['find_nearby_chargers', { radiusKm: 10 }],
-        ownership: ['calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }]
+        ownership: ['calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }],
+        booking: ['book_test_drive', {}]
       }[turnName] || null);
       const downloadStructuredReport = async () => {
         if (!state.reportReady || !state.reportUrl) {
@@ -12130,18 +12256,10 @@
           demoAdapter.sendText(text, { sessionId: state.sessionId, turnId, turn, skipUser: Boolean(options.skipUser), initialDelay: options.initialDelay || 0 });
           return;
         }
-        if (state.toolsMode === 'local-bridge') {
-          const direct = toolForTurn(turnName);
-          if (direct) {
-            runDirectTool(direct[0], direct[1], options.skipUser ? '' : text);
-            return;
-          }
-          if (turnName === 'booking') {
-            if (!options.skipUser) appendTranscript('you', text, { turnId, localText: true });
-            showStage('booking', DEMO_TURNS.booking.stage);
-            appendTranscript('ai', 'This prototype can prepare a local test-drive action pack. No dealer, calendar or WhatsApp action happens without your click.', { localTool: true });
-            return;
-          }
+        const direct = toolForTurn(turnName);
+        if (direct) {
+          runDirectTool(direct[0], direct[1], options.skipUser ? '' : text);
+          return;
         }
         if (!options.skipUser) appendTranscript('you', text, { turnId, localText: true });
         setAgentMode('thinking');
@@ -12390,7 +12508,9 @@
         return null;
       };
       const syncLiveTranscript = (entries) => {
-        const incoming = Array.isArray(entries) ? entries.map((entry) => ({ ...entry, meta: { live: true, id: entry.id, status: entry.status } })) : [];
+        const incoming = Array.isArray(entries) ? entries
+          .map((entry) => ({ ...entry, text: entry.speaker === 'ai' ? sanitizeAgentText(entry.text) : String(entry.text || '').trim(), meta: { live: true, id: entry.id, status: entry.status } }))
+          .filter((entry) => entry.text) : [];
         const localOnly = state.transcript.filter((entry) => entry.meta?.localText && !incoming.some((live) => live.speaker === entry.speaker && live.text === entry.text));
         state.transcript = [...incoming, ...localOnly].sort((a, b) => a.timestamp - b.timestamp);
         renderTranscript();
@@ -12399,10 +12519,7 @@
           const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
-          if (fastHumanIntent(latestUser.text, finalEventId)) return;
-          if (fastBookingIntent(latestUser.text, finalEventId)) return;
-          const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
-          if (!handledVisually) state.intentGuard = null;
+          routeFastLiveIntent(latestUser.text, finalEventId);
         }
       };
       const handleAdapterEvent = (event) => {
@@ -12588,14 +12705,7 @@
         if (target.matches('[data-tool-prompt]')) {
           const kind = target.dataset.toolPrompt;
           const text = kind === 'snapshot' ? 'Check one camera snapshot of my charging readiness.' : 'Build my downloadable decision report.';
-          if (state.toolsMode === 'local-bridge') {
-            runDirectTool(kind === 'snapshot' ? 'analyze_readiness_snapshot' : 'generate_decision_report', {}, text);
-          } else {
-            clearActiveTurn();
-            appendTranscript('you', text, { localText: true });
-            setAgentMode('thinking');
-            activeAdapter()?.sendText(text).catch((error) => showToast(error?.message || 'The request could not reach EasyEV AI.'));
-          }
+          runDirectTool(kind === 'snapshot' ? 'analyze_readiness_snapshot' : 'generate_decision_report', {}, text);
           return;
         }
         if (target.matches('[data-tab]')) { state.selectedTab = target.dataset.tab; renderApp(); return; }
@@ -12738,6 +12848,14 @@
         if (input.matches('[data-visual-angle]')) {
           state.visualAngle = Number(input.value);
           $$('.concept-ev').forEach((model) => model.style.setProperty('--spin', `${state.visualAngle}deg`));
+          $$('.showroom-360-image').forEach((image) => {
+            image.src = showroomFrameUrl({
+              folder: image.dataset.spinFolder,
+              pattern: image.dataset.spinPattern,
+              frames: Number(image.dataset.spinFrames) || 1,
+            }, state.visualAngle);
+            image.alt = image.alt.replace(/ at -?\d+ degrees$/, ` at ${Math.round(state.visualAngle)} degrees`);
+          });
           const output = $('#visual-angle-output');
           if (output) output.textContent = `${state.visualAngle}°`;
           return;
@@ -12816,8 +12934,7 @@
         appendTranscript('you', text, { freeform: true, turnId, localText: true });
         if (state.integrationMode === 'live') {
           setAgentMode('thinking');
-          state.intentGuard = null;
-          fastVisualIntent(text, `typed:${turnId}`);
+          routeFastLiveIntent(text, `typed:${turnId}`);
           activeAdapter()?.sendText(text).catch((error) => {
             if (!isCurrentSession(state.sessionId, turnId)) return;
             setAgentMode('listening');

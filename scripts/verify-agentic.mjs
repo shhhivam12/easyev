@@ -2,7 +2,7 @@ import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const cdpPort = Number(process.env.CDP_PORT || 9225);
-const appUrl = process.env.EASYEV_URL || 'http://127.0.0.1:4173/';
+const appUrl = process.env.EASYEV_URL || 'http://127.0.0.1:4174/';
 const isRemoteLive = new URL(appUrl).protocol === 'https:';
 const toolTimeout = isRemoteLive ? 45_000 : 12_000;
 const artifacts = resolve('test-artifacts');
@@ -83,6 +83,8 @@ try {
   await waitFor('document.activeElement?.id === "prejoin-title"', 5000, 'pre-call focus');
   results.prejoin.focus = true;
   results.prejoin.centered = await evaluate('(() => { const r=document.querySelector(".prejoin-sheet").getBoundingClientRect(); return Math.abs((r.left+r.width/2)-innerWidth/2)<8; })()');
+  await evaluate(`(() => { const values={"#buyer-name":"Regression Buyer","#buyer-email":"regression@example.com","#buyer-phone":"+91 98765 43210"}; for (const [selector,value] of Object.entries(values)) { const input=document.querySelector(selector); input.value=value; input.dispatchEvent(new Event("input",{bubbles:true})); } return true; })()`);
+  results.prejoin.contact = await evaluate('document.querySelector("#buyer-name")?.checkValidity() && document.querySelector("#buyer-email")?.checkValidity() && document.querySelector("#buyer-phone")?.checkValidity()');
   await click('[data-category="Electric car"]');
   await click('[data-language="English"]');
   await click('#enable-camera-button');
@@ -103,20 +105,20 @@ try {
   results.live.comparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,sources:document.querySelectorAll(".verified-vehicle .source-link").length,columns:document.querySelectorAll(".comparison-matrix thead th").length-1,rows:document.querySelectorAll(".comparison-matrix tbody tr").length,labels:[...document.querySelectorAll(".option-card__tag")].map(x=>x.textContent)})');
   await screenshot('easyev-agentic-comparison-desktop.png');
 
-  await sendTypedPrompt('Compare Tata Punch EV and Citroen EC3 in 3D.');
-  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2 && document.querySelectorAll(".verified-vehicle .concept-ev").length === 2', toolTimeout, 'fast two-vehicle 3D comparison');
-  results.live.fastVisualComparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,concepts:document.querySelectorAll(".verified-vehicle .concept-ev").length,title:document.querySelector("#stage-title")?.textContent})');
+  await sendTypedPrompt('Compare Tata Punch EV and Tata Nexon EV in 3D.');
+  await waitFor('document.querySelectorAll(".verified-vehicle").length === 2 && document.querySelectorAll(".verified-vehicle .showroom-360-visual").length === 2', toolTimeout, 'fast two-vehicle showroom 360 comparison');
+  results.live.fastVisualComparison = await evaluate('({cards:document.querySelectorAll(".verified-vehicle").length,concepts:document.querySelectorAll(".verified-vehicle .showroom-360-visual").length,title:document.querySelector("#stage-title")?.textContent})');
   await screenshot('easyev-agentic-3d-comparison-desktop.png');
 
   await click('[data-visual-vehicle]');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer"', 5000, 'vehicle visual explorer');
   await click('[data-visual-mode="photo"]');
   await waitFor('Boolean(document.querySelector(".visual-scene img"))', 5000, 'local vehicle photo');
-  results.live.vehiclePhoto = await evaluate('document.querySelector(".visual-scene img")?.getAttribute("src")?.startsWith("/assets/")');
-  await click('[data-visual-mode="concept"]');
-  await waitFor('Boolean(document.querySelector(".concept-ev"))', 5000, 'interactive 3D concept');
+  results.live.vehiclePhoto = await evaluate('document.querySelector(".visual-scene img")?.getAttribute("src")?.startsWith("/")');
+  await click('[data-visual-mode="showroom-360"]');
+  await waitFor('Boolean(document.querySelector(".showroom-360-visual"))', 5000, 'exact-model showroom 360');
   await evaluate('(() => { const input=document.querySelector("[data-visual-angle]"); input.value="54"; input.dispatchEvent(new Event("input",{bubbles:true})); })()');
-  results.live.vehicleConcept = await evaluate('(() => { const text=(document.querySelector(".visual-controls")?.innerText || "").toLowerCase(); return {present:Boolean(document.querySelector(".concept-ev")),angle:document.querySelector("#visual-angle-output")?.textContent,disclosure:text.includes("exact-model") && text.includes("not claimed")}; })()');
+  results.live.vehicleConcept = await evaluate('(() => { const image=document.querySelector(".showroom-360-image"); return {present:Boolean(image),angle:document.querySelector("#visual-angle-output")?.textContent,disclosure:Number(image?.dataset.spinFrames || 0) > 1}; })()');
   await click('[data-visual-back]');
   await waitFor('document.querySelector("#stage-title")?.textContent === "Verified vehicle comparison"', 5000, 'return to comparison');
 
@@ -127,11 +129,15 @@ try {
     results.live.spokenPicture = Boolean(await evaluate('document.querySelector(".visual-scene")'));
     await waitFor('document.querySelector("#ai-participant-tile")?.dataset.mode === "listening"', 30_000, 'agent ready after picture');
     await sendTypedPrompt('Show Tata Punch EV in 3D. Do not ask for my location.');
-    await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer" && Boolean(document.querySelector(".concept-ev"))', toolTimeout, 'spoken 3D request');
+    await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer" && Boolean(document.querySelector(".showroom-360-visual"))', toolTimeout, 'spoken 3D request');
     results.live.spoken3d = true;
     await click('[data-visual-back]');
     await waitFor('document.querySelector("#stage-title")?.textContent === "Verified vehicle comparison"', 5000, 'return after spoken 3D request');
   }
+
+  await sendTypedPrompt('Show me Citroen C3.');
+  await waitFor('document.querySelector("#stage-title")?.textContent === "Interactive vehicle explorer" && document.querySelector(".visual-scene img")?.getAttribute("src")?.includes("citroen-ec3")', toolTimeout, 'Citroen C3 visual');
+  results.live.citroenVisual = true;
 
   await click('#stage-pin-button');
   const pinnedTitle = await evaluate('document.querySelector("#stage-title").textContent');
@@ -169,6 +175,7 @@ try {
   await waitFor('document.querySelector("#stage-title")?.textContent === "Decision report ready"', toolTimeout, 'report stage');
   results.live.report = await evaluate('({button:Boolean(document.querySelector("[data-download-report]")),sections:document.querySelector(".report-card")?.innerText})');
   results.live.falseCancellations = !(await evaluate('document.querySelector("#action-rail")?.innerText.includes("Cancelled")'));
+  results.live.internalNamesHidden = await evaluate('!/(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive|\\bCalling\\s+[a-z_]+)/i.test((document.querySelector("#transcript-content")?.innerText || "") + " " + (document.querySelector("#live-caption-text")?.textContent || ""))');
 
   const roomViewports = [[1440,900],[1280,800],[768,1024],[390,844]];
   for (const [width, height] of roomViewports) {
@@ -216,7 +223,7 @@ try {
 
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
   results.reducedMotion.matches = await evaluate('matchMedia("(prefers-reduced-motion: reduce)").matches');
-  results.reducedMotion.animationDuration = await evaluate('getComputedStyle(document.querySelector(".hero-guide-visual")).animationDuration');
+  results.reducedMotion.animationDuration = await evaluate('getComputedStyle(document.querySelector(".energy-band"), "::before").animationDuration');
 } finally {
   try { await send('Page.close'); } catch {}
   socket.close();
@@ -226,10 +233,10 @@ results.consoleErrors = consoleErrors;
 results.pageErrors = pageErrors;
 console.log(JSON.stringify(results, null, 2));
 
-const failed = !results.prejoin.focus || !results.prejoin.centered || !results.prejoin.camera ||
+const failed = !results.prejoin.focus || !results.prejoin.centered || !results.prejoin.contact || !results.prejoin.camera ||
   !results.live.agora || !results.live.tools || results.live.comparison?.cards !== 2 ||
   results.live.comparison?.sources !== 2 || results.live.comparison?.columns !== 2 || results.live.comparison?.rows < 6 ||
-  results.live.fastVisualComparison?.cards !== 2 || results.live.fastVisualComparison?.concepts !== 2 ||
+  results.live.fastVisualComparison?.cards !== 2 || results.live.fastVisualComparison?.concepts !== 2 || !results.live.citroenVisual ||
   !results.live.vehiclePhoto || !results.live.vehicleConcept?.present || results.live.vehicleConcept?.angle !== '54°' || !results.live.vehicleConcept?.disclosure ||
   (isRemoteLive && (!results.live.spokenPicture || !results.live.spoken3d)) ||
   !results.live.pinHeld || results.live.ownership?.metrics < 6 ||
@@ -237,7 +244,7 @@ const failed = !results.prejoin.focus || !results.prejoin.centered || !results.p
   results.live.mapCenter?.deltaX > 1 || results.live.mapCenter?.deltaY > 1 || !results.live.mapCenter?.coordinatesShown || !results.live.locationPreset ||
   !results.live.snapshotConsent || !results.live.snapshotUserOperated || !results.live.report?.button ||
   !results.live.outcomeFocus || !results.live.cameraStopped || !results.live.timerStopped ||
-  !results.live.reportAfterCall || !results.live.falseCancellations ||
+  !results.live.reportAfterCall || !results.live.falseCancellations || !results.live.internalNamesHidden ||
   results.viewports.some((item) => item.overflow || item.stageFits === false || item.stageAbovePeople === false || item.dockFits === false || item.cta === false || item.visible === false) ||
   !results.reducedMotion.matches || consoleErrors.length || pageErrors.length;
 if (failed) process.exitCode = 1;
