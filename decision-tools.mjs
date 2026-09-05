@@ -476,41 +476,34 @@ export class EasyEVToolEngine {
       };
     }
 
-    const shortlisted = record.passport.shortlist?.[0]?.name;
-    const result = await this.crm.saveLead({
-      ...contact,
-      summary: [this.leadSummary(record), notes ? `Agent note: ${notes}` : ''].filter(Boolean).join('\n'),
-      dealName: shortlisted ? `${contact.name || 'EasyEV buyer'} — ${shortlisted}` : `${contact.name || 'EasyEV buyer'} — EasyEV enquiry`,
-      amountLakh: Number(record.passport.profile?.budgetLakh) || 0,
-      sessionKey: record.key,
-    });
-
+    // The buyer sees their details land the moment they are understood. Writing
+    // them to HubSpot takes about three seconds and cannot change what was
+    // captured, so it runs behind the reply and reports back over the event
+    // stream — the same shape the booking flow already uses.
     record.passport.lead = {
-      name: result.name,
-      email: result.email,
-      phone: result.phone,
-      provider: result.provider,
-      contactId: result.contactId || null,
-      dealId: result.dealId || null,
-      savedAt: result.savedAt,
-      live: result.provider === 'hubspot',
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      provider: 'pending',
+      contactId: null,
+      dealId: null,
+      savedAt: new Date().toISOString(),
+      live: false,
+      syncing: true,
     };
-    record.passport.nextActions = unique([
-      ...record.passport.nextActions,
-      result.provider === 'hubspot' ? 'Lead saved to HubSpot with the full Passport.' : 'Lead captured; connect HubSpot to sync it to the CRM.',
-    ]);
+    this.finishLeadAsync(record, contact, notes);
 
     return {
       stage: 'lead-capture',
       payload: {
         ...record.passport.lead,
-        crmUrl: result.crmUrl || null,
-        failed: Boolean(result.failed),
-        error: result.error || null,
+        crmUrl: null,
+        failed: false,
+        error: null,
       },
-      spoken: result.provider === 'hubspot'
-        ? `Saved. ${contact.name || 'You'} are now in our CRM with everything we have covered, so nobody will ask you to repeat it.`
-        : 'I have captured your details against this conversation so a specialist can pick it up with full context.',
+      // Deliberately does not claim the CRM write has landed — it is still in
+      // flight. The follow-up event says where it ended up.
+      spoken: `Got it. I have your ${contact.email ? 'email' : 'details'}, so nobody will ask you to repeat it.`,
     };
   }
 
@@ -1177,6 +1170,55 @@ export class EasyEVToolEngine {
   }
 
   // Runs after the buyer has already been told the booking is confirmed. Nothing
+  // Writes the buyer to the CRM after their details are already on screen. A CRM
+  // outage must not cost the conversation the details it just captured, so the
+  // Passport keeps them either way and only the provider label changes.
+  async finishLeadAsync(record, contact, notes) {
+    try {
+      const shortlisted = record.passport.shortlist?.[0]?.name;
+      const result = await this.crm.saveLead({
+        ...contact,
+        summary: [this.leadSummary(record), notes ? `Agent note: ${notes}` : ''].filter(Boolean).join('\n'),
+        dealName: shortlisted ? `${contact.name || 'EasyEV buyer'} — ${shortlisted}` : `${contact.name || 'EasyEV buyer'} — EasyEV enquiry`,
+        amountLakh: Number(record.passport.profile?.budgetLakh) || 0,
+        sessionKey: record.key,
+      });
+      if (record.closed) return;
+
+      record.passport.lead = {
+        name: result.name,
+        email: result.email,
+        phone: result.phone,
+        provider: result.provider,
+        contactId: result.contactId || null,
+        dealId: result.dealId || null,
+        savedAt: result.savedAt,
+        live: result.provider === 'hubspot',
+        syncing: false,
+      };
+      record.passport.nextActions = unique([
+        ...record.passport.nextActions,
+        result.provider === 'hubspot' ? 'Lead saved to HubSpot with the full Passport.' : 'Lead captured; connect HubSpot to sync it to the CRM.',
+      ]);
+      this.persistSession(record).catch(() => {});
+
+      this.emit(record, {
+        tool: 'capture_lead',
+        phase: 'completed',
+        stage: 'lead-capture',
+        payload: {
+          ...record.passport.lead,
+          crmUrl: result.crmUrl || null,
+          failed: Boolean(result.failed),
+          error: result.error || null,
+          passport: this.publicPassport(record),
+        },
+      });
+    } catch (error) {
+      console.error('Lead follow-up failed:', safeError(error));
+    }
+  }
+
   // here can undo the booking, so failures are recorded in the Passport and shown
   // on screen rather than thrown.
   async finishBookingAsync(record, contact, booking) {
