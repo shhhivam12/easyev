@@ -1206,11 +1206,15 @@ export class EasyEVToolEngine {
       ]);
       this.persistSession(record).catch(() => {});
 
+      // The buyer has usually moved on by the time HubSpot answers - often back
+      // to choosing a slot. This is a status update, not a reason to pull the
+      // stage back to the CRM card they already saw.
       this.emit(record, {
         tool: 'capture_lead',
         phase: 'completed',
         stage: 'lead-capture',
         payload: {
+          backgroundUpdate: true,
           ...record.passport.lead,
           crmUrl: result.crmUrl || null,
           failed: Boolean(result.failed),

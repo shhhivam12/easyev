@@ -8094,6 +8094,7 @@
         lastReliableStageAt: 0,
         handledFastIntentIds: new Set(),
         intentGuard: null,
+        lastToolAt: {},
         lastFinalUserEventId: '',
         outcomeSaved: false
       });
@@ -8626,6 +8627,7 @@
           target.innerHTML = `<div class="stage-content__intro"><h3>Open times</h3><p>${payload.live ? 'Live availability from the EasyEV booking calendar.' : 'Indicative times; the live calendar is not connected.'}</p></div>
             <div class="slot-grid">${slots.map((slot, index) => `<button class="slot-button" type="button" data-book-slot="${escapeHtml(slot.start)}"><span class="slot-index">${index + 1}</span>${escapeHtml(slot.label)}</button>`).join('') || '<p class="stage-note">No open slots in this window.</p>'}</div>
             ${payload.needsEmail ? emailFormHtml({
+              booking: true,
               pendingStart: payload.pendingStart || '',
               heard: payload.emailUnclear ? payload.heard : '',
               note: payload.emailUnclear
@@ -9120,8 +9122,8 @@
         if (!form) return;
         form.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
       }, 120);
-      const emailFormHtml = ({ pendingStart = '', note = '', heard = '' } = {}) => `
-        <form class="mailform" data-email-form${pendingStart ? ` data-pending-start="${escapeHtml(pendingStart)}"` : ''}>
+      const emailFormHtml = ({ pendingStart = '', note = '', heard = '', booking = false } = {}) => `
+        <form class="mailform" data-email-form${pendingStart ? ` data-pending-start="${escapeHtml(pendingStart)}"` : ''}${booking ? ' data-booking' : ''}>
           <label class="mailform__label" for="stage-email-input">Your email address</label>
           <div class="mailform__row">
             <input class="mailform__input" id="stage-email-input" name="email" type="email"
@@ -9161,6 +9163,7 @@
         if (toolEvent.eventId && state.processedToolEventIds.has(toolEvent.eventId)) return;
         if (toolEvent.eventId) state.processedToolEventIds.add(toolEvent.eventId);
         if (state.intentGuard && state.intentGuard.until > Date.now() && toolEvent.tool && toolEvent.tool !== state.intentGuard.tool) return;
+        if (toolEvent.tool) state.lastToolAt[toolEvent.tool] = Date.now();
         updateToolRun(toolEvent);
         const data = toolEvent.payload || {};
         if (data.passport) syncStructuredPassport(data.passport);
@@ -9207,8 +9210,10 @@
           }
           state.agentMode = toolEvent.phase === 'completed' ? 'success' : 'listening';
           state.activityMessage = '';
-          presentToolStage(toolEvent.stage, data, toolEvent.tool);
-          if (toolEvent.phase === 'completed') showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
+          // A background update reports where an async write landed. It must not
+          // pull the stage back to a screen the buyer has already moved past.
+          if (!data.backgroundUpdate) presentToolStage(toolEvent.stage, data, toolEvent.tool);
+          if (toolEvent.phase === 'completed' && !data.backgroundUpdate) showToast(`${stageTitle(stageTypeForTool(toolEvent.stage))} is ready on screen.`);
           if (toolEvent.phase === 'completed') scheduleLifecycle(() => {
             if (state.view === 'room' && state.agentMode === 'success') setAgentMode('listening');
           }, 900);
@@ -9291,10 +9296,28 @@
       const HUMAN_ASK = /\b(talk|speak|connect|transfer|put me|get me|call)\b|baat\s*kar|baat\s*karn|बात\s*कर|जोड़(?:ि|ो|े)|मिला(?:इ|ओ)/i;
       const HUMAN_TARGET = /\b(human|person|someone|somebody|agent|representative|manager|advisor|salesperson|sales\s?man|sales\s?team|customer\s?care|dealer)\b|insaan|इंसान|आदमी|aadmi|banda|बंदा|vyakti|व्यक्ति|मैनेजर|सेल्स|डीलर|असली/i;
       const AI_SELF_REFERENCE = /\b(ai|bot|assistant|easyev)\b\s*(agent|se)?/i;
+      // The agent usually calls these tools itself over MCP. Usually is not good
+      // enough for the two that end the conversation somewhere: gpt-4o-mini does
+      // sometimes answer without calling anything, and the buyer is then left
+      // talking to an agent that agreed to book a test drive and did nothing.
+      // Rather than choosing between the agent and the browser, wait briefly and
+      // step in only if no tool event arrived.
+      const AGENT_GRACE_MS = 4500;
+      const runIfAgentDoesNot = (tool, args, label) => {
+        const askedAt = Date.now();
+        scheduleLifecycle(() => {
+          const ranAt = state.lastToolAt[tool] || 0;
+          if (ranAt >= askedAt) return;
+          if (state.callStatus !== 'live') return;
+          const adapter = activeAdapter();
+          if (typeof adapter?.runTool !== 'function') return;
+          state.activityMessage = label;
+          adapter.runTool(tool, args).catch((error) => showToast(error?.message || 'That could not be completed.'));
+        }, AGENT_GRACE_MS);
+      };
       const fastHumanIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
-        if (state.toolsMode === 'agora-mcp') return false;
         if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return false;
         if (!HUMAN_ASK.test(spoken) || !HUMAN_TARGET.test(spoken)) return false;
         // "talk to the AI agent" is not a request for a person.
@@ -9303,12 +9326,18 @@
         if (state.handledFastIntentIds.has(key)) return true;
         state.handledFastIntentIds.add(key);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
-        const adapter = activeAdapter();
-        if (typeof adapter?.requestHuman !== 'function') return false;
-        state.activityMessage = 'Paging a human specialist…';
-        adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
-          .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
-        return true;
+        const askedAt = Date.now();
+        scheduleLifecycle(() => {
+          if ((state.lastToolAt.escalate_to_human || 0) >= askedAt) return;
+          if (state.callStatus !== 'live') return;
+          if (state.handoff?.status === 'requested' || state.handoff?.status === 'rep-joined') return;
+          const adapter = activeAdapter();
+          if (typeof adapter?.requestHuman !== 'function') return;
+          state.activityMessage = 'Paging a human specialist…';
+          adapter.requestHuman('explicit-request', `Buyer said: "${spoken.slice(0, 180)}"`)
+            .catch((error) => showToast(error?.message || 'The specialist could not be paged.'));
+        }, AGENT_GRACE_MS);
+        return false;
       };
       // A booking request must not depend on the model routing correctly: it is the
       // demo's closing beat, and "test drive chahiye" reads a lot like "ready to buy",
@@ -9319,27 +9348,21 @@
       const fastBookingIntent = (text, eventId = '') => {
         const spoken = String(text || '').trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
-        // Only a fallback. With Agora MCP live the agent calls this tool itself,
-        // and running it from here too starts a second tool run that cancels the
-        // first - the buyer hears "Cancelled because the conversation moved on."
-        if (state.toolsMode === 'agora-mcp') return false;
         if (state.decisionPassport?.booking?.confirmed) return false;
         const wants = BOOK_STRONG.test(spoken) || (BOOK_DEMO.test(spoken) && BOOK_VERB.test(spoken));
         if (!wants) return false;
         const key = eventId ? `book:${eventId}` : `book:${spoken.toLowerCase().replace(/\s+/g, ' ')}`;
-        if (state.handledFastIntentIds.has(key)) return true;
+        if (state.handledFastIntentIds.has(key)) return false;
         state.handledFastIntentIds.add(key);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(key), 30_000);
-        const adapter = activeAdapter();
-        if (typeof adapter?.runTool !== 'function') return false;
-        state.activityMessage = 'Checking real availability…';
         const demoType = /at[- ]?home|ghar/i.test(spoken) ? 'At-home demo'
           : /video|online/i.test(spoken) ? 'Video walk-through'
           : /dealer|showroom|शोरूम/i.test(spoken) ? 'Dealership visit'
           : '';
-        adapter.runTool('book_test_drive', demoType ? { demoType } : {})
-          .catch((error) => showToast(error?.message || 'Availability could not be checked.'));
-        return true;
+        runIfAgentDoesNot('book_test_drive', demoType ? { demoType } : {}, 'Checking real availability…');
+        // Not treated as handled: the agent is expected to answer this itself,
+        // and the net above only covers it when the agent does not.
+        return false;
       };
       const toolForTurn = (turnName) => ({
         compare: ['compare_vehicles', { vehicles: defaultCompareNames(), priorities: ['daily usability', 'running cost'] }],
@@ -10047,6 +10070,7 @@
         state.intentGuard = null;
         const send = form.querySelector('.mailform__send');
         const pendingStart = form.dataset.pendingStart || '';
+        const inBooking = form.hasAttribute('data-booking');
         if (send) { send.disabled = true; send.textContent = 'Sending…'; }
         try {
           const adapter = activeAdapter();
@@ -10060,6 +10084,12 @@
           if (pendingStart) {
             state.activityMessage = 'Confirming your booking…';
             await adapter.runTool('book_test_drive', { slot: pendingStart, demoType: state.booking.demoType || 'Dealership visit' });
+          } else if (inBooking) {
+            // No slot chosen yet. Capturing the email swapped the slots stage for
+            // the CRM card, so bring the times back — now that a confirmation has
+            // somewhere to go — instead of stranding the buyer on a dead end.
+            state.activityMessage = 'Bringing your times back…';
+            await adapter.runTool('book_test_drive', {});
           }
         } catch (error) {
           showToast(error?.message || 'That email could not be saved.');
