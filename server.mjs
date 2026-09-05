@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { readFileSync, existsSync, createReadStream } from 'node:fs';
+import { readFileSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
 import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import agoraToken from 'agora-token';
@@ -422,11 +422,11 @@ You have eight real EasyEV decision tools. Autonomously select the one best tool
 
 Contact details and bookings are real, not simulated. Any details captured before the call are already saved with this consultation, so do not ask for them again or call capture_lead unless the buyer corrects one. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose; it reuses the attached email, name and phone. If an email address is still needed, do not try to collect it by ear: a typed box appears on the buyer's screen, so ask them to type it there and press Send. If they say it aloud anyway, read it back once before saving. Do not promise a booking before the tool has confirmed it.
 
-Call escalate_to_human only when the buyer explicitly asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
+Call escalate_to_human when the buyer explicitly says human, insaan, manager or executive, or otherwise asks for a person, salesperson, representative or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
 
 Routing rule that overrides everything else: any request to book, schedule or arrange a test drive, demo, showroom visit, dealership visit or appointment goes to book_test_drive, never to escalate_to_human. "Test drive book karni hai", "demo dikhao", "appointment lagao" and "showroom aana hai" all mean book_test_drive. Wanting a test drive is not the same as wanting to talk to a human; only escalate if the buyer actually asks for a person. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
 
-Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
+Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Internal tool and function identifiers are private implementation details: never say, spell, narrate or display an underscore-style identifier, never announce “Calling” or “Invoking” an operation, and never add an operational note in parentheses. Speak only the natural customer-facing acknowledgement. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
 
 Location is required only for find_nearby_chargers. Never ask for, wait for, or reuse a location requirement before compare_vehicles, vehicle pictures, 3D/360/AR requests, calculate_ownership, snapshot consent, or report generation. If the buyer changes from a charger request to another intent, abandon the location question and execute the new best-fit tool. A photo or 3D request must call compare_vehicles even when a charging map is currently visible. Treat each new buyer request as the active intent; use prior turns only to resolve omitted vehicle names or changed assumptions.
 
@@ -932,18 +932,32 @@ function speakerFor(record, uid) {
   return 'buyer';
 }
 
+const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive)';
+
+function sanitizeAgentTranscript(value) {
+  return String(value || '')
+    .replace(new RegExp('\\(\\s*(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^)]*\\)', 'gi'), ' ')
+    .replace(new RegExp('(?:^|[.!?]\\s*)(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^.!?]*(?:[.!?]|$)', 'gi'), ' ')
+    .replace(new RegExp('\\b' + INTERNAL_TOOL_PATTERN + '\\b', 'gi'), 'the requested action')
+    .replace(/\s+([,.!?])/g, '$1')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function appendTranscript(record, entries) {
   const added = [];
   for (const entry of entries) {
-    const text = String(entry?.text || '').trim().slice(0, 1000);
+    const speaker = entry.speaker === 'rep' || entry.speaker === 'ai' || entry.speaker === 'buyer'
+      ? entry.speaker
+      : speakerFor(record, entry.uid);
+    const rawText = String(entry?.text || '').trim().slice(0, 1000);
+    const text = speaker === 'ai' ? sanitizeAgentTranscript(rawText) : rawText;
     if (!text) continue;
     const id = String(entry.id || `${entry.uid || ''}-${entry.timestamp || ''}`);
     const existing = record.transcript.findIndex((item) => item.id === id);
     const line = {
       id,
-      speaker: entry.speaker === 'rep' || entry.speaker === 'ai' || entry.speaker === 'buyer'
-        ? entry.speaker
-        : speakerFor(record, entry.uid),
+      speaker,
       text,
       timestamp: Number(entry.timestamp) || Date.now(),
       final: entry.final !== false,
@@ -2155,7 +2169,7 @@ async function handleApi(req, res, url) {
 function serveFile(res, path, cache = false) {
   const fullPath = resolve(ROOT, path);
   if (!fullPath.startsWith(ROOT) || !existsSync(fullPath)) return false;
-  const mime = {
+  let mime = {
     '.html': 'text/html; charset=utf-8',
     '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8',
@@ -2168,6 +2182,21 @@ function serveFile(res, path, cache = false) {
     '.mp4': 'video/mp4',
     '.glb': 'model/gltf-binary',
   }[extname(fullPath)] || 'application/octet-stream';
+  if (mime === 'image/jpeg') {
+    let descriptor;
+    try {
+      descriptor = openSync(fullPath, 'r');
+      const signature = Buffer.alloc(12);
+      const bytesRead = readSync(descriptor, signature, 0, signature.length, 0);
+      if (bytesRead === signature.length && signature.toString('ascii', 0, 4) === 'RIFF' && signature.toString('ascii', 8, 12) === 'WEBP') {
+        mime = 'image/webp';
+      }
+    } catch {
+      // Extension-based MIME remains the safe fallback.
+    } finally {
+      if (descriptor !== undefined) closeSync(descriptor);
+    }
+  }
   res.writeHead(200, {
     'Content-Type': mime,
     'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',

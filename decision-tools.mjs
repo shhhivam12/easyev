@@ -4,6 +4,7 @@ import PDFDocument from 'pdfkit';
 import pg from 'pg';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CrmCalendar, isEmail, normalizePhone, parseSpokenEmail } from './crm-calendar.mjs';
+import { VEHICLES as SHOWROOM_VEHICLES } from './showroom/vehicle-catalog.js';
 import * as z from 'zod/v4';
 
 const { Pool } = pg;
@@ -15,6 +16,7 @@ function vehicle(id, name, category, aliases, priceMinLakh, priceMaxLakh, claime
 export const VEHICLES = Object.freeze([
   vehicle('tata-punch-ev', 'Tata Punch.ev', 'Electric car', ['punch ev', 'punch.ev', 'टाटा पंच', 'पंच ईवी'], 9.99, 14.44, 315, '25–35 kWh', '56 min DC (10–80%, selected variants)', '8 years / 160,000 km battery and motor', '5 seats', 12.5, 'https://ev.tatamotors.com/punch/ev.html', '2026-08-30'),
   vehicle('tata-nexon-ev', 'Tata Nexon.ev', 'Electric car', ['nexon ev', 'नेक्सॉन ईवी', 'tata nexon'], 12.49, 17.19, 489, '30–45 kWh', '40 min DC (10–80%, selected variants)', '8 years / 160,000 km battery and motor', '5 seats', 13.5, 'https://ev.tatamotors.com/nexon/ev.html', '2026-08-30'),
+  vehicle('mg-comet-ev', 'MG Comet EV', 'Electric car', ['comet ev', 'mg comet', 'comet electric', 'एमजी कॉमेट'], 7.8, 9.67, 230, '17.4 kWh', '7 hours AC (0–100%, published claim)', 'Manufacturer battery terms vary; verify selected variant', '4 seats', 8.7, 'https://www.mgmotor.co.in/vehicles/comet-ev-electric-car-in-india', '2026-09-05'),
   vehicle('mg-windsor-ev', 'MG Windsor EV', 'Electric car', ['windsor ev', 'mg windsor', 'विंडसर ईवी'], 13.99, 18.39, 449, '38–52.9 kWh', '55 min DC (0–80%, selected variants)', '8 years / 160,000 km battery', '5 seats', 14.2, 'https://www.mgmotor.co.in/vehicles/windsor-ev', '2026-08-30'),
   vehicle('mahindra-xuv400', 'Mahindra XUV400', 'Electric car', ['xuv400', 'xuv 400', 'महिंद्रा एक्सयूवी 400'], 15.49, 19.39, 456, '34.5–39.4 kWh', '50 min DC (0–80%)', '8 years / 160,000 km battery', '5 seats', 14.5, 'https://www.mahindraelectricsuv.com/xuv400', '2026-08-30'),
   vehicle('citroen-ec3x', 'Citroën ë-C3X', 'Electric car', ['citroen c3', 'citroen ec3', 'citroen e c3', 'citroen c3 ev', 'ec3', 'e-c3', 'e c3', 'ec3x', 'e-c3x', 'सिट्रोएन सी3', 'सिट्रोन सी3'], 12.76, 13.56, 320, '29.2 kWh', '57 min DC fast charging (published claim)', 'Manufacturer battery terms vary; verify selected variant', '5 seats', 13.3, 'https://www.citroen.in/ec3-electric-car', '2026-09-03'),
@@ -25,6 +27,7 @@ export const VEHICLES = Object.freeze([
   vehicle('mahindra-treo-plus', 'Mahindra Treo Plus', 'Electric 3-wheeler', ['treo plus', 'mahindra treo', 'ट्रेओ प्लस'], 3.58, 3.78, 150, '10.24 kWh', 'Home/standard charging, about 4 h 30 min', '5 years / 120,000 km battery, terms apply', 'Driver + 3 passengers', 7.0, 'https://mahindralastmilemobility.com/treo-plus/', '2026-08-30'),
   vehicle('bajaj-re-etec9', 'Bajaj RE E-TEC 9.0', 'Electric 3-wheeler', ['e-tec 9', 'etec 9', 'bajaj electric auto', 'बजाज ई टेक'], 3.33, 3.55, 178, '8.9 kWh', 'On-board charging, time varies by supply', 'Manufacturer terms vary by market', 'Driver + 3 passengers', 6.5, 'https://www.bajajauto.com/three-wheelers/re-e-tec-90', '2026-08-30'),
   vehicle('piaggio-ape-ecity', 'Piaggio Ape E-City FX Max', 'Electric 3-wheeler', ['ape e city', 'piaggio electric', 'आपे ई सिटी'], 3.25, 3.55, 145, '8 kWh class', 'Fixed-battery charging; configuration varies', 'Manufacturer terms vary by market', 'Driver + 3 passengers', 6.5, 'https://piaggiovehicles.com/electric/', '2026-08-30'),
+  vehicle('tvs-king-kargo-ev-hd', 'TVS King Kargo HD EV', 'Electric 3-wheeler', ['king kargo', 'king cargo', 'tvs kargo', 'tvs king kargo', 'किंग कार्गो'], 3.95, 3.95, 156, '8.9 kWh LFP', '3 h 10 min AC (0–100%, 3 kW charger)', 'Manufacturer terms vary by configuration', 'Cargo body; payload varies by body', 7.0, 'https://www.tvsmotor.com/three-wheelers/king-kargo-ev-hd', '2026-09-05'),
   vehicle('euler-hiload', 'Euler HiLoad EV', 'Electric 3-wheeler', ['hiload', 'euler hiload', 'हाईलोड'], 3.94, 4.3, 170, '13 kWh class', 'Fast and standard charging options', 'Manufacturer terms vary by configuration', 'Cargo payload up to published variant limit', 9.5, 'https://www.euler-motors.com/hiload-ev', '2026-08-30'),
 ]);
 
@@ -48,6 +51,44 @@ const CURATED_MEDIA = Object.freeze({
     license: 'CC BY-SA 4.0', creator: 'Calreyn88', kind: 'licensed reference photograph', note: 'Global ë-C3 reference; Indian ë-C3X styling may differ',
   },
 });
+const SHOWROOM_ID_BY_DECISION_ID = Object.freeze({
+  'tata-punch-ev': 'tata-punch-ev',
+  'tata-nexon-ev': 'tata-nexon-ev',
+  'mg-comet-ev': 'mg-comet-ev',
+  'ather-rizta': 'ather-rizta',
+  'tvs-king-kargo-ev-hd': 'tvs-king-kargo-ev-hd',
+});
+const LOCAL_CATALOG_MEDIA = Object.freeze({
+  'mg-windsor-ev': '/assets/vehicles/mg-windsor-ev.jpg',
+  'mahindra-xuv400': '/assets/vehicles/mahindra-xuv400.jpg',
+  'ather-450x': '/assets/vehicles/ather-450x.jpg',
+  'tvs-iqube': '/assets/vehicles/tvs-iqube.jpg',
+  'ola-s1-pro': '/assets/vehicles/ola-s1-pro.jpg',
+  'mahindra-treo-plus': '/assets/vehicles/mahindra-treo-plus.jpg',
+  'bajaj-re-etec9': '/assets/vehicles/bajaj-re-etec9.jpg',
+  'piaggio-ape-ecity': '/assets/vehicles/piaggio-ape-ecity.jpg',
+  'euler-hiload': '/assets/vehicles/euler-hiload.jpg',
+});
+function showroomVehicleFor(item) {
+  const showroomId = SHOWROOM_ID_BY_DECISION_ID[item.id];
+  return showroomId ? SHOWROOM_VEHICLES.find((vehicleItem) => vehicleItem.id === showroomId) || null : null;
+}
+function showroomVisualFor(item) {
+  const showroomVehicle = showroomVehicleFor(item);
+  if (!showroomVehicle) return null;
+  const view = showroomVehicle.views?.exterior || (typeof showroomVehicle.makeView === 'function' ? showroomVehicle.makeView('white', 'fixed-side-deck') : null);
+  if (!view || view.type !== 'spin') return null;
+  return {
+    type: 'spin',
+    label: view.label || 'Exterior 360°',
+    folder: view.folder,
+    pattern: view.pattern,
+    frames: view.frames,
+    frameStep: view.frameStep || 1,
+    showroomVehicleId: showroomVehicle.id,
+    showroomUrl: `/showroom/?vehicle=${encodeURIComponent(showroomVehicle.id)}`,
+  };
+}
 
 function cleanText(value, limit = 240) {
   return typeof value === 'string' ? value.trim().replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, limit) : '';
@@ -401,7 +442,7 @@ export class EasyEVToolEngine {
     const flexibleTextList = z.union([z.array(z.string()), z.string()]).optional();
     return {
       compare_vehicles: {
-        description: 'Compare or visually present Indian electric vehicles from the verified EasyEV catalog and update the Buyer Decision Passport. Put every vehicle the buyer names into vehicles; two names produce a side-by-side comparison. Recognises Citroen C3/eC3/eC3X and Tata Punch EV.',
+        description: 'Compare or visually present Indian electric vehicles from the verified EasyEV catalog and update the Buyer Decision Passport. Put every vehicle the buyer names into vehicles; two names produce a side-by-side comparison. The exact-model 360 set includes Punch.ev, Nexon.ev, MG Comet EV, Ather Rizta and TVS King Kargo HD EV. Also recognises Citroen eC3/eC3X, Windsor EV, XUV400, Ather 450X, TVS iQube, Ola S1 Pro and the curated 3-wheeler set.',
         inputSchema: {
           vehicles: flexibleTextList.describe('One vehicle name or a list of up to three spoken vehicle names'),
           vehicle1: z.string().optional(),
@@ -732,7 +773,28 @@ export class EasyEVToolEngine {
   }
 
   async resolveLicensedMedia(item, signal) {
+    const showroomVehicle = showroomVehicleFor(item);
+    if (showroomVehicle) {
+      return {
+        url: showroomVehicle.thumbnail,
+        pageUrl: showroomVehicle.sourceUrl,
+        license: 'Supplied showroom sequence',
+        creator: showroomVehicle.company,
+        kind: 'showroom 360 frame',
+        note: 'Exact-model 360 sequence available in the EasyEV virtual showroom.',
+      };
+    }
     if (CURATED_MEDIA[item.id]) return CURATED_MEDIA[item.id];
+    if (LOCAL_CATALOG_MEDIA[item.id]) {
+      return {
+        url: LOCAL_CATALOG_MEDIA[item.id],
+        pageUrl: item.sourceUrl,
+        license: 'EasyEV catalog reference',
+        creator: item.name,
+        kind: 'catalog image',
+        note: 'Demo catalog image; verify the selected variant on the linked OEM page.',
+      };
+    }
     const cached = mediaCache.get(item.id);
     if (cached && cached.expiresAt > Date.now()) return cached.media;
     try {
@@ -795,6 +857,7 @@ export class EasyEVToolEngine {
     const vehicles = resolved.map((item, index) => ({
       ...item,
       media: media[index],
+      visual360: showroomVisualFor(item),
       priceLabel: `₹${item.priceMinLakh.toFixed(2)}–${item.priceMaxLakh.toFixed(2)} lakh indicative ex-showroom`,
       claimedRangeLabel: `Up to ${item.claimedRangeKm} km claimed; variant/test-cycle dependent`,
     }));
@@ -820,7 +883,7 @@ export class EasyEVToolEngine {
       missingFacts: ambiguous.map((name) => `Could not confidently resolve “${name}”.`),
       sourceNote: 'Specifications are curated from linked OEM pages. Prices and variants must be rechecked before purchase.',
       verifiedAt: vehicles.reduce((latest, item) => item.verifiedAt > latest ? item.verifiedAt : latest, ''),
-      visualMode: wantsConcept ? 'concept' : 'photo',
+      visualMode: wantsConcept && vehicles.some((item) => item.visual360) ? 'showroom-360' : 'photo',
     };
     record.passport.shortlist = vehicles.map(({ id, name, category, sourceUrl, verifiedAt }) => ({ id, name, category, sourceUrl, verifiedAt }));
     record.passport.comparison = payload;
@@ -833,7 +896,9 @@ export class EasyEVToolEngine {
       spoken: ambiguous.length
         ? `I found ${vehicles.length} close matches, but please clarify ${ambiguous.join(', ')}.`
         : wantsVisual
-          ? `The visual explorer for ${vehicles[0]?.name || 'your selected vehicle'} is ready on screen. It includes a sourced photograph when available and an original interactive concept that is clearly illustrative.`
+          ? vehicles[0]?.visual360 && wantsConcept
+            ? `The exact-model 360 explorer for ${vehicles[0].name} is ready on screen using the supplied virtual-showroom sequence.`
+            : `The catalog image for ${vehicles[0]?.name || 'your selected vehicle'} is ready on screen. Exact-model 360 is available for vehicles included in the EasyEV virtual showroom.`
           : vehicles.length === 1
             ? `The decision card for ${vehicles[0]?.name || 'your selected vehicle'} is ready on your screen, with its sourced specifications and visual explorer.`
             : `The side-by-side comparison of ${vehicles.map((item) => item.name).join(' and ')} is ready on your screen. ${leader ? `${leader.name} leads for the priorities we have, and you can open the visual explorer for either vehicle.` : ''}`,
