@@ -1832,7 +1832,10 @@
 
     .stage-content {
       min-height: 389px;
-      padding: 25px;
+      /* The call dock is sticky at the bottom of this scroller, so the last
+         thing in a stage - often the email input or a slot button - would sit
+         underneath it and be unclickable. */
+      padding: 25px 25px 96px;
       animation: stage-in .38s var(--ease-out) both;
     }
 
@@ -2680,15 +2683,15 @@
     .mailform {
       margin: 18px 0 4px;
       padding: 16px 17px;
-      border: 1px solid rgba(85, 242, 123, .28);
+      border: 1px solid rgba(22, 191, 83, .34);
       border-radius: 13px;
-      background: rgba(85, 242, 123, .06);
+      background: rgba(22, 191, 83, .07);
     }
 
     .mailform__label {
       display: block;
       margin-bottom: 8px;
-      color: rgba(255, 255, 255, .62);
+      color: #2c4a37;
       font-size: 10px;
       font-weight: 640;
       letter-spacing: .08em;
@@ -2701,10 +2704,10 @@
       flex: 1 1 220px;
       min-width: 0;
       padding: 11px 13px;
-      border: 1px solid rgba(255, 255, 255, .2);
+      border: 1px solid rgba(22, 191, 83, .38);
       border-radius: 10px;
-      background: rgba(0, 0, 0, .28);
-      color: #fff;
+      background: #fff;
+      color: var(--ink);
       font: inherit;
       font-size: 14px;
     }
@@ -2719,8 +2722,8 @@
       padding: 11px 22px;
       border: 0;
       border-radius: 10px;
-      background: var(--green-bright);
-      color: #06231a;
+      background: var(--green-deep);
+      color: #fff;
       font: inherit;
       font-weight: 700;
       font-size: 13.5px;
@@ -2731,7 +2734,7 @@
 
     .mailform__note {
       margin: 9px 0 0;
-      color: rgba(255, 255, 255, .55);
+      color: #4a5f52;
       font-size: 11px;
       line-height: 1.45;
     }
@@ -2777,9 +2780,10 @@
       align-items: center;
       gap: 10px;
       padding: 12px 14px;
-      border: 1px solid rgba(255, 255, 255, .16);
+      border: 1px solid rgba(7, 17, 11, .16);
       border-radius: 11px;
-      background: rgba(255, 255, 255, .04);
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(7, 17, 11, .06);
       color: inherit;
       font-size: 12.5px;
       font-weight: 620;
@@ -2788,8 +2792,8 @@
     }
 
     .slot-grid .slot-button:hover {
-      border-color: var(--green-bright);
-      background: rgba(85, 242, 123, .1);
+      border-color: var(--green-deep);
+      background: rgba(22, 191, 83, .08);
     }
 
     .slot-index {
@@ -2799,8 +2803,8 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
-      background: rgba(85, 242, 123, .18);
-      color: var(--green-bright);
+      background: rgba(22, 191, 83, .16);
+      color: var(--green-deep);
       font-size: 10px;
       font-weight: 700;
     }
@@ -8616,6 +8620,7 @@
             : `<div class="stage-content__intro"><h3>Saved to the CRM</h3><p>Your details are attached to everything we have discussed, so nobody will ask you to repeat it.</p></div>
                <div class="crm-card">${rows.map(([label, value]) => `<div><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`).join('')}</div>
                <p class="tool-notice">${payload.live ? 'Written to HubSpot as a sales-qualified lead with the full Buyer Passport.' : 'Held against this conversation. Connect HubSpot to sync it to the CRM.'}</p>`;
+          if (payload.needsDetails) focusEmailForm();
         } else if (type === 'booking-slots') {
           const slots = Array.isArray(payload.slots) ? payload.slots : [];
           target.innerHTML = `<div class="stage-content__intro"><h3>Open times</h3><p>${payload.live ? 'Live availability from the EasyEV booking calendar.' : 'Indicative times; the live calendar is not connected.'}</p></div>
@@ -8627,6 +8632,7 @@
                 ? `I heard "${escapeHtml(payload.heard || '')}" and could not read it as an email.`
                 : 'The confirmation needs somewhere to go.',
             }) : ''}`;
+          if (payload.needsEmail) focusEmailForm();
         } else if (type === 'booking-confirmed') {
           const failed = Boolean(payload.failed);
           const humanizeBookingError = (error) => {
@@ -9098,6 +9104,13 @@
       // Saying an email out loud is the least reliable thing in the whole call:
       // Hinglish recognition writes digits in Devanagari and guesses at spellings.
       // Typing it removes the recogniser from the path entirely.
+      // The form usually renders below the fold of the stage, and a buyer who is
+      // being asked to type will not think to scroll for the box.
+      const focusEmailForm = () => scheduleLifecycle(() => {
+        const form = document.querySelector('[data-email-form]');
+        if (!form) return;
+        form.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+      }, 120);
       const emailFormHtml = ({ pendingStart = '', note = '', heard = '' } = {}) => `
         <form class="mailform" data-email-form${pendingStart ? ` data-pending-start="${escapeHtml(pendingStart)}"` : ''}>
           <label class="mailform__label" for="stage-email-input">Your email address</label>
