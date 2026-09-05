@@ -9259,7 +9259,7 @@
           ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
           : `Preparing ${vehicles[0]} ${wants3d ? '3D concept' : 'visual'}…`;
         runDirectTool('compare_vehicles', { vehicles, presentation, priorities: ['daily usability', 'running cost'] });
-        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 60_000 };
+        state.intentGuard = { tool: 'compare_vehicles', until: Date.now() + 15_000 };
         return true;
       };
       // Escalation is the one intent that must survive the agent losing its tools —
@@ -9613,10 +9613,16 @@
           const finalEventId = latestUser.id || `${latestUser.timestamp}:${latestUser.text}`;
           if (state.lastFinalUserEventId === finalEventId) return;
           state.lastFinalUserEventId = finalEventId;
+          // A new spoken intent supersedes whatever the last one pinned to the
+          // stage. Without clearing first, saying a vehicle name pinned
+          // compare_vehicles for a full minute and every other tool event in that
+          // window was dropped on line ~9141 - the agent would say "here are your
+          // slots" while the screen sat on the previous view and the email input
+          // never appeared.
+          state.intentGuard = null;
           if (fastHumanIntent(latestUser.text, finalEventId)) return;
           if (fastBookingIntent(latestUser.text, finalEventId)) return;
-          const handledVisually = fastVisualIntent(latestUser.text, finalEventId);
-          if (!handledVisually) state.intentGuard = null;
+          fastVisualIntent(latestUser.text, finalEventId);
         }
       };
       const handleAdapterEvent = (event) => {
@@ -9758,6 +9764,9 @@
         }
         if (target.matches('[data-book-slot]')) {
           const start = target.dataset.bookSlot;
+          // An explicit click is a new intent; a guard from an earlier utterance
+          // must not filter out the booking event it is about to produce.
+          state.intentGuard = null;
           target.disabled = true;
           try {
             const adapter = activeAdapter();
@@ -10008,6 +10017,7 @@
         const input = form.querySelector('input[name="email"]');
         const email = String(input?.value || '').trim();
         if (!email) return;
+        state.intentGuard = null;
         const send = form.querySelector('.mailform__send');
         const pendingStart = form.dataset.pendingStart || '';
         if (send) { send.disabled = true; send.textContent = 'Sending…'; }
