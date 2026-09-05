@@ -64,9 +64,17 @@ class AgoraAdapter {
     this.ai = null;
     this.micTrack = null;
     this.remoteAudioTrack = null;
+    this.repAudioTrack = null;
     this.sessionKey = '';
     this.channel = '';
     this.uid = '';
+    this.repUid = '';
+    this.agentUid = '123456';
+    this.handoffCode = '';
+    this.handoffStatus = 'none';
+    this.agentMuted = false;
+    this.pendingTranscript = new Map();
+    this.transcriptTimer = null;
     this.appId = '';
     this.context = null;
     this.leaving = null;
@@ -115,17 +123,31 @@ class AgoraAdapter {
         if (generation !== this.generation || !this.rtc) return;
         try {
           await this.rtc.subscribe(user, mediaType);
-          if (mediaType === 'audio' && user.audioTrack) {
-            this.remoteAudioTrack = user.audioTrack;
+          if (mediaType !== 'audio' || !user.audioTrack) return;
+          const publisher = String(user.uid);
+          if (this.repUid && publisher === String(this.repUid)) {
+            this.repAudioTrack = user.audioTrack;
             user.audioTrack.play();
-            this.emit('AGENT_CONNECTED', { connected: true, sessionId: context.sessionId });
+            this.emit('REP_CONNECTED', { connected: true, sessionId: context.sessionId });
+            return;
           }
+          this.remoteAudioTrack = user.audioTrack;
+          // While a specialist holds the call the AI stays subscribed — so it keeps
+          // transcribing — but is not played to anyone.
+          if (!this.agentMuted) user.audioTrack.play();
+          this.emit('AGENT_CONNECTED', { connected: true, sessionId: context.sessionId });
         } catch (error) {
           this.emit('ERROR', { message: `Could not play AI audio: ${error.message || error}`, recoverable: true });
         }
       });
-      this.rtc.on('user-left', () => {
-        if (generation === this.generation) this.emit('AGENT_CONNECTED', { connected: false, sessionId: context.sessionId });
+      this.rtc.on('user-left', (user) => {
+        if (generation !== this.generation) return;
+        if (this.repUid && String(user?.uid) === String(this.repUid)) {
+          this.repAudioTrack = null;
+          this.emit('REP_CONNECTED', { connected: false, sessionId: context.sessionId });
+          return;
+        }
+        this.emit('AGENT_CONNECTED', { connected: false, sessionId: context.sessionId });
       });
       this.rtc.on('token-privilege-will-expire', () => this.renewToken(generation));
 
@@ -162,13 +184,14 @@ class AgoraAdapter {
             .map((item) => ({
               id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
               turnId: String(item.turn_id ?? item.stream_id ?? ''),
-              speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
+              speaker: this.speakerFor(item.uid),
               text: item.text.trim(),
               timestamp: timestampMs(item._time),
               status: String(item.status ?? ''),
               isFinal: item.status !== undefined && item.status !== null && Number(item.status) !== 0,
             }));
           this.emit('TRANSCRIPT_SYNC', { entries, sessionId: context.sessionId });
+          this.mirrorTranscript(entries);
         });
         this.ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (_agentUid, event) => {
           if (generation !== this.generation) return;
@@ -202,6 +225,10 @@ class AgoraAdapter {
       this.sessionKey = session.sessionKey;
       this.reportUrl = session.reportUrl || `/api/sessions/${this.sessionKey}/report`;
       this.toolsMode = session.toolsMode || 'local-bridge';
+      this.repUid = String(session.repUid || '');
+      this.agentUid = String(session.agentUid || this.agentUid);
+      this.handoffCode = String(session.handoffCode || '');
+      this.emit('HANDOFF', { status: 'none', handoffCode: this.handoffCode, sessionId: context.sessionId });
       this.openEventStream(session.eventsUrl || `/api/sessions/${this.sessionKey}/events`, generation);
       this.emit('CALL_STATUS', { status: 'live', sessionId: context.sessionId });
       this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: context.sessionId });
@@ -220,6 +247,11 @@ class AgoraAdapter {
       if (generation !== this.generation) return;
       const payload = JSON.parse(message.data || '{}');
       this.emit('PASSPORT_SYNC', { passport: payload.passport || null, sessionId: this.context?.sessionId });
+      if (payload.handoff) this.applyHandoff(payload.handoff);
+    });
+    this.events.addEventListener('handoff', (message) => {
+      if (generation !== this.generation) return;
+      try { this.applyHandoff(JSON.parse(message.data || '{}')); } catch {}
     });
     this.events.addEventListener('tool-event', (message) => {
       if (generation !== this.generation) return;
@@ -237,6 +269,67 @@ class AgoraAdapter {
     this.events.onopen = () => {
       if (generation === this.generation) this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: this.context?.sessionId });
     };
+  }
+
+  speakerFor(uid) {
+    const id = String(uid ?? '');
+    if (this.repUid && id === String(this.repUid)) return 'rep';
+    if (id === '0' || id === this.uid) return 'you';
+    return 'ai';
+  }
+
+  // Agora delivers transcripts only to participants in the channel, so the buyer's
+  // browser is the one that mirrors them to the server for the specialist console.
+  // Batched, because TRANSCRIPT_UPDATED fires on every partial.
+  mirrorTranscript(entries) {
+    if (!this.sessionKey) return;
+    for (const entry of entries) {
+      if (!entry.id || !entry.text) continue;
+      this.pendingTranscript.set(entry.id, {
+        id: entry.id,
+        speaker: entry.speaker === 'you' ? 'buyer' : entry.speaker,
+        text: entry.text,
+        timestamp: entry.timestamp,
+        final: entry.status !== 'inprogress' && entry.status !== '0',
+      });
+    }
+    if (this.transcriptTimer) return;
+    this.transcriptTimer = window.setTimeout(() => {
+      this.transcriptTimer = null;
+      const batch = [...this.pendingTranscript.values()];
+      this.pendingTranscript.clear();
+      if (!batch.length || !this.sessionKey) return;
+      postJson(`/api/sessions/${this.sessionKey}/transcript`, { entries: batch }).catch(() => {});
+    }, 700);
+  }
+
+  setAgentMuted(muted) {
+    this.agentMuted = Boolean(muted);
+    const track = this.remoteAudioTrack;
+    if (!track) return;
+    try {
+      if (this.agentMuted) track.stop();
+      else track.play();
+    } catch {}
+  }
+
+  applyHandoff(handoff) {
+    const status = handoff?.status || 'none';
+    const changed = status !== this.handoffStatus;
+    this.handoffStatus = status;
+    this.setAgentMuted(status === 'rep-joined');
+    if (changed) this.emit('HANDOFF', { ...handoff, sessionId: this.context?.sessionId });
+  }
+
+  async requestHuman(reason = 'explicit-request', summary = '') {
+    if (!this.sessionKey) throw new Error('The live AI session is not ready.');
+    const data = await postJson(`/api/sessions/${this.sessionKey}/escalate`, { reason, summary });
+    if (data.handoff) this.applyHandoff(data.handoff);
+    return data;
+  }
+
+  getHandoffCode() {
+    return this.handoffCode;
   }
 
   async scopedPost(action, payload, options = {}) {
@@ -329,8 +422,19 @@ class AgoraAdapter {
       try { this.ai?.unsubscribe(); } catch {}
       try { this.ai?.destroy(); } catch {}
       this.ai = null;
+      if (this.transcriptTimer) {
+        window.clearTimeout(this.transcriptTimer);
+        this.transcriptTimer = null;
+      }
+      this.pendingTranscript.clear();
       try { this.remoteAudioTrack?.stop(); } catch {}
       this.remoteAudioTrack = null;
+      try { this.repAudioTrack?.stop(); } catch {}
+      this.repAudioTrack = null;
+      this.repUid = '';
+      this.handoffCode = '';
+      this.handoffStatus = 'none';
+      this.agentMuted = false;
       try { this.micTrack?.stop(); } catch {}
       try { this.micTrack?.close(); } catch {}
       this.micTrack = null;
@@ -640,6 +744,247 @@ class CompareDebateAdapter extends AgoraAdapter {
   }
 }
 
+/**
+ * The specialist console's side of a handover. It joins the buyer's existing
+ * channel with the UID the agent was already told to subscribe to, so the agent
+ * transcribes the human as well. Transcript and Passport reach this page over
+ * SSE rather than RTM — the buyer's browser is the one mirroring them.
+ */
+class RepAdapter {
+  constructor() {
+    this.handlers = new Set();
+    this.rtc = null;
+    this.micTrack = null;
+    this.tracks = new Map();
+    this.agentUid = '';
+    this.joined = false;
+    this.levelTimer = null;
+  }
+
+  onEvent(handler) {
+    this.handlers.add(handler);
+    return () => this.handlers.delete(handler);
+  }
+
+  emit(type, payload = {}) {
+    this.handlers.forEach((handler) => handler({ id: crypto.randomUUID(), type, timestamp: Date.now(), payload }));
+  }
+
+  async join({ appId, token, channel, uid, agentUid }) {
+    if (this.joined) return;
+    this.agentUid = String(agentUid || '');
+    this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+    this.rtc.on('connection-state-change', (state) => this.emit('CONNECTION_STATE', { state }));
+    this.rtc.on('user-published', async (user, mediaType) => {
+      if (!this.rtc) return;
+      try {
+        await this.rtc.subscribe(user, mediaType);
+        if (mediaType !== 'audio' || !user.audioTrack) return;
+        const publisher = String(user.uid);
+        this.tracks.set(publisher, user.audioTrack);
+        // Never play the AI to the specialist: it is muted for the buyer during a
+        // handover, and hearing it here would only cause them to talk over it.
+        if (publisher !== this.agentUid) user.audioTrack.play();
+        this.emit('PARTICIPANT', { uid: publisher, present: true });
+      } catch (error) {
+        this.emit('ERROR', { message: `Could not play buyer audio: ${error.message || error}` });
+      }
+    });
+    this.rtc.on('user-left', (user) => {
+      this.tracks.delete(String(user?.uid));
+      this.emit('PARTICIPANT', { uid: String(user?.uid), present: false });
+    });
+
+    await this.rtc.join(appId, channel, token, Number(uid));
+    this.micTrack = await AgoraRTC.createMicrophoneAudioTrack({
+      encoderConfig: 'speech_standard',
+      AEC: true,
+      ANS: true,
+      AGC: true,
+    });
+    await this.rtc.publish([this.micTrack]);
+    this.joined = true;
+    this.levelTimer = window.setInterval(() => {
+      if (!this.micTrack) return;
+      this.emit('LOCAL_AUDIO_LEVEL', { level: Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0))) });
+    }, 180);
+    this.emit('CALL_STATUS', { status: 'live' });
+  }
+
+  async setMuted(muted) {
+    if (!this.micTrack) throw new Error('Microphone is not ready.');
+    await this.micTrack.setEnabled(!muted);
+  }
+
+  async leave() {
+    if (this.levelTimer) {
+      window.clearInterval(this.levelTimer);
+      this.levelTimer = null;
+    }
+    for (const track of this.tracks.values()) {
+      try { track.stop(); } catch {}
+    }
+    this.tracks.clear();
+    try { this.micTrack?.stop(); } catch {}
+    try { this.micTrack?.close(); } catch {}
+    this.micTrack = null;
+    try { if (this.rtc) await this.rtc.leave(); } catch {}
+    this.rtc = null;
+    this.joined = false;
+    this.emit('CALL_STATUS', { status: 'ended' });
+  }
+}
+
+class DealerAgoraAdapter extends AgoraAdapter {
+  constructor() {
+    super();
+    this.dealerSessionId = '';
+    this.audioSynthesizer = null;
+  }
+
+  async startDealerSession(context = {}) {
+    await this.leave({ skipStop: false });
+    const generation = ++this.generation;
+    this.context = context;
+    this.emit('CALL_STATUS', { status: 'connecting' });
+
+    try {
+      const startData = await postJson('/api/dealer-session/start', {
+        language: context.language || 'Hinglish',
+        voice: context.voice || 'madhur',
+        initialValues: context.initialValues || {},
+        currentStep: context.currentStep || null,
+      });
+      if (generation !== this.generation) return;
+
+      this.dealerSessionId = startData.sessionId;
+      this.emit('CALL_STATUS', { status: 'live', sessionId: this.dealerSessionId });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+
+      if (startData.initialTurn) {
+        this.emit('AGENT_TURN', startData.initialTurn);
+        this.emit('SPEECH_TEXT', { text: startData.initialTurn.speechText, action: startData.initialTurn.action });
+        this.emit('FORM_STATE_SYNC', {
+          currentForm: startData.initialTurn.currentForm,
+          completionStats: startData.initialTurn.completionStats,
+          step: startData.initialTurn.step,
+          extractedFields: startData.initialTurn.extractedFields,
+        });
+      }
+
+      // Try connecting Agora mic level streaming if available
+      try {
+        const tokenData = await getJson('/api/dealer-session/token').catch(() => null);
+        if (tokenData && tokenData.appId && tokenData.token) {
+          this.appId = tokenData.appId;
+          this.channel = tokenData.channel;
+          this.uid = String(tokenData.uid);
+          this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+          await this.rtc.join(this.appId, this.channel, tokenData.token, Number(this.uid));
+          this.micTrack = await AgoraRTC.createMicrophoneAudioTrack({
+            encoderConfig: 'speech_standard',
+            AEC: true,
+            ANS: true,
+            AGC: true,
+          });
+          await this.rtc.publish([this.micTrack]);
+          this.levelTimer = window.setInterval(() => {
+            if (generation !== this.generation || !this.micTrack) return;
+            const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
+            this.emit('LOCAL_AUDIO_LEVEL', { level });
+          }, 100);
+        }
+      } catch (micErr) {
+        console.warn('Dealer WebRTC mic level fallback active:', micErr?.message || micErr);
+      }
+
+      return startData;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not start dealer voice session', recoverable: false });
+      throw error;
+    }
+  }
+
+  async sendUserTurn(text, patch = null) {
+    if (!this.dealerSessionId) return null;
+    this.emit('AGENT_STATE', { mode: 'thinking' });
+    try {
+      const turnData = await postJson('/api/dealer-session/process-turn', {
+        sessionId: this.dealerSessionId,
+        text: String(text || ''),
+        patch: patch || null,
+      });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+      this.emit('AGENT_TURN', turnData);
+      this.emit('SPEECH_TEXT', { text: turnData.speechText, action: turnData.action });
+      this.emit('FORM_STATE_SYNC', {
+        currentForm: turnData.currentForm,
+        completionStats: turnData.completionStats,
+        step: turnData.step,
+        extractedFields: turnData.extractedFields,
+        isSubmitted: turnData.isSubmitted,
+        registeredDealer: turnData.registeredDealer,
+      });
+      return turnData;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Error processing speech turn', recoverable: true });
+      this.emit('AGENT_STATE', { mode: 'listening' });
+      throw error;
+    }
+  }
+
+  async syncManualPatch(patch) {
+    if (!this.dealerSessionId || !patch) return null;
+    try {
+      const res = await postJson('/api/dealer-session/sync-state', {
+        sessionId: this.dealerSessionId,
+        patch,
+      });
+      this.emit('FORM_STATE_SYNC', {
+        currentForm: res.currentForm,
+        completionStats: res.completionStats,
+      });
+      return res;
+    } catch (err) {
+      console.warn('Failed to sync manual patch to dealer session:', err);
+    }
+  }
+
+  async submitRegistration() {
+    if (!this.dealerSessionId) return null;
+    this.emit('AGENT_STATE', { mode: 'thinking' });
+    try {
+      const res = await postJson('/api/dealer-session/submit', {
+        sessionId: this.dealerSessionId,
+      });
+      this.emit('AGENT_STATE', { mode: 'speaking' });
+      this.emit('AGENT_TURN', res);
+      this.emit('SPEECH_TEXT', { text: res.speechText, action: res.action });
+      this.emit('FORM_STATE_SYNC', {
+        currentForm: res.currentForm,
+        completionStats: res.completionStats,
+        step: res.step,
+        isSubmitted: true,
+        registeredDealer: res.registeredDealer,
+      });
+      return res;
+    } catch (error) {
+      this.emit('ERROR', { message: error.message || 'Could not submit dealer registration', recoverable: true });
+      throw error;
+    }
+  }
+
+  async leave() {
+    if (this.dealerSessionId) {
+      postJson('/api/dealer-session/stop', { sessionId: this.dealerSessionId }).catch(() => {});
+      this.dealerSessionId = '';
+    }
+    return super.leave();
+  }
+}
+
 export const createAgoraAdapter = () => new AgoraAdapter();
 export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
+export const createRepAdapter = () => new RepAdapter();
 export const createCompareDebateAdapter = () => new CompareDebateAdapter();
+export const createDealerAgoraAdapter = () => new DealerAgoraAdapter();

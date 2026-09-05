@@ -6,8 +6,11 @@ import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs';
+import { CrmCalendar } from './crm-calendar.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
 import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
+import { dealerDb } from './dealer-db.mjs';
+import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
 import {
   AgoraClient,
   Agent,
@@ -57,6 +60,13 @@ const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes
 // which is fine on a laptop but should never be the case on a public deployment.
 const REP_DESK_KEY = process.env.REP_DESK_KEY?.trim() || '';
 const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL?.trim() || '';
+
+const crmCalendar = new CrmCalendar({
+  hubspotToken: process.env.HUBSPOT_TOKEN || '',
+  calcomApiKey: process.env.CALCOM_API_KEY || '',
+  calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
+  timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
+});
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
   aarav: { id: 'aarav', name: 'Aarav', voiceName: 'hi-IN-AaravNeural', description: 'Calm, modern Hindi' },
@@ -80,21 +90,26 @@ const tools = new EasyEVToolEngine({
     broadcast(record, 'handoff', handoffState(record));
     notifySlack(record);
   },
+  crm: crmCalendar,
 });
 
 const handoffCodes = new Map();
 
 function loadLocalEnv(path) {
-  if (!existsSync(path)) return;
-  const source = readFileSync(path, 'utf8');
-  for (const line of source.split(/\r?\n/)) {
-    const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
-    if (!match || process.env[match[1]]) continue;
-    let value = match[2].trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-      value = value.slice(1, -1);
+  try {
+    if (!existsSync(path)) return;
+    const source = readFileSync(path, 'utf8');
+    for (const line of source.split(/\r?\n/)) {
+      const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+      if (!match || process.env[match[1]]) continue;
+      let value = match[2].trim();
+      if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      process.env[match[1]] = value;
     }
-    process.env[match[1]] = value;
+  } catch (err) {
+    console.warn('loadLocalEnv warning:', err?.message || err);
   }
 }
 
@@ -275,15 +290,21 @@ The shopper selected category: ${category}. Their preferred conversation languag
 
 Language and voice style: ${languageStyle}
 
-You have six real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
+You have eight real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
 - compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said. Set presentation to "photo" for picture/image requests and "3d" for 3D/360/AR requests; for two vehicles use one call with both names.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
 - analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
 - generate_decision_report for a report, PDF, summary or download.
 - escalate_to_human to bring a live human EasyEV specialist onto this same call.
+- capture_lead the moment the buyer gives a name, phone number or email address.
+- book_test_drive for a test drive, demo, appointment or visit.
 
-Call escalate_to_human when the buyer asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; when a trust concern or complaint stays open after you have addressed it once; or when they are ready to buy and need a human to close. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
+Contact details and bookings are real, not simulated. Call capture_lead as soon as the buyer says their name, number or email, and again if they correct it; never invent a detail they did not say. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose. A booking needs an email address for the confirmation, so ask for one if you do not have it. Read an email address back to the buyer once to confirm you heard it correctly before saving. Do not promise a booking before the tool has confirmed it.
+
+Call escalate_to_human only when the buyer explicitly asks for a person, salesperson, manager or dealer; when they want a fleet, bulk or company purchase; when they want to negotiate price, discount or exchange value; when they need a finance or loan structure you cannot quote; or when a trust concern or complaint stays open after you have addressed it once. Pass a short English summary the specialist can read before speaking. Do not escalate for anything the catalog, ownership calculator, charger search or report already answers, and do not escalate twice in one call.
+
+Routing rule that overrides everything else: any request to book, schedule or arrange a test drive, demo, showroom visit, dealership visit or appointment goes to book_test_drive, never to escalate_to_human. "Test drive book karni hai", "demo dikhao", "appointment lagao" and "showroom aana hai" all mean book_test_drive. Wanting a test drive is not the same as wanting to talk to a human; only escalate if the buyer actually asks for a person. After the tool succeeds, say only the handover sentence it returns and then stop talking; a person is joining and you must not keep selling over them.
 
 Before a tool call, acknowledge in one short sentence such as “I’ll check that now,” then call exactly one best-fit tool immediately. Pass numbers as numbers when possible, but the tools also accept spoken numeric strings. If a tool rejects an argument, silently correct the shape and retry once; never tell the buyer only that there was a “tool call issue.” Do not say you cannot show maps, pictures, calculations or reports: the tools provide them. If location or an image is needed, call the relevant tool so the interface requests explicit consent. Never infer consent.
 
@@ -293,7 +314,7 @@ Do not answer catalog comparisons, pictures, 3D requests, ownership calculations
 
 After a tool succeeds, begin with “It’s ready on your screen,” then explain the two most decision-useful points visible in that result. For a comparison, describe both vehicles and one trade-off. For ownership, mention the daily-kilometre assumption and annual running-cost difference. For a map, say it is centred on the browser-shared or selected city location and tell the buyer to use Improve location if the blue marker is wrong. Do not keep narrating while nothing is changing.
 
-Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory, finance quotes or booking confirmation. Prices and claims require verification. Test-drive, dealer, calendar and WhatsApp actions remain simulated. Snapshot analysis is advisory only, never electrical or safety approval.`;
+Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory or finance quotes. Prices and claims require verification. Lead capture and test-drive booking are real writes to the CRM and calendar, so state a booking as confirmed only after book_test_drive returns a confirmation. Snapshot analysis is advisory only, never electrical or safety approval.`;
 }
 
 function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl }) {
@@ -1339,6 +1360,134 @@ async function handleApi(req, res, url) {
     }
   }
 
+  if (req.method === 'GET' && url.pathname === '/api/dealers/stats') {
+    return json(res, 200, { success: true, stats: dealerDb.getDealerStats() });
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealers') {
+    const filters = {
+      city: url.searchParams.get('city') || '',
+      pincode: url.searchParams.get('pincode') || '',
+      category: url.searchParams.get('category') || '',
+      brand: url.searchParams.get('brand') || '',
+      hasEmi: url.searchParams.get('hasEmi'),
+      hasInsurance: url.searchParams.get('hasInsurance'),
+      hasTestDrive: url.searchParams.get('hasTestDrive'),
+    };
+    const dealers = dealerDb.findDealers(filters);
+    return json(res, 200, { success: true, count: dealers.length, dealers });
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/dealers/')) {
+    const id = decodeURIComponent(url.pathname.slice('/api/dealers/'.length));
+    const dealer = dealerDb.getDealerById(id);
+    if (!dealer) {
+      return json(res, 404, { error: 'Dealer not found' });
+    }
+    return json(res, 200, { success: true, dealer });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealers/register') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    try {
+      const dealer = dealerDb.registerDealer(body);
+      return json(res, 201, { success: true, message: 'Dealer registered successfully', dealer });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Failed to register dealer' });
+    }
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/dealer-session/token') {
+    const channel = `easyev-dlr-${Date.now().toString(36)}-${randomUUID().slice(0, 6)}`;
+    const uid = String(randomInt(1000, 9_999_000));
+    const token = createToken(channel, uid);
+    const bootstrapKey = randomUUID();
+    bootstraps.set(bootstrapKey, { channel, uid, expiresAt: Date.now() + BOOTSTRAP_TTL_MS });
+    return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, bootstrapKey, expiresIn: TOKEN_TTL_SECONDS });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/start') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    const voice = selectedVoice(body.voice).id;
+    const initialValues = (body.initialValues && typeof body.initialValues === 'object') ? body.initialValues : {};
+    const currentStep = (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : null;
+    const session = dealerVoiceAgentManager.createSession({ language, voice, initialValues, currentStep });
+    const initialTurn = session.getInitialGreeting();
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      state: 'RUNNING',
+      initialTurn,
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/process-turn') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : 1
+      });
+    }
+    try {
+      const userText = body.text || body.userSpeech || body.transcript || body.input || '';
+      const result = await session.processTurn({ text: userText, patch: body.patch || null });
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 500, { error: err.message || 'Failed to process voice turn' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/sync-state') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: (body.currentStep && Number(body.currentStep) >= 1 && Number(body.currentStep) <= 4) ? Number(body.currentStep) : 1
+      });
+    }
+    if (body.patch) {
+      session.stateMachine.updateFields(body.patch, 'manual_ui_sync');
+    }
+    return json(res, 200, {
+      success: true,
+      sessionId: session.sessionId,
+      currentForm: session.stateMachine.getValues(),
+      completionStats: session.stateMachine.getCompletionStats()
+    });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/submit') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    let session = body.sessionId ? dealerVoiceAgentManager.getSession(body.sessionId) : null;
+    if (!session) {
+      session = dealerVoiceAgentManager.createSession({
+        language: body.language || 'Hinglish',
+        initialValues: (body.currentForm && typeof body.currentForm === 'object') ? body.currentForm : {},
+        currentStep: 4
+      });
+    }
+    try {
+      const result = await session.submitRegistration();
+      return json(res, 200, { success: true, sessionId: session.sessionId, ...result });
+    } catch (err) {
+      return json(res, 400, { error: err.message || 'Failed to submit dealer registration' });
+    }
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/dealer-session/stop') {
+    const body = await readJson(req, BODY_LIMIT_BYTES);
+    if (body.sessionId) {
+      dealerVoiceAgentManager.destroySession(body.sessionId);
+    }
+    return json(res, 200, { success: true });
+  }
+
   if (req.method === 'GET' && url.pathname === '/api/voice/options') {
     return json(res, 200, { provider: AZURE_SPEECH_READY ? 'azure' : 'fallback', previewAvailable: AZURE_SPEECH_READY, voices: Object.values(VOICES) });
   }
@@ -1406,7 +1555,9 @@ async function handleApi(req, res, url) {
         phase: 'ready',
         stage: 'welcome',
         payload: {
-          message: mcpUrl ? 'Five live decision tools connected' : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
+          message: mcpUrl
+            ? `${Object.keys(tools.definitions()).length} live decision tools connected`
+            : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
           passport: tools.publicPassport(record),
         },
       });
