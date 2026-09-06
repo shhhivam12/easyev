@@ -411,7 +411,7 @@ The shopper selected category: ${category}. Their preferred conversation languag
 Language and voice style: ${languageStyle}
 
 You have eight real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
-- compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said. Set presentation to "photo" for picture/image requests and "3d" for 3D/360/AR requests; for two vehicles use one call with both names.
+- compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said in ONE vehicles array and make ONE call for the whole comparison, never separate calls per vehicle. "कंपेयर करो", "कम्पेयर करके दिखाओ", "तुलना दिखाओ", "dono ka fark batao" and "compare karke dikhao" mean presentation="comparison". Words like दिखाओ, dikhao, show or model within a comparison request do not mean separate photos or 3D views. Use canonical catalog model names even when spoken in Hindi. Set presentation to "photo" for explicit picture/image requests and "3d" for explicit 3D/360/AR requests without a comparison.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
 - analyze_readiness_snapshot for a user-operated one-time parking, connector or electrical-label image.
