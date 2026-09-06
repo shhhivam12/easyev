@@ -12184,16 +12184,16 @@
         }
       };
       const SPOKEN_VEHICLES = [
-        { name: 'Tata Punch EV', match: /tata\s*punch|punch[.\s-]*ev|टाटा\s*पंच|पंच\s*(?:ईवी|ev)?/i },
+        { name: 'Tata Punch EV', match: /tata\s*punch|\bpunch\b|टाटा\s*पंच|पंच\s*(?:ईवी|ev)?/i },
         { name: 'Citroen EC3', match: /citro[eë]n|e[\s-]*c3x?|ec3x?|सिट्रोएन|सिट्रोन/i },
-        { name: 'Tata Nexon EV', match: /tata\s*nexon|nexon[.\s-]*ev|नेक्सॉन/i },
-        { name: 'MG Comet EV', match: /mg\s*comet|comet\s*ev|कॉमेट/i },
-        { name: 'MG Windsor EV', match: /mg\s*windsor|windsor\s*ev|विंडसर/i },
+        { name: 'Tata Nexon EV', match: /tata\s*nexon|\bnexon\b|नेक्स[ॉो]?न/i },
+        { name: 'MG Comet EV', match: /mg\s*comet|\bcomet\b|क[ॉो]मेट/i },
+        { name: 'MG Windsor EV', match: /mg\s*windsor|\bwindsor\b|विंडसर/i },
         { name: 'Mahindra XUV400', match: /xuv\s*400|xuv400|एक्सयूवी\s*400/i },
-        { name: 'Ather Rizta', match: /ather\s*rizta|rizta|रिज़्टा/i },
+        { name: 'Ather Rizta', match: /ather\s*rizta|rizta|रिज़?्?टा|रिज्ता|रिस्ता/i },
         { name: 'Ather 450X', match: /ather\s*450x|450x|450\s*x/i },
-        { name: 'TVS iQube', match: /tvs\s*i\s*qube|iqube|i\s*qube|आईक्यूब/i },
-        { name: 'Ola S1 Pro', match: /ola\s*s1|s1\s*pro|ओला\s*एस1/i },
+        { name: 'TVS iQube', match: /tvs\s*i\s*qube|iqube|i\s*qube|आई\s*क्यूब/i },
+        { name: 'Ola S1 Pro', match: /ola\s*s1|s1\s*pro|ओला\s*एस\s*(?:1|वन)/i },
         { name: 'Mahindra Treo Plus', match: /treo\s*plus|mahindra\s*treo|ट्रेओ/i },
         { name: 'Bajaj RE E-TEC 9.0', match: /bajaj.*e[\s-]*tec|e[\s-]*tec\s*9|बजाज.*ई\s*टेक/i },
         { name: 'TVS King Kargo HD EV', match: /tvs\s*king\s*kargo|king\s*(?:kargo|cargo)|किंग\s*कार्गो/i },
@@ -12201,17 +12201,18 @@
         { name: 'Euler HiLoad EV', match: /euler\s*hiload|hi\s*load|हाईलोड/i }
       ];
       const fastVisualIntent = (text, eventId = '') => {
-        const spoken = String(text || '').trim();
+        const spoken = String(text || '').normalize('NFC').replace(/[०-९]/g, (digit) => String(digit.charCodeAt(0) - 0x0966)).trim();
         if (!spoken || state.integrationMode !== 'live' || state.callStatus !== 'live') return false;
         const wants3d = /\b3\s*d\b|\b360\b|\bmodel\b|मॉडल|घुमा/i.test(spoken);
-        const wantsPhoto = /\bphoto\b|\bpicture\b|\bimage\b|तस्वीर|फोटो|दिखा|दिखाओ|दिखा सकते/i.test(spoken);
-        const wantsCompare = /compare|comparison|versus|\bvs\b|\bboth\b|between|difference|फर्क|तुलना|के बीच|दोनों/i.test(spoken);
+        const wantsPhoto = /\bphotos?\b|\bpictures?\b|\bimages?\b|तस्वीर|फोटो|दिखा|दिखाओ|दिखा सकते/i.test(spoken);
+        const wantsCompare = /compare|comparison|versus|\bvs\b|between|difference|कंपेयर|कम्पेयर|कंपैर|कम्पैर|कंपेर|कम्पेर|कंपैरिजन|कम्पैरिजन|कम्पेरिजन|कंपेरिजन|फर्क|फ़र्क|अंतर|तुलना|बनाम|के बीच|\b(?:tulna|farq|fark|antar|banaam|banam)\b/i.test(spoken);
         let vehicles = SPOKEN_VEHICLES.filter((item) => item.match.test(spoken)).map((item) => item.name);
-        const wantsShow = /\bshow\b|\bdisplay\b|\bopen\b|\bsee\b/i.test(spoken) && vehicles.length > 0;
-        if (!wants3d && !wantsPhoto && !wantsCompare && !wantsShow) return false;
+        const wantsShow = /\b(?:show|display|open|see|dikhao|dikhaiye|dikha|khol)\b|दिखा|खोल/i.test(spoken) && vehicles.length > 0;
+        const wantsPair = wantsCompare || /\b(?:both|dono|donon)\b|दोनों/i.test(spoken);
+        if (!wants3d && !wantsPhoto && !wantsPair && !wantsShow) return false;
         const shortlisted = (state.decisionPassport?.shortlist || []).map((item) => item.name).filter(Boolean);
-        if (wantsCompare && !vehicles.length) vehicles = [...new Set([...shortlisted, ...defaultCompareNames()])].slice(0, 2);
-        if (!wantsCompare && !vehicles.length) vehicles = (shortlisted.length ? shortlisted : defaultCompareNames()).slice(0, 1);
+        if (wantsPair && !vehicles.length) vehicles = [...new Set([...shortlisted, ...defaultCompareNames()])].slice(0, 2);
+        if (!wantsPair && !vehicles.length) vehicles = (shortlisted.length ? shortlisted : defaultCompareNames()).slice(0, 1);
         if (!vehicles.length) return false;
         const normalized = spoken.toLowerCase().replace(/\s+/g, ' ');
         const idKey = eventId ? `event:${eventId}` : '';
@@ -12220,7 +12221,8 @@
         if (idKey) state.handledFastIntentIds.add(idKey);
         state.handledFastIntentIds.add(textKey);
         scheduleLifecycle(() => state.handledFastIntentIds.delete(textKey), 8_000);
-        const presentation = wants3d ? '3d' : (wantsPhoto || wantsShow) ? 'photo' : 'comparison';
+        // A request to show a comparison is still a comparison in every language.
+        const presentation = wantsCompare ? 'comparison' : wants3d ? '3d' : (wantsPhoto || wantsShow) ? 'photo' : 'comparison';
         state.activityMessage = wantsCompare && vehicles.length > 1
           ? `Preparing ${vehicles[0]} and ${vehicles[1]} side by side…`
           : `Preparing ${vehicles[0]} ${wants3d ? '360° showroom view' : 'visual'}…`;
