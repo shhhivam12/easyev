@@ -861,6 +861,7 @@ class DealerAgoraAdapter extends AgoraAdapter {
       if (generation !== this.generation) return;
 
       this.dealerSessionId = startData.sessionId;
+      this.sessionId = startData.sessionId;
       this.emit('CALL_STATUS', { status: 'live', sessionId: this.dealerSessionId });
       this.emit('AGENT_STATE', { mode: 'speaking' });
 
