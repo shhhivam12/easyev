@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/showroom-assets/vendor/pannellum.css">
   <style>
     :root {
       --font-sans: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -1019,6 +1020,176 @@
     .experience-card__voice-chip i:nth-child(3) { height: 11px; animation-delay: -.5s; }
     .experience-card__voice-chip i:nth-child(4) { height: 6px; animation-delay: -.75s; }
     .experience-card__voice-chip span { margin-left: 5px; }
+
+    /* ── Landing Page Interactive 360 Spin Viewer ── */
+    .landing-spin-viewer {
+      position: relative;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: pan-y;
+      background: #e8f4eb;
+    }
+    .landing-spin-viewer:active,
+    .landing-spin-viewer.is-dragging {
+      cursor: grabbing;
+    }
+    .landing-spin-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      object-fit: cover;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .landing-spin-drag-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 3;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(6, 35, 20, 0.85);
+      border: 1px solid rgba(85, 242, 123, 0.35);
+      border-radius: var(--radius-pill, 999px);
+      color: #55f27b;
+      font-size: 11px;
+      font-weight: 750;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+    .landing-spin-drag-hint.fade-out {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    .landing-spin-arrows {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      z-index: 2;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .landing-spin-viewer:hover .landing-spin-arrows {
+      opacity: 1;
+    }
+    .landing-spin-arrow-btn {
+      pointer-events: auto;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(226, 236, 229, 0.8);
+      box-shadow: 0 4px 12px rgba(4, 35, 15, 0.15);
+      color: #062314;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding-bottom: 2px;
+    }
+    .landing-spin-arrow-btn:hover {
+      background: #ffffff;
+      color: #16bf53;
+      transform: scale(1.1);
+      box-shadow: 0 6px 18px rgba(22, 191, 83, 0.25);
+    }
+
+    /* ── Top-Right Mode Toggle Bar ── */
+    .landing-spin-toggle-bar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      background: rgba(6, 35, 20, 0.85);
+      border: 1px solid rgba(85, 242, 123, 0.35);
+      border-radius: var(--radius-pill, 999px);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+    .spin-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill, 999px);
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.78);
+      font-size: 11px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+    .spin-toggle-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .spin-toggle-btn.active {
+      background: #16bf53;
+      color: #062314;
+      box-shadow: 0 2px 8px rgba(22, 191, 83, 0.35);
+    }
+    .spin-toggle-btn svg {
+      flex-shrink: 0;
+    }
+
+    /* Pano Container */
+    .landing-pano-container {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 320px;
+      z-index: 1;
+      background: #06110a;
+      cursor: grab;
+    }
+    .landing-pano-container:active {
+      cursor: grabbing;
+    }
+    .landing-pano-container .pnlm-container {
+      background: #06110a;
+    }
+    .landing-pano-container .pnlm-about-msg,
+    .landing-pano-container .pnlm-panorama-info {
+      display: none !important;
+    }
+
+    @media (max-width: 768px) {
+      .landing-spin-toggle-bar {
+        top: auto;
+        bottom: 58px;
+        right: 12px;
+        left: 12px;
+        justify-content: center;
+      }
+      .spin-toggle-btn {
+        padding: 5px 8px;
+        font-size: 10px;
+      }
+    }
 
     .experience-card__body {
       display: flex;
@@ -6811,426 +6982,940 @@
        COMPARE EV & LIVE DUAL-AI DEBATE ARENA STYLES
        ============================================================ */
 
-    /* Page-level: mint-tinted background with subtle radial green glow */
+    /* ============================================================
+       COMPARE EV & LIVE DUAL-AI DEBATE ARENA STYLES
+       ============================================================ */
+
+    /* Layering system */
+    :root {
+      --z-content: 1;
+      --z-site-nav: 50;
+      --z-compare-dock: 60;
+      --z-floating-controls: 70;
+      --z-modal: 100;
+      --compare-bg-gradient: radial-gradient(circle at 50% 25%, #f6fcf8 0%, #edf7f1 55%, #e1f0e6 100%);
+      --compare-card-bg: #ffffff;
+      --compare-card-border: #e3ede6;
+      --compare-primary-green: #16bf53;
+      --compare-dark-forest: #062314;
+      --compare-mint-soft: #e8f7ee;
+      --compare-ink: #111714;
+      --compare-muted: #64748b;
+    }
+
     #compare-view {
-      background: #f0f7f2;
+      min-height: 100vh;
+      background: var(--compare-bg-gradient);
+      display: flex;
+      flex-direction: column;
       position: relative;
-    }
-    #compare-view::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 500px;
-      background: radial-gradient(ellipse at center, rgba(85, 242, 123, .10) 0%, rgba(22, 191, 83, .04) 40%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
+      overflow-x: hidden;
     }
 
-    .compare-container {
-      position: relative;
-      z-index: 1;
-      max-width: 1280px;
+    .compare-viewport-container {
+      max-width: 1560px;
       margin: 0 auto;
-      padding: 68px 24px 32px;
+      width: 100%;
+      padding: 16px 32px 32px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: calc(100vh - 84px);
     }
 
-    .compare-hero {
-      text-align: center;
-      max-width: 820px;
-      margin: 0 auto 10px;
+    /* ── Tier 1: Top Comparison Showcase (Expanded & Majestic) ── */
+    .compare-tier-top {
+      display: grid;
+      grid-template-columns: minmax(260px, 300px) minmax(0, 1fr) 200px;
+      gap: 24px;
+      align-items: stretch;
+      flex-shrink: 0;
+      padding-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .compare-hero h1 {
-      font-family: var(--font-display);
-      font-size: clamp(24px, 2.8vw, 34px);
-      font-weight: 700;
-      letter-spacing: -.03em;
-      color: var(--ink);
+
+    /* 1A. Left Hero Statement */
+    .compare-hero-statement {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 16px;
+      min-width: 0;
+    }
+    .compare-hero-title {
+      font-family: var(--font-display, "Plus Jakarta Sans", "Figtree", sans-serif);
+      font-size: clamp(30px, 2.7vw, 42px);
+      font-weight: 850;
+      color: var(--compare-ink);
       line-height: 1.15;
-      margin: 0 0 10px;
+      letter-spacing: -.035em;
+      margin: 0;
     }
-    .compare-hero h1 span {
-      color: var(--green-deep);
+    .text-gradient-green {
+      color: #16bf53;
+      background: linear-gradient(135deg, #16bf53 0%, #0d833a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .compare-hero-sub {
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.55;
+      margin: 0;
+      max-width: 340px;
     }
 
-    /* ── Clay Guide Mascot Callout ────────────────────────── */
-    .compare-guide-callout {
+    /* 1B. Center Contenders Selection Stage Card (Generous, Roomy & Majestic) */
+    .compare-stage-card {
+      background: #ffffff;
+      border-radius: 26px;
+      border: 1.5px solid var(--compare-card-border);
+      box-shadow: 0 14px 40px rgba(4, 35, 15, 0.07);
+      padding: 22px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 295px;
+      justify-content: space-between;
+      position: relative;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .stage-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stage-title {
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 12.5px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      color: #1a202c;
+      text-transform: uppercase;
+    }
+    .stage-status-badge {
       display: inline-flex;
       align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: var(--compare-mint-soft);
+      border-radius: var(--radius-pill, 999px);
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0c6b34;
+    }
+    .stage-status-badge .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #16bf53;
+      box-shadow: 0 0 6px rgba(22, 191, 83, 0.7);
+    }
+
+    .stage-slots-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* Contender Card Box (Tall, Roomy & Luxurious) */
+    .stage-contender-box {
+      background: #fbfdfc;
+      border: 1.5px solid #e1ede5;
+      border-radius: 20px;
+      padding: 14px 16px;
+      position: relative;
+      display: flex;
+      align-items: center;
       gap: 12px;
-      margin: 0 auto;
-      padding: 6px 18px 6px 6px;
-      border: 1px solid rgba(22, 191, 83, .22);
-      border-radius: var(--radius-pill);
-      background: linear-gradient(135deg, #eef9f2, #ffffff);
-      box-shadow: 0 4px 16px rgba(4, 35, 15, .05);
-      text-align: left;
+      min-height: 145px;
+      min-width: 0;
+      box-sizing: border-box;
+      transition: all 0.25s var(--ease-out);
     }
-    .compare-guide-callout img {
-      display: block;
-      width: 44px;
-      height: 44px;
-      object-fit: contain;
-      filter: drop-shadow(0 3px 6px rgba(4, 35, 15, .12));
+    .stage-contender-box.active {
+      background: #ffffff;
+      border: 1.5px solid #16bf53;
+      box-shadow: 0 8px 26px rgba(22, 191, 83, 0.12), 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .stage-contender-box.active.slot-2-active {
+      border-color: #0284c7;
+      box-shadow: 0 8px 26px rgba(2, 132, 199, 0.12), 0 2px 8px rgba(0, 0, 0, 0.03);
+    }
+    .stage-contender-box.target-slot {
+      outline: 2.5px dashed #16bf53;
+      outline-offset: 3px;
+    }
+    .stage-contender-box.empty {
+      border: 1.5px dashed #a7dbba;
+      background: #f9fdfa;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      gap: 6px;
+      padding: 18px 14px;
+      cursor: pointer;
+    }
+    .stage-contender-box.empty:hover {
+      border-color: #16bf53;
+      background: #f0faf3;
+    }
+    .empty-slot-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #e6f7ec;
+      color: #16bf53;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2px;
+    }
+    .empty-slot-title {
+      font-size: 14.5px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+    .empty-slot-desc {
+      font-size: 11.5px;
+      color: #64748b;
+      line-height: 1.35;
+    }
+    .empty-slot-btn {
+      margin-top: 4px;
+      padding: 6px 18px;
+      border-radius: var(--radius-pill, 999px);
+      background: #ffffff;
+      border: 1.5px solid #16bf53;
+      color: #0c6b34;
+      font-size: 11.5px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .empty-slot-btn:hover {
+      background: #16bf53;
+      color: #ffffff;
+    }
+
+    /* Sleek Top-Right Remove Icon Button */
+    .contender-remove-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.18s ease;
+      z-index: 2;
+    }
+    .contender-remove-btn:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #dc2626;
+      transform: scale(1.08);
+    }
+    .contender-remove-btn svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .contender-img-wrap {
+      width: 105px;
+      height: 85px;
+      aspect-ratio: 16 / 10;
+      contain: layout paint;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: radial-gradient(circle at 50% 60%, rgba(22, 191, 83, 0.07) 0%, rgba(248, 250, 252, 0.5) 80%);
+      padding: 4px;
+      border: 1px solid #edf2ef;
     }
-    .compare-guide-callout div {
+    .stage-contender-box.slot-2-active .contender-img-wrap {
+      background: radial-gradient(circle at 50% 60%, rgba(2, 132, 199, 0.07) 0%, rgba(248, 250, 252, 0.5) 80%);
+    }
+    .contender-img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+
+    .contender-info {
+      flex: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 2px;
+      overflow: hidden;
     }
-    .compare-guide-callout strong {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--ink);
+    .contender-tag-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 2px;
+      padding-right: 28px;
     }
-    .compare-guide-callout span {
-      font-size: 11.5px;
-      color: var(--muted);
-      line-height: 1.3;
+    .contender-slot-tag {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .contender-slot-tag.slot-1 {
+      background: #ecfdf5;
+      color: #059669;
+    }
+    .contender-slot-tag.slot-2 {
+      background: #f0f9ff;
+      color: #0284c7;
     }
 
-    /* ── Glassmorphic Master Comparison Toolbar ────────────── */
-    .compare-master-toolbar {
+    .contender-company {
+      font-size: 10px;
+      font-weight: 750;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      display: block;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .contender-name {
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 16px;
+      font-weight: 850;
+      color: #0f172a;
+      margin: 1px 0 2px;
+      line-height: 1.15;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .contender-price {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #059669;
+      margin-bottom: 3px;
+      white-space: nowrap;
+    }
+    .stage-contender-box.slot-2-active .contender-price {
+      color: #0284c7;
+    }
+    .contender-spec-tags {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+    .spec-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 7px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    /* Center VS Badge */
+    .stage-vs-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 4px;
+      padding: 0 4px;
+      flex-shrink: 0;
+    }
+    .stage-vs-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #072d17 0%, #0f522b 100%);
+      color: #55f27b;
+      font-size: 13px;
+      font-weight: 850;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(7, 45, 23, 0.3);
+    }
+    .stage-vs-caption {
+      font-size: 10px;
+      color: #64748b;
+      line-height: 1.15;
+      max-width: 60px;
+    }
+
+    /* Stage Bottom Action Bar */
+    .stage-action-bar {
+      display: flex;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .stage-compare-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 30px;
+      border-radius: var(--radius-pill, 999px);
+      background: var(--compare-dark-forest);
+      color: #ffffff;
+      border: 1.5px solid rgba(85, 242, 123, 0.35);
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: all 0.25s var(--ease-out);
+      box-shadow: 0 4px 16px rgba(6, 35, 20, 0.22);
+    }
+    .stage-compare-cta:hover:not(:disabled) {
+      background: #0d4223;
+      border-color: #55f27b;
+      box-shadow: 0 6px 22px rgba(85, 242, 123, 0.35);
+      transform: translateY(-1px);
+    }
+    .stage-compare-cta:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #e2e8f0;
+      color: #94a3b8;
+      border-color: #cbd5e1;
+      box-shadow: none;
+    }
+
+    /* 1C. Right Mascot Column (Prominent, Expressive & Large) */
+    .compare-mascot-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      position: relative;
+      gap: 8px;
+      width: 200px;
+      max-width: 200px;
+      flex-shrink: 0;
+      min-width: 0;
+    }
+    .mascot-speech-bubble {
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1.5px solid rgba(22, 191, 83, 0.25);
+      box-shadow: 0 6px 22px rgba(4, 35, 15, 0.08);
+      padding: 8px 12px;
+      position: relative;
+      margin-bottom: 0;
+      z-index: 3;
+      text-align: center;
+      max-width: 190px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .mascot-speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 7px solid #ffffff;
+    }
+    .mascot-speech-bubble p {
+      font-size: 11.5px;
+      font-weight: 650;
+      color: #1e293b;
+      line-height: 1.35;
+      margin: 0;
+    }
+    .mascot-image-wrap {
+      width: 170px;
+      height: 170px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      position: relative;
+    }
+    .mascot-clay-img {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 10px 20px rgba(4, 35, 15, 0.18));
+      transform: none;
+    }
+
+    @media (max-width: 1300px) {
+      .compare-tier-top {
+        grid-template-columns: 250px minmax(0, 1fr) 180px;
+        gap: 16px;
+      }
+      .mascot-image-wrap {
+        width: 150px;
+        height: 150px;
+      }
+      .mascot-speech-bubble {
+        max-width: 170px;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      .compare-tier-top {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 20px;
+      }
+      .compare-hero-statement {
+        text-align: center;
+        align-items: center;
+      }
+      .compare-hero-sub {
+        max-width: 500px;
+      }
+      .compare-mascot-column {
+        display: none;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stage-slots-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .stage-vs-center {
+        flex-direction: row;
+        gap: 8px;
+      }
+      .stage-vs-caption {
+        max-width: none;
+      }
+      .stage-contender-box {
+        min-height: auto;
+      }
+    }
+
+    /* ── Tier 2: Vehicle Collection Catalog (Expanded & Roomy) ── */
+    .compare-tier-catalog {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    .catalog-card-container {
+      background: #ffffff;
+      border-radius: 26px;
+      border: 1.5px solid var(--compare-card-border);
+      box-shadow: 0 8px 26px rgba(4, 35, 15, 0.04);
+      padding: 22px 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-sizing: border-box;
+      flex: 1;
+      justify-content: flex-start;
+    }
+    .catalog-header-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin: 12px 0 16px;
-      padding: 8px 12px;
-      background: rgba(255, 255, 255, .82);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(22, 191, 83, .18);
-      border-radius: 14px;
-      box-shadow: 0 6px 24px rgba(4, 35, 15, .06);
+      flex-wrap: wrap;
     }
-    .compare-cat-nav {
+    .catalog-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .catalog-icon-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--compare-mint-soft);
+      color: #16bf53;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .catalog-icon-badge svg {
+      width: 20px;
+      height: 20px;
+    }
+    .catalog-title {
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 17.5px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.15;
+    }
+    .catalog-subtitle {
+      font-size: 13px;
+      color: var(--compare-muted);
+      margin: 2px 0 0;
+    }
+
+    .catalog-controls-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .catalog-category-tabs {
       display: flex;
       align-items: center;
       gap: 4px;
-      background: rgba(241, 245, 243, .85);
-      padding: 4px;
-      border-radius: 10px;
+      background: #f1f6f3;
+      padding: 4px 6px;
+      border-radius: var(--radius-pill, 999px);
+      border: 1px solid #e1ebe4;
     }
-    .compare-cat-btn {
+    .cat-pill-btn {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 7px 16px;
-      border-radius: 8px;
+      gap: 5px;
+      padding: 7px 20px;
+      border-radius: var(--radius-pill, 999px);
       background: transparent;
       border: none;
       color: #64748b;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 750;
       cursor: pointer;
-      transition: all .2s var(--ease-out);
+      transition: all 0.2s ease;
     }
-    .compare-cat-btn:hover {
-      color: var(--ink);
-      background: rgba(255, 255, 255, .6);
+    .cat-pill-btn:hover {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.7);
     }
-    .compare-cat-btn[aria-pressed="true"] {
+    .cat-pill-btn[aria-pressed="true"] {
       background: #ffffff;
-      color: var(--green-deep);
-      box-shadow: 0 2px 8px rgba(22, 191, 83, .12);
-      border: 1px solid rgba(22, 191, 83, .15);
-    }
-    .compare-toolbar-right {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .compare-slots-display {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: #334155;
-    }
-    .slot-tag {
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 12px;
-    }
-    .slot-tag.a {
-      background: #ecfdf5;
-      color: #065f46;
-      border: 1px solid #a7f3d0;
-    }
-    .slot-tag.b {
-      background: #f0f9ff;
-      color: #075985;
-      border: 1px solid #bae6fd;
-    }
-    .slot-vs-divider {
-      font-size: 11px;
-      font-weight: 800;
-      color: #94a3b8;
-    }
-    .compare-start-debate-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 20px;
-      height: 40px;
-      border-radius: var(--radius-pill);
-      background: var(--forest);
-      color: var(--green-bright);
-      font-size: 13px;
-      font-weight: 700;
-      border: 1px solid rgba(85, 242, 123, 0.3);
-      cursor: pointer;
-      transition: all .2s var(--ease-out);
-      white-space: nowrap;
-    }
-    .compare-start-debate-btn:hover:not(:disabled) {
-      background: #0d381d;
-      border-color: var(--green-bright);
-      box-shadow: 0 6px 20px rgba(85, 242, 123, .18);
-      transform: translateY(-1px);
-    }
-    .compare-start-debate-btn:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-      background: rgba(255, 255, 255, .7);
-      color: #94a3b8;
-      border-color: #dce7df;
+      color: #0c6b34;
+      box-shadow: 0 2px 8px rgba(22, 191, 83, 0.15);
+      border: 1px solid rgba(22, 191, 83, 0.2);
     }
 
-    /* ── Vehicle Selection Grid (Premium Green-Themed Cards) ─ */
-    .compare-select-grid {
+    .catalog-search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: var(--radius-pill, 999px);
+      padding: 7px 18px;
+      transition: border-color 0.2s ease;
+    }
+    .catalog-search-wrap:focus-within {
+      border-color: #16bf53;
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.15);
+    }
+    .catalog-search-wrap .search-icon {
+      width: 15px;
+      height: 15px;
+      color: #94a3b8;
+    }
+    .catalog-search-wrap input {
+      border: none;
+      outline: none;
+      font-size: 13px;
+      color: #0f172a;
+      width: 170px;
+      background: transparent;
+    }
+    .catalog-search-wrap input::placeholder {
+      color: #94a3b8;
+    }
+
+    /* Scalable Vehicle Grid */
+    .catalog-vehicles-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 40px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      align-items: stretch;
+      flex: 1;
     }
-    @media (max-width: 1100px) {
-      .compare-select-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-    @media (max-width: 640px) {
-      .compare-select-grid {
-        grid-template-columns: 1fr;
-      }
-    }
+
+    /* Catalog Card Item */
+    .catalog-vehicle-card,
     .compare-select-card {
-      position: relative;
-      border-radius: 18px;
-      background: linear-gradient(168deg, #ffffff 0%, #f7fdf9 100%);
-      border: 1.5px solid rgba(22, 191, 83, .15);
-      padding: 20px;
-      cursor: pointer;
-      transition: all .25s var(--ease-out);
+      background: #ffffff;
+      border: 1.5px solid #e2ece5;
+      border-radius: 20px;
+      padding: 16px 18px;
       display: flex;
       flex-direction: column;
-      min-height: 320px;
-      box-shadow: 0 4px 18px rgba(4, 35, 15, .04);
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: all 0.22s var(--ease-out);
+      min-height: 250px;
+      justify-content: space-between;
     }
+    .catalog-vehicle-card:hover,
     .compare-select-card:hover {
-      border-color: var(--green-deep);
-      transform: translateY(-5px);
-      box-shadow: 0 16px 40px rgba(22, 191, 83, .12), 0 4px 12px rgba(0,0,0,.04);
+      border-color: #16bf53;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(22, 191, 83, 0.14);
     }
+    .catalog-vehicle-card.selected-1,
     .compare-select-card.selected-a {
       border-color: #16bf53;
-      background: linear-gradient(168deg, #f0fdf4 0%, #dcfce7 100%);
-      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.30), 0 8px 28px rgba(22, 191, 83, .14);
+      background: linear-gradient(180deg, #f7fdf9 0%, #ffffff 100%);
+      box-shadow: 0 0 0 2px rgba(22, 191, 83, 0.35);
     }
+    .catalog-vehicle-card.selected-2,
     .compare-select-card.selected-b {
       border-color: #0284c7;
-      background: linear-gradient(168deg, #f0f9ff 0%, #e0f2fe 100%);
-      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.30), 0 8px 28px rgba(2, 132, 199, .10);
+      background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.35);
     }
-    .compare-slot-badge {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      padding: 5px 14px;
-      border-radius: var(--radius-pill);
+
+    .compare-slot-badge,
+    .card-status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      align-self: flex-start;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill, 999px);
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .03em;
+      font-weight: 750;
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      margin-bottom: 2px;
+      transition: all 0.2s ease;
     }
-    .compare-slot-badge.slot-a {
-      background: #16bf53;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(22, 191, 83, .3);
+    .compare-slot-badge.slot-a,
+    .compare-select-card.selected-a .compare-slot-badge {
+      background: #e8f7ee;
+      color: #0c6b34;
+      border-color: #16bf53;
     }
-    .compare-slot-badge.slot-b {
-      background: #0284c7;
-      color: #fff;
-      box-shadow: 0 3px 10px rgba(2, 132, 199, .3);
+    .compare-slot-badge.slot-b,
+    .compare-select-card.selected-b .compare-slot-badge {
+      background: #f0f9ff;
+      color: #0369a1;
+      border-color: #0284c7;
     }
+
+    .card-thumb-frame,
     .compare-card-thumb-wrap {
       width: 100%;
-      height: 160px;
-      background: linear-gradient(145deg, #f0f7f2, #e8f5ec);
-      border: 1px solid rgba(22, 191, 83, .10);
-      border-radius: 14px;
-      padding: 8px;
+      height: 120px;
+      max-height: 120px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      margin: 4px 0 8px;
+      background: radial-gradient(circle at 50% 60%, rgba(240, 247, 242, 0.7) 0%, transparent 70%);
+      border-radius: 14px;
+      overflow: hidden;
+      flex-shrink: 0;
     }
+    .card-thumb-frame img,
     .compare-card-thumb {
       max-width: 100%;
       max-height: 100%;
+      width: auto;
+      height: 100px;
       object-fit: contain;
-      transition: transform .3s var(--ease-out);
+      display: block;
+      transition: transform 0.25s ease;
     }
+    .catalog-vehicle-card:hover .card-thumb-frame img,
     .compare-select-card:hover .compare-card-thumb {
-      transform: scale(1.06);
+      transform: scale(1.05);
     }
+
+    .card-company-tag,
     .compare-card-company {
-      font-size: 11px;
-      color: var(--green-deep);
-      font-weight: 780;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #0c6b34;
       text-transform: uppercase;
-      letter-spacing: .08em;
-      margin-bottom: 3px;
+      letter-spacing: .05em;
+      display: block;
+      margin-bottom: 2px;
     }
+    .card-vehicle-title,
     .compare-card-name {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--ink);
-      margin: 0 0 6px;
-      letter-spacing: -.02em;
-    }
-    .compare-card-price {
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
       font-size: 16px;
-      font-weight: 800;
-      color: #0d7b38;
-      margin-bottom: 14px;
+      font-weight: 850;
+      color: #0f172a;
+      margin: 0 0 3px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
+    .card-price-range,
+    .compare-card-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: #059669;
+      margin-bottom: 6px;
+    }
+    .card-spec-row,
     .compare-card-key-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
       margin-top: auto;
-      background: linear-gradient(135deg, #eef8f1, #e4f3e8);
-      border: 1px solid rgba(22, 191, 83, .12);
-      border-radius: 8px;
-      padding: 9px 13px;
-      font-size: 12px;
+    }
+    .compare-card-key-pill span {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 3px 9px;
+      background: #f1f8f3;
+      border: 1px solid #e1ede5;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 650;
       color: #334155;
-      font-weight: 600;
+    }
+
+    /* ── Tier 3: Bottom Consultation Banner ───────────────────── */
+    .compare-tier-banner {
+      flex-shrink: 0;
+      background: var(--compare-dark-forest);
+      border-radius: 16px;
+      padding: 8px 18px;
+      color: #ffffff;
+      box-shadow: 0 8px 24px rgba(6, 35, 20, 0.18);
+    }
+    .consult-banner-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 14px;
     }
-    .compare-card-spec-tags {
+    .consult-left-wrap {
       display: flex;
-      flex-direction: column;
-      gap: 4px;
-      margin-top: auto;
-      border-top: 1px solid rgba(22, 191, 83, .08);
-      padding-top: 8px;
+      align-items: center;
+      gap: 10px;
     }
-    .compare-card-spec-tags span {
+    .consult-mini-mascot {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+    }
+    .consult-text-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 11.5px;
-      font-weight: 550;
-      color: #475569;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .consult-sparkle {
+      color: #55f27b;
+      font-size: 13px;
+    }
+    .consult-text-wrap strong {
+      color: #ffffff;
+      font-weight: 750;
+    }
+    .consult-text-wrap span {
+      color: rgba(255, 255, 255, 0.65);
     }
 
-    /* ── Compare Footer CTA (dark forest bar) ────────────── */
-    .compare-footer-cta {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr) auto;
+    .consult-steps-trail {
+      display: flex;
       align-items: center;
-      gap: 20px;
-      margin-top: 8px;
-      padding: 22px 32px;
-      background: var(--forest);
-      border-radius: 20px;
-      color: rgba(255, 255, 255, .85);
-      box-shadow: 0 18px 48px rgba(4, 35, 15, .16);
-      margin-bottom: 40px;
+      gap: 8px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
     }
-    .compare-footer-cta img {
-      width: 72px;
-      height: 72px;
-      object-fit: contain;
-      filter: drop-shadow(0 8px 12px rgba(0,0,0,.2));
-    }
-    .compare-footer-cta strong {
-      display: block;
-      font-size: 16px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: -.02em;
-    }
-    .compare-footer-cta span {
-      display: block;
-      margin-top: 4px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, .6);
-      line-height: 1.4;
-    }
-    .compare-footer-cta .cta-btn {
+    .trail-item {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      min-height: 42px;
-      padding: 0 22px;
-      color: var(--forest);
-      border-radius: var(--radius-pill);
-      background: var(--green);
-      font-size: 13px;
-      font-weight: 720;
-      border: none;
-      cursor: pointer;
-      transition: all .2s var(--ease-out);
-      white-space: nowrap;
+      gap: 4px;
     }
-    .compare-footer-cta .cta-btn:hover {
-      background: var(--green-bright);
-      box-shadow: 0 6px 20px rgba(85, 242, 123, .25);
-      transform: translateY(-2px);
+    .trail-item.active {
+      color: #55f27b;
+      font-weight: 700;
+    }
+    .trail-sep {
+      color: rgba(255, 255, 255, 0.3);
+      font-size: 9px;
     }
 
-    /* ── Compare Page Mobile Responsive ───────────────────── */
-    @media (max-width: 768px) {
-      .compare-guide-callout {
-        grid-template-columns: 72px minmax(0, 1fr);
-        gap: 14px;
-        padding: 8px 16px 8px 8px;
+    .consult-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 18px;
+      border-radius: var(--radius-pill, 999px);
+      background: #16bf53;
+      color: #062314;
+      border: none;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .consult-cta-btn:hover {
+      background: #55f27b;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 960px) {
+      .consult-steps-trail {
+        display: none;
       }
-      .compare-guide-callout img {
-        width: 72px;
-        height: 72px;
+      .consult-text-wrap span {
+        display: none;
       }
-      .compare-guide-callout strong {
-        font-size: 14px;
-      }
-      .compare-guide-callout span {
-        font-size: 12px;
-      }
-      .compare-master-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-      }
-      .compare-toolbar-right {
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-      .compare-footer-cta {
-        grid-template-columns: 1fr;
-        text-align: center;
-        padding: 24px 20px;
-        gap: 14px;
-      }
-      .compare-footer-cta img {
-        margin: 0 auto;
-      }
-      .compare-footer-cta .cta-btn {
-        margin: 0 auto;
-      }
+    }
+
+    /* Accessibility focus rings */
+    .cat-pill-btn:focus-visible,
+    .catalog-vehicle-card:focus-visible,
+    .stage-compare-cta:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.45);
     }
 
     /* ============================================================
@@ -7238,22 +7923,32 @@
        ============================================================ */
     #debate-arena-stage {
       position: fixed;
-      inset: 0;
-      z-index: 1000;
-      background: #04160c;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 9999999 !important;
+      background: #041a0d;
       background-image:
-        radial-gradient(circle at 50% 0%, rgba(85, 242, 123, 0.20) 0%, transparent 55%),
-        radial-gradient(circle at 10% 85%, rgba(14, 165, 233, 0.14) 0%, transparent 45%),
-        radial-gradient(circle at 90% 85%, rgba(22, 191, 83, 0.18) 0%, transparent 45%);
+        radial-gradient(circle at 50% 0%, rgba(85, 242, 123, 0.22) 0%, transparent 60%),
+        radial-gradient(circle at 10% 90%, rgba(14, 165, 233, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 90% 90%, rgba(22, 191, 83, 0.18) 0%, transparent 50%);
       color: #fff;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      height: 100vh;
-      max-height: 100vh;
-      overflow: hidden;
-      padding: 10px 22px 12px;
+      overflow-y: auto;
+      contain: layout;
+      will-change: transform, opacity;
+      transform: translate3d(0, 0, 0);
+      padding: 16px 32px 20px;
       box-sizing: border-box;
+      font-family: var(--font-sans, "Figtree", system-ui, -apple-system, sans-serif);
+    }
+    #debate-arena-stage[hidden] {
+      display: none !important;
     }
     .arena-topbar {
       display: flex;
@@ -7261,9 +7956,8 @@
       justify-content: space-between;
       max-width: 1280px;
       width: 100%;
-      margin: 0 auto 6px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      margin: 0 auto 12px;
+      padding: 0;
       flex-shrink: 0;
     }
     .arena-topbar-left {
@@ -7275,105 +7969,116 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 4px 12px;
-      background: rgba(85, 242, 123, 0.15);
+      padding: 6px 16px;
+      background: rgba(85, 242, 123, 0.18);
       border: 1.5px solid rgba(85, 242, 123, 0.45);
-      border-radius: var(--radius-pill);
-      color: var(--green-bright);
-      font-size: 12px;
+      border-radius: var(--radius-pill, 9999px);
+      color: #83ff9d;
+      font-size: 13px;
       font-weight: 800;
-      box-shadow: 0 0 15px rgba(85, 242, 123, 0.2);
+      letter-spacing: -0.01em;
+      box-shadow: 0 0 16px rgba(85, 242, 123, 0.25);
     }
     .arena-live-pill i {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: var(--green-bright);
-      box-shadow: 0 0 8px var(--green-bright);
+      background: #55f27b;
+      box-shadow: 0 0 10px #55f27b;
       animation: pulse-dot 1.2s infinite;
     }
     .arena-exit-btn {
-      padding: 5px 14px;
-      border-radius: var(--radius-pill);
-      background: rgba(255, 255, 255, 0.10);
-      border: 1px solid rgba(255, 255, 255, 0.22);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 7px 18px;
+      border-radius: var(--radius-pill, 9999px);
+      background: #e11d48;
+      border: 1px solid #be123c;
       color: #fff;
-      font-size: 12px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
       cursor: pointer;
       transition: all .2s ease;
+      box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4);
     }
     .arena-exit-btn:hover {
-      background: #ef4444;
-      border-color: #ef4444;
+      background: #f43f5e;
+      border-color: #e11d48;
       color: #fff;
       transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(244, 63, 94, 0.5);
     }
 
     /* Dual Stage Arena Container */
     .arena-split-stage {
       display: grid;
-      grid-template-columns: 1fr 230px 1fr;
-      gap: 14px;
+      grid-template-columns: 1fr 240px 1fr;
+      gap: 20px;
       max-width: 1280px;
       width: 100%;
       margin: 0 auto;
       align-items: stretch;
       flex: 1;
       min-height: 0;
-      max-height: calc(100vh - 55px);
     }
 
-    /* Podium Cards (Crystal Clear Speaker Highlighting) */
+    /* Podium Cards (Matching Visual Showroom Card Roundness & Glass) */
     .arena-podium {
-      background: rgba(255, 255, 255, 0.98);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
+      border-radius: 24px;
+      padding: 16px 20px;
       display: flex;
       flex-direction: column;
       position: relative;
-      color: var(--ink);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-      transition: all .25s ease;
-      opacity: 0.78;
-      filter: grayscale(10%);
+      color: var(--ink, #111714);
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      transition: all .28s ease;
+      opacity: 0.82;
+      filter: grayscale(12%);
       min-height: 0;
+      contain: layout;
+      will-change: transform, opacity;
+      transform: translate3d(0, 0, 0);
     }
     .arena-podium.active-speaker {
       opacity: 1;
       filter: none;
       border-color: #16bf53;
-      box-shadow: 0 0 0 4px rgba(22, 191, 83, 0.35), 0 16px 45px rgba(22, 191, 83, 0.35);
-      transform: translateY(-2px);
+      box-shadow: 0 0 0 3px rgba(22, 191, 83, 0.35), 0 20px 50px rgba(22, 191, 83, 0.25);
+      transform: translateY(-3px);
     }
     .arena-podium.podium-b.active-speaker {
       opacity: 1;
       filter: none;
       border-color: #0284c7;
-      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.35), 0 16px 45px rgba(2, 132, 199, 0.35);
-      transform: translateY(-2px);
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.35), 0 20px 50px rgba(2, 132, 199, 0.25);
+      transform: translateY(-3px);
     }
     .arena-podium.active-speaker .podium-agent-badge.a {
       background: #16bf53;
       color: #ffffff;
       border-color: #16bf53;
-      box-shadow: 0 0 12px rgba(22, 191, 83, 0.5);
+      box-shadow: 0 4px 16px rgba(22, 191, 83, 0.4);
     }
     .arena-podium.active-speaker .podium-agent-badge.b {
       background: #0284c7;
       color: #ffffff;
       border-color: #0284c7;
-      box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
     }
     .arena-podium.active-speaker .podium-quote-bubble {
       background: #ffffff;
-      border-width: 2px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.10);
+      border-color: #d1fae5;
+      box-shadow: 0 8px 24px rgba(22, 191, 83, 0.12);
       font-weight: 600;
       color: #052e16;
     }
     .arena-podium.podium-b.active-speaker .podium-quote-bubble {
+      border-color: #bae6fd;
       color: #082f49;
     }
 
@@ -7389,8 +8094,8 @@
       gap: 7px;
       font-size: 12px;
       font-weight: 800;
-      padding: 5px 12px;
-      border-radius: var(--radius-pill);
+      padding: 5px 13px;
+      border-radius: var(--radius-pill, 9999px);
       transition: all .2s ease;
     }
     .podium-agent-badge.a {
@@ -7405,110 +8110,129 @@
     }
     .podium-slot-tag {
       font-size: 10.5px;
-      font-weight: 800;
+      font-weight: 850;
       text-transform: uppercase;
-      letter-spacing: .06em;
-      color: #64748b;
+      letter-spacing: .12em;
+      color: #179a5b;
+    }
+    .podium-b .podium-slot-tag {
+      color: #0284c7;
     }
 
+    /* Vehicle Image Container matching showroom frame style */
     .podium-vehicle-img-wrap {
       width: 100%;
-      height: clamp(145px, 21vh, 185px);
-      background: #f0f7f2;
-      border: 1.5px solid rgba(22, 191, 83, .18);
-      border-radius: 14px;
+      height: clamp(145px, 22vh, 190px);
+      aspect-ratio: 16 / 10;
+      contain: layout paint;
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f4f8f5 100%);
+      border: 1.5px solid rgba(18, 35, 27, 0.08);
+      border-radius: 18px;
       padding: 0;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       position: relative;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.03), 0 4px 14px rgba(0, 0, 0, 0.04);
     }
     .podium-b .podium-vehicle-img-wrap {
-      background: #f0f9ff;
-      border-color: rgba(2, 132, 199, .22);
+      background: radial-gradient(circle at 50% 50%, #ffffff 0%, #f0f7fc 100%);
+      border-color: rgba(2, 132, 199, 0.16);
     }
     .podium-vehicle-img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      border-radius: 13px;
+      border-radius: 16px;
       transition: transform .35s ease;
     }
     .arena-podium.active-speaker .podium-vehicle-img {
-      transform: scale(1.05);
+      transform: scale(1.04);
     }
     .podium-character-overlay {
       position: absolute;
       bottom: 8px;
       right: 8px;
-      background: rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(7, 28, 16, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-pill);
-      padding: 3px 9px;
+      border-radius: var(--radius-pill, 9999px);
+      padding: 3px 10px;
       font-size: 11px;
       font-weight: 750;
       color: #fff;
       display: flex;
       align-items: center;
       gap: 5px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     }
-    .podium-b .podium-character-overlay {
-      color: #fff;
-    }
+
     .podium-vehicle-title {
-      font-family: var(--font-display);
-      font-size: clamp(18px, 1.8vw, 21px);
+      font-family: var(--font-display, "Outfit", sans-serif);
+      font-size: clamp(19px, 1.9vw, 24px);
       font-weight: 800;
       margin: 0 0 2px;
-      color: var(--ink);
+      color: var(--ink, #111714);
       line-height: 1.15;
+      letter-spacing: -0.02em;
     }
     .podium-vehicle-company {
       font-size: 12px;
-      color: #0d7b38;
+      color: #0b692f;
       font-weight: 750;
-      margin-bottom: 8px;
+      margin-bottom: 9px;
       display: block;
+    }
+    .podium-b .podium-vehicle-company {
+      color: #0369a1;
     }
     .podium-specs-pill-row {
       display: flex;
       flex-wrap: wrap;
-      gap: 5px;
+      gap: 6px;
       margin-bottom: 10px;
     }
     .podium-spec-pill {
       font-size: 11px;
       font-weight: 700;
-      padding: 2.5px 7px;
-      border-radius: 6px;
+      padding: 3.5px 9px;
+      border-radius: var(--radius-pill, 9999px);
       background: #f1f6f2;
       border: 1px solid #dce7df;
-      color: #1f3825;
+      color: #1a3c26;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .podium-b .podium-spec-pill {
+      background: #f0f9ff;
+      border-color: #bae6fd;
+      color: #0c4a6e;
     }
 
     .podium-quote-bubble {
       margin-top: auto;
       background: #fafcfb;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 12.5px;
-      line-height: 1.4;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.5;
       color: #0f172a;
       border: 1.5px solid #e2e8f0;
-      border-left: 4px solid var(--green-deep);
-      min-height: 52px;
-      max-height: 85px;
+      border-left: 4px solid var(--green-deep, #16bf53);
+      min-height: 100px;
+      max-height: 145px;
       overflow-y: auto;
       display: flex;
-      align-items: center;
-      font-style: italic;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 6px;
+      font-style: normal;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
     }
     .podium-b .podium-quote-bubble {
       border-left-color: #0284c7;
@@ -7526,30 +8250,32 @@
       min-height: 0;
     }
 
-    /* Moderator Mascot Card */
+    /* Moderator Mascot Card (Consistent with Landing Guide Badge) */
     .arena-moderator-card {
       width: 100%;
       background: rgba(255, 255, 255, 0.96);
       border: 1.5px solid rgba(22, 191, 83, 0.28);
-      border-radius: 14px;
-      padding: 7px 10px;
+      border-radius: 20px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       gap: 10px;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       box-sizing: border-box;
     }
     .moderator-avatar-wrap {
       position: relative;
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       flex-shrink: 0;
     }
     .moderator-avatar-wrap img {
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.15));
+      filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.16));
     }
     .moderator-live-dot {
       position: absolute;
@@ -7558,9 +8284,9 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: var(--green-bright);
+      background: #55f27b;
       border: 1.5px solid #fff;
-      box-shadow: 0 0 6px var(--green-bright);
+      box-shadow: 0 0 6px #55f27b;
       animation: pulse-dot 1.2s infinite;
     }
     .moderator-text {
@@ -7572,45 +8298,50 @@
     .moderator-text strong {
       font-size: 12px;
       font-weight: 800;
-      color: var(--ink);
+      color: var(--ink, #111714);
     }
     .moderator-text span {
       font-size: 10px;
       color: #166534;
-      font-weight: 700;
+      font-weight: 750;
+      letter-spacing: 0.02em;
     }
 
     .arena-vs-shield {
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      background: var(--forest);
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-pill, 9999px);
+      background: #071c10;
       display: grid;
       place-items: center;
+      font-family: var(--font-display, "Outfit", sans-serif);
       font-size: 15px;
       font-weight: 900;
-      color: var(--green-bright);
-      box-shadow: 0 0 20px rgba(85, 242, 123, 0.35);
-      border: 2px solid #fff;
+      color: #55f27b;
+      box-shadow: 0 0 24px rgba(85, 242, 123, 0.4);
+      border: 2px solid rgba(85, 242, 123, 0.45);
       flex-shrink: 0;
     }
+
     .arena-meters-card {
       width: 100%;
-      background: rgba(255, 255, 255, 0.98);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 16px;
-      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.96);
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
+      border-radius: 20px;
+      padding: 11px 13px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.22);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       box-sizing: border-box;
     }
     .meters-title {
-      font-size: 9.5px;
-      font-weight: 800;
-      letter-spacing: .08em;
-      color: #64748b;
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .12em;
+      color: #179a5b;
       text-align: center;
       text-transform: uppercase;
       margin-bottom: 2px;
@@ -7630,20 +8361,22 @@
       letter-spacing: .03em;
     }
     .battle-meter-bar {
-      height: 6px;
-      border-radius: 6px;
+      height: 7px;
+      border-radius: var(--radius-pill, 9999px);
       background: #e2e8f0;
       overflow: hidden;
       display: flex;
     }
     .meter-fill-a {
-      background: var(--green-deep);
+      background: #16bf53;
       height: 100%;
+      border-radius: var(--radius-pill, 9999px) 0 0 var(--radius-pill, 9999px);
       transition: width .4s ease;
     }
     .meter-fill-b {
       background: #0284c7;
       height: 100%;
+      border-radius: 0 var(--radius-pill, 9999px) var(--radius-pill, 9999px) 0;
       transition: width .4s ease;
     }
 
@@ -7652,73 +8385,28 @@
       max-width: 1260px;
       width: 100%;
       margin: 0 auto 10px;
-      height: 90px;
-      min-height: 90px;
+      height: 85px;
+      min-height: 85px;
       overflow-y: auto;
       background: rgba(255, 255, 255, 0.96);
-      border: 1.5px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
+      border: 1.5px solid rgba(255, 255, 255, 0.65);
+      border-radius: 20px;
       padding: 10px 16px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.22);
       box-sizing: border-box;
       flex-shrink: 0;
     }
     .arena-feed-entry {
       font-size: 13px;
       line-height: 1.4;
-      color: var(--ink);
+      color: var(--ink, #111714);
     }
     .arena-feed-entry.speaker-a strong { color: #0b692f; }
     .arena-feed-entry.speaker-b strong { color: #0369a1; }
     .arena-feed-entry.speaker-you strong { color: #d97706; }
-
-    /* Arena Interactive Control Deck */
-    .arena-controls-dock {
-      max-width: 1260px;
-      width: 100%;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      background: rgba(7, 28, 16, 0.95);
-      border: 1.5px solid rgba(85, 242, 123, 0.35);
-      border-radius: 20px;
-      padding: 10px 18px;
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
-      flex-shrink: 0;
-    }
-    .arena-topics-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .arena-topic-btn {
-      padding: 7px 14px;
-      border-radius: var(--radius-pill);
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: #f1f5f9;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s ease;
-    }
-    .arena-topic-btn:hover {
-      background: rgba(85,242,123,0.25);
-      border-color: var(--green);
-      color: var(--green-bright);
-    }
-    .arena-actions-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
 
     @media (max-width: 900px) {
       .arena-split-stage {
@@ -7871,23 +8559,24 @@
     }
 
     .dealers-main-title {
-      font-size: 18px;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 19px;
       font-weight: 800;
       color: #111827;
       margin: 0;
-      letter-spacing: -.02em;
+      letter-spacing: -.03em;
       line-height: 1.2;
     }
 
     .dealers-main-title .text-green {
       color: #16bf53;
-      text-shadow: 0 0 12px rgba(22, 191, 83, 0.2);
+      text-shadow: 0 0 12px rgba(22, 191, 83, 0.25);
     }
 
     .dealers-main-sub {
-      font-size: 11px;
+      font-size: 11.5px;
       color: #6b7280;
-      margin: 1px 0 0;
+      margin: 2px 0 0;
     }
 
     /* Stepper Row with Clickable Nav Pills */
@@ -7901,14 +8590,15 @@
     .dealer-step-btn {
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      padding: 7px 14px;
-      border-radius: 10px;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: var(--radius-pill, 999px);
       background: #ffffff;
       border: 1.5px solid #e2e8f0;
       color: #4b5563;
-      font-size: 11.5px;
-      font-weight: 650;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
       transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
       user-select: none;
@@ -7922,14 +8612,14 @@
     }
 
     .dealer-step-btn .step-num {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       background: #f1f5f9;
       color: #475569;
       display: grid;
       place-items: center;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 800;
       transition: all .2s ease;
     }
@@ -7938,13 +8628,13 @@
       background: #062817;
       border-color: #062817;
       color: #ffffff;
-      box-shadow: 0 4px 12px rgba(6, 40, 23, 0.25);
+      box-shadow: 0 4px 14px rgba(6, 40, 23, 0.28);
     }
 
     .dealer-step-btn.active .step-num {
       background: #16bf53;
       color: #062817;
-      box-shadow: 0 0 8px rgba(22, 191, 83, 0.6);
+      box-shadow: 0 0 10px rgba(22, 191, 83, 0.7);
     }
 
     .dealer-step-btn.completed {
@@ -7971,14 +8661,14 @@
     /* LEFT: Form Card */
     .dealers-form-card {
       background: #ffffff;
-      border-radius: 16px;
-      border: 1px solid #e3ede6;
-      padding: 16px 22px;
+      border-radius: 18px;
+      border: 1.5px solid #e3ede6;
+      padding: 18px 24px;
       display: flex;
       flex-direction: column;
       min-height: 0;
       overflow: hidden;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
       box-sizing: border-box;
     }
 
@@ -7993,16 +8683,16 @@
     }
 
     .form-card-icon-box {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
       background: linear-gradient(135deg, #074728, #0e854b);
       color: #ffffff;
       display: grid;
       place-items: center;
       font-size: 18px;
       flex-shrink: 0;
-      box-shadow: 0 4px 10px rgba(7, 71, 40, 0.2);
+      box-shadow: 0 4px 12px rgba(7, 71, 40, 0.22);
     }
 
     .form-card-title-meta {
@@ -8011,10 +8701,12 @@
     }
 
     .form-card-title-meta h2 {
-      font-size: 15px;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+      font-size: 16px;
       font-weight: 750;
       color: #111827;
       margin: 0 0 2px;
+      letter-spacing: -.02em;
     }
 
     .form-card-title-meta p {
@@ -8027,10 +8719,11 @@
       background: #e8f7ee;
       color: #16bf53;
       border: 1px solid #bbf7d0;
+      font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
       font-size: 11px;
       font-weight: 750;
       padding: 4px 10px;
-      border-radius: 6px;
+      border-radius: var(--radius-pill, 999px);
       margin-left: auto;
       flex-shrink: 0;
     }
@@ -8650,296 +9343,6 @@
       background: #4ade80;
       border-radius: 50%;
       box-shadow: 0 0 6px #4ade80;
-    }
-
-    /* RIGHT: AI VOICE COPILOT DARK CARD */
-    .dealers-copilot-dark-card {
-      background: #091a10;
-      border: 1px solid rgba(22, 191, 83, 0.18);
-      border-radius: 16px;
-      padding: 16px 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      height: 100%;
-      padding: 0 12px;
-      font-size: 13px;
-    }
-
-    .whatsapp-icon {
-      padding-right: 12px;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-    }
-
-    .select-with-chevron select {
-      width: 100%;
-      height: 42px;
-      padding: 0 12px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 9px;
-      font-size: 13px;
-      outline: none;
-      background: #ffffff;
-      box-sizing: border-box;
-    }
-
-    .field-hint {
-      margin: 0 0 4px;
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .field-error {
-      font-size: 10.5px;
-      color: #dc2626;
-      font-weight: 500;
-      min-height: 12px;
-      line-height: 1.2;
-    }
-
-    /* Category Cards Grid */
-    .category-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 4px;
-    }
-
-    .cat-card {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: #fafafa;
-      border: 1px solid #e5e7eb;
-      cursor: pointer;
-      transition: all .15s ease;
-    }
-
-    .cat-card:hover {
-      background: #f9fafb;
-      border-color: #9ca3af;
-    }
-
-    .cat-card.active {
-      background: #f0fdf4;
-      border-color: #16bf53;
-      box-shadow: 0 0 0 1px #16bf53;
-    }
-
-    .cat-card .cat-icon {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-
-    .cat-card strong {
-      font-size: 12px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 2px;
-    }
-
-    .cat-card span {
-      font-size: 10.5px;
-      color: #6b7280;
-      line-height: 1.2;
-    }
-
-    .cat-card .cat-check {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 16px;
-      height: 16px;
-      border-radius: 4px;
-      background: #e5e7eb;
-      display: grid;
-      place-items: center;
-      font-size: 10px;
-      font-weight: 700;
-      color: transparent;
-      transition: all .15s ease;
-    }
-
-    .cat-card.active .cat-check {
-      background: #16bf53;
-      color: #ffffff;
-    }
-
-    /* Brand Chips Grid */
-    .brand-chips-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 6px;
-    }
-
-    .brand-chip {
-      padding: 5px 10px;
-      border-radius: 6px;
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      color: #374151;
-      font-size: 11.5px;
-      font-weight: 550;
-      cursor: pointer;
-      transition: all .15s ease;
-    }
-
-    .brand-chip:hover {
-      border-color: #9ca3af;
-      color: #111827;
-    }
-
-    .brand-chip.active {
-      background: #071c10;
-      border-color: #071c10;
-      color: #ffffff;
-    }
-
-    .custom-brand-row {
-      display: flex;
-      gap: 6px;
-      align-items: center;
-      margin-top: 4px;
-    }
-
-    .custom-brand-row input {
-      flex: 1;
-      height: 32px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      font-size: 11.5px;
-      outline: none;
-    }
-
-    .custom-brand-row button {
-      height: 32px;
-      padding: 0 12px;
-      border-radius: 6px;
-      background: #f3f4f6;
-      border: 1px solid #d1d5db;
-      color: #374151;
-      font-size: 11.5px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    /* Service Config Boxes */
-    .service-config-box {
-      background: #fafafa;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      padding: 8px 12px;
-      margin-bottom: 6px;
-    }
-
-    .service-config-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .service-config-header strong {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: #111827;
-      margin-bottom: 2px;
-    }
-
-    .service-config-header span {
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    .service-config-body {
-      margin-top: 6px;
-      padding-top: 6px;
-      border-top: 1px solid #e5e7eb;
-    }
-
-    .sub-label {
-      display: block;
-      font-size: 11px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 4px;
-    }
-
-    .bank-partners-grid,
-    .td-slots-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 6px;
-    }
-
-    .bank-check-item,
-    .slot-pill-check {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      color: #374151;
-      cursor: pointer;
-    }
-
-    .td-modes-row {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    /* Form Footer Actions */
-    .form-card-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-top: 8px;
-      padding-top: 10px;
-      border-top: 1px solid #f1f5f9;
-      flex-shrink: 0;
-    }
-
-    .btn-continue-action,
-    .btn-step-submit {
-      background: #074728;
-      color: #ffffff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 20px;
-      font-size: 12.5px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background .15s ease;
-      margin-left: auto;
-    }
-
-    .btn-continue-action:hover,
-    .btn-step-submit:hover {
-      background: #05331d;
-    }
-
-    .btn-step-prev {
-      background: #ffffff;
-      border: 1px solid #d1d5db;
-      color: #374151;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 550;
-      cursor: pointer;
     }
 
     /* RIGHT: AI VOICE COPILOT DARK CARD (CLEAN SENIOR FRONTEND DESIGN) */
@@ -10066,9 +10469,47 @@
 
         <div class="experience-suite__grid">
           <article class="experience-card experience-card--showroom">
-            <div class="experience-card__media">
-              <img src="/assets/vehicles/tata-nexon-ev.jpg" alt="Tata Nexon EV ready to explore in the EasyEV virtual showroom" decoding="async">
-              <span class="experience-card__media-tag">360&deg; views</span>
+            <div class="experience-card__media landing-spin-viewer" id="landing-360-stage" data-spin-viewer aria-label="Tata Nexon EV interactive 360 viewer. Drag horizontally to rotate.">
+              <!-- 360 Spin Frame for Exterior & Open Doors -->
+              <img id="landing-spin-img" class="landing-spin-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Tata Nexon EV 360 interactive rotation" decoding="async" draggable="false">
+
+              <!-- Interior 360 Cabin Panorama (Pannellum) -->
+              <div id="landing-pano-container" class="landing-pano-container" style="display: none;"></div>
+
+              <!-- Top Left 360 Status Badge -->
+              <span class="experience-card__media-tag" id="landing-360-badge">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:4px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <span id="landing-360-badge-text">360&deg; Exterior View</span>
+              </span>
+
+              <!-- Top Right 3-Option Toggle Bar -->
+              <div class="landing-spin-toggle-bar" role="tablist" aria-label="Showroom 360 View Modes">
+                <button type="button" class="spin-toggle-btn active" data-view-mode="exterior" role="tab" aria-selected="true" title="Closed Exterior 360°">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="3.5"/></svg>
+                  <span>Exterior 360°</span>
+                </button>
+                <button type="button" class="spin-toggle-btn" data-view-mode="open" role="tab" aria-selected="false" title="Open Doors & Gate 360°">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 4h16v16H4z"/><path d="M9 4v16"/><path d="M15 4v16"/></svg>
+                  <span>Gate / Open 360°</span>
+                </button>
+                <button type="button" class="spin-toggle-btn" data-view-mode="interior" role="tab" aria-selected="false" title="Cabin Interior 360°">
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9M3 12a9 9 0 0 1 9-9"/></svg>
+                  <span>Interior 360°</span>
+                </button>
+              </div>
+
+              <!-- Interactive Drag Hint Pill -->
+              <div class="landing-spin-drag-hint" id="landing-spin-drag-hint">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4M3 12h18"/></svg>
+                <span id="landing-spin-hint-text">Drag to spin 360&deg;</span>
+              </div>
+
+              <!-- Left / Right Rotation Arrows (Exterior & Open Modes) -->
+              <div class="landing-spin-arrows" id="landing-spin-arrows">
+                <button type="button" class="landing-spin-arrow-btn prev" id="landing-spin-prev" aria-label="Rotate left">‹</button>
+                <button type="button" class="landing-spin-arrow-btn next" id="landing-spin-next" aria-label="Rotate right">›</button>
+              </div>
+
               <div class="experience-card__voice-chip" aria-hidden="true"><i></i><i></i><i></i><i></i><span>Ask about this car</span></div>
             </div>
             <div class="experience-card__body">
@@ -10082,7 +10523,7 @@
           <article class="experience-card experience-card--debate">
             <div class="experience-card__media experience-card__media--debate">
               <div class="debate-vehicle debate-vehicle--left">
-                <img src="/assets/vehicles/tata-punch-ev.jpg" alt="Tata Punch EV">
+                <img src="/showroom-assets/cars/punch-ev/images/frame-00.jpg" alt="Tata Punch EV">
                 <strong>Punch EV</strong><span>City confidence</span>
               </div>
               <div class="debate-center" aria-hidden="true">
@@ -10090,8 +10531,8 @@
                 <div><i></i><i></i><i></i><i></i><i></i></div>
               </div>
               <div class="debate-vehicle debate-vehicle--right">
-                <img src="/assets/vehicles/mg-windsor-ev.jpg" alt="MG Windsor EV">
-                <strong>Windsor EV</strong><span>Space &amp; comfort</span>
+                <img src="/showroom-assets/cars/comet-ev-carwale/exterior/frame-00.jpg" alt="MG Comet EV">
+                <strong>Comet EV</strong><span>Space &amp; comfort</span>
               </div>
             </div>
             <div class="experience-card__body">
@@ -10286,25 +10727,55 @@
             </p>
             <div class="category-grid" id="prejoin-category-selector">
               <button class="category-tile" type="button" data-category="Electric car" aria-pressed="false">
-                <img class="category-tile__art" src="/assets/car-line-art.jpg" alt="" aria-hidden="true"
-                  decoding="async">
+                <svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 37h6a6 6 0 0 1 12 0h24a6 6 0 0 1 12 0h5a3 3 0 0 0 3-3l-2-9a5 5 0 0 0-4.5-4.5l-12-6.5a6 6 0 0 0-3.5-1H32a6 6 0 0 0-5 2.5L16 26a5 5 0 0 0-5 4.5v3.5a3 3 0 0 0 3 3z" fill="currentColor" fill-opacity="0.08" />
+                  <circle cx="24" cy="37" r="5.5" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="24" cy="37" r="2.5" fill="currentColor" />
+                  <circle cx="60" cy="37" r="5.5" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="60" cy="37" r="2.5" fill="currentColor" />
+                  <path d="M28 24l4.5-8.5a3 3 0 0 1 2.5-1.5h10v10H28z" fill="currentColor" fill-opacity="0.18" />
+                  <path d="M48 14h6a3 3 0 0 1 2.5 1.5l5.5 8.5H48V14z" fill="currentColor" fill-opacity="0.18" />
+                  <line x1="68" y1="28" x2="72" y2="29" stroke-width="2.5" />
+                </svg>
                 <strong>Electric car</strong>
               </button>
               <button class="category-tile" type="button" data-category="Electric scooter" aria-pressed="false">
-                <img class="category-tile__art" src="/assets/2-wheeler-lineart.jpg" alt="" aria-hidden="true"
-                  decoding="async">
+                <svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="21" cy="39" r="6" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="21" cy="39" r="2.5" fill="currentColor" />
+                  <circle cx="61" cy="39" r="6" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="61" cy="39" r="2.5" fill="currentColor" />
+                  <path d="M51 15h9" />
+                  <path d="M56 15l4 24" />
+                  <path d="M54 18l-6 6 4 6" fill="currentColor" fill-opacity="0.15" />
+                  <path d="M52 34H33" stroke-width="2.5" />
+                  <path d="M33 34l-5-11h-13a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6" fill="currentColor" fill-opacity="0.08" />
+                  <path d="M15 23c2-1 8-2 15-2a2 2 0 0 1 2 2v1H15z" fill="currentColor" fill-opacity="0.25" />
+                  <line x1="39" y1="26" x2="45" y2="26" stroke-width="2" />
+                </svg>
                 <strong>Electric scooter</strong>
               </button>
               <button class="category-tile" type="button" data-category="Electric 3-wheeler" aria-pressed="false">
-                <img class="category-tile__art" src="/assets/3-wheeler-line-art.jpg" alt="" aria-hidden="true"
-                  decoding="async">
+                <svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M19 14h36a5 5 0 0 1 4.5 3l7 15.5a4 4 0 0 1-3.5 5.5H59" fill="currentColor" fill-opacity="0.08" />
+                  <path d="M19 14l-4 5v18h5" />
+                  <path d="M28 37h28" />
+                  <path d="M23 22h19v12H23z" fill="currentColor" fill-opacity="0.15" />
+                  <path d="M46 18h9l5.5 12H46z" fill="currentColor" fill-opacity="0.18" />
+                  <circle cx="62" cy="39" r="5.5" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="62" cy="39" r="2.5" fill="currentColor" />
+                  <path d="M58 31l4 8" />
+                  <circle cx="24" cy="39" r="5.5" fill="#fff" stroke="currentColor" stroke-width="2" />
+                  <circle cx="24" cy="39" r="2.5" fill="currentColor" />
+                  <path d="M52 28h4" />
+                </svg>
                 <strong>Electric 3-wheeler</strong>
               </button>
               <button class="category-tile" type="button" data-category="Not sure" aria-pressed="true">
                 <svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                   stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="40" cy="28" r="21" />
-                  <path d="M33 23a7 7 0 1 1 11 6c-3 2-4 3-4 7M40 43h.01" />
+                  <circle cx="40" cy="28" r="21" fill="currentColor" fill-opacity="0.08" />
+                  <path d="M33 23a7 7 0 1 1 11 6c-3 2-4 3-4 7M40 43h.01" stroke-width="2.2" />
                 </svg>
                 <strong>I'm not sure</strong>
               </button>
@@ -10637,48 +11108,117 @@
         </div>
       </header>
 
-      <div class="compare-container">
-        <div class="compare-hero">
-          <h1>Compare EVs · <span>Live Voice Arena</span></h1>
-          <aside class="compare-guide-callout" aria-label="EasyEV guide helps you compare">
-            <img src="/assets/clay-guide-hero-v2.webp" alt="EasyEV clay guide ready to compare" decoding="async">
-            <div><strong>Pick any two EVs — AI advocates debate them live.</strong><span>Two AI voices champion each vehicle, giving you every angle before you decide.</span></div>
-          </aside>
-        </div>
-
-        <!-- Single Unified Master Comparison Toolbar -->
-        <div class="compare-master-toolbar">
-          <div class="compare-cat-nav" role="tablist" aria-label="Filter comparison category">
-            <button class="compare-cat-btn" type="button" data-compare-category="Electric car" aria-pressed="true">Cars</button>
-            <button class="compare-cat-btn" type="button" data-compare-category="Electric scooter" aria-pressed="false">Scooters</button>
-            <button class="compare-cat-btn" type="button" data-compare-category="Electric 3-wheeler" aria-pressed="false">3-Wheelers</button>
+      <!-- Zero-Scroll / Responsive Viewport Container -->
+      <div class="compare-viewport-container">
+        
+        <!-- ========================================================
+             TIER 1: TOP COMPARISON SHOWCASE
+             ======================================================== -->
+        <section class="compare-tier-top" aria-label="Selected Contenders Comparison">
+          
+          <!-- 1A. Left Hero Statement -->
+          <div class="compare-hero-statement">
+            <h1 class="compare-hero-title">
+              Which EV is actually <br>
+              <span class="text-gradient-green">right for you?</span>
+            </h1>
+            <p class="compare-hero-sub">
+              Pick any two EVs and let EasyEV AI compare price, range, charging, performance and real-world ownership.
+            </p>
           </div>
 
-          <div class="compare-toolbar-right">
-            <div class="compare-slots-display">
-              <span class="slot-tag a" id="compare-slot-a-label">Option 1: None</span>
-              <span class="slot-vs-divider">VS</span>
-              <span class="slot-tag b" id="compare-slot-b-label">Option 2: None</span>
+          <!-- 1B. Center Contender Selection Stage Card -->
+          <div class="compare-stage-card">
+            <div class="stage-card-header">
+              <span class="stage-title">SELECT YOUR CONTENDERS</span>
+              <span class="stage-status-badge" id="compare-stage-status"><span class="status-dot"></span> AI READY</span>
             </div>
 
-            <button class="compare-start-debate-btn" id="start-debate-arena-btn" type="button" disabled>
-              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
-              <span>Start Debate</span>
-            </button>
+            <div class="stage-slots-row">
+              <!-- Slot 1 (Option 1 Contender) -->
+              <div class="stage-contender-box empty" id="stage-slot-1" data-slot="1" role="button" tabindex="0" aria-label="Slot 1 contender">
+                <!-- Dynamically rendered by renderCompareStageSlots() -->
+              </div>
+
+              <!-- Center Versus Circle -->
+              <div class="stage-vs-center">
+                <div class="stage-vs-circle">VS</div>
+                <span class="stage-vs-caption">AI will compare both EVs</span>
+              </div>
+
+              <!-- Slot 2 (Option 2 Contender) -->
+              <div class="stage-contender-box empty" id="stage-slot-2" data-slot="2" role="button" tabindex="0" aria-label="Slot 2 contender">
+                <!-- Dynamically rendered by renderCompareStageSlots() -->
+              </div>
+            </div>
+
+            <!-- Stage Bottom Action Bar -->
+            <div class="stage-action-bar">
+              <button class="stage-compare-cta" id="start-debate-arena-btn" type="button" disabled>
+                <span id="stage-cta-label">Select your first EV</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
           </div>
-        </div>
 
-        <!-- 2-Vehicle Selection Matrix -->
-        <div class="compare-select-grid" id="compare-select-grid" aria-live="polite">
-          <!-- Populated dynamically with selection cards -->
-        </div>
+          <!-- 1C. Right 3D Clay Mascot & Speech Bubble -->
+          <div class="compare-mascot-column">
+            <div class="mascot-speech-bubble" id="compare-mascot-bubble">
+              <p>Pick two EVs and I'll help you compare them based on your real needs.</p>
+            </div>
+            <div class="mascot-image-wrap">
+              <img src="/assets/clay-guide-presenting.webp" alt="EasyEV AI Guide Mascot" class="mascot-clay-img" decoding="async">
+            </div>
+          </div>
+        </section>
 
-        <!-- Compare Footer CTA -->
-        <div class="compare-footer-cta">
-          <img src="/assets/clay-guide-success-v2.webp" alt="EasyEV clay guide" decoding="async">
-          <div><strong>Can't decide? Talk to EasyEV AI for a personalized recommendation.</strong><span>Get a one-on-one voice consultation tailored to your commute, budget and charging situation.</span></div>
-          <button class="cta-btn" type="button" data-open-prejoin>Talk to EasyEV AI</button>
-        </div>
+        <!-- ========================================================
+             TIER 2: VEHICLE COLLECTION CATALOG
+             ======================================================== -->
+        <section class="compare-tier-catalog" aria-label="Choose your contenders">
+          <div class="catalog-card-container">
+            
+            <!-- Catalog Top Toolbar -->
+            <div class="catalog-header-row">
+              <div class="catalog-title-group">
+                <div class="catalog-icon-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                </div>
+                <div>
+                  <h2 class="catalog-title">Choose your contenders</h2>
+                  <p class="catalog-subtitle">Browse available EVs and add up to two vehicles for comparison.</p>
+                </div>
+              </div>
+
+              <div class="catalog-controls-group">
+                <!-- Category Buttons with aria-pressed -->
+                <div class="catalog-category-tabs">
+                  <button class="cat-pill-btn" data-compare-category="Electric car" type="button" aria-pressed="true">
+                    Cars
+                  </button>
+                  <button class="cat-pill-btn" data-compare-category="Electric scooter" type="button" aria-pressed="false">
+                    Scooters
+                  </button>
+                  <button class="cat-pill-btn" data-compare-category="Electric 3-wheeler" type="button" aria-pressed="false">
+                    3-Wheelers
+                  </button>
+                </div>
+
+                <!-- Live Search Input -->
+                <div class="catalog-search-wrap">
+                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                  <input type="text" id="compare-search-input" placeholder="Search EVs..." aria-label="Search available EVs">
+                </div>
+              </div>
+            </div>
+
+            <!-- Catalog Scalable Vehicle Cards Grid -->
+            <div class="catalog-vehicles-grid" id="compare-select-grid" aria-live="polite">
+              <!-- Populated dynamically via renderCompareSelectionGrid() -->
+            </div>
+          </div>
+        </section>
+
       </div>
     </section>
 
@@ -10709,7 +11249,7 @@
             <span class="podium-slot-tag">Option 1</span>
           </div>
           <div class="podium-vehicle-img-wrap">
-            <img class="podium-vehicle-img" id="podium-a-img" src="/assets/vehicles/tata-punch-ev.jpg" alt="Vehicle A">
+            <img class="podium-vehicle-img" id="podium-a-img" src="/showroom-assets/cars/punch-ev/images/frame-00.jpg" alt="Vehicle A" fetchpriority="high" loading="eager">
             <div class="podium-character-overlay">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
               <span id="podium-a-character-tag">Punch.ev Champion</span>
@@ -10790,7 +11330,7 @@
             <span class="podium-slot-tag">Option 2</span>
           </div>
           <div class="podium-vehicle-img-wrap">
-            <img class="podium-vehicle-img" id="podium-b-img" src="/assets/vehicles/tata-nexon-ev.jpg" alt="Vehicle B">
+            <img class="podium-vehicle-img" id="podium-b-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Vehicle B" fetchpriority="high" loading="eager">
             <div class="podium-character-overlay">
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>
               <span id="podium-b-character-tag">Nexon.ev Champion</span>
@@ -10829,7 +11369,9 @@
           <a href="#compare" data-nav-action="compare">Compare EVs</a>
           <a href="#for-dealers" data-nav-action="dealers" style="color: var(--green); font-weight: 700;">For dealers</a>
         </nav>
-        <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        <div class="nav-actions">
+          <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        </div>
       </header>
 
       <!-- Page Workspace Container -->
@@ -11377,6 +11919,7 @@
   </main>
 
   <script src="/client/platform-language.js?v=20260908-1"></script>
+  <script src="/showroom-assets/vendor/pannellum.js"></script>
   <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
   <script>
     (() => {
@@ -11575,12 +12118,12 @@
         return 'Poor';
       };
 
-      const carSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M25 44h100l-7-21a7 7 0 0 0-7-5H39a7 7 0 0 0-7 5l-7 21Z"/><path d="M19 44h112v8H19zM42 18l8-11h50l8 11"/><circle cx="43" cy="52" r="7" fill="currentColor"/><circle cx="107" cy="52" r="7" fill="currentColor"/><path d="M54 26h42"/></svg>';
-      const scooterSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="38" cy="52" r="9"/><circle cx="112" cy="52" r="9"/><path d="M38 52h42l18-34h18M80 52 67 22h25M98 18h12l9 7h-15"/></svg>';
-      const threeWheelerSvg = '<svg viewBox="0 0 150 64" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 45h101V24a8 8 0 0 0-8-8H48L23 33v12Z"/><path d="M49 16V7h48l9 9M23 35h101"/><circle cx="42" cy="53" r="7" fill="currentColor"/><circle cx="105" cy="53" r="7" fill="currentColor"/></svg>';
-      const carLineArt = '<img class="stage-line-art" src="/assets/car-line-art.jpg" alt="" aria-hidden="true" decoding="async">';
-      const scooterLineArt = '<img class="stage-line-art" src="/assets/2-wheeler-lineart.jpg" alt="" aria-hidden="true" decoding="async">';
-      const threeWheelerLineArt = '<img class="stage-line-art" src="/assets/3-wheeler-line-art.jpg" alt="" aria-hidden="true" decoding="async">';
+      const carSvg = '<svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 37h6a6 6 0 0 1 12 0h24a6 6 0 0 1 12 0h5a3 3 0 0 0 3-3l-2-9a5 5 0 0 0-4.5-4.5l-12-6.5a6 6 0 0 0-3.5-1H32a6 6 0 0 0-5 2.5L16 26a5 5 0 0 0-5 4.5v3.5a3 3 0 0 0 3 3z"/><circle cx="24" cy="37" r="5.5"/><circle cx="24" cy="37" r="2.5" fill="currentColor"/><circle cx="60" cy="37" r="5.5"/><circle cx="60" cy="37" r="2.5" fill="currentColor"/><path d="M28 24l4.5-8.5a3 3 0 0 1 2.5-1.5h10v10H28z"/><path d="M48 14h6a3 3 0 0 1 2.5 1.5l5.5 8.5H48V14z"/><line x1="68" y1="28" x2="72" y2="29"/></svg>';
+      const scooterSvg = '<svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="21" cy="39" r="6"/><circle cx="21" cy="39" r="2.5" fill="currentColor"/><circle cx="61" cy="39" r="6"/><circle cx="61" cy="39" r="2.5" fill="currentColor"/><path d="M51 15h9"/><path d="M56 15l4 24"/><path d="M54 18l-6 6 4 6"/><path d="M52 34H33"/><path d="M33 34l-5-11h-13a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h6"/><path d="M15 23c2-1 8-2 15-2a2 2 0 0 1 2 2v1H15z"/><line x1="39" y1="26" x2="45" y2="26" stroke-width="1.8"/></svg>';
+      const threeWheelerSvg = '<svg viewBox="0 0 80 56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 14h36a5 5 0 0 1 4.5 3l7 15.5a4 4 0 0 1-3.5 5.5H59"/><path d="M19 14l-4 5v18h5"/><path d="M28 37h28"/><path d="M23 22h19v12H23z"/><path d="M46 18h9l5.5 12H46z"/><circle cx="62" cy="39" r="5.5"/><circle cx="62" cy="39" r="2.5" fill="currentColor"/><path d="M58 31l4 8"/><circle cx="24" cy="39" r="5.5"/><circle cx="24" cy="39" r="2.5" fill="currentColor"/><path d="M52 28h4"/></svg>';
+      const carLineArt = carSvg;
+      const scooterLineArt = scooterSvg;
+      const threeWheelerLineArt = threeWheelerSvg;
       const INDIA_LOCATION_PRESETS = Object.freeze([
         { id: 'delhi', label: 'Delhi', lat: 28.6139, lng: 77.209 },
         { id: 'mumbai', label: 'Mumbai', lat: 19.076, lng: 72.8777 },
@@ -13858,64 +14401,311 @@
       let compareCategory = 'Electric car';
       let compareSelectedSlotA = '';
       let compareSelectedSlotB = '';
+      let activeTargetSlot = 'slotA';
+      let lastTargetSlot = 'slotB';
+      let compareSearchQuery = '';
       let activeDebateAdapter = null;
       let debateIsMuted = false;
+
+      function getVehicleImage(vehicle) {
+        if (!vehicle) return '/showroom-assets/cars/punch-ev/images/frame-00.jpg';
+        if (vehicle.realImage) return vehicle.realImage;
+        const SHOWROOM_MAPPINGS = {
+          'tata-punch-ev': '/showroom-assets/cars/punch-ev/images/frame-00.jpg',
+          'tata-nexon-ev': '/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg',
+          'mg-comet-ev': '/showroom-assets/cars/comet-ev-carwale/exterior/frame-00.jpg',
+          'citroen-c3': '/showroom-assets/cars/citroen-c3/images/frame-00.jpg',
+          'ather-rizta': '/showroom-assets/bikes/ather-rizta/exterior/frame-00.jpg',
+          'tvs-king-kargo-ev-hd': '/showroom-assets/three-wheelers/king-kargo-ev-hd/white/fixed-side-deck/frame-00.webp',
+          'mg-windsor-ev': '/assets/vehicles/mg-windsor-ev.jpg',
+          'mahindra-xuv400': '/assets/vehicles/mahindra-xuv400.jpg',
+          'ather-450x': '/assets/vehicles/ather-450x.jpg',
+          'tvs-iqube': '/assets/vehicles/tvs-iqube.jpg',
+          'ola-s1-pro': '/assets/vehicles/ola-s1-pro.jpg',
+          'mahindra-treo-plus': '/assets/vehicles/mahindra-treo-plus.jpg',
+          'bajaj-re-etec9': '/assets/vehicles/bajaj-re-etec9.jpg',
+          'piaggio-ape-ecity': '/assets/vehicles/piaggio-ape-ecity.jpg',
+          'euler-hiload': '/assets/vehicles/euler-hiload.jpg'
+        };
+        if (SHOWROOM_MAPPINGS[vehicle.id]) return SHOWROOM_MAPPINGS[vehicle.id];
+        return `/assets/vehicles/${vehicle.id}.jpg`;
+      }
+
+      function syncCompareURLParams() {
+        const params = new URLSearchParams();
+        if (compareSelectedSlotA) params.set('ev1', compareSelectedSlotA);
+        if (compareSelectedSlotB) params.set('ev2', compareSelectedSlotB);
+        const paramString = params.toString();
+        const newHash = paramString ? `#compare?${paramString}` : '#compare';
+        if (window.location.hash !== newHash) {
+          window.history.replaceState(null, '', newHash);
+        }
+      }
+
+      function readCompareURLParams() {
+        const hash = window.location.hash || '';
+        if (!hash.startsWith('#compare')) return;
+        const queryIndex = hash.indexOf('?');
+        if (queryIndex !== -1) {
+          const params = new URLSearchParams(hash.slice(queryIndex + 1));
+          const ev1 = params.get('ev1');
+          const ev2 = params.get('ev2');
+          if (ev1 && exploreVehiclesList.some((v) => v.id === ev1)) {
+            compareSelectedSlotA = ev1;
+          }
+          if (ev2 && exploreVehiclesList.some((v) => v.id === ev2)) {
+            compareSelectedSlotB = ev2;
+          }
+        }
+      }
+
+      function renderCompareStageSlots() {
+        const slot1El = $('#stage-slot-1');
+        const slot2El = $('#stage-slot-2');
+        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
+        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
+        const bothSelected = !!(vehicleA && vehicleB);
+        const isSlotATarget = !bothSelected && activeTargetSlot === 'slotA';
+        const isSlotBTarget = !bothSelected && activeTargetSlot === 'slotB';
+
+        // Render Slot 1 (Option 1)
+        if (slot1El) {
+          if (vehicleA) {
+            slot1El.className = 'stage-contender-box active' + (isSlotATarget ? ' target-slot' : '');
+            slot1El.innerHTML = `
+              <button type="button" class="contender-remove-btn" data-compare-action="clear-a" title="Remove ${escapeHtml(vehicleA.name)}" aria-label="Remove ${escapeHtml(vehicleA.name)}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              <div class="contender-img-wrap">
+                <img src="${getVehicleImage(vehicleA)}" alt="${escapeHtml(vehicleA.name)}" onerror="this.src='/showroom-assets/cars/punch-ev/images/frame-00.jpg'" fetchpriority="high" loading="eager">
+              </div>
+              <div class="contender-info">
+                <div class="contender-tag-row">
+                  <span class="contender-slot-tag slot-1">Contender 1</span>
+                  <span class="contender-company">${escapeHtml(vehicleA.company)}</span>
+                </div>
+                <h3 class="contender-name">${escapeHtml(vehicleA.name)}</h3>
+                <div class="contender-price">₹${vehicleA.priceMinLakh} – ${vehicleA.priceMaxLakh} Lakh</div>
+                <div class="contender-spec-tags">
+                  <span class="spec-tag">${vehicleA.claimedRangeKm} km range</span>
+                  <span class="spec-tag">${escapeHtml(vehicleA.battery ? vehicleA.battery.split('(')[0].trim() : '')}</span>
+                </div>
+              </div>
+            `;
+          } else {
+            slot1El.className = 'stage-contender-box empty' + (isSlotATarget ? ' target-slot' : '');
+            slot1El.innerHTML = `
+              <div class="empty-slot-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div class="empty-slot-title">Add First Contender</div>
+              <div class="empty-slot-desc">Pick any EV from the catalog below</div>
+              <button type="button" class="empty-slot-btn" data-compare-action="focus-slot-a">+ Select EV 1</button>
+            `;
+          }
+        }
+
+        // Render Slot 2 (Option 2)
+        if (slot2El) {
+          if (vehicleB) {
+            slot2El.className = 'stage-contender-box active slot-2-active' + (isSlotBTarget ? ' target-slot' : '');
+            slot2El.innerHTML = `
+              <button type="button" class="contender-remove-btn" data-compare-action="clear-b" title="Remove ${escapeHtml(vehicleB.name)}" aria-label="Remove ${escapeHtml(vehicleB.name)}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              <div class="contender-img-wrap">
+                <img src="${getVehicleImage(vehicleB)}" alt="${escapeHtml(vehicleB.name)}" onerror="this.src='/showroom-assets/cars/punch-ev/images/frame-00.jpg'" fetchpriority="high" loading="eager">
+              </div>
+              <div class="contender-info">
+                <div class="contender-tag-row">
+                  <span class="contender-slot-tag slot-2">Contender 2</span>
+                  <span class="contender-company">${escapeHtml(vehicleB.company)}</span>
+                </div>
+                <h3 class="contender-name">${escapeHtml(vehicleB.name)}</h3>
+                <div class="contender-price">₹${vehicleB.priceMinLakh} – ${vehicleB.priceMaxLakh} Lakh</div>
+                <div class="contender-spec-tags">
+                  <span class="spec-tag">${vehicleB.claimedRangeKm} km range</span>
+                  <span class="spec-tag">${escapeHtml(vehicleB.battery ? vehicleB.battery.split('(')[0].trim() : '')}</span>
+                </div>
+              </div>
+            `;
+          } else {
+            slot2El.className = 'stage-contender-box empty' + (isSlotBTarget ? ' target-slot' : '');
+            slot2El.innerHTML = `
+              <div class="empty-slot-icon">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+              <div class="empty-slot-title">Add Second Contender</div>
+              <div class="empty-slot-desc">Pick any EV from the catalog below</div>
+              <button type="button" class="empty-slot-btn" data-compare-action="focus-slot-b">+ Select EV 2</button>
+            `;
+          }
+        }
+      }
+
+      function updateProgressiveCTAs() {
+        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
+        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
+        const count = (vehicleA ? 1 : 0) + (vehicleB ? 1 : 0);
+
+        // Stage Main CTA & Status
+        const startBtn = $('#start-debate-arena-btn');
+        const ctaLabel = $('#stage-cta-label');
+        const stageStatus = $('#compare-stage-status');
+        const mascotBubble = $('#compare-mascot-bubble');
+
+        if (count === 0) {
+          if (startBtn) startBtn.disabled = true;
+          if (ctaLabel) ctaLabel.textContent = 'Select your first EV';
+          if (stageStatus) stageStatus.innerHTML = '<span class="status-dot"></span> AI READY';
+          if (mascotBubble) mascotBubble.innerHTML = '<p>Pick two EVs from the catalog below and I will compare their specs, range & ownership costs!</p>';
+        } else if (count === 1) {
+          const selected = vehicleA || vehicleB;
+          if (startBtn) startBtn.disabled = true;
+          if (ctaLabel) ctaLabel.textContent = `Now select EV 2 to compare with ${selected.name}`;
+          if (stageStatus) stageStatus.innerHTML = '<span class="status-dot" style="background:#f59e0b; box-shadow:0 0 6px rgba(245,158,11,0.7);"></span> 1 OF 2 SELECTED';
+          if (mascotBubble) mascotBubble.innerHTML = `<p>Awesome choice with the <strong>${escapeHtml(selected.name)}</strong>! Now pick a second EV to see who wins.</p>`;
+        } else {
+          if (startBtn) startBtn.disabled = false;
+          if (ctaLabel) ctaLabel.textContent = `Compare ${vehicleA.name} vs ${vehicleB.name}`;
+          if (stageStatus) stageStatus.innerHTML = '<span class="status-dot" style="background:#16bf53; box-shadow:0 0 6px rgba(22,191,83,0.7);"></span> READY TO COMPARE';
+          if (mascotBubble) mascotBubble.innerHTML = `<p>Great battle: <strong>${escapeHtml(vehicleA.name)}</strong> vs <strong>${escapeHtml(vehicleB.name)}</strong>! Click Compare to launch the live AI breakdown & debate.</p>`;
+        }
+      }
+
+      let _compareGridInitialized = false;
 
       function renderCompareSelectionGrid() {
         const grid = $('#compare-select-grid');
         if (!grid) return;
-        grid.innerHTML = '';
 
-        const list = exploreVehiclesList.filter((v) => v.category.toLowerCase().includes(compareCategory.toLowerCase()));
-        list.forEach((vehicle) => {
-          const card = document.createElement('div');
-          card.className = 'compare-select-card';
-          const isSlotA = compareSelectedSlotA === vehicle.id;
-          const isSlotB = compareSelectedSlotB === vehicle.id;
-          if (isSlotA) card.classList.add('selected-a');
-          if (isSlotB) card.classList.add('selected-b');
-          card.dataset.compareVehicleId = vehicle.id;
+        if (!_compareGridInitialized) {
+          grid.innerHTML = '';
+          exploreVehiclesList.forEach((vehicle) => {
+            const card = document.createElement('div');
+            card.className = 'compare-select-card';
+            card.dataset.compareVehicleId = vehicle.id;
+            card.dataset.category = vehicle.category.toLowerCase();
+            card.dataset.search = (vehicle.name + ' ' + vehicle.company).toLowerCase();
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
 
-          const badge = isSlotA
-            ? '<span class="compare-slot-badge slot-a">✓ Option 1</span>'
-            : isSlotB
-              ? '<span class="compare-slot-badge slot-b">✓ Option 2</span>'
-              : '<span class="compare-slot-badge" style="background:#f1f5f9; color:#475569; border: 1px solid #e2e8f0;">+ Select</span>';
-
-          card.innerHTML = `
-            ${badge}
-            <div class="compare-card-thumb-wrap">
-              <img class="compare-card-thumb" src="${vehicle.realImage || `/assets/vehicles/${vehicle.id}.jpg`}" alt="${escapeHtml(vehicle.name)}" loading="lazy" onerror="this.src='/assets/vehicles/tata-punch-ev.jpg'">
-            </div>
-            <span class="compare-card-company">${escapeHtml(vehicle.company)}</span>
-            <h3 class="compare-card-name">${escapeHtml(vehicle.name)}</h3>
-            <div class="compare-card-price">₹${vehicle.priceMinLakh} – ${vehicle.priceMaxLakh} Lakh</div>
-            <div class="compare-card-key-pill">
-              <span>${vehicle.claimedRangeKm} km claimed</span>
-              <span>${vehicle.battery.split('(')[0].trim()}</span>
-            </div>
+            card.innerHTML = `
+              <span class="compare-slot-badge">+ Select</span>
+              <div class="compare-card-thumb-wrap">
+                <img class="compare-card-thumb" src="${getVehicleImage(vehicle)}" alt="${escapeHtml(vehicle.name)}" loading="lazy" onerror="this.src='/showroom-assets/cars/punch-ev/images/frame-00.jpg'">
+              </div>
+              <span class="compare-card-company">${escapeHtml(vehicle.company)}</span>
+              <h3 class="compare-card-name">${escapeHtml(vehicle.name)}</h3>
+              <div class="compare-card-price">₹${vehicle.priceMinLakh} – ${vehicle.priceMaxLakh} Lakh</div>
+              <div class="compare-card-key-pill">
+                <span>${vehicle.claimedRangeKm} km range</span>
+                <span>${escapeHtml(vehicle.battery ? vehicle.battery.split('(')[0].trim() : '')}</span>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+          
+          const noResults = document.createElement('div');
+          noResults.id = 'compare-no-results';
+          noResults.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 32px 16px; color: var(--compare-muted, #64748b); display: none;';
+          noResults.innerHTML = `
+            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 8px; display: block; opacity: 0.6;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p style="font-weight: 700; font-size: 14px; margin-bottom: 4px; color: #1e293b;">No matching EVs found</p>
+            <p style="font-size: 12px; margin: 0;">Try adjusting your search query or switch categories.</p>
           `;
-          grid.appendChild(card);
+          grid.appendChild(noResults);
+          
+          _compareGridInitialized = true;
+        }
+
+        const currentCategory = compareCategory.toLowerCase();
+        let visibleCount = 0;
+
+        $$('.compare-select-card').forEach(card => {
+          const vehicleId = card.dataset.compareVehicleId;
+          const isSlotA = compareSelectedSlotA === vehicleId;
+          const isSlotB = compareSelectedSlotB === vehicleId;
+          const isSelected = isSlotA || isSlotB;
+
+          if (isSlotA) card.classList.add('selected-a'); else card.classList.remove('selected-a');
+          if (isSlotB) card.classList.add('selected-b'); else card.classList.remove('selected-b');
+          card.setAttribute('aria-pressed', String(isSelected));
+          card.setAttribute('aria-label', `${card.querySelector('.compare-card-name')?.textContent} by ${card.querySelector('.compare-card-company')?.textContent}. ${isSelected ? 'Selected' : 'Click to select'}`);
+          
+          const badge = card.querySelector('.compare-slot-badge');
+          if (badge) {
+            if (isSlotA) {
+              badge.className = 'compare-slot-badge slot-a';
+              badge.textContent = 'Contender 1';
+            } else if (isSlotB) {
+              badge.className = 'compare-slot-badge slot-b';
+              badge.textContent = 'Contender 2';
+            } else {
+              badge.className = 'compare-slot-badge';
+              badge.textContent = '+ Select';
+            }
+          }
+
+          const matchesCategory = card.dataset.category.includes(currentCategory);
+          const matchesSearch = compareSearchQuery ? card.dataset.search.includes(compareSearchQuery) : true;
+
+          if (matchesCategory && matchesSearch) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
         });
 
-        // Update floating launcher bar & Step instructions
-        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
-        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
-        const labelA = $('#compare-slot-a-label');
-        const labelB = $('#compare-slot-b-label');
-        const startBtn = $('#start-debate-arena-btn');
-        const stepText = $('#compare-step-text');
-
-        if (labelA) labelA.textContent = vehicleA ? `Option 1: ${vehicleA.name}` : 'Option 1: None';
-        if (labelB) labelB.textContent = vehicleB ? `Option 2: ${vehicleB.name}` : 'Option 2: None';
-
-        if (startBtn) {
-          const ready = Boolean(vehicleA && vehicleB && vehicleA.id !== vehicleB.id);
-          startBtn.disabled = !ready;
-          startBtn.innerHTML = ready
-            ? `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg><span>Start Live Debate</span>`
-            : `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg><span>Select 2 EVs</span>`;
+        const noResults = $('#compare-no-results');
+        if (noResults) {
+          noResults.style.display = visibleCount === 0 ? 'block' : 'none';
         }
+
+        renderCompareStageSlots();
+        updateProgressiveCTAs();
+      }
+
+      function handleVehicleSelect(vehicleId) {
+        if (!vehicleId) return;
+        if (compareSelectedSlotA === vehicleId) {
+          compareSelectedSlotA = '';
+          activeTargetSlot = 'slotA';
+        } else if (compareSelectedSlotB === vehicleId) {
+          compareSelectedSlotB = '';
+          activeTargetSlot = 'slotB';
+        } else if (activeTargetSlot === 'slotA') {
+          compareSelectedSlotA = vehicleId;
+          activeTargetSlot = compareSelectedSlotB ? 'slotA' : 'slotB';
+          lastTargetSlot = 'slotA';
+        } else if (activeTargetSlot === 'slotB') {
+          compareSelectedSlotB = vehicleId;
+          activeTargetSlot = compareSelectedSlotA ? 'slotB' : 'slotA';
+          lastTargetSlot = 'slotB';
+        } else if (!compareSelectedSlotA) {
+          compareSelectedSlotA = vehicleId;
+          activeTargetSlot = 'slotB';
+          lastTargetSlot = 'slotA';
+        } else if (!compareSelectedSlotB) {
+          compareSelectedSlotB = vehicleId;
+          activeTargetSlot = 'slotA';
+          lastTargetSlot = 'slotB';
+        } else {
+          // Both slots full: replace deterministic next target slot
+          if (lastTargetSlot === 'slotA') {
+            compareSelectedSlotB = vehicleId;
+            lastTargetSlot = 'slotB';
+            activeTargetSlot = 'slotA';
+          } else {
+            compareSelectedSlotA = vehicleId;
+            lastTargetSlot = 'slotA';
+            activeTargetSlot = 'slotB';
+          }
+        }
+
+        syncCompareURLParams();
+        renderCompareSelectionGrid();
       }
 
       function updateDebatePodiums(vehA, vehB) {
@@ -13932,12 +14722,12 @@
 
         if (titleA) titleA.textContent = vehA.name;
         if (compA) compA.textContent = `${vehA.company} · ₹${vehA.priceMinLakh}L – ₹${vehA.priceMaxLakh}L`;
-        if (imgA) imgA.src = vehA.realImage || `/assets/vehicles/${vehA.id}.jpg`;
+        if (imgA) imgA.src = getVehicleImage(vehA);
         if (tagA) tagA.textContent = `${vehA.name} Advocate`;
-        if (rangeA) rangeA.textContent = `${vehA.claimedRangeKm} km ARAI (${vehA.realWorldRangeKm.split(' ')[0]} real)`;
-        if (battA) battA.textContent = vehA.battery;
-        if (chargeA) chargeA.textContent = vehA.charging.split('/')[0];
-        if (quoteA) quoteA.textContent = `“Opening for ${vehA.name}! Unbeatable ₹${vehA.priceMinLakh}L starting price with exceptional daily efficiency.”`;
+        if (rangeA) rangeA.textContent = `${vehA.claimedRangeKm} km ARAI (${vehA.realWorldRangeKm ? vehA.realWorldRangeKm.split(' ')[0] : Math.round(vehA.claimedRangeKm * 0.75)} real)`;
+        if (battA) battA.textContent = vehA.battery || 'EV Battery';
+        if (chargeA) chargeA.textContent = vehA.charging ? vehA.charging.split('/')[0].trim() : '56 min (10-80% 50kW DC Fast Charge)';
+        if (quoteA) quoteA.innerHTML = `<span style="font-weight: 750; color: #0b692f; margin-right: 4px;">[${escapeHtml(vehA.name)} Advocate]:</span> “10 Lakh ke budget me 5-star NCAP build quality aur real highway range! City driving ke liye best value!”`;
 
         // Podium B
         const titleB = $('#podium-b-title');
@@ -13951,16 +14741,16 @@
 
         if (titleB) titleB.textContent = vehB.name;
         if (compB) compB.textContent = `${vehB.company} · ₹${vehB.priceMinLakh}L – ₹${vehB.priceMaxLakh}L`;
-        if (imgB) imgB.src = vehB.realImage || `/assets/vehicles/${vehB.id}.jpg`;
+        if (imgB) imgB.src = getVehicleImage(vehB);
         if (tagB) tagB.textContent = `${vehB.name} Advocate`;
-        if (rangeB) rangeB.textContent = `${vehB.claimedRangeKm} km ARAI (${vehB.realWorldRangeKm.split(' ')[0]} real)`;
-        if (battB) battB.textContent = vehB.battery;
-        if (chargeB) chargeB.textContent = vehB.charging.split('/')[0];
-        if (quoteB) quoteB.textContent = `“Countering with ${vehB.name}! Real-world ${vehB.realWorldRangeKm} highway range and ${vehB.power} performance.”`;
+        if (rangeB) rangeB.textContent = `${vehB.claimedRangeKm} km ARAI (${vehB.realWorldRangeKm ? vehB.realWorldRangeKm.split(' ')[0] : Math.round(vehB.claimedRangeKm * 0.75)} real)`;
+        if (battB) battB.textContent = vehB.battery || 'EV Battery';
+        if (chargeB) chargeB.textContent = vehB.charging ? vehB.charging.split('/')[0].trim() : '40 min (10-80% 60kW DC Fast Charge)';
+        if (quoteB) quoteB.innerHTML = `<span style="font-weight: 750; color: #0369a1; margin-right: 4px;">[${escapeHtml(vehB.name)} Advocate]:</span> “Par highway pe long-distance cruise aur instant overtaking power ke liye ${escapeHtml(vehB.name)} is the undisputed king!”`;
 
         // Dynamic Comparison Battle Meters
-        const maxPrice = Math.max(vehA.priceMinLakh, vehB.priceMinLakh, 1);
-        const maxRange = Math.max(vehA.claimedRangeKm, vehB.claimedRangeKm, 1);
+        const maxPrice = Math.max(vehA.priceMinLakh || 1, vehB.priceMinLakh || 1, 1);
+        const maxRange = Math.max(vehA.claimedRangeKm || 1, vehB.claimedRangeKm || 1, 1);
         const pFillA = $('#meter-price-a');
         const pFillB = $('#meter-price-b');
         const rFillA = $('#meter-range-a');
@@ -13978,8 +14768,6 @@
           rFillB.style.width = `${Math.round(100 - scoreA)}%`;
         }
       }
-
-
 
       // Production Audio Playback Lifecycle State Architecture
       let activeDebatePlaybackManager = null;
@@ -14008,16 +14796,25 @@
         const quoteB = $('#podium-b-quote');
         const statusText = $('#arena-live-status-text');
 
+        const nameA = vehA?.name || 'Punch.ev';
+        const nameB = vehB?.name || 'Nexon.ev';
+
         if (speaker === 'agent1') {
           if (podB) podB.classList.remove('active-speaker');
           if (podA) podA.classList.add('active-speaker');
-          if (quoteA && text) quoteA.textContent = `“${text}”`;
-          if (statusText) statusText.textContent = `● Option 1 (${vehA?.name || 'Punch.ev'}) Speaking…`;
+          if (text) {
+            if (quoteA) quoteA.innerHTML = `<span style="font-weight: 750; color: #0b692f; margin-right: 4px;">[${escapeHtml(nameA)} Advocate]:</span> “${escapeHtml(text)}”`;
+            if (quoteB) quoteB.innerHTML = `<span style="font-weight: 600; opacity: 0.75; color: #0369a1; margin-right: 4px;">[${escapeHtml(nameA)} Advocate]:</span> “${escapeHtml(text)}”`;
+          }
+          if (statusText) statusText.textContent = `● Option 1 (${nameA}) Speaking…`;
         } else if (speaker === 'agent2') {
           if (podA) podA.classList.remove('active-speaker');
           if (podB) podB.classList.add('active-speaker');
-          if (quoteB && text) quoteB.textContent = `“${text}”`;
-          if (statusText) statusText.textContent = `● Option 2 (${vehB?.name || 'Nexon.ev'}) Speaking…`;
+          if (text) {
+            if (quoteB) quoteB.innerHTML = `<span style="font-weight: 750; color: #0369a1; margin-right: 4px;">[${escapeHtml(nameB)} Advocate]:</span> “${escapeHtml(text)}”`;
+            if (quoteA) quoteA.innerHTML = `<span style="font-weight: 600; opacity: 0.75; color: #0b692f; margin-right: 4px;">[${escapeHtml(nameB)} Advocate]:</span> “${escapeHtml(text)}”`;
+          }
+          if (statusText) statusText.textContent = `● Option 2 (${nameB}) Speaking…`;
         } else {
           if (podA) podA.classList.remove('active-speaker');
           if (podB) podB.classList.remove('active-speaker');
@@ -14071,6 +14868,7 @@
           this.turnIndex = 0;
           this.stopped = false;
           this.timer = null;
+          this.currentUtterance = null;
 
           const priceA = Math.round(vehA.priceMinLakh || 11);
           const priceB = Math.round(vehB.priceMinLakh || 15);
@@ -14146,6 +14944,7 @@
 
           const { voiceA, voiceB } = getDebateVoices(this.language);
           const utterance = new SpeechSynthesisUtterance(turn.text);
+          this.currentUtterance = utterance;
           utterance.lang = this.language === 'Hindi' ? 'hi-IN' : 'en-IN';
           utterance.rate = 0.85; // Calm, clear, articulate pacing (not fast, no stammering)
           utterance.pitch = 1.0; // Natural pitch without distortion
@@ -14215,7 +15014,14 @@
             clearTimeout(this.timer);
             this.timer = null;
           }
+          if (this.currentUtterance) {
+            this.currentUtterance.onstart = null;
+            this.currentUtterance.onend = null;
+            this.currentUtterance.onerror = null;
+            this.currentUtterance = null;
+          }
           if (window.speechSynthesis) {
+            window.speechSynthesis.pause();
             window.speechSynthesis.cancel();
           }
           this.currentSpeaker = null;
@@ -14238,8 +15044,8 @@
       }
 
       async function startDebateArena() {
-        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA);
-        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
+        const vehicleA = exploreVehiclesList.find((v) => v.id === compareSelectedSlotA) || exploreVehiclesList[0];
+        const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB) || exploreVehiclesList[1];
         if (!vehicleA || !vehicleB) return;
 
         const language = getPlatformLanguage();
@@ -14248,12 +15054,24 @@
         const statusText = $('#arena-live-status-text');
         if (stage) {
           stage.hidden = false;
+          stage.removeAttribute('hidden');
           stage.setAttribute('aria-hidden', 'false');
+          stage.style.display = 'flex';
+          stage.style.zIndex = '999999';
         }
-        if (statusText) statusText.textContent = language + ' · Agora Live Connecting...';
+        if (statusText) statusText.textContent = `● Option 1 (${vehicleA.name}) Speaking…`;
 
-        activeDebatePlaybackManager?.stop();
-        activeDebatePlaybackManager = null;
+        if (activeDebatePlaybackManager) {
+          activeDebatePlaybackManager.stop();
+          activeDebatePlaybackManager = null;
+        }
+
+        // Start local dual-AI speech and transcript battle immediately
+        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, language, (event) => {
+          handleDebateVoiceEvent(event, vehicleA, vehicleB);
+        });
+        activeDebatePlaybackManager.start();
+
         if (activeDebateAdapter) {
           activeDebateAdapter.__languageUnsubscribe?.();
           await activeDebateAdapter.leave().catch(() => {});
@@ -14275,28 +15093,19 @@
                   setActiveDebateSpeaker(nextSpeaker, latest.id || ('live-' + Date.now()), latest.text, vehicleA, vehicleB);
                 }
               }
-              if (event.type === 'ERROR' && statusText) statusText.textContent = event.payload?.message || 'Live debate audio needs attention';
             });
-            await activeDebateAdapter.joinDebate({
+            activeDebateAdapter.joinDebate({
               vehicleIdA: vehicleA.id,
               vehicleIdB: vehicleB.id,
               language,
               voice: 'madhur'
+            }).catch((err) => {
+              console.warn('Agora debate connecting in background:', err?.message || err);
             });
-            return;
           } catch (error) {
-            console.warn('Agora debate unavailable; using browser voice fallback:', error);
-            activeDebateAdapter?.__languageUnsubscribe?.();
-            await activeDebateAdapter?.leave?.().catch(() => {});
-            activeDebateAdapter = null;
+            console.warn('Agora debate initialization:', error);
           }
         }
-
-        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, language, (event) => {
-          handleDebateVoiceEvent(event, vehicleA, vehicleB);
-        });
-        activeDebatePlaybackManager.start();
-        if (statusText) statusText.textContent = language + ' · Browser voice fallback';
       }
       function exitDebateArena() {
         if (activeDebatePlaybackManager) {
@@ -14306,7 +15115,9 @@
         const stage = $('#debate-arena-stage');
         if (stage) {
           stage.hidden = true;
+          stage.setAttribute('hidden', '');
           stage.setAttribute('aria-hidden', 'true');
+          stage.style.display = 'none';
         }
         if (activeDebateAdapter) {
           activeDebateAdapter.__languageUnsubscribe?.();
@@ -14317,26 +15128,55 @@
 
       // Event Listeners for Compare EV & Debate Arena
       document.addEventListener('click', (event) => {
-        // 1. Vehicle Select in Compare Grid (Cards are <div> elements, not buttons/links)
+        // Stage Action / Clear / Focus Buttons
+        const compareAction = event.target.closest('[data-compare-action]');
+        if (compareAction) {
+          event.preventDefault();
+          const action = compareAction.dataset.compareAction;
+          if (action === 'clear-a') {
+            compareSelectedSlotA = '';
+            activeTargetSlot = 'slotA';
+            syncCompareURLParams();
+            renderCompareSelectionGrid();
+            return;
+          }
+          if (action === 'clear-b') {
+            compareSelectedSlotB = '';
+            activeTargetSlot = 'slotB';
+            syncCompareURLParams();
+            renderCompareSelectionGrid();
+            return;
+          }
+          if (action === 'focus-slot-a') {
+            activeTargetSlot = 'slotA';
+            renderCompareStageSlots();
+            return;
+          }
+          if (action === 'focus-slot-b') {
+            activeTargetSlot = 'slotB';
+            renderCompareStageSlots();
+            return;
+          }
+        }
+
+        // Slot container clicks to change active target slot
+        const slot1El = event.target.closest('#stage-slot-1');
+        if (slot1El && !event.target.closest('button')) {
+          activeTargetSlot = 'slotA';
+          renderCompareStageSlots();
+        }
+        const slot2El = event.target.closest('#stage-slot-2');
+        if (slot2El && !event.target.closest('button')) {
+          activeTargetSlot = 'slotB';
+          renderCompareStageSlots();
+        }
+
+        // 1. Vehicle Select in Compare Grid
         const selectCard = event.target.closest('.compare-select-card');
         if (selectCard) {
           event.preventDefault();
           const vId = selectCard.dataset.compareVehicleId;
-          if (compareSelectedSlotA === vId) {
-            // Deselect A
-            compareSelectedSlotA = '';
-          } else if (compareSelectedSlotB === vId) {
-            // Deselect B
-            compareSelectedSlotB = '';
-          } else if (!compareSelectedSlotA) {
-            compareSelectedSlotA = vId;
-          } else if (!compareSelectedSlotB) {
-            compareSelectedSlotB = vId;
-          } else {
-            // Replace Slot B by default if both were full
-            compareSelectedSlotB = vId;
-          }
-          renderCompareSelectionGrid();
+          handleVehicleSelect(vId);
           return;
         }
 
@@ -14350,28 +15190,46 @@
           window.history.pushState(null, '', '/#compare');
           setView('compare');
           if (!exploreVehiclesList.length) {
-            loadExploreVehicles().then(() => renderCompareSelectionGrid());
+            loadExploreVehicles().then(() => {
+              readCompareURLParams();
+              renderCompareSelectionGrid();
+            });
           } else {
+            readCompareURLParams();
             renderCompareSelectionGrid();
           }
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
 
-        // Compare Category Filter Pills
-        if (target.matches('[data-compare-category]')) {
+        // Compare Category Filter Pills (Non-destructive: preserves existing selections)
+        const catBtn = target.closest('[data-compare-category]');
+        if (catBtn) {
           event.preventDefault();
-          $$('.compare-cat-btn').forEach((btn) => btn.setAttribute('aria-pressed', 'false'));
-          target.setAttribute('aria-pressed', 'true');
-          compareCategory = target.dataset.compareCategory;
-          // Clear selections when switching category so user picks 2 afresh
-          compareSelectedSlotA = '';
-          compareSelectedSlotB = '';
+          $$('.cat-pill-btn, .compare-cat-btn').forEach((btn) => btn.setAttribute('aria-pressed', 'false'));
+          catBtn.setAttribute('aria-pressed', 'true');
+          compareCategory = catBtn.dataset.compareCategory;
           renderCompareSelectionGrid();
           return;
         }
 
-        // Start Live Debate Arena Button
+        // Pre-Debate Language Switcher Pills
+        if (target.matches('[data-debate-lang]')) {
+          event.preventDefault();
+          const selectedLang = target.dataset.debateLang;
+          if (window.EasyEVLanguage?.set) {
+            window.EasyEVLanguage.set(selectedLang);
+          } else {
+            $$('.compare-lang-btn').forEach((btn) => {
+              const active = btn.dataset.debateLang.toLowerCase() === selectedLang.toLowerCase();
+              btn.classList.toggle('active', active);
+              btn.setAttribute('aria-pressed', String(active));
+            });
+          }
+          return;
+        }
+
+        // Start Live Debate Arena Button (Stage CTA)
         if (target.id === 'start-debate-arena-btn' || target.closest('#start-debate-arena-btn')) {
           event.preventDefault();
           startDebateArena();
@@ -14922,6 +15780,11 @@
           }
         };
 
+        document.addEventListener('visibilitychange', () => {
+          const waves = $('#d-voice-waves');
+          if (waves) waves.style.animationPlayState = document.hidden ? 'paused' : 'running';
+        });
+
         const getIndianVoice = (text) => {
           if (!dealerAudioSynth) return null;
           const voices = dealerAudioSynth.getVoices() || [];
@@ -15091,75 +15954,78 @@
           } catch {}
         };
 
-        const syncFormFromAgentState = (currentForm, completionStats, step, extracted) => {
+        let _dealerFormElements = null;
+        const getDealerFormElements = () => {
+          if (!_dealerFormElements) {
+            _dealerFormElements = {
+              shopName: $('#dealer-shop-name'),
+              managerName: $('#dealer-contact-name'),
+              phone: $('#dealer-phone'),
+              email: $('#dealer-email'),
+              dealerType: $('#dealer-type'),
+              address: $('#dealer-address'),
+              city: $('#dealer-city'),
+              pincode: $('#dealer-pincode'),
+              openTime: $('#dealer-open-time'),
+              closeTime: $('#dealer-close-time'),
+              emiToggle: $('#dealer-emi-toggle'),
+              emiBody: $('#emi-config-body'),
+              insuranceToggle: $('#dealer-insurance-toggle'),
+              insuranceBody: $('#insurance-config-body'),
+              progressText: $('#d-voice-progress-text'),
+              progressBar: $('#d-voice-progress-bar'),
+              progressPercent: $('#d-voice-progress-percent')
+            };
+          }
+          return _dealerFormElements;
+        };
+
+        const syncFormFromAgentState = (currentForm, completionStats, step, targetField) => {
           if (!currentForm) return;
+          try { window.sessionStorage.setItem('easyev-dealer-draft', JSON.stringify(currentForm)); } catch {}
+
+          const els = getDealerFormElements();
 
           // 1. Sync Step 1: Profile
-          if (currentForm.shopName) {
-            const el = $('#dealer-shop-name');
-            if (el && el.value !== currentForm.shopName) {
-              el.value = currentForm.shopName;
-              flashField(el);
-            }
+          if (currentForm.shopName && els.shopName && els.shopName.value !== currentForm.shopName) {
+            els.shopName.value = currentForm.shopName;
+            flashField(els.shopName);
           }
-          if (currentForm.managerName) {
-            const el = $('#dealer-contact-name');
-            if (el && el.value !== currentForm.managerName) {
-              el.value = currentForm.managerName;
-              flashField(el);
-            }
+          if (currentForm.managerName && els.managerName && els.managerName.value !== currentForm.managerName) {
+            els.managerName.value = currentForm.managerName;
+            flashField(els.managerName);
           }
-          if (currentForm.phone) {
-            const el = $('#dealer-phone');
-            if (el && el.value !== currentForm.phone) {
-              el.value = currentForm.phone;
-              flashField(el);
-            }
+          if (currentForm.phone && els.phone && els.phone.value !== currentForm.phone) {
+            els.phone.value = currentForm.phone;
+            flashField(els.phone);
           }
-          if (currentForm.email) {
-            const el = $('#dealer-email');
-            if (el && el.value !== currentForm.email) {
-              el.value = currentForm.email;
-              flashField(el);
-            }
+          if (currentForm.email && els.email && els.email.value !== currentForm.email) {
+            els.email.value = currentForm.email;
+            flashField(els.email);
           }
-          if (currentForm.dealerType) {
-            const el = $('#dealer-type');
-            if (el && el.value !== currentForm.dealerType) {
-              el.value = currentForm.dealerType;
-              flashField(el);
-            }
+          if (currentForm.dealerType && els.dealerType && els.dealerType.value !== currentForm.dealerType) {
+            els.dealerType.value = currentForm.dealerType;
+            flashField(els.dealerType);
           }
 
           // 2. Sync Step 2: Location
-          if (currentForm.address) {
-            const el = $('#dealer-address');
-            if (el && el.value !== currentForm.address) {
-              el.value = currentForm.address;
-              flashField(el);
-            }
+          if (currentForm.address && els.address && els.address.value !== currentForm.address) {
+            els.address.value = currentForm.address;
+            flashField(els.address);
           }
-          if (currentForm.city) {
-            const el = $('#dealer-city');
-            if (el && el.value !== currentForm.city) {
-              el.value = currentForm.city;
-              flashField(el);
-            }
+          if (currentForm.city && els.city && els.city.value !== currentForm.city) {
+            els.city.value = currentForm.city;
+            flashField(els.city);
           }
-          if (currentForm.pincode) {
-            const el = $('#dealer-pincode');
-            if (el && el.value !== currentForm.pincode) {
-              el.value = currentForm.pincode;
-              flashField(el);
-            }
+          if (currentForm.pincode && els.pincode && els.pincode.value !== currentForm.pincode) {
+            els.pincode.value = currentForm.pincode;
+            flashField(els.pincode);
           }
-          if (currentForm.openTime) {
-            const el = $('#dealer-open-time');
-            if (el) el.value = currentForm.openTime;
+          if (currentForm.openTime && els.openTime) {
+            els.openTime.value = currentForm.openTime;
           }
-          if (currentForm.closeTime) {
-            const el = $('#dealer-close-time');
-            if (el) el.value = currentForm.closeTime;
+          if (currentForm.closeTime && els.closeTime) {
+            els.closeTime.value = currentForm.closeTime;
           }
 
           // 3. Sync Step 3: Categories & Brands
@@ -15189,36 +16055,33 @@
           }
 
           // 4. Sync Step 4: Services
-          if (currentForm.emiAvailable !== undefined) {
-            const el = $('#dealer-emi-toggle');
-            if (el) {
-              el.checked = currentForm.emiAvailable;
-              const body = $('#emi-config-body');
-              if (body) body.style.display = currentForm.emiAvailable ? 'block' : 'none';
-            }
+          if (currentForm.emiAvailable !== undefined && els.emiToggle) {
+            els.emiToggle.checked = currentForm.emiAvailable;
+            if (els.emiBody) els.emiBody.style.display = currentForm.emiAvailable ? 'block' : 'none';
           }
-          if (currentForm.insuranceAvailable !== undefined) {
-            const el = $('#dealer-insurance-toggle');
-            if (el) {
-              el.checked = currentForm.insuranceAvailable;
-              const body = $('#insurance-config-body');
-              if (body) body.style.display = currentForm.insuranceAvailable ? 'block' : 'none';
-            }
+          if (currentForm.insuranceAvailable !== undefined && els.insuranceToggle) {
+            els.insuranceToggle.checked = currentForm.insuranceAvailable;
+            if (els.insuranceBody) els.insuranceBody.style.display = currentForm.insuranceAvailable ? 'block' : 'none';
           }
 
           // 5. Update Progress Tracker
           if (completionStats) {
-            const textEl = $('#d-voice-progress-text');
-            const barEl = $('#d-voice-progress-bar');
-            const pctEl = $('#d-voice-progress-percent');
             const percent = `${completionStats.percentage || 0}%`;
-
-            if (textEl) textEl.textContent = `${completionStats.filledCount} / ${completionStats.totalRequired} details captured`;
-            if (barEl) barEl.style.width = percent;
-            if (pctEl) pctEl.textContent = percent;
+            if (els.progressText) els.progressText.textContent = `${completionStats.filledCount} / ${completionStats.totalRequired} details captured`;
+            if (els.progressBar) els.progressBar.style.width = percent;
+            if (els.progressPercent) els.progressPercent.textContent = percent;
 
             if (btnSubmitVoice) {
               btnSubmitVoice.disabled = completionStats.filledCount < 4;
+            }
+          }
+
+          // 6. Voice Repair Auto-Focus
+          if (targetField && ['phone', 'email', 'pincode'].includes(targetField)) {
+            const repairEl = els[targetField];
+            if (repairEl && typeof repairEl.focus === 'function') {
+              repairEl.focus({ preventScroll: true });
+              repairEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
           }
 
@@ -15229,21 +16092,22 @@
         };
 
         const getScrapedDOMValues = () => {
+          const els = getDealerFormElements();
           return {
-            shopName: $('#dealer-shop-name')?.value?.trim() || '',
-            managerName: $('#dealer-contact-name')?.value?.trim() || '',
-            phone: $('#dealer-phone')?.value?.trim() || '',
-            email: $('#dealer-email')?.value?.trim() || '',
-            dealerType: $('#dealer-type')?.value || '',
-            address: $('#dealer-address')?.value?.trim() || '',
-            city: $('#dealer-city')?.value?.trim() || '',
-            pincode: $('#dealer-pincode')?.value?.trim() || '',
-            openTime: $('#dealer-open-time')?.value || '',
-            closeTime: $('#dealer-close-time')?.value || '',
+            shopName: els.shopName?.value?.trim() || '',
+            managerName: els.managerName?.value?.trim() || '',
+            phone: els.phone?.value?.trim() || '',
+            email: els.email?.value?.trim() || '',
+            dealerType: els.dealerType?.value || '',
+            address: els.address?.value?.trim() || '',
+            city: els.city?.value?.trim() || '',
+            pincode: els.pincode?.value?.trim() || '',
+            openTime: els.openTime?.value || '',
+            closeTime: els.closeTime?.value || '',
             categories: Array.from($$('#dealer-cat-cards .cat-card.active')).map(c => c.dataset.category),
             brands: Array.from($$('#dealer-brand-chips .brand-chip.active')).map(c => c.dataset.brand),
-            emiAvailable: $('#dealer-emi-toggle')?.checked ?? true,
-            insuranceAvailable: $('#dealer-insurance-toggle')?.checked ?? true,
+            emiAvailable: els.emiToggle?.checked ?? true,
+            insuranceAvailable: els.insuranceToggle?.checked ?? true,
           };
         };
 
@@ -15256,7 +16120,13 @@
             dealerVoiceAdapter = EasyEVAgoraBundle.createDealerAgoraAdapter();
           }
 
-          const initialValues = getScrapedDOMValues();
+          const cachedDraft = JSON.parse(window.sessionStorage.getItem('easyev-dealer-draft') || '{}');
+          const initialValues = { ...cachedDraft, ...getScrapedDOMValues() };
+          
+          if (Object.keys(cachedDraft).length > 0) {
+            syncFormFromAgentState(initialValues, null, null, null);
+          }
+
           const sessionPayload = {
             language: selectedDealerLanguage || 'Hinglish',
             voice: 'madhur',
@@ -15272,7 +16142,7 @@
                     event.payload.currentForm,
                     event.payload.completionStats,
                     event.payload.step,
-                    event.payload.extractedFields
+                    event.payload.targetField
                   );
                 }
               });
@@ -15282,7 +16152,7 @@
                 const initial = startData.initialTurn;
                 const firstMsg = $('#d-voice-first-msg');
                 if (firstMsg) firstMsg.textContent = initial.speechText;
-                syncFormFromAgentState(initial.currentForm, initial.completionStats, initial.step);
+                syncFormFromAgentState(initial.currentForm, initial.completionStats, initial.step, initial.targetField);
               }
             } else {
               const resp = await fetch('/api/dealer-session/start', {
@@ -15294,7 +16164,7 @@
               if (data.initialTurn) {
                 const firstMsg = $('#d-voice-first-msg');
                 if (firstMsg) firstMsg.textContent = data.initialTurn.speechText;
-                syncFormFromAgentState(data.initialTurn.currentForm, data.initialTurn.completionStats, data.initialTurn.step);
+                syncFormFromAgentState(data.initialTurn.currentForm, data.initialTurn.completionStats, data.initialTurn.step, data.initialTurn.targetField);
               }
             }
             setVoiceState('ready', 'AI Ready');
@@ -15347,7 +16217,7 @@
             }
 
             if (result && result.currentForm) {
-              syncFormFromAgentState(result.currentForm, result.completionStats, result.step, result.extractedFields);
+              syncFormFromAgentState(result.currentForm, result.completionStats, result.step, result.targetField);
             }
 
             if (result && (result.isSubmitted || result.action === 'SUBMIT_SUCCESS') && (result.registeredDealer || result.currentForm)) {
@@ -15508,22 +16378,321 @@
       initDealerVoiceAssistant();
 
       window.addEventListener('easyev:languagechange', (event) => {
-        window.dealerVoiceAssistant?.setLanguage?.(event.detail?.language || getPlatformLanguage());
+        const lang = event.detail?.language || getPlatformLanguage();
+        window.dealerVoiceAssistant?.setLanguage?.(lang);
+        $$('.compare-lang-btn').forEach((btn) => {
+          const active = (btn.dataset.debateLang || '').toLowerCase() === lang.toLowerCase();
+          btn.classList.toggle('active', active);
+          btn.setAttribute('aria-pressed', String(active));
+        });
         if (activeDebateAdapter || activeDebatePlaybackManager) {
           exitDebateArena();
           startDebateArena();
         }
       });
+      // Compare Search & Accessibility Event Listeners
+      let _compareSearchDebounceTimer = null;
+      document.addEventListener('input', (event) => {
+        if (event.target && event.target.id === 'compare-search-input') {
+          compareSearchQuery = event.target.value.trim().toLowerCase();
+          clearTimeout(_compareSearchDebounceTimer);
+          _compareSearchDebounceTimer = setTimeout(() => {
+            renderCompareSelectionGrid();
+          }, 150);
+        }
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          const selectCard = event.target.closest('.compare-select-card');
+          if (selectCard && document.activeElement === selectCard) {
+            event.preventDefault();
+            const vId = selectCard.dataset.compareVehicleId;
+            handleVehicleSelect(vId);
+            return;
+          }
+          const stageSlot = event.target.closest('.stage-contender-box');
+          if (stageSlot && document.activeElement === stageSlot) {
+            event.preventDefault();
+            if (stageSlot.id === 'stage-slot-1') {
+              activeTargetSlot = 'slotA';
+              renderCompareStageSlots();
+            } else if (stageSlot.id === 'stage-slot-2') {
+              activeTargetSlot = 'slotB';
+              renderCompareStageSlots();
+            }
+          }
+        }
+      });
+
+      // ── Landing Page Interactive 360 Spin & Panorama Viewer Controller ──
+      function initLanding360Viewer() {
+        const stage = $('#landing-360-stage');
+        const img = $('#landing-spin-img');
+        const panoEl = $('#landing-pano-container');
+        const hint = $('#landing-spin-drag-hint');
+        const hintText = $('#landing-spin-hint-text');
+        const badgeText = $('#landing-360-badge-text');
+        const arrowsWrap = $('#landing-spin-arrows');
+        const prevBtn = $('#landing-spin-prev');
+        const nextBtn = $('#landing-spin-next');
+        const toggleButtons = $$('.spin-toggle-btn');
+        if (!stage || !img) return;
+
+        const TOTAL_FRAMES = 72;
+        const FOLDERS = {
+          exterior: '/showroom-assets/cars/nexon-ev-carwale/exterior',
+          open: '/showroom-assets/cars/nexon-ev-carwale/open'
+        };
+        const INTERIOR_FACES = [
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-0.jpg',
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-1.jpg',
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-2.jpg',
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-3.jpg',
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-4.jpg',
+          '/showroom-assets/cars/nexon-ev-carwale/interior/face-5.jpg'
+        ];
+
+        let currentMode = 'exterior';
+        const frameCaches = {
+          exterior: new Array(TOTAL_FRAMES),
+          open: new Array(TOTAL_FRAMES)
+        };
+
+        let currentFrameIndex = 0;
+        let targetFrame = 0;
+        let currentFrameFloat = 0;
+        let isDragging = false;
+        let lastX = 0;
+        let lastTime = 0;
+        let velocity = 0;
+        let lastInteractionTime = performance.now();
+        let autoRotate = true;
+        let hasInteracted = false;
+        let isHovered = false;
+        let panoViewerInstance = null;
+
+        const getFrameUrl = (mode, idx) => {
+          const padded = String(idx).padStart(2, '0');
+          return `${FOLDERS[mode]}/frame-${padded}.jpg`;
+        };
+
+        const preloadFramesForMode = (mode) => {
+          if (!FOLDERS[mode]) return;
+          const cache = frameCaches[mode];
+          for (let i = 0; i < TOTAL_FRAMES; i += 4) {
+            if (!cache[i]) {
+              const im = new Image();
+              im.src = getFrameUrl(mode, i);
+              cache[i] = im;
+            }
+          }
+          setTimeout(() => {
+            for (let i = 0; i < TOTAL_FRAMES; i++) {
+              if (!cache[i]) {
+                const im = new Image();
+                im.src = getFrameUrl(mode, i);
+                cache[i] = im;
+              }
+            }
+          }, 350);
+        };
+
+        const updateImage = (idx) => {
+          if (currentMode === 'interior') return;
+          const normIdx = ((Math.round(idx) % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
+          if (normIdx !== currentFrameIndex) {
+            currentFrameIndex = normIdx;
+            img.src = getFrameUrl(currentMode, currentFrameIndex);
+          }
+        };
+
+        const hideHint = () => {
+          if (!hasInteracted && hint) {
+            hasInteracted = true;
+            hint.classList.add('fade-out');
+          }
+        };
+
+        const switchMode = (newMode) => {
+          if (newMode === currentMode) return;
+          currentMode = newMode;
+          toggleButtons.forEach((btn) => {
+            const isActive = btn.dataset.viewMode === newMode;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-selected', String(isActive));
+          });
+
+          if (hint) {
+            hint.classList.remove('fade-out');
+            hasInteracted = false;
+          }
+
+          if (newMode === 'interior') {
+            img.style.display = 'none';
+            if (arrowsWrap) arrowsWrap.style.display = 'none';
+            if (badgeText) badgeText.textContent = '360° Interior Cabin View';
+            if (hintText) hintText.innerHTML = 'Drag in 360&deg; to look around cabin';
+            if (panoEl) {
+              panoEl.style.display = 'block';
+              if (!panoViewerInstance && window.pannellum) {
+                panoViewerInstance = window.pannellum.viewer(panoEl, {
+                  type: 'cubemap',
+                  cubeMap: INTERIOR_FACES,
+                  autoLoad: true,
+                  autoRotate: -2,
+                  autoRotateInactivityDelay: 2500,
+                  showControls: false,
+                  mouseZoom: false,
+                  showFullscreenCtrl: false,
+                  hfov: 100,
+                  pitch: -5,
+                  yaw: 15
+                });
+              } else if (panoViewerInstance) {
+                panoViewerInstance.setPitch(-5);
+                panoViewerInstance.setYaw(15);
+                panoViewerInstance.startAutoRotate(-2);
+              }
+            }
+          } else {
+            if (panoEl) panoEl.style.display = 'none';
+            if (panoViewerInstance) {
+              try { panoViewerInstance.stopAutoRotate(); } catch {}
+            }
+            img.style.display = 'block';
+            if (arrowsWrap) arrowsWrap.style.display = 'flex';
+            preloadFramesForMode(newMode);
+            img.src = getFrameUrl(newMode, currentFrameIndex);
+
+            if (newMode === 'open') {
+              if (badgeText) badgeText.textContent = '360° Open Doors & Gate View';
+              if (hintText) hintText.innerHTML = 'Drag to spin 360&deg;';
+            } else {
+              if (badgeText) badgeText.textContent = '360° Exterior View';
+              if (hintText) hintText.innerHTML = 'Drag to spin 360&deg;';
+            }
+            lastInteractionTime = performance.now();
+          }
+        };
+
+        toggleButtons.forEach((btn) => {
+          btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            switchMode(btn.dataset.viewMode);
+          });
+        });
+
+        // Pointer Dragging for Exterior & Open modes
+        stage.addEventListener('pointerdown', (e) => {
+          if (currentMode === 'interior') return;
+          if (e.target.closest('.landing-spin-toggle-bar') || e.target.closest('.landing-spin-arrow-btn') || e.target.closest('.experience-card__voice-chip')) return;
+          isDragging = true;
+          lastX = e.clientX;
+          lastTime = performance.now();
+          velocity = 0;
+          lastInteractionTime = performance.now();
+          stage.classList.add('is-dragging');
+          stage.setPointerCapture(e.pointerId);
+          hideHint();
+        });
+
+        stage.addEventListener('pointermove', (e) => {
+          if (!isDragging || currentMode === 'interior') return;
+          const now = performance.now();
+          const dx = e.clientX - lastX;
+          const dt = Math.max(1, now - lastTime);
+
+          // Drag right -> rotate forward
+          const dFrames = dx / 14;
+          targetFrame += dFrames;
+          velocity = 0.6 * (dFrames / dt * 16) + 0.4 * velocity;
+          lastX = e.clientX;
+          lastTime = now;
+          lastInteractionTime = now;
+        });
+
+        const endDrag = () => {
+          if (!isDragging) return;
+          isDragging = false;
+          stage.classList.remove('is-dragging');
+          lastInteractionTime = performance.now();
+        };
+
+        stage.addEventListener('pointerup', endDrag);
+        stage.addEventListener('pointercancel', endDrag);
+        stage.addEventListener('mouseenter', () => { isHovered = true; });
+        stage.addEventListener('mouseleave', () => { isHovered = false; });
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            targetFrame -= 6;
+            velocity = -0.4;
+            lastInteractionTime = performance.now();
+            hideHint();
+          });
+        }
+        if (nextBtn) {
+          nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            targetFrame += 6;
+            velocity = 0.4;
+            lastInteractionTime = performance.now();
+            hideHint();
+          });
+        }
+
+        // Animation Loop with Lerp & Idle Auto-rotation
+        let rafId;
+        const tick = () => {
+          if (currentMode !== 'interior') {
+            const now = performance.now();
+            const idleTime = now - lastInteractionTime;
+
+            if (!isDragging) {
+              if (Math.abs(velocity) > 0.005) {
+                targetFrame += velocity;
+                velocity *= 0.92;
+              } else {
+                velocity = 0;
+              }
+
+              if (autoRotate && idleTime > 2500 && !isHovered) {
+                targetFrame += 0.08;
+              }
+            }
+
+            currentFrameFloat += (targetFrame - currentFrameFloat) * 0.22;
+            updateImage(currentFrameFloat);
+          }
+
+          rafId = requestAnimationFrame(tick);
+        };
+
+        preloadFramesForMode('exterior');
+        preloadFramesForMode('open');
+        rafId = requestAnimationFrame(tick);
+      }
 
       renderApp();
-      loadExploreVehicles();
+      initLanding360Viewer();
+      loadExploreVehicles().then(() => {
+        readCompareURLParams();
+        if (typeof renderCompareSelectionGrid === 'function') renderCompareSelectionGrid();
+      });
 
       const handleRoute = () => {
-        const hash = window.location.hash;
-        if (hash === '#for-dealers' || hash === '#dealers') {
+        const fullHash = window.location.hash || '';
+        const baseHash = fullHash.split('?')[0];
+        if (baseHash === '#for-dealers' || baseHash === '#dealers') {
           openDealersPortal();
-        } else if (hash === '#compare') {
+        } else if (baseHash === '#compare') {
           setView('compare');
+          readCompareURLParams();
           if (typeof renderCompareSelectionGrid === 'function') renderCompareSelectionGrid();
         }
       };

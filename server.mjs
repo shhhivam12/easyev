@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { readFileSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
+import { createGzip, createBrotliCompress } from 'node:zlib';
 import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -698,10 +699,10 @@ function createDebateAgentSession({ channel, uid, vehicleIdA, vehicleIdB, langua
     : new AresSTT({ keywords: [vehicleA.name, vehicleB.name, vehicleA.company, vehicleB.company, 'EasyEV', 'डिबेट', 'Debate', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस', 'Punch', 'Nexon', 'Windsor', 'Ather', 'Rizta', 'TVS'] });
 
   const tts = language !== 'English' && SARVAM_TTS_READY
-    ? sarvamTts(0.88)
+    ? sarvamTts(1.08)
     : AZURE_SPEECH_READY
-      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: 0.88 })
-      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: 0.88 });
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const debatePrompt = `You are staging a full, multi-turn, high-energy live EV debate between two AI automotive advocates defending their vehicles:
 1. ADVOCATE A (Defending ${vehicleA.name} by ${vehicleA.company}):
@@ -1871,17 +1872,38 @@ async function handleApi(req, res, url) {
 
   if (req.method === 'POST' && url.pathname === '/api/test-drive/initiate') {
     const body = await readJson(req, BODY_LIMIT_BYTES);
-    const vehicleId = body.vehicleId || body.vehicle_id || 'tata-nexon-ev';
-    const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: body.vehicleName || 'Tata Nexon.ev' };
+    const vehicleId = body.vehicleId || body.vehicle_id;
+    const vehicle = resolveVehicle(vehicleId);
+    if (!vehicle) {
+      return json(res, 400, { error: 'Valid vehicle ID is required' });
+    }
     const phone = body.phone || body.customerPhone;
     const email = body.email || body.customerEmail;
 
+    if (!phone || phone.replace(/\D/g, '').length < 10) {
+      return json(res, 400, { error: 'Valid 10-digit phone number is required' });
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json(res, 400, { error: 'Valid email address is required' });
+    }
+
+    const { session: dbSession } = await testDriveDb.createSession({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      customerPhone: phone,
+      customerEmail: email,
+      idempotencyKey: body.idempotencyKey,
+    });
+
     const session = testDriveVoiceAgentManager.createSession({
+      sessionId: dbSession.id,
       vehicleId: vehicle.id,
       vehicleName: vehicle.name,
       language: body.language || 'Hinglish',
       initialValues: { customerPhone: phone, customerEmail: email },
     });
+    session.capability_token = dbSession.capability_token;
 
     const initialTurn = session.getInitialGreeting();
 
@@ -1905,13 +1927,28 @@ async function handleApi(req, res, url) {
     }
 
     const params = body.args || body.input || body;
-    const { vehicle_id, location, date, time } = params;
+    const { vehicle_id, location, date, time, session_id, capability_token } = params;
+
+    const session = testDriveVoiceAgentManager.getSession(session_id);
+    if (!session || session.capability_token !== capability_token) {
+      return json(res, 403, { error: 'Forbidden: Invalid capability token' });
+    }
 
     const avail = checkAvailability({
       vehicleId: vehicle_id || 'tata-nexon-ev',
       location,
       date,
       time,
+    });
+
+    const checkRecord = testDriveDb.saveAvailabilityCheck({
+      sessionId: session_id,
+      vehicleId: vehicle_id || 'tata-nexon-ev',
+      location: avail.location || location,
+      date,
+      time,
+      available: avail.available,
+      formattedSlot: avail.formatted_slot
     });
 
     return json(res, 200, {
@@ -1921,6 +1958,7 @@ async function handleApi(req, res, url) {
       reason: avail.reason,
       message: avail.message,
       alternatives: avail.alternatives || [],
+      availability_check_id: checkRecord.id,
     });
   }
 
@@ -1935,23 +1973,29 @@ async function handleApi(req, res, url) {
     }
 
     const params = body.args || body.input || body;
-    const sessionId = params.session_id || `td_sess_${Date.now()}`;
-    const { vehicle_id, location, date, time, customer_email, customer_phone } = params;
+    const sessionId = params.session_id;
+    const { vehicle_id, location, date, time, customer_email, customer_phone, capability_token, availability_check_id } = params;
 
-    const { session } = await testDriveDb.createSession({
-      vehicleId: vehicle_id || 'tata-nexon-ev',
-      vehicleName: resolveVehicle(vehicle_id)?.name || 'Tata Nexon.ev',
-      customerPhone: customer_phone || '+919876543210',
-      customerEmail: customer_email || 'satvikk005@gmail.com',
-    });
+    if (!sessionId || !capability_token) {
+      return json(res, 403, { error: 'Forbidden: Missing session_id or capability_token' });
+    }
 
-    const bookingResult = await testDriveDb.createBookingAtomic({
-      sessionId: session.id,
-      capabilityToken: session.capability_token,
-      location: location || 'EasyEV Superhub CyberCity, Gurgaon',
-      date: date || 'Saturday, November 21, 2026',
-      time: time || '5:00 PM',
-    });
+    let bookingResult;
+    try {
+      bookingResult = await testDriveDb.createBookingAtomic({
+        sessionId: sessionId,
+        capabilityToken: capability_token,
+        availabilityCheckId: availability_check_id,
+        location: location || 'EasyEV Superhub CyberCity, Gurgaon',
+        date: date || 'Saturday, November 21, 2026',
+        time: time || '5:00 PM',
+      });
+    } catch (err) {
+      if (err.message && err.message.includes('Unauthorized')) {
+        return json(res, 403, { error: 'Forbidden: Invalid capability token' });
+      }
+      return json(res, 400, { error: err.message || 'Booking failed' });
+    }
 
     if (!bookingResult.success) {
       return json(res, 409, {
@@ -1999,6 +2043,10 @@ async function handleApi(req, res, url) {
     const voiceSession = testDriveVoiceAgentManager.getSession(sessionId);
     const dbSession = testDriveDb.getSession(sessionId);
 
+    if (!voiceSession && !dbSession) {
+      return json(res, 404, { success: false, error: 'Session not found' });
+    }
+
     let booking = voiceSession?.booking || null;
     if (!booking) {
       for (const b of testDriveDb.bookings.values()) {
@@ -2033,6 +2081,18 @@ async function handleApi(req, res, url) {
 
   // Webhook compatibility fallback
   if (req.method === 'POST' && (url.pathname === '/api/bland/post-call' || url.pathname === '/api/test-drive/webhook')) {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    try {
+      const body = JSON.parse(rawBuffer.toString('utf8'));
+      if (body.status === 'completed' && body.metadata && body.metadata.session_id) {
+        const reason = body.disconnection_reason;
+        if (reason === 'no-answer' || reason === 'busy' || reason === 'voicemail') {
+          testDriveDb.updateSessionStatus(body.metadata.session_id, 'NO_ANSWER');
+        }
+      }
+    } catch (e) {
+      // ignore parse error
+    }
     return json(res, 200, { success: true, received: true, mode: 'in-browser-voice' });
   }
 
@@ -2166,7 +2226,7 @@ async function handleApi(req, res, url) {
   return false;
 }
 
-function serveFile(res, path, cache = false) {
+function serveFile(req, res, path, cache = false) {
   const fullPath = resolve(ROOT, path);
   if (!fullPath.startsWith(ROOT) || !existsSync(fullPath)) return false;
   let mime = {
@@ -2197,13 +2257,33 @@ function serveFile(res, path, cache = false) {
       if (descriptor !== undefined) closeSync(descriptor);
     }
   }
-  res.writeHead(200, {
+  
+  const headers = {
     'Content-Type': mime,
     'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
-  });
+  };
+
+  const acceptEncoding = req.headers['accept-encoding'] || '';
+  const isCompressible = mime.startsWith('text/') || mime === 'application/javascript' || mime === 'application/json' || mime === 'image/svg+xml';
+
+  if (isCompressible) {
+    if (acceptEncoding.includes('br')) {
+      headers['Content-Encoding'] = 'br';
+      res.writeHead(200, headers);
+      createReadStream(fullPath).pipe(createBrotliCompress()).pipe(res);
+      return true;
+    } else if (acceptEncoding.includes('gzip')) {
+      headers['Content-Encoding'] = 'gzip';
+      res.writeHead(200, headers);
+      createReadStream(fullPath).pipe(createGzip()).pipe(res);
+      return true;
+    }
+  }
+
+  res.writeHead(200, headers);
   createReadStream(fullPath).pipe(res);
   return true;
 }
@@ -2221,16 +2301,16 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'Not found' });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
-    if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
-    if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(res, 'showroom/index.html');
-    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
+    if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(req, res, 'index.html');
+    if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(req, res, 'showroom/index.html');
+    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(req, res, url.pathname.slice(1));
     if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|webp|js|css)$/i.test(url.pathname)) {
-      return serveFile(res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);
+      return serveFile(req, res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);
     }
-    if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
-    if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (url.pathname === '/client/platform-language.js') return serveFile(res, 'client/platform-language.js');
-    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(req, res, 'rep.html');
+    if (url.pathname === '/agora-client.bundle.js') return serveFile(req, res, 'agora-client.bundle.js');
+    if (url.pathname === '/client/platform-language.js') return serveFile(req, res, 'client/platform-language.js');
+    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(req, res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));
