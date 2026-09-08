@@ -1,6 +1,7 @@
 import { VEHICLES, CATEGORIES, SHOWROOM_ACTIONS } from "./vehicle-catalog.js";
 
 const $ = (selector, root = document) => root.querySelector(selector);
+const getPlatformLanguage = () => window.EasyEVLanguage?.get?.() || 'Hinglish';
 const cleanText = (value) => String(value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const requestedVehicleId = new URLSearchParams(window.location.search).get("vehicle");
 const initialVehicle = VEHICLES.find((vehicle) => vehicle.id === requestedVehicleId) || VEHICLES[0];
@@ -8,13 +9,32 @@ const state = {
   selectedId: initialVehicle.id, category: "All", view: "exterior", color: "white",
   variant: "fixed-side-deck", spin: null, pano: null, voiceLive: false, muted: false,
   adapter: null, unsubscribe: null, tourTimer: null, sceneTimer: null,
-  orientation: "front", transcriptKeys: new Set()
+  language: getPlatformLanguage(), orientation: "front", transcriptKeys: new Set()
 };
 const selectedVehicle = () => VEHICLES.find((vehicle) => vehicle.id === state.selectedId) || VEHICLES[0];
 
 const app = $("#showroom-app");
 app.innerHTML = `
 <section class="showroom">
+  <div class="platform-language-float">
+    <div class="platform-language" title="Voice language for EasyEV experiences">
+      <span class="sr-only">Platform voice language</span>
+      <select class="sr-only" data-platform-language tabindex="-1" aria-hidden="true">
+        <option value="English">English</option>
+        <option value="Hindi">हिंदी</option>
+        <option value="Hinglish">Hinglish</option>
+      </select>
+      <button class="platform-language__trigger" type="button" data-platform-language-trigger aria-haspopup="listbox" aria-expanded="false">
+        <span data-platform-language-label>Hinglish</span>
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+      </button>
+      <div class="platform-language__menu" role="listbox" data-platform-language-menu hidden>
+        <button type="button" role="option" data-platform-language-option data-language="English">English</button>
+        <button type="button" role="option" data-platform-language-option data-language="Hindi">हिंदी</button>
+        <button type="button" role="option" data-platform-language-option data-language="Hinglish">Hinglish</button>
+      </div>
+    </div>
+  </div>
   <div class="nav-area">
     <header class="site-nav" id="showroom-site-nav">
       <a class="brand" href="/" aria-label="EasyEV AI home">
@@ -27,10 +47,12 @@ app.innerHTML = `
         <a href="/#compare">Compare EVs</a>
         <a href="/#for-dealers">For dealers</a>
       </nav>
-      <button class="mobile-menu-button" id="showroom-mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">
+      <button class="mobile-menu-button" id="showroom-mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="showroom-primary-navigation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
       </button>
-      <a class="nav-cta" href="/#consultation-process">Talk to EasyEV</a>
+      <div class="nav-actions">
+        <a class="nav-cta" href="/#consultation-process">Talk to EasyEV</a>
+      </div>
     </header>
   </div>
   <div class="workspace">
@@ -694,7 +716,7 @@ async function startVoice() {
   try {
     if (!state.adapter) state.adapter = createAdapter();
     setGuide("thinking", "Connecting your private Agora showroom conversation…");
-    await state.adapter.joinVehicle({ vehicleId:state.selectedId, language:"Hinglish", voice:"madhur" });
+    await state.adapter.joinVehicle({ vehicleId:state.selectedId, language:state.language, voice:"madhur" });
   } catch (error) {
     console.error(error);
     setGuide("idle", "Voice is unavailable right now. You can still type requests and explore every 360° view.");
@@ -788,9 +810,12 @@ function speakTdAgent(text, onEnd) {
     utter.rate = 1.05;
     utter.pitch = 1.0;
     
-    // Pick an Indian English or Hindi voice if available
     const voices = tdSpeechSynth.getVoices() || [];
-    const inVoice = voices.find(v => v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.includes('India'));
+    const desiredLocale = state.language === 'Hindi' ? 'hi-IN' : 'en-IN';
+    const inVoice = voices.find((voice) => voice.lang === desiredLocale)
+      || voices.find((voice) => voice.lang?.startsWith(desiredLocale.slice(0, 2)))
+      || voices.find((voice) => voice.name.includes('India'));
+    utter.lang = desiredLocale;
     if (inVoice) utter.voice = inVoice;
 
     utter.onend = () => {
@@ -831,7 +856,7 @@ function startTdListening() {
     tdSpeechRec = new SpeechRec();
     tdSpeechRec.continuous = false;
     tdSpeechRec.interimResults = false;
-    tdSpeechRec.lang = 'en-IN';
+    tdSpeechRec.lang = state.language === 'English' ? 'en-IN' : 'hi-IN';
 
     tdSpeechRec.onstart = () => {
       tdIsListening = true;
@@ -919,7 +944,7 @@ async function openTestDriveModal() {
       body: JSON.stringify({
         vehicleId: vehicle.id,
         vehicleName: vehicle.name,
-        language: 'Hinglish',
+        language: state.language,
       }),
     });
 
@@ -1054,12 +1079,20 @@ ui.commandForm.addEventListener("submit", async (event) => {
   }
 });
 
+window.addEventListener("easyev:languagechange", async (event) => {
+  state.language = event.detail?.language || getPlatformLanguage();
+  if (state.voiceLive) {
+    await stopVoice({}, true);
+    await startVoice();
+  }
+});
+
 window.addEventListener("pagehide", () => {
   stopTour(); window.clearTimeout(state.sceneTimer); teardownViewer(); state.adapter?.stopWithBeacon?.(); state.unsubscribe?.();
 });
 window.EVShowroom = Object.freeze({
   dispatch, execute:interpretCommand, receiveTranscript:handleTranscript, actions:SHOWROOM_ACTIONS,
-  getState:() => ({ vehicleId:state.selectedId, view:state.view, orientation:state.orientation, color:state.color, variant:state.variant, voiceLive:state.voiceLive })
+  getState:() => ({ vehicleId:state.selectedId, view:state.view, orientation:state.orientation, color:state.color, variant:state.variant, language:state.language, voiceLive:state.voiceLive })
 });
 
 renderCategories(); renderCatalog(); renderDetails(); renderViewTabs(); renderConfiguration(); showCurrentView();
