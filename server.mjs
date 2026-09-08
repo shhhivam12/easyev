@@ -2229,6 +2229,7 @@ const server = http.createServer(async (req, res) => {
     }
     if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
     if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
+    if (url.pathname === '/client/platform-language.js') return serveFile(res, 'client/platform-language.js');
     if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
     return json(res, 404, { error: 'Not found' });
   } catch (error) {

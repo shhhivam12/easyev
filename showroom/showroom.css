@@ -29,6 +29,24 @@ button { color:inherit; }
 .nav-cta { display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 17px;color:#071c10!important;border-radius:999px;background:#55f27b;font-size:13px;font-weight:700;text-decoration:none;transition:.2s ease; }
 .nav-cta:hover { background:#83ff9d;transform:translateY(-2px);box-shadow:0 8px 24px rgba(85,242,123,.2); }
 .mobile-menu-button { display:none; }
+.nav-actions { display:flex;align-items:center;gap:8px;flex:0 0 auto; }
+.platform-language-float { position:fixed;top:20px;right:20px;z-index:90; }
+.platform-language {
+  position:relative;display:inline-flex;align-items:center;min-height:40px;padding:0 10px;color:#fff;
+  border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(7,28,16,.98);box-shadow:0 10px 28px rgba(5,20,10,.16);
+}
+.platform-language::before { content:"文";margin-right:6px;color:#55f27b;font-size:12px;font-weight:800; }
+.platform-language select { max-width:86px;color:inherit;color-scheme:dark;border:0;outline:0;background:transparent;cursor:pointer;font:inherit;font-size:12px;font-weight:700; }
+.platform-language option { color:#f4fff7;background:#0b2114;font-weight:650; }
+.platform-language option:checked { color:#10241c;background:#55f27b; }
+
+.platform-language__trigger { display:inline-flex;align-items:center;gap:8px;min-width:88px;padding:0;color:#f7fff9;background:transparent;border:0;cursor:pointer;font-family:"Figtree",sans-serif;font-size:13px;font-weight:720;letter-spacing:-.01em; }
+.platform-language__trigger svg { width:16px;height:16px;margin-left:auto;fill:none;stroke:currentColor;stroke-width:1.8;transition:transform .2s ease; }
+.platform-language.is-open .platform-language__trigger svg { transform:rotate(180deg); }
+.platform-language__menu { position:absolute;top:calc(100% + 9px);right:0;min-width:138px;padding:6px;overflow:hidden;border:1px solid rgba(255,255,255,.12);border-radius:15px;background:#0b2114;box-shadow:0 18px 42px rgba(5,20,10,.24); }
+.platform-language__menu button { width:100%;min-height:38px;padding:0 11px;color:rgba(255,255,255,.76);border:0;border-radius:10px;background:transparent;cursor:pointer;font-family:"Figtree",sans-serif;font-size:13px;font-weight:650;text-align:left;transition:color .16s ease,background .16s ease,transform .16s ease; }
+.platform-language__menu button:hover,.platform-language__menu button:focus-visible { color:#83ff9d;background:rgba(85,242,123,.1);transform:translateX(2px); }
+.platform-language__menu button.is-selected { color:#10241c;background:#55f27b; }
 .voice-status { display:flex;align-items:center;gap:7px;color:#dbe7df;font-size:9px;white-space:nowrap; }
 .voice-status i { width:8px;height:8px;border-radius:50%;background:#a2aaa5; }
 .voice-status[data-state="listening"] i { background:var(--green);box-shadow:0 0 0 7px rgba(71,220,140,.14);animation:pulse 1.2s infinite; }
@@ -707,6 +725,10 @@ button { color:inherit; }
   .workspace { grid-template-columns:235px minmax(420px,1fr); }
   .detail-panel { display:none; }
 }
+@media (max-width:1199px) {
+  .platform-language-float { top:12px;right:12px; }
+  .nav-area { padding-top:70px; }
+}
 @media (max-width:939px) {
   .site-nav { width:min(680px,calc(100% - 28px)); }
   .primary-nav {
@@ -719,12 +741,17 @@ button { color:inherit; }
   .mobile-menu-button { display:inline-grid;place-items:center;width:40px;height:40px;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:50%;background:transparent; }
   .mobile-menu-button svg { width:18px;height:18px; }
   .site-nav .nav-cta { display:none; }
+  .mobile-menu-button { margin-left:auto; }
+  .site-nav .nav-actions { display:none; }
 }
 @media (max-width:800px) {
   body { overflow:auto; }
   .showroom { display:block;min-height:100svh; }
-  .nav-area { position:sticky;top:0;z-index:30;padding:9px 0;background:rgba(245,247,245,.92);backdrop-filter:blur(14px); }
+  .nav-area { position:sticky;top:0;z-index:30;padding:64px 0 9px;background:rgba(245,247,245,.92);backdrop-filter:blur(14px); }
   .site-nav { min-height:54px;width:calc(100% - 20px);padding-left:10px; }
+  .nav-actions { margin-left:auto; }
+  .platform-language { min-height:38px;padding:0 8px; }
+  .platform-language select { max-width:76px;font-size:11px; }
   .workspace { display:flex;flex-direction:column; }
   .workspace { gap:10px;padding:0 10px 10px; }
   .catalog-panel { order:2;padding:14px;overflow:visible; }

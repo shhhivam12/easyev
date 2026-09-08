@@ -226,6 +226,132 @@
       display: none;
     }
 
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .platform-language-float {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 90;
+    }
+
+    .platform-language {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      min-height: 40px;
+      padding: 0 10px;
+      color: var(--white);
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: var(--radius-pill);
+      background: rgba(7, 28, 16, .98);
+      box-shadow: 0 10px 28px rgba(5, 20, 10, .16);
+    }
+
+    .platform-language::before {
+      content: '文';
+      margin-right: 6px;
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .platform-language select {
+      max-width: 86px;
+      color: inherit;
+      color-scheme: dark;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .platform-language option {
+      color: #f4fff7;
+      background: #0b2114;
+      font-weight: 650;
+    }
+
+    .platform-language option:checked {
+      color: var(--forest);
+      background: var(--green);
+    }
+
+    .platform-language__trigger {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 88px;
+      padding: 0;
+      color: #f7fff9;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 720;
+      letter-spacing: -.01em;
+    }
+
+    .platform-language__trigger svg {
+      width: 16px;
+      height: 16px;
+      margin-left: auto;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      transition: transform .2s ease;
+    }
+
+    .platform-language.is-open .platform-language__trigger svg {
+      transform: rotate(180deg);
+    }
+
+    .platform-language__menu {
+      position: absolute;
+      top: calc(100% + 9px);
+      right: 0;
+      min-width: 138px;
+      padding: 6px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 15px;
+      background: #0b2114;
+      box-shadow: 0 18px 42px rgba(5, 20, 10, .24);
+    }
+
+    .platform-language__menu button {
+      width: 100%;
+      min-height: 38px;
+      padding: 0 11px;
+      color: rgba(255, 255, 255, .76);
+      border-radius: 10px;
+      background: transparent;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 650;
+      text-align: left;
+      transition: color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .platform-language__menu button:hover,
+    .platform-language__menu button:focus-visible {
+      color: var(--green-bright);
+      background: rgba(85, 242, 123, .1);
+      transform: translateX(2px);
+    }
+
+    .platform-language__menu button.is-selected {
+      color: var(--forest);
+      background: var(--green);
+    }
+
     .hero {
       position: relative;
       z-index: 2;
@@ -5004,6 +5130,20 @@
         display: none;
       }
 
+      .nav-actions {
+        margin-left: auto;
+      }
+
+      .platform-language {
+        min-height: 38px;
+        padding: 0 8px;
+      }
+
+      .platform-language select {
+        max-width: 76px;
+        font-size: 11px;
+      }
+
       .hero {
         grid-template-columns: 1fr;
         gap: 24px;
@@ -9372,31 +9512,75 @@
       font-weight: 600;
       cursor: pointer;
     }
+    @media (max-width: 1199px) {
+      .platform-language-float {
+        top: 12px;
+        right: 12px;
+      }
+
+      .site-nav {
+        top: 68px;
+        margin-top: 72px;
+      }
+    }
+
+    @media (max-width: 939px) {
+      .mobile-menu-button { margin-left: auto; }
+      .site-nav .nav-actions { display: none; }
+    }
+
+    @media (max-width: 639px) {
+      .site-nav {
+        top: 66px;
+        margin-top: 70px;
+      }
+    }
   </style>
 </head>
 
 <body>
   <main id="app">
+    <div class="platform-language-float">
+      <div class="platform-language" title="Voice language for EasyEV experiences">
+        <span class="sr-only">Platform voice language</span>
+        <select class="sr-only" data-platform-language tabindex="-1" aria-hidden="true">
+          <option value="English">English</option>
+          <option value="Hindi">हिंदी</option>
+          <option value="Hinglish">Hinglish</option>
+        </select>
+        <button class="platform-language__trigger" type="button" data-platform-language-trigger aria-haspopup="listbox" aria-expanded="false">
+          <span data-platform-language-label>Hinglish</span>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+        </button>
+        <div class="platform-language__menu" role="listbox" data-platform-language-menu hidden>
+          <button type="button" role="option" data-platform-language-option data-language="English">English</button>
+          <button type="button" role="option" data-platform-language-option data-language="Hindi">हिंदी</button>
+          <button type="button" role="option" data-platform-language-option data-language="Hinglish">Hinglish</button>
+        </div>
+      </div>
+    </div>
     <section id="landing-view" class="view" aria-label="EasyEV home">
       <header class="site-nav" id="site-nav">
-        <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
+        <a class="brand" href="/" data-home-link aria-label="EasyEV AI home">
           <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
           <span class="brand__wordmark">EasyEV</span>
           <span class="brand__ai">AI</span>
         </a>
         <nav class="primary-nav" id="primary-navigation" aria-label="Primary navigation">
-          <a href="#experiences">Experiences</a>
+          <a href="/#consultation-process" data-nav-action="how">How it works</a>
           <a href="/showroom/">Virtual Showroom</a>
-          <a href="#compare" data-nav-action="compare">Compare EVs</a>
-          <a href="#for-dealers" data-nav-action="dealers">For dealers</a>
+          <a href="/#compare" data-nav-action="compare">Compare EVs</a>
+          <a href="/#for-dealers" data-nav-action="dealers">For dealers</a>
         </nav>
-        <button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Open navigation"
-          aria-expanded="false" data-tooltip="Open navigation">
+        <button class="mobile-menu-button" type="button" aria-label="Open navigation"
+          aria-expanded="false" aria-controls="primary-navigation" data-mobile-menu data-tooltip="Open navigation">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
             <path d="M4 7h16M4 12h16M4 17h16" />
           </svg>
         </button>
-        <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        <div class="nav-actions">
+          <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        </div>
       </header>
 
       <div class="hero">
@@ -9985,18 +10169,26 @@
     <section id="compare-view" class="view" hidden aria-hidden="true">
       <!-- Standard Seamless Site Nav Header -->
       <header class="site-nav" id="compare-site-nav">
-        <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
+        <a class="brand" href="/" data-home-link aria-label="EasyEV AI home">
           <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
           <span class="brand__wordmark">EasyEV</span>
           <span class="brand__ai">AI</span>
         </a>
-        <nav class="primary-nav" aria-label="Primary navigation">
-          <a href="#consultation-process" data-nav-action="how">How it works</a>
+        <nav class="primary-nav" id="compare-primary-navigation" aria-label="Primary navigation">
+          <a href="/#consultation-process" data-nav-action="how">How it works</a>
           <a href="/showroom/">Virtual Showroom</a>
-          <a href="#compare" data-nav-action="compare" style="color: var(--green); font-weight: 700;">Compare EVs</a>
-          <a href="#for-dealers" data-nav-action="dealers">For dealers</a>
+          <a href="/#compare" data-nav-action="compare" style="color: var(--green); font-weight: 700;" aria-current="page">Compare EVs</a>
+          <a href="/#for-dealers" data-nav-action="dealers">For dealers</a>
         </nav>
-        <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        <button class="mobile-menu-button" type="button" aria-label="Open navigation"
+          aria-expanded="false" aria-controls="compare-primary-navigation" data-mobile-menu data-tooltip="Open navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <div class="nav-actions">
+          <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
+        </div>
       </header>
 
       <div class="compare-container">
@@ -10179,31 +10371,26 @@
          ============================================================ -->
     <section id="dealers-view" class="view" hidden aria-hidden="true" aria-label="EasyEV Dealer Onboarding">
       <!-- Top Navbar (EasyEV Standard Dark Pill Navbar) -->
-      <header class="dealers-navbar">
-        <a class="brand" href="#" data-home-link aria-label="EasyEV AI home">
+      <header class="site-nav dealers-navbar">
+        <a class="brand" href="/" data-home-link aria-label="EasyEV AI home">
           <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt=""></span>
           <span class="brand__wordmark">EasyEV</span>
           <span class="brand__ai">AI</span>
         </a>
-        <nav class="dealers-nav-links">
-          <a href="#how-it-works" data-nav-action="how">How it works</a>
+        <nav class="primary-nav" id="dealers-primary-navigation" aria-label="Primary navigation">
+          <a href="/#consultation-process" data-nav-action="how">How it works</a>
           <a href="/showroom/">Virtual Showroom</a>
-          <a href="#compare" data-nav-action="compare">Compare EVs</a>
-          <a href="#dealers" class="active">For dealers</a>
+          <a href="/#compare" data-nav-action="compare">Compare EVs</a>
+          <a href="/#for-dealers" data-nav-action="dealers" style="color: var(--green); font-weight: 700;" aria-current="page">For dealers</a>
         </nav>
-        <div class="dealers-nav-cta">
-          <button class="btn-talk-ai" type="button" data-open-prejoin>
-            <span>Talk to EasyEV AI</span>
-          <button class="btn-talk-ai" type="button" data-start-consultation>
-            <span>Talk to EasyEV</span>
-            <svg width="14" height="10" viewBox="0 0 16 12" fill="currentColor">
-              <rect x="0" y="3" width="2" height="6" rx="1"/>
-              <rect x="3.5" y="1" width="2" height="10" rx="1"/>
-              <rect x="7" y="0" width="2" height="12" rx="1"/>
-              <rect x="10.5" y="2" width="2" height="8" rx="1"/>
-              <rect x="14" y="4" width="2" height="4" rx="1"/>
-            </svg>
-          </button>
+        <button class="mobile-menu-button" type="button" aria-label="Open navigation"
+          aria-expanded="false" aria-controls="dealers-primary-navigation" data-mobile-menu data-tooltip="Open navigation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <div class="nav-actions">
+          <button class="nav-cta" type="button" data-open-prejoin>Talk to EasyEV</button>
         </div>
       </header>
 
@@ -10756,10 +10943,13 @@
     </section>
   </main>
 
+  <script src="/client/platform-language.js?v=20260908-1"></script>
   <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
   <script>
     (() => {
       'use strict';
+
+      const getPlatformLanguage = () => window.EasyEVLanguage?.get?.() || 'Hinglish';
 
       const createInitialActions = () => [
         { id: 'requirements', title: 'Requirements captured', detail: 'Waiting for the conversation to begin', status: 'pending' },
@@ -12592,6 +12782,7 @@
         navOpen = false;
         $('#primary-navigation')?.classList.remove('is-open');
         $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+        if (window.location.hash) window.history.pushState(null, '', window.location.pathname + window.location.search);
         setView('landing');
       };
       const reopenRoom = () => joinConsultationRoom();
@@ -12663,13 +12854,26 @@
         drawer.hidden = true;
         if (promptReturnFocus && typeof promptReturnFocus.focus === 'function') window.setTimeout(() => promptReturnFocus.focus(), 0);
       };
-      const toggleMobileNav = () => {
-        navOpen = !navOpen;
-        $('#primary-navigation')?.classList.toggle('is-open', navOpen);
-        const button = $('#mobile-menu-button');
-        button?.setAttribute('aria-expanded', String(navOpen));
-        button?.setAttribute('aria-label', navOpen ? 'Close navigation' : 'Open navigation');
-        button?.setAttribute('data-tooltip', navOpen ? 'Close navigation' : 'Open navigation');
+      const closeMobileNav = () => {
+        navOpen = false;
+        $$('.primary-nav.is-open').forEach((nav) => nav.classList.remove('is-open'));
+        $$('[data-mobile-menu]').forEach((button) => {
+          button.setAttribute('aria-expanded', 'false');
+          button.setAttribute('aria-label', 'Open navigation');
+          button.setAttribute('data-tooltip', 'Open navigation');
+        });
+      };
+      const toggleMobileNav = (button) => {
+        if (!button) return closeMobileNav();
+        const nav = button.closest('header')?.querySelector('.primary-nav');
+        const shouldOpen = !nav?.classList.contains('is-open');
+        closeMobileNav();
+        if (!nav || !shouldOpen) return;
+        navOpen = true;
+        nav.classList.add('is-open');
+        button.setAttribute('aria-expanded', 'true');
+        button.setAttribute('aria-label', 'Close navigation');
+        button.setAttribute('data-tooltip', 'Close navigation');
       };
       const routePrompt = (text) => {
         const normalized = text.toLowerCase();
@@ -12811,10 +13015,10 @@
         if (target.matches('[data-open-prejoin]')) { event.preventDefault(); openPrejoin(); return; }
         if (target.id === 'close-prejoin' || target.classList.contains('prejoin-backdrop')) { closePrejoin(); return; }
         if (target.matches('[data-home-link]')) { event.preventDefault(); if (state.view === 'room') leaveRoom(); else resetToLanding(); return; }
-        if (target.id === 'mobile-menu-button') { toggleMobileNav(); return; }
+        if (target.matches('[data-mobile-menu]')) { toggleMobileNav(target); return; }
         if (target.matches('[data-nav-action]')) {
-          navOpen = false; $('#primary-navigation')?.classList.remove('is-open'); $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
-          if (target.dataset.navAction === 'how') { event.preventDefault(); if (state.view !== 'landing') resetToLanding(); $('#consultation-process')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' }); }
+          closeMobileNav();
+          if (target.dataset.navAction === 'how') { event.preventDefault(); if (state.view !== 'landing') resetToLanding(); window.history.pushState(null, '', '/#consultation-process'); $('#consultation-process')?.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' }); }
           if (target.dataset.navAction === 'dealers') { event.preventDefault(); openDealersPortal(); return; }
           return;
         }
@@ -13071,8 +13275,7 @@
       });
       document.addEventListener('click', (event) => {
         if (!navOpen) return;
-        const nav = $('#site-nav');
-        if (nav && !nav.contains(event.target)) toggleMobileNav();
+        if (!event.target.closest('.site-nav')) closeMobileNav();
       });
       document.addEventListener('keydown', (event) => {
         if (state.view === 'prejoin' && event.key === 'Tab') {
@@ -13086,7 +13289,7 @@
         }
         if (event.key === 'Escape') {
           if (stageFullscreenFallback) { stageFullscreenFallback = false; syncStageFullscreenButton(); return; }
-          if (navOpen) { toggleMobileNav(); return; }
+          if (navOpen) { closeMobileNav(); return; }
           if (state.view === 'prejoin') { closePrejoin(); return; }
           if (!$('#prompt-drawer')?.hidden) { closePromptDrawer(); return; }
         }
@@ -13390,9 +13593,13 @@
       }
 
       // Helper to pick distinct, crystal-clear, studio-grade voices from the browser
-      function getDebateVoices() {
+      function getDebateVoices(language = getPlatformLanguage()) {
         const allVoices = window.speechSynthesis?.getVoices?.() || [];
         const englishVoices = allVoices.filter((v) => v.lang.startsWith('en'));
+        const hindiVoices = allVoices.filter((v) => v.lang.startsWith('hi'));
+        if (language === 'Hindi' && hindiVoices.length) {
+          return { voiceA: hindiVoices[0], voiceB: hindiVoices[1] || hindiVoices[0] };
+        }
 
         // Voice A (Advocate 1 - Punch.ev): Crisp, natural studio male voice (Google UK English Male / Daniel / Arthur)
         const voiceA = allVoices.find((v) => v.name === 'Google UK English Male') ||
@@ -13421,9 +13628,10 @@
       }
 
       class DebatePlaybackManager {
-        constructor(vehA, vehB, onSpeakerChange) {
+        constructor(vehA, vehB, language, onSpeakerChange) {
           this.vehA = vehA;
           this.vehB = vehB;
+          this.language = language;
           this.onSpeakerChange = onSpeakerChange;
           this.currentSpeaker = null;
           this.currentUtteranceId = null;
@@ -13468,6 +13676,21 @@
               { speaker: 'agent2', text: `And if you want the smartest value-for-money electric car that handles daily commutes with maximum efficiency and minimal running costs, the ${nameB} is the unbeatable champion!` }
             ];
           }
+          if (language === 'Hindi') {
+            this.turns = [
+              { speaker: 'agent1', text: nameA + ' की शुरुआती कीमत लगभग ' + priceA + ' लाख रुपये है और इसकी दावा की गई रेंज ' + rangeA + ' किलोमीटर है। रोज़ की शहर वाली ड्राइव के लिए यह एक समझदार विकल्प है।' },
+              { speaker: 'agent2', text: nameB + ' लंबी यात्रा के लिए मजबूत दावेदार है। इसकी वास्तविक हाईवे रेंज लगभग ' + realRangeB + ' है, इसलिए परिवार के साथ सफर में चार्जिंग की चिंता कम रहती है।' },
+              { speaker: 'agent1', text: 'कम कीमत और हल्के वजन के कारण ' + nameA + ' की ईएमआई और रोज़ की बिजली की लागत कम रह सकती है। तंग पार्किंग में भी इसे चलाना आसान है।' },
+              { speaker: 'agent2', text: nameB + ' ज्यादा जगह, ' + this.vehB.power + ' की पावर और बेहतर हाईवे स्थिरता देता है। आराम प्राथमिकता हो तो यह बेहतर फिट हो सकता है।' }
+            ];
+          } else if (language === 'Hinglish') {
+            this.turns = [
+              { speaker: 'agent1', text: nameA + ' around ' + priceA + ' lakh rupees se start hoti hai aur ' + rangeA + ' kilometer claimed range deti hai. Daily city commute ke liye yeh smart value choice hai.' },
+              { speaker: 'agent2', text: 'Lekin long trips ke liye ' + nameB + ' strong option hai. Iski real highway range around ' + realRangeB + ' hai, isliye family travel me charging stress kam hota hai.' },
+              { speaker: 'agent1', text: 'Lower price aur lighter weight ki wajah se ' + nameA + ' ki EMI aur daily electricity cost manageable reh sakti hai. Tight parking me bhi easy hai.' },
+              { speaker: 'agent2', text: nameB + ' zyada cabin space, ' + this.vehB.power + ' power aur better highway stability deti hai. Comfort priority ho to yeh stronger fit hai.' }
+            ];
+          }
         }
 
         start() {
@@ -13488,9 +13711,9 @@
 
           window.speechSynthesis.cancel();
 
-          const { voiceA, voiceB } = getDebateVoices();
+          const { voiceA, voiceB } = getDebateVoices(this.language);
           const utterance = new SpeechSynthesisUtterance(turn.text);
-          utterance.lang = 'en-IN';
+          utterance.lang = this.language === 'Hindi' ? 'hi-IN' : 'en-IN';
           utterance.rate = 0.85; // Calm, clear, articulate pacing (not fast, no stammering)
           utterance.pitch = 1.0; // Natural pitch without distortion
           utterance.volume = 1.0;
@@ -13586,30 +13809,62 @@
         const vehicleB = exploreVehiclesList.find((v) => v.id === compareSelectedSlotB);
         if (!vehicleA || !vehicleB) return;
 
+        const language = getPlatformLanguage();
         updateDebatePodiums(vehicleA, vehicleB);
-
         const stage = $('#debate-arena-stage');
         const statusText = $('#arena-live-status-text');
-
         if (stage) {
           stage.hidden = false;
           stage.setAttribute('aria-hidden', 'false');
         }
-        if (statusText) statusText.textContent = 'Agora Live Connecting...';
+        if (statusText) statusText.textContent = language + ' · Agora Live Connecting...';
 
-        if (activeDebatePlaybackManager) {
-          activeDebatePlaybackManager.stop();
+        activeDebatePlaybackManager?.stop();
+        activeDebatePlaybackManager = null;
+        if (activeDebateAdapter) {
+          activeDebateAdapter.__languageUnsubscribe?.();
+          await activeDebateAdapter.leave().catch(() => {});
+          activeDebateAdapter = null;
         }
 
-        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, (event) => {
+        const factory = window.EasyEVAgoraBundle?.createCompareDebateAdapter;
+        if (typeof factory === 'function') {
+          try {
+            activeDebateAdapter = factory();
+            activeDebateAdapter.__languageUnsubscribe = activeDebateAdapter.onEvent((event) => {
+              if (event.type === 'CALL_STATUS' && event.payload?.status === 'live' && statusText) {
+                statusText.textContent = language + ' · Agora live';
+              }
+              if (event.type === 'TRANSCRIPT_SYNC') {
+                const latest = [...(event.payload?.entries || [])].reverse().find((entry) => entry.speaker !== 'you' && entry.text);
+                if (latest) {
+                  const nextSpeaker = activeDebateSpeakerState === 'agent1' ? 'agent2' : 'agent1';
+                  setActiveDebateSpeaker(nextSpeaker, latest.id || ('live-' + Date.now()), latest.text, vehicleA, vehicleB);
+                }
+              }
+              if (event.type === 'ERROR' && statusText) statusText.textContent = event.payload?.message || 'Live debate audio needs attention';
+            });
+            await activeDebateAdapter.joinDebate({
+              vehicleIdA: vehicleA.id,
+              vehicleIdB: vehicleB.id,
+              language,
+              voice: 'madhur'
+            });
+            return;
+          } catch (error) {
+            console.warn('Agora debate unavailable; using browser voice fallback:', error);
+            activeDebateAdapter?.__languageUnsubscribe?.();
+            await activeDebateAdapter?.leave?.().catch(() => {});
+            activeDebateAdapter = null;
+          }
+        }
+
+        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, language, (event) => {
           handleDebateVoiceEvent(event, vehicleA, vehicleB);
         });
-
         activeDebatePlaybackManager.start();
-
-        if (statusText) statusText.textContent = `● Option 1 (${vehicleA.name}) Speaking…`;
+        if (statusText) statusText.textContent = language + ' · Browser voice fallback';
       }
-
       function exitDebateArena() {
         if (activeDebatePlaybackManager) {
           activeDebatePlaybackManager.stop();
@@ -13621,6 +13876,7 @@
           stage.setAttribute('aria-hidden', 'true');
         }
         if (activeDebateAdapter) {
+          activeDebateAdapter.__languageUnsubscribe?.();
           activeDebateAdapter.leave();
           activeDebateAdapter = null;
         }
@@ -13657,9 +13913,8 @@
         // Compare Nav Action
         if (target.dataset.navAction === 'compare' || target.getAttribute('href') === '#compare') {
           event.preventDefault();
-          navOpen = false;
-          $('#primary-navigation')?.classList.remove('is-open');
-          $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+          closeMobileNav();
+          window.history.pushState(null, '', '/#compare');
           setView('compare');
           if (!exploreVehiclesList.length) {
             loadExploreVehicles().then(() => renderCompareSelectionGrid());
@@ -13741,9 +13996,7 @@
         // For Dealers Nav Action
         if (target.dataset.navAction === 'dealers' || target.getAttribute('href') === '#for-dealers') {
           event.preventDefault();
-          navOpen = false;
-          $('#primary-navigation')?.classList.remove('is-open');
-          $('#mobile-menu-button')?.setAttribute('aria-expanded', 'false');
+          closeMobileNav();
           openDealersPortal();
           return;
         }
@@ -13901,6 +14154,7 @@
       };
 
       const openDealersPortal = () => {
+        if (window.location.hash !== '#for-dealers') window.history.pushState(null, '', '/#for-dealers');
         setView('dealers');
         goToDealerStep(1);
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -14210,7 +14464,7 @@
         const btnSubmitVoice = $('#btn-d-voice-submit');
 
         let isSessionStarting = false;
-        let selectedDealerLanguage = 'Hinglish';
+        let selectedDealerLanguage = getPlatformLanguage();
 
         const setVoiceState = (mode, label) => {
           const pill = $('#d-voice-state-pill') || $('.pill-ai-ready');
@@ -14335,19 +14589,22 @@
           }
         }
 
+        const applyDealerLanguage = (language, restart = true) => {
+          selectedDealerLanguage = ['English', 'Hindi', 'Hinglish'].includes(language) ? language : 'Hinglish';
+          const languageSelect = $('#dealer-voice-lang-select');
+          if (languageSelect && languageSelect.value !== selectedDealerLanguage) languageSelect.value = selectedDealerLanguage;
+          if (dealerSpeechRecognition) dealerSpeechRecognition.lang = selectedDealerLanguage === 'English' ? 'en-IN' : 'hi-IN';
+          if (dealerVoiceAdapter) {
+            dealerVoiceAdapter.leave().catch(() => {});
+            dealerVoiceAdapter = null;
+          }
+          if (restart && state?.view === 'dealers') ensureDealerVoiceSession();
+        };
+
         const selectLang = $('#dealer-voice-lang-select');
         if (selectLang) {
-          selectLang.addEventListener('change', (e) => {
-            selectedDealerLanguage = e.target.value;
-            if (dealerSpeechRecognition) {
-              dealerSpeechRecognition.lang = selectedDealerLanguage === 'English' ? 'en-IN' : 'hi-IN';
-            }
-            if (dealerVoiceAdapter) {
-              dealerVoiceAdapter.leave().catch(() => {});
-              dealerVoiceAdapter = null;
-            }
-            ensureDealerVoiceSession();
-          });
+          selectLang.value = selectedDealerLanguage;
+          selectLang.addEventListener('change', (event) => window.EasyEVLanguage?.set?.(event.target.value));
         }
 
         const appendChatMessage = (role, text) => {
@@ -14788,6 +15045,7 @@
         window.dealerVoiceAssistant = {
           startSession: ensureDealerVoiceSession,
           processVoiceTurn: handleUserVoiceTurn,
+          setLanguage: applyDealerLanguage,
           getAdapter: () => dealerVoiceAdapter
         };
 
@@ -14798,6 +15056,14 @@
       };
 
       initDealerVoiceAssistant();
+
+      window.addEventListener('easyev:languagechange', (event) => {
+        window.dealerVoiceAssistant?.setLanguage?.(event.detail?.language || getPlatformLanguage());
+        if (activeDebateAdapter || activeDebatePlaybackManager) {
+          exitDebateArena();
+          startDebateArena();
+        }
+      });
 
       renderApp();
       loadExploreVehicles();
