@@ -937,21 +937,32 @@ class DealerAgoraAdapter extends AgoraAdapter {
     }
   }
 
-  async syncManualPatch(patch) {
-    if (!this.dealerSessionId || !patch) return null;
-    try {
-      const res = await postJson('/api/dealer-session/sync-state', {
-        sessionId: this.dealerSessionId,
-        patch,
-      });
-      this.emit('FORM_STATE_SYNC', {
-        currentForm: res.currentForm,
-        completionStats: res.completionStats,
-      });
-      return res;
-    } catch (err) {
-      console.warn('Failed to sync manual patch to dealer session:', err);
-    }
+  syncManualPatch(patch) {
+    if (!this.dealerSessionId || !patch) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      this._pendingPatch = { ...this._pendingPatch, ...patch };
+      if (this._syncPatchTimer) clearTimeout(this._syncPatchTimer);
+      this._syncPatchTimer = setTimeout(async () => {
+        const patchToSend = this._pendingPatch;
+        this._pendingPatch = {};
+        try {
+          const res = await postJson('/api/dealer-session/sync-state', {
+            sessionId: this.dealerSessionId,
+            patch: patchToSend,
+          });
+          this.emit('FORM_STATE_SYNC', {
+            currentForm: res.currentForm,
+            completionStats: res.completionStats,
+            step: res.step,
+            targetField: res.targetField
+          });
+          resolve(res);
+        } catch (err) {
+          console.warn('Failed to sync manual patch to dealer session:', err);
+          resolve(null);
+        }
+      }, 300);
+    });
   }
 
   async submitRegistration() {
