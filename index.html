@@ -1035,7 +1035,8 @@
     .landing-spin-viewer.is-dragging {
       cursor: grabbing;
     }
-    .landing-spin-img {
+    .landing-spin-img,
+    .landing-spin-canvas {
       display: block;
       width: 100%;
       height: 100%;
@@ -12182,8 +12183,9 @@
         <div class="experience-suite__grid">
           <article class="experience-card experience-card--showroom">
             <div class="experience-card__media landing-spin-viewer" id="landing-360-stage" data-spin-viewer aria-label="Tata Nexon EV interactive 360 viewer. Drag horizontally to rotate.">
-              <!-- 360 Spin Frame for Exterior & Open Doors -->
-              <img id="landing-spin-img" class="landing-spin-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Tata Nexon EV 360 interactive rotation" decoding="async" draggable="false">
+              <!-- 360 Spin Canvas for 100% Flicker-Free 60fps GPU Rendering -->
+              <canvas id="landing-spin-canvas" class="landing-spin-canvas" width="1280" height="720"></canvas>
+              <img id="landing-spin-img" class="landing-spin-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Tata Nexon EV 360 interactive rotation" decoding="async" draggable="false" style="display:none;">
 
               <!-- Interior 360 Cabin Panorama (Pannellum) -->
               <div id="landing-pano-container" class="landing-pano-container" style="display: none;"></div>
@@ -18801,6 +18803,7 @@
       // ── Landing Page Interactive 360 Spin & Panorama Viewer Controller ──
       function initLanding360Viewer() {
         const stage = $('#landing-360-stage');
+        const canvas = $('#landing-spin-canvas');
         const img = $('#landing-spin-img');
         const panoEl = $('#landing-pano-container');
         const hint = $('#landing-spin-drag-hint');
@@ -18810,8 +18813,9 @@
         const prevBtn = $('#landing-spin-prev');
         const nextBtn = $('#landing-spin-next');
         const toggleButtons = $$('.spin-toggle-btn');
-        if (!stage || !img) return;
+        if (!stage) return;
 
+        const ctx = canvas ? canvas.getContext('2d', { alpha: false }) : null;
         const TOTAL_FRAMES = 72;
         const FOLDERS = {
           exterior: '/showroom-assets/cars/nexon-ev-carwale/exterior',
@@ -18832,51 +18836,76 @@
           open: new Array(TOTAL_FRAMES)
         };
 
-        let currentFrameIndex = 0;
-        let targetFrame = 0;
-        let currentFrameFloat = 0;
+        const PIXELS_PER_FRAME = 12; // Smooth sensitivity: 12px per frame
+        let currentAngle = 0; // Float index [0..72)
+        let targetAngle = 0;
+        let velocity = 0;
         let isDragging = false;
         let lastX = 0;
         let lastTime = 0;
-        let velocity = 0;
         let lastInteractionTime = performance.now();
-        let autoRotate = true;
+        const autoSpeed = 0.08; // ~4.8 frames/sec = 15s per revolution
         let hasInteracted = false;
         let isHovered = false;
         let panoViewerInstance = null;
+        let lastDrawnFrame = -1;
+        let lastDrawnMode = '';
 
         const getFrameUrl = (mode, idx) => {
-          const padded = String(idx).padStart(2, '0');
+          const padded = String(((idx % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES).padStart(2, '0');
           return `${FOLDERS[mode]}/frame-${padded}.jpg`;
         };
 
-        const preloadFramesForMode = (mode) => {
-          if (!FOLDERS[mode]) return;
+        const loadFrame = (mode, idx) => {
+          const normIdx = ((idx % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
+          if (!FOLDERS[mode]) return null;
           const cache = frameCaches[mode];
-          for (let i = 0; i < TOTAL_FRAMES; i += 4) {
-            if (!cache[i]) {
-              const im = new Image();
-              im.src = getFrameUrl(mode, i);
-              cache[i] = im;
-            }
-          }
-          setTimeout(() => {
-            for (let i = 0; i < TOTAL_FRAMES; i++) {
-              if (!cache[i]) {
-                const im = new Image();
-                im.src = getFrameUrl(mode, i);
-                cache[i] = im;
-              }
-            }
-          }, 350);
+          if (cache[normIdx]) return cache[normIdx];
+          const im = new Image();
+          im.decoding = 'async';
+          im.src = getFrameUrl(mode, normIdx);
+          im.decode?.().catch(() => {});
+          cache[normIdx] = im;
+          return im;
         };
 
-        const updateImage = (idx) => {
-          if (currentMode === 'interior') return;
-          const normIdx = ((Math.round(idx) % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
-          if (normIdx !== currentFrameIndex) {
-            currentFrameIndex = normIdx;
-            img.src = getFrameUrl(currentMode, currentFrameIndex);
+        const preloadAllFrames = (mode) => {
+          if (!FOLDERS[mode]) return;
+          for (let i = 0; i < TOTAL_FRAMES; i++) {
+            loadFrame(mode, i);
+          }
+        };
+
+        const renderFrame = (mode, frameFloat) => {
+          if (mode === 'interior') return;
+          const targetIdx = ((Math.round(frameFloat) % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
+          if (targetIdx === lastDrawnFrame && mode === lastDrawnMode) return;
+
+          const imgObj = loadFrame(mode, targetIdx);
+          if (!imgObj) return;
+
+          if (imgObj.complete && imgObj.naturalWidth > 0) {
+            if (ctx && canvas) {
+              ctx.drawImage(imgObj, 0, 0, 1280, 720);
+            } else if (img) {
+              img.src = imgObj.src;
+            }
+            lastDrawnFrame = targetIdx;
+            lastDrawnMode = mode;
+          } else {
+            // Frame still loading: attach onload so it paints the millisecond it arrives.
+            // In the meantime, canvas keeps holding the previous valid frame with ZERO flicker!
+            imgObj.onload = () => {
+              if (currentMode === mode) {
+                if (ctx && canvas) {
+                  ctx.drawImage(imgObj, 0, 0, 1280, 720);
+                } else if (img) {
+                  img.src = imgObj.src;
+                }
+                lastDrawnFrame = targetIdx;
+                lastDrawnMode = mode;
+              }
+            };
           }
         };
 
@@ -18902,7 +18931,8 @@
           }
 
           if (newMode === 'interior') {
-            img.style.display = 'none';
+            if (canvas) canvas.style.display = 'none';
+            if (img) img.style.display = 'none';
             if (arrowsWrap) arrowsWrap.style.display = 'none';
             if (badgeText) badgeText.textContent = '360° Interior Cabin View';
             if (hintText) hintText.innerHTML = 'Drag in 360&deg; to look around cabin';
@@ -18933,10 +18963,11 @@
             if (panoViewerInstance) {
               try { panoViewerInstance.stopAutoRotate(); } catch {}
             }
-            img.style.display = 'block';
+            if (canvas) canvas.style.display = 'block';
             if (arrowsWrap) arrowsWrap.style.display = 'flex';
-            preloadFramesForMode(newMode);
-            img.src = getFrameUrl(newMode, currentFrameIndex);
+            preloadAllFrames(newMode);
+            lastDrawnFrame = -1; // Force immediate repaint
+            renderFrame(newMode, currentAngle);
 
             if (newMode === 'open') {
               if (badgeText) badgeText.textContent = '360° Open Doors & Gate View';
@@ -18973,15 +19004,18 @@
 
         stage.addEventListener('pointermove', (e) => {
           if (!isDragging || currentMode === 'interior') return;
+          const sample = e.getCoalescedEvents?.().at(-1) || e;
           const now = performance.now();
-          const dx = e.clientX - lastX;
+          const dx = sample.clientX - lastX;
           const dt = Math.max(1, now - lastTime);
 
-          // Drag right -> rotate forward
-          const dFrames = dx / 14;
-          targetFrame += dFrames;
-          velocity = 0.6 * (dFrames / dt * 16) + 0.4 * velocity;
-          lastX = e.clientX;
+          // Direct 1:1 tracking while dragging: instant, responsive, zero-lag
+          const dFrames = dx / PIXELS_PER_FRAME;
+          targetAngle += dFrames;
+          currentAngle += dFrames;
+          velocity = 0.7 * (dFrames / dt * 16) + 0.3 * velocity;
+
+          lastX = sample.clientX;
           lastTime = now;
           lastInteractionTime = now;
         });
@@ -19002,8 +19036,8 @@
           prevBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            targetFrame -= 6;
-            velocity = -0.4;
+            targetAngle -= 4;
+            velocity = -0.35;
             lastInteractionTime = performance.now();
             hideHint();
           });
@@ -19012,14 +19046,14 @@
           nextBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            targetFrame += 6;
-            velocity = 0.4;
+            targetAngle += 4;
+            velocity = 0.35;
             lastInteractionTime = performance.now();
             hideHint();
           });
         }
 
-        // Animation Loop with Lerp & Idle Auto-rotation
+        // Animation Loop with Inertia, Auto-rotation & Shortest-path Wrap
         let rafId;
         const tick = () => {
           if (currentMode !== 'interior') {
@@ -19027,27 +19061,46 @@
             const idleTime = now - lastInteractionTime;
 
             if (!isDragging) {
-              if (Math.abs(velocity) > 0.005) {
-                targetFrame += velocity;
+              // Smooth inertia spin after drag release
+              if (Math.abs(velocity) > 0.002) {
+                targetAngle += velocity;
+                currentAngle += velocity;
                 velocity *= 0.92;
               } else {
                 velocity = 0;
               }
 
-              if (autoRotate && idleTime > 2500 && !isHovered) {
-                targetFrame += 0.08;
+              // Silky idle auto-rotation after 2.5s of no interaction
+              if (idleTime > 2500 && !isHovered) {
+                targetAngle += autoSpeed;
+                currentAngle += autoSpeed;
               }
             }
 
-            currentFrameFloat += (targetFrame - currentFrameFloat) * 0.22;
-            updateImage(currentFrameFloat);
+            // Continuous shortest-path normalization
+            currentAngle = ((currentAngle % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
+            targetAngle = ((targetAngle % TOTAL_FRAMES) + TOTAL_FRAMES) % TOTAL_FRAMES;
+
+            renderFrame(currentMode, currentAngle);
           }
 
           rafId = requestAnimationFrame(tick);
         };
 
-        preloadFramesForMode('exterior');
-        preloadFramesForMode('open');
+        // Initial setup: load frame 0 immediately, paint canvas, and preload rest
+        const frame0 = loadFrame('exterior', 0);
+        if (frame0.complete && frame0.naturalWidth > 0 && ctx && canvas) {
+          ctx.drawImage(frame0, 0, 0, 1280, 720);
+        } else {
+          frame0.onload = () => {
+            if (ctx && canvas && currentMode === 'exterior') {
+              ctx.drawImage(frame0, 0, 0, 1280, 720);
+            }
+          };
+        }
+        preloadAllFrames('exterior');
+        setTimeout(() => preloadAllFrames('open'), 400);
+
         rafId = requestAnimationFrame(tick);
       }
 
