@@ -239,6 +239,39 @@
       top: 20px;
       right: 20px;
       z-index: 90;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .nav-drive-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 32px;
+      padding: 0 11px;
+      color: #55f27b;
+      border: 1px solid rgba(85, 242, 123, 0.35);
+      border-radius: var(--radius-pill, 999px);
+      background: rgba(7, 28, 16, 0.98);
+      font-family: var(--font-sans, "Plus Jakarta Sans", sans-serif);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-decoration: none;
+      box-shadow: 0 6px 18px rgba(5, 20, 10, 0.14);
+      transition: all 0.2s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-drive-btn:hover {
+      background: var(--green, #55f27b);
+      border-color: #55f27b;
+      color: #021a10;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(85, 242, 123, 0.3);
     }
 
     .platform-language {
@@ -12494,6 +12527,7 @@
 <body>
   <main id="app">
     <div class="platform-language-float">
+      <a class="nav-drive-btn" href="http://localhost:4173/game" id="drive-xuv-b6-btn" title="Drive XUV B6">Drive XUV B6</a>
       <div class="platform-language" title="Voice language for EasyEV experiences">
         <span class="sr-only">Platform voice language</span>
         <select class="sr-only" data-platform-language tabindex="-1" aria-hidden="true">
