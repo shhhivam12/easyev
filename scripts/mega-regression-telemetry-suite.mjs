@@ -185,6 +185,25 @@ assert(telemetryStore.latestFrameCommit.durationMs === 12.4, "Double-rAF duratio
 
 // --- SECTION 5: HTML STRUCTURE & BUNDLE COMPATIBILITY AUDIT ---
 console.log("\n--- 5. HTML Structure & Script Loading Integrity ---");
+// --- SCRIPT AST VALIDATION TEST ---
+import vm from "node:vm";
+
+const indexHtmlContent = await fs.promises.readFile("index.html", "utf8");
+const scriptRegex = /<script(?:s+[^>]*)?>([\s\S]*?)<\/script>/gi;
+let match, sCount = 0, sErrors = 0;
+while ((match = scriptRegex.exec(indexHtmlContent)) !== null) {
+  sCount++;
+  if (!match[0].includes("src=")) {
+    try {
+      new vm.Script(match[1]);
+    } catch(e) {
+      sErrors++;
+      console.error(`❌ Script #${sCount} syntax error:`, e.message);
+    }
+  }
+}
+assert(sErrors === 0, "All inline <script> tags in index.html compile cleanly with zero JS syntax errors");
+
 const indexHtml = fs.readFileSync("index.html", "utf8");
 assert(indexHtml.includes("id=\"telemetry-hud-root\"") || indexHtml.includes("createHudRoot"), "index.html defines Telemetry HUD Root");
 assert(indexHtml.includes("initTelemetryHud"), "index.html includes initTelemetryHud controller");
