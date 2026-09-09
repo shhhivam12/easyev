@@ -3073,9 +3073,9 @@ export class EasyEVToolEngine {
       try { doc.image(iconPath, 48, y + 8, { width: 20, height: 20 }); } catch {}
     }
     const passTitle = isDiscoveryMode
-      ? 'EASYEV DECISION ROADMAP & TEST DRIVE ELIGIBILITY PASS'
-      : 'EASYEV VIP TEST DRIVE & DEALERSHIP HANDOFF PASS';
-    doc.font('Helvetica-Bold').fontSize(11).fillColor('#ffffff').text(passTitle, iconPath ? 74 : 52, y + 12);
+      ? 'EASYEV DECISION ROADMAP & PASS'
+      : 'EASYEV VIP TEST DRIVE PASS';
+    doc.font('Helvetica-Bold').fontSize(10.5).fillColor('#ffffff').text(passTitle, iconPath ? 74 : 52, y + 13, { width: 265 });
 
     // Booking Status Badge
     const isBooked = Boolean(passport.booking && passport.booking.confirmed);
@@ -3083,8 +3083,8 @@ export class EasyEVToolEngine {
       ? 'PROVISIONAL HOLD - AWAITING PROFILE'
       : (isBooked ? 'CONFIRMED VIP BOOKING' : 'TEST DRIVE READY - ON DEMAND');
     const passStatusBg = isDiscoveryMode ? '#d97706' : (isBooked ? '#059669' : '#0284c7');
-    doc.rect(350, y + 8, 195, 20).fill(passStatusBg);
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(passStatusText, 350, y + 13, { align: 'center', width: 195 });
+    doc.rect(340, y + 8, 205, 20).fill(passStatusBg);
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(passStatusText, 340, y + 13, { align: 'center', width: 205 });
 
     // Pass Sub-banner
     doc.rect(40, y + 36, passW, 20).fill('#f8fafc');
@@ -3102,16 +3102,16 @@ export class EasyEVToolEngine {
     // Left Section of Boarding Pass
     const lpX = 52;
     if (isDiscoveryMode) {
-      doc.font('Helvetica-Bold').fontSize(13).fillColor(primaryColor).text('Candidate Selection Pending Consultation Qualification', lpX, y + 64);
+      doc.font('Helvetica-Bold').fontSize(11).fillColor(primaryColor).text('Candidate Selection Pending Qualification', lpX, y + 64, { width: 315 });
       doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
         `Decision Roadmap  -  Phase 1 of 3: Signal Discovery State  -  ${effectiveCategory} Domain`,
-        lpX, y + 80
+        lpX, y + 80, { width: 315 }
       );
     } else {
-      doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(topVehicle.name, lpX, y + 64);
+      doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(topVehicle.name, lpX, y + 64, { width: 315 });
       doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
         `${topVehicle.category}  -  ${cleanPdfText(topVehicle.battery).slice(0, 24)}  -  Top Recommended Specification`,
-        lpX, y + 80
+        lpX, y + 80, { width: 315 }
       );
     }
 
