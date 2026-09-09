@@ -11478,52 +11478,41 @@
     }
     .hud-panel {
       width: 440px;
-      max-height: 80vh;
+      max-height: 88vh;
       display: flex;
       flex-direction: column;
       font-size: 11px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 229, 255, 0.22);
     }
     .hud-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 10px 14px;
+      padding: 12px 16px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       background: rgba(255, 255, 255, 0.03);
     }
-    .hud-modes {
-      display: flex;
-      gap: 4px;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 2px;
-      border-radius: 6px;
-    }
-    .hud-mode-btn {
-      background: transparent;
-      border: none;
-      color: #94a3b8;
-      font-size: 10px;
-      font-family: inherit;
-      padding: 4px 9px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-    .hud-mode-btn.active {
-      background: #0284c7;
-      color: #fff;
-      font-weight: 600;
-    }
     .hud-body {
-      padding: 12px 14px;
+      padding: 18px 18px 28px;
       overflow-y: auto;
-
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-height: calc(88vh - 56px);
+      box-sizing: border-box;
+    }
+    .hud-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
     .hud-section-title {
-      font-size: 10px;
+      font-size: 10.5px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.08em;
       color: #38bdf8;
-      margin-bottom: 6px;
+      margin: 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -11531,13 +11520,13 @@
     .hud-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px;
+      gap: 8px;
     }
     .hud-metric-box {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      padding: 6px 8px;
-      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 10px;
+      border-radius: 8px;
       position: relative;
     }
     .hud-metric-label {
@@ -11548,10 +11537,10 @@
       justify-content: space-between;
     }
     .hud-metric-val {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 13.5px;
+      font-weight: 700;
       color: #f1f5f9;
-      margin-top: 2px;
+      margin-top: 4px;
     }
     .hud-info-icon {
       cursor: pointer;
@@ -11565,24 +11554,30 @@
       color: #38bdf8;
       font-size: 9.5px;
       margin-left: 4px;
+      transition: background 0.15s;
+    }
+    .hud-info-icon:hover {
+      background: rgba(56, 189, 248, 0.3);
+      color: #fff;
     }
     .hud-provenance-box {
       background: rgba(15, 23, 42, 0.98);
       border: 1px solid rgba(56, 189, 248, 0.4);
       border-radius: 6px;
-      padding: 7px 9px;
+      padding: 8px 10px;
       font-size: 9.5px;
       color: #cbd5e1;
-      margin-top: 5px;
+      margin-top: 2px;
       line-height: 1.45;
     }
     .hud-state-badge {
       display: inline-block;
-      padding: 1px 6px;
+      padding: 2px 7px;
       border-radius: 4px;
       font-size: 9px;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
     .hud-badge-completed { background: rgba(16, 185, 129, 0.2); color: #34d399; }
     .hud-badge-executing { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
@@ -11597,24 +11592,19 @@
       border-radius: 3px;
     }
     .hud-event-feed {
-      max-height: 150px;
+      min-height: 48px;
+      max-height: 140px;
       overflow-y: auto;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 9.5px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
+      box-sizing: border-box;
     }
-    .hud-event-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      font-family: monospace;
-    }
-    .hud-event-type { color: #38bdf8; }
-    .hud-event-time { color: #64748b; }
   </style>
 </head>
 
@@ -18334,43 +18324,52 @@
           const stopLat = (bargeIn.t2_playbackStopRequested && bargeIn.t1_invoked) ? Math.round(bargeIn.t2_playbackStopRequested - bargeIn.t1_invoked) + "ms" : "--";
           const cancelAckLat = (bargeIn.t3b_cancelAck && bargeIn.t3a_cancelStarted) ? Math.round(bargeIn.t3b_cancelAck - bargeIn.t3a_cancelStarted) + "ms" : "--";
           bargeInHtml = `
-            <div class="hud-section-title">
-              <span>Barge-In Decomposed Trace</span>
-              <span class="hud-state-badge hud-badge-${bargeIn.complete ? "completed" : "executing"}">${bargeIn.state || "active"}</span>
-            </div>
-            <div class="hud-grid" style="margin-bottom:6px;">
-              <div class="hud-metric-box">
-                <div class="hud-metric-label">
-                  <span>Playback Stop</span>
-                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('playbackStop')">ⓘ</span>
-                </div>
-                <div class="hud-metric-val" style="color:#34d399;">${stopLat}</div>
+            <div class="hud-section">
+              <div class="hud-section-title">
+                <span>Barge-In Decomposed Trace</span>
+                <span class="hud-state-badge hud-badge-${bargeIn.complete ? "completed" : "executing"}>${bargeIn.state || "active"}</span>
               </div>
-              <div class="hud-metric-box">
-                <div class="hud-metric-label">
-                  <span>Cancel ACK</span>
-                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('cancelAck')">ⓘ</span>
+              <div class="hud-grid">
+                <div class="hud-metric-box">
+                  <div class="hud-metric-label">
+                    <span>Playback Stop</span>
+                    <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('playbackStop')">ⓘ</span>
+                  </div>
+                  <div class="hud-metric-val" style="color:#34d399;">${stopLat}</div>
                 </div>
-                <div class="hud-metric-val" style="color:#38bdf8;">${cancelAckLat}</div>
+                <div class="hud-metric-box">
+                  <div class="hud-metric-label">
+                    <span>Cancel ACK</span>
+                    <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('cancelAck')">ⓘ</span>
+                  </div>
+                  <div class="hud-metric-val" style="color:#38bdf8;">${cancelAckLat}</div>
+                </div>
               </div>
+              ${activeProvenance === "playbackStop" ? `
+                <div class="hud-provenance-box">
+                  <strong>${prov.playbackStop?.name || "Playback Stop"}</strong><br/>
+                  Boundary: ${prov.playbackStop?.boundary || "N/A"}<br/>
+                  Source: ${prov.playbackStop?.source || "N/A"}
+                </div>` : ""}
+              ${activeProvenance === "cancelAck" ? `
+                <div class="hud-provenance-box">
+                  <strong>${prov.cancelAck?.name || "Cancel ACK"}</strong><br/>
+                  Boundary: ${prov.cancelAck?.boundary || "N/A"}<br/>
+                  Source: ${prov.cancelAck?.source || "N/A"}
+                </div>` : ""}
             </div>
-            ${activeProvenance === "playbackStop" ? `
-              <div class="hud-provenance-box">
-                <strong>${prov.playbackStop?.name || "Playback Stop"}</strong><br/>
-                Boundary: ${prov.playbackStop?.boundary || "N/A"}<br/>
-                Source: ${prov.playbackStop?.source || "N/A"}
-              </div>` : ""}
-            ${activeProvenance === "cancelAck" ? `
-              <div class="hud-provenance-box">
-                <strong>${prov.cancelAck?.name || "Cancel ACK"}</strong><br/>
-                Boundary: ${prov.cancelAck?.boundary || "N/A"}<br/>
-                Source: ${prov.cancelAck?.source || "N/A"}
-              </div>` : ""}
           `;
         } else {
           bargeInHtml = `
-            <div class="hud-section-title"><span>Barge-In Pipeline</span><span style="color:#94a3b8;">IDLE / READY</span></div>
-            <div style="color:#64748b;font-size:10px;">Listening on active WebRTC audio track...</div>
+            <div class="hud-section">
+              <div class="hud-section-title">
+                <span>Barge-In Pipeline</span>
+                <span style="color:#64748b;font-weight:600;font-size:9.5px;">IDLE / READY</span>
+              </div>
+              <div style="color:#64748b;font-size:10px;background:rgba(255,255,255,0.02);padding:7px 10px;border-radius:6px;border:1px dashed rgba(255,255,255,0.08);">
+                Listening on active WebRTC audio track...
+              </div>
+            </div>
           `;
         }
 
@@ -18379,29 +18378,31 @@
           const valLat = (tool.t1_schemaValidated && tool.t0_intent) ? Math.round(tool.t1_schemaValidated - tool.t0_intent) + "ms" : "--";
           const execLat = (tool.t4_execCompleted && tool.t3_execStarted) ? Math.round(tool.t4_execCompleted - tool.t3_execStarted) + "ms" : "--";
           toolHtml = `
-            <div class="hud-section-title" style="margin-top:8px;">
-              <span>Tool: ${tool.tool}</span>
-              <span class="hud-state-badge hud-badge-${tool.state || "created"}">${tool.state || "created"}</span>
-            </div>
-            <div class="hud-grid" style="margin-bottom:6px;">
-              <div class="hud-metric-box">
-                <div class="hud-metric-label"><span>Schema Validation</span></div>
-                <div class="hud-metric-val">${valLat}</div>
+            <div class="hud-section">
+              <div class="hud-section-title">
+                <span>Tool: ${tool.tool}</span>
+                <span class="hud-state-badge hud-badge-${tool.state || "created"}>${tool.state || "created"}</span>
               </div>
-              <div class="hud-metric-box">
-                <div class="hud-metric-label">
-                  <span>Server Execution</span>
-                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('toolPipeline')">ⓘ</span>
+              <div class="hud-grid">
+                <div class="hud-metric-box">
+                  <div class="hud-metric-label"><span>Schema Validation</span></div>
+                  <div class="hud-metric-val">${valLat}</div>
                 </div>
-                <div class="hud-metric-val" style="color:#38bdf8;">${execLat}</div>
+                <div class="hud-metric-box">
+                  <div class="hud-metric-label">
+                    <span>Server Execution</span>
+                    <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('toolPipeline')">ⓘ</span>
+                  </div>
+                  <div class="hud-metric-val" style="color:#38bdf8;">${execLat}</div>
+                </div>
               </div>
+              ${activeProvenance === "toolPipeline" ? `
+                <div class="hud-provenance-box">
+                  <strong>${prov.toolPipeline?.name || "Tool Pipeline"}</strong><br/>
+                  Boundary: ${prov.toolPipeline?.boundary || "N/A"}<br/>
+                  Source: ${prov.toolPipeline?.source || "N/A"}
+                </div>` : ""}
             </div>
-            ${activeProvenance === "toolPipeline" ? `
-              <div class="hud-provenance-box">
-                <strong>${prov.toolPipeline?.name || "Tool Pipeline"}</strong><br/>
-                Boundary: ${prov.toolPipeline?.boundary || "N/A"}<br/>
-                Source: ${prov.toolPipeline?.source || "N/A"}
-              </div>` : ""}
           `;
         }
 
@@ -18417,23 +18418,25 @@
           const lastEvent = ((store && store.ringBuffer) || [])[((store && store.ringBuffer) || []).length - 1];
           const sanitizedPayload = lastEvent ? JSON.stringify(lastEvent.metadata, null, 2) : "{}";
           debugHtml = `
-            <div class="hud-section-title" style="margin-top:8px;color:#ec4899;">
-              <span>Debug Payload Inspector (Sanitized)</span>
+            <div class="hud-section">
+              <div class="hud-section-title" style="color:#ec4899;">
+                <span>Debug Payload Inspector (Sanitized)</span>
+              </div>
+              <div style="font-size:9.5px;color:#c084fc;margin-bottom:2px;">
+                PII & Secrets: <span class="hud-redacted-val">[AUTOMATICALLY REDACTED]</span>
+              </div>
+              <pre style="background:rgba(0,0,0,0.65);border:1px solid rgba(255,255,255,0.08);padding:8px 10px;border-radius:6px;color:#a7f3d0;font-size:9.5px;max-height:120px;overflow:auto;margin:0;">${sanitizedPayload}</pre>
             </div>
-            <div style="font-size:9px;color:#a855f7;margin-bottom:3px;">
-              PII & Secrets: <span class="hud-redacted-val">[AUTOMATICALLY REDACTED]</span>
-            </div>
-            <pre style="background:rgba(0,0,0,0.6);padding:6px;border-radius:4px;color:#a7f3d0;font-size:9px;max-height:120px;overflow:auto;margin:0;">${sanitizedPayload}</pre>
           `;
         }
 
         root.innerHTML = `
           <div class="hud-card hud-panel">
             <div class="hud-header" style="cursor:grab;">
-              <div style="display:flex;align-items:center;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
                 <span class="hud-drag-handle" title="Drag to move HUD anywhere">⠿</span>
                 <span class="hud-live-dot"></span>
-                <span style="font-weight:700;letter-spacing:0.04em;color:#fff;">EASYEV TELEMETRY</span>
+                <span style="font-weight:750;letter-spacing:0.04em;color:#fff;font-size:11.5px;">EASYEV TELEMETRY</span>
               </div>
               <div class="hud-modes">
                 <button class="hud-mode-btn ${hudMode === "DETAILED" ? "active" : ""}" onclick="window.setTelemetryMode('DETAILED')">Detailed</button>
@@ -18443,10 +18446,10 @@
             </div>
             <div class="hud-body">
               <!-- RTC Transport Health -->
-              <div>
+              <div class="hud-section">
                 <div class="hud-section-title">
                   <span>Transport Health (Agora SD-RTN)</span>
-                  <span style="color:#10b981;">${rtc.connectionState || "CONNECTED"}</span>
+                  <span style="color:#10b981;font-weight:700;">${rtc.connectionState || "CONNECTED"}</span>
                 </div>
                 <div class="hud-grid">
                   <div class="hud-metric-box">
@@ -18511,9 +18514,9 @@
               ${toolHtml}
 
               <!-- Event Feed -->
-              <div>
+              <div class="hud-section">
                 <div class="hud-section-title"><span>Correlated Event Waterfall (FIFO)</span></div>
-                <div class="hud-event-feed">${eventsList || '<div style="color:#64748b;">Awaiting events...</div>'}</div>
+                <div class="hud-event-feed">${eventsList || '<div style="color:#64748b;padding:4px 0;">Awaiting events...</div>'}</div>
               </div>
 
               <!-- Debug Payload (if active) -->

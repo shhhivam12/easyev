@@ -82,9 +82,7 @@ assert(tdInit.status === 200 && tdInit.data.sessionId, "POST /api/test-drive/ini
 const tdSessionId = tdInit.data.sessionId;
 
 await new Promise(r => setTimeout(r, 200));
-testDriveDb.loadFromDisk();
-const tdSession = testDriveDb.getSession(tdSessionId);
-const capabilityToken = tdSession.capability_token;
+const capabilityToken = tdInit.data.capabilityToken || (testDriveDb.loadFromDisk(), testDriveDb.getSession(tdSessionId)?.capability_token);
 
 const checkAvail = await postJson("/api/test-drive/check-availability", {
   session_id: tdSessionId,

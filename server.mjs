@@ -1967,6 +1967,8 @@ async function handleApi(req, res, url) {
     return json(res, 200, {
       success: true,
       sessionId: session.sessionId,
+      capabilityToken: dbSession.capability_token,
+      capability_token: dbSession.capability_token,
       status: 'INITIATED',
       vehicleName: vehicle.name,
       initialTurn,
