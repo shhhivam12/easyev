@@ -11424,21 +11424,18 @@
     .hud-drag-handle:hover {
       color: #38bdf8;
     }
-    #telemetry-hud-root {
-      user-select: none;
-      touch-action: none;
-      cursor: grab;
-    }
-
     /* === EASYEV PRODUCTION TELEMETRY HUD (v3 - 9.8+ STANDARD) === */
     #telemetry-hud-root {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
+      top: 20px;
+      left: 24px;
       z-index: 999999;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       color: #e2e8f0;
       pointer-events: none;
+      user-select: none;
+      touch-action: none;
+      cursor: grab;
     }
     .hud-card {
       pointer-events: auto;
@@ -18205,7 +18202,6 @@
 
 
   <script>
-<script>
     /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - COMPACT PILL & EXPANDABLE) === */
     (function initTelemetryHud() {
       let activeProvenance = null;

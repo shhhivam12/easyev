@@ -81,6 +81,7 @@ const tdInit = await postJson("/api/test-drive/initiate", {
 assert(tdInit.status === 200 && tdInit.data.sessionId, "POST /api/test-drive/initiate creates booking session");
 const tdSessionId = tdInit.data.sessionId;
 
+await new Promise(r => setTimeout(r, 200));
 testDriveDb.loadFromDisk();
 const tdSession = testDriveDb.getSession(tdSessionId);
 const capabilityToken = tdSession.capability_token;
