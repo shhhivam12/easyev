@@ -15391,6 +15391,7 @@
         if (type === 'insurance-plans') markAction('insurance', 'complete', 'Contextual EV insurance analysis ready');
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
         renderApp();
+        window.EasyEVTelemetry?.emit?.('POST_RENDER_FRAME_OBSERVED', { stageType: type });
       };
       const syncStructuredPassport = (passport) => {
         if (!passport || typeof passport !== 'object') return;
@@ -19252,12 +19253,13 @@
 </script>
 
 
+  <div id="telemetry-hud-root" hidden style="display:none" aria-hidden="true"></div>
   <script>
     // EasyEV Telemetry compatibility stubs
+    window.initTelemetryHud = function() { return { destroy: function() {} }; };
     window.setTelemetryMode = function() {};
     window.toggleTelemetryProvenance = function() {};
   </script>
-
 
 </body>
 
