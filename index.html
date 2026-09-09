@@ -10431,6 +10431,27 @@
       transform: translateX(-50%) translateY(0);
     }
   
+    
+    .hud-drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 13px;
+      cursor: grab;
+      user-select: none;
+      margin-right: 2px;
+      letter-spacing: -2px;
+    }
+    .hud-drag-handle:hover {
+      color: #38bdf8;
+    }
+    #telemetry-hud-root {
+      user-select: none;
+      touch-action: none;
+      cursor: grab;
+    }
+
     /* === EASYEV PRODUCTION TELEMETRY HUD (v3 - 9.8+ STANDARD) === */
     #telemetry-hud-root {
       position: fixed;
@@ -16997,10 +17018,18 @@
   </script>
 
   <script>
-    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - 9.8+ STANDARD) === */
+    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - DRAGGABLE & RESPONSIVE) === */
     (function initTelemetryHud() {
       let activeProvenance = null;
       let hudMode = "BASIC"; // "BASIC", "DETAILED", "DEBUG", "HIDDEN"
+      let posX = null;
+      let posY = null;
+      let isDragging = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      let elemStartX = 0;
+      let elemStartY = 0;
+      let hasMoved = false;
 
       function createHudRoot() {
         let root = document.getElementById("telemetry-hud-root");
@@ -17008,11 +17037,66 @@
           root = document.createElement("div");
           root.id = "telemetry-hud-root";
           document.body.appendChild(root);
+          initDraggable(root);
         }
         return root;
       }
 
+      function initDraggable(el) {
+        el.addEventListener("pointerdown", (e) => {
+          if (e.target.closest("button") || e.target.closest(".hud-info-icon") || e.target.closest(".hud-mode-btn")) return;
+          isDragging = true;
+          hasMoved = false;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+
+          const rect = el.getBoundingClientRect();
+          elemStartX = rect.left;
+          elemStartY = rect.top;
+
+          // Switch to absolute inline positioning on first drag
+          el.style.bottom = "auto";
+          el.style.right = "auto";
+          el.style.left = elemStartX + "px";
+          el.style.top = elemStartY + "px";
+
+          el.setPointerCapture(e.pointerId);
+          el.style.cursor = "grabbing";
+        });
+
+        el.addEventListener("pointermove", (e) => {
+          if (!isDragging) return;
+          const dx = e.clientX - dragStartX;
+          const dy = e.clientY - dragStartY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+            hasMoved = true;
+          }
+          let newX = elemStartX + dx;
+          let newY = elemStartY + dy;
+
+          const width = el.offsetWidth || 300;
+          const height = el.offsetHeight || 40;
+          newX = Math.max(8, Math.min(window.innerWidth - width - 8, newX));
+          newY = Math.max(8, Math.min(window.innerHeight - height - 8, newY));
+
+          posX = newX;
+          posY = newY;
+          el.style.left = newX + "px";
+          el.style.top = newY + "px";
+        });
+
+        const endDrag = (e) => {
+          if (!isDragging) return;
+          isDragging = false;
+          el.style.cursor = "grab";
+        };
+
+        el.addEventListener("pointerup", endDrag);
+        el.addEventListener("pointercancel", endDrag);
+      }
+
       window.setTelemetryMode = function(mode) {
+        if (hasMoved) { hasMoved = false; return; }
         hudMode = mode;
         if (window.EasyEVTelemetry && window.EasyEVTelemetry.store) {
           window.EasyEVTelemetry.store.setLevel(mode === "DEBUG" ? "DEBUG" : (mode === "DETAILED" ? "DETAILED" : "BASIC"));
@@ -17027,9 +17111,17 @@
 
       function renderHud() {
         const root = createHudRoot();
+        if (posX !== null && posY !== null) {
+          root.style.bottom = "auto";
+          root.style.right = "auto";
+          root.style.left = posX + "px";
+          root.style.top = posY + "px";
+        }
+
         if (hudMode === "HIDDEN") {
           root.innerHTML = `
-            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('BASIC')" title="Click to show Telemetry HUD (Shortcut: T)">
+            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('BASIC')" title="Click to show Telemetry HUD (Shortcut: T | Drag to reposition)">
+              <span class="hud-drag-handle" title="Drag to move">⠿</span>
               <span class="hud-live-dot"></span>
               <span style="color:#94a3b8;font-weight:600;">TELEMETRY [T]</span>
             </div>
@@ -17052,7 +17144,8 @@
             : (bargeIn ? (bargeIn.state || "active") : "ready");
 
           root.innerHTML = `
-            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('DETAILED')" title="Click to expand (Shortcut: T | Shift+T for Debug)">
+            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('DETAILED')" title="Click to expand (Shortcut: T | Drag to reposition)">
+              <span class="hud-drag-handle" title="Drag anywhere on screen">⠿</span>
               <span class="hud-live-dot"></span>
               <span style="color:#38bdf8;font-weight:600;">LIVE TELEMETRY</span>
               <span style="color:#64748b;">|</span>
@@ -17168,8 +17261,9 @@
 
         root.innerHTML = `
           <div class="hud-card hud-panel">
-            <div class="hud-header">
+            <div class="hud-header" style="cursor:grab;">
               <div style="display:flex;align-items:center;gap:6px;">
+                <span class="hud-drag-handle" title="Drag to move HUD anywhere">⠿</span>
                 <span class="hud-live-dot"></span>
                 <span style="font-weight:700;letter-spacing:0.04em;color:#fff;">EASYEV TELEMETRY</span>
               </div>
@@ -17221,8 +17315,7 @@
                   <div class="hud-provenance-box">
                     <strong>${prov.rtt?.name || "Network RTT"}</strong><br/>
                     Boundary: ${prov.rtt?.boundary || "N/A"}<br/>
-                    Source: ${prov.rtt?.source || "N/A"}<br/>
-                    Sampling: ${prov.rtt?.sampling || "N/A"}
+                    Source: ${prov.rtt?.source || "N/A"}
                   </div>` : ""}
                 ${activeProvenance === "jitter" ? `
                   <div class="hud-provenance-box">
@@ -17304,7 +17397,7 @@
         renderHud();
       }
     })();
-  </script>
+</script>
 
 </body>
 
