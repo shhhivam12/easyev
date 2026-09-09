@@ -1,7 +1,7 @@
 import http from 'node:http';
-import { readFileSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
+import { readFileSync, statSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
-import { createGzip, createBrotliCompress } from 'node:zlib';
+import { createGzip, createBrotliCompress, brotliCompressSync, gzipSync, constants as zlibConstants } from 'node:zlib';
 import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -1224,9 +1224,22 @@ async function handleScopedSessionApi(req, res, url) {
   if (!match) return false;
   const action = match[2];
   if (req.method === 'GET' && action === 'report') {
-    const reportRecord = sessions.get(match[1]) || completedSessions.get(match[1]);
-    if (!reportRecord?.report || Date.now() - reportRecord.report.createdAt > 60 * 60 * 1000) {
-      return json(res, 404, { error: 'The decision report is not ready.' });
+    let reportRecord = sessions.get(match[1]) || completedSessions.get(match[1]);
+    if (!reportRecord) {
+      return json(res, 404, { error: 'The decision session was not found.' });
+    }
+    if (!reportRecord.report) {
+      try {
+        const pdf = await tools.buildReport(reportRecord);
+        reportRecord.report = {
+          pdf,
+          createdAt: Date.now(),
+          filename: `EasyEV-decision-${reportRecord.key.slice(0, 8)}.pdf`,
+        };
+      } catch (err) {
+        console.error('On-demand PDF report build failed:', err);
+        return json(res, 500, { error: 'Failed to generate decision report.' });
+      }
     }
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
@@ -1527,6 +1540,37 @@ async function handleApi(req, res, url) {
         azureConfigured: AZURE_SPEECH_READY,
       },
     });
+  }
+
+  if (url.pathname === '/api/decision-passport/pdf') {
+    try {
+      const body = req.method === 'POST' ? await readJson(req) : {};
+      const record = {
+        key: body.key || body.sessionId || crypto.randomUUID(),
+        category: body.category || '4W',
+        buyer: body.buyer || {},
+        passport: body.passport || body.decisionPassport || {
+          profile: body.profile || {},
+          shortlist: body.shortlist || [],
+          comparison: body.comparison || null,
+          ownership: body.ownership || null,
+          timeline: body.timeline || [],
+          nextActions: body.actions || [],
+        },
+      };
+      const pdf = await tools.buildReport(record);
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdf.length,
+        'Content-Disposition': `attachment; filename="EasyEV-Decision-Passport-${record.key.slice(0, 8)}.pdf"`,
+        'Cache-Control': 'no-store',
+      });
+      res.end(pdf);
+      return true;
+    } catch (err) {
+      console.error('PDF generation endpoint failed:', err);
+      return json(res, 500, { error: 'Could not generate PDF report' });
+    }
   }
 
   if (url.pathname === '/api/tts') {
@@ -2290,6 +2334,30 @@ async function handleApi(req, res, url) {
   return false;
 }
 
+const compressionCache = new Map();
+
+function getCompressedBuffer(fullPath, mtimeMs, encoding) {
+  const cacheKey = `${fullPath}:${Math.floor(mtimeMs)}:${encoding}`;
+  const cached = compressionCache.get(cacheKey);
+  if (cached) return cached;
+
+  const raw = readFileSync(fullPath);
+  let compressed;
+  if (encoding === 'br') {
+    compressed = brotliCompressSync(raw, {
+      params: {
+        [zlibConstants.BROTLI_PARAM_QUALITY]: 4,
+      }
+    });
+  } else if (encoding === 'gzip') {
+    compressed = gzipSync(raw, { level: 6 });
+  } else {
+    compressed = raw;
+  }
+  compressionCache.set(cacheKey, compressed);
+  return compressed;
+}
+
 function serveFile(req, res, path, cache = false) {
   const fullPath = resolve(ROOT, path);
   if (!fullPath.startsWith(ROOT) || !existsSync(fullPath)) return false;
@@ -2305,6 +2373,8 @@ function serveFile(req, res, path, cache = false) {
     '.webm': 'video/webm',
     '.mp4': 'video/mp4',
     '.glb': 'model/gltf-binary',
+    '.ico': 'image/x-icon',
+    '.json': 'application/json',
   }[extname(fullPath)] || 'application/octet-stream';
   if (mime === 'image/jpeg') {
     let descriptor;
@@ -2321,10 +2391,22 @@ function serveFile(req, res, path, cache = false) {
       if (descriptor !== undefined) closeSync(descriptor);
     }
   }
+
+  const stat = statSync(fullPath);
+  const etag = `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+  if (req.headers['if-none-match'] === etag) {
+    res.writeHead(304, {
+      'ETag': etag,
+      'Cache-Control': cache ? 'public, max-age=86400' : 'public, max-age=0, must-revalidate',
+    });
+    res.end();
+    return true;
+  }
   
   const headers = {
     'Content-Type': mime,
-    'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',
+    'Cache-Control': cache ? 'public, max-age=86400' : 'public, max-age=0, must-revalidate',
+    'ETag': etag,
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
@@ -2334,19 +2416,18 @@ function serveFile(req, res, path, cache = false) {
   const isCompressible = mime.startsWith('text/') || mime === 'application/javascript' || mime === 'application/json' || mime === 'image/svg+xml';
 
   if (isCompressible) {
-    if (acceptEncoding.includes('br')) {
-      headers['Content-Encoding'] = 'br';
+    const encoding = acceptEncoding.includes('br') ? 'br' : acceptEncoding.includes('gzip') ? 'gzip' : null;
+    if (encoding) {
+      const buffer = getCompressedBuffer(fullPath, stat.mtimeMs, encoding);
+      headers['Content-Encoding'] = encoding;
+      headers['Content-Length'] = buffer.length;
       res.writeHead(200, headers);
-      createReadStream(fullPath).pipe(createBrotliCompress()).pipe(res);
-      return true;
-    } else if (acceptEncoding.includes('gzip')) {
-      headers['Content-Encoding'] = 'gzip';
-      res.writeHead(200, headers);
-      createReadStream(fullPath).pipe(createGzip()).pipe(res);
+      res.end(buffer);
       return true;
     }
   }
 
+  headers['Content-Length'] = stat.size;
   res.writeHead(200, headers);
   createReadStream(fullPath).pipe(res);
   return true;
@@ -2365,16 +2446,30 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'Not found' });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
-    if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(req, res, 'index.html');
-    if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(req, res, 'showroom/index.html');
-    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(req, res, url.pathname.slice(1));
-    if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|webp|js|css)$/i.test(url.pathname)) {
-      return serveFile(req, res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      if (serveFile(req, res, 'index.html')) return;
     }
-    if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(req, res, 'rep.html');
-    if (url.pathname === '/agora-client.bundle.js') return serveFile(req, res, 'agora-client.bundle.js');
-    if (url.pathname === '/client/platform-language.js') return serveFile(req, res, 'client/platform-language.js');
-    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(req, res, url.pathname.slice(1), true);
+    if (url.pathname === '/showroom' || url.pathname === '/showroom/') {
+      if (serveFile(req, res, 'showroom/index.html')) return;
+    }
+    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) {
+      if (serveFile(req, res, url.pathname.slice(1))) return;
+    }
+    if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-._]+\.(?:jpe?g|webp|js|css|png|svg)$/i.test(url.pathname)) {
+      if (serveFile(req, res, `assets/3d cars/${decodeURIComponent(url.pathname.slice('/showroom-assets/'.length))}`, true)) return;
+    }
+    if (url.pathname === '/rep' || url.pathname === '/rep.html') {
+      if (serveFile(req, res, 'rep.html')) return;
+    }
+    if (url.pathname === '/agora-client.bundle.js') {
+      if (serveFile(req, res, 'agora-client.bundle.js', true)) return;
+    }
+    if (url.pathname === '/client/platform-language.js') {
+      if (serveFile(req, res, 'client/platform-language.js', true)) return;
+    }
+    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-._]+\.(?:jpe?g|png|webp|webm|mp4|glb|svg|ico|css|js)$/i.test(url.pathname)) {
+      if (serveFile(req, res, url.pathname.slice(1), true)) return;
+    }
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));

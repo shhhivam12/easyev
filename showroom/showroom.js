@@ -4,9 +4,10 @@ const $ = (selector, root = document) => root.querySelector(selector);
 const getPlatformLanguage = () => window.EasyEVLanguage?.get?.() || 'Hinglish';
 const cleanText = (value) => String(value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 const requestedVehicleId = new URLSearchParams(window.location.search).get("vehicle");
-const initialVehicle = VEHICLES.find((vehicle) => vehicle.id === requestedVehicleId) || VEHICLES[0];
+const initialVehicle = VEHICLES.find((vehicle) => vehicle.id === requestedVehicleId || (requestedVehicleId && vehicle.id.endsWith(requestedVehicleId))) || VEHICLES[0];
+const initialViews = initialVehicle.views ? Object.keys(initialVehicle.views) : ["configuration"];
 const state = {
-  selectedId: initialVehicle.id, category: "All", view: "exterior", color: "white",
+  selectedId: initialVehicle.id, category: "All", view: initialViews[0] || "exterior", color: "white",
   variant: "fixed-side-deck", spin: null, pano: null, voiceLive: false, muted: false,
   adapter: null, unsubscribe: null, tourTimer: null, sceneTimer: null,
   language: getPlatformLanguage(), orientation: "front", transcriptKeys: new Set()
@@ -328,7 +329,14 @@ function teardownViewer() {
 
 function showCurrentView() {
   teardownViewer();
-  const view = getViews(selectedVehicle())[state.view];
+  const views = getViews(selectedVehicle()) || {};
+  let view = views[state.view];
+  if (!view) {
+    const fallbackKey = Object.keys(views)[0] || "exterior";
+    state.view = fallbackKey;
+    view = views[fallbackKey];
+  }
+  if (!view) return;
   ui.spinStage.style.display = view.type === "spin" ? "" : "none";
   ui.toolbar.style.display = view.type === "spin" ? "" : "none";
   ui.panoStage.classList.toggle("show", view.type === "cubemap");
@@ -714,7 +722,16 @@ function createAdapter() {
 }
 async function startVoice() {
   try {
-    if (!state.adapter) state.adapter = createAdapter();
+    if (!state.adapter) {
+      if (!window.EasyEVAgoraBundle?.createVehicleAgoraAdapter) {
+        setGuide("thinking", "Preparing voice agent...");
+        for (let i = 0; i < 25; i++) {
+          if (window.EasyEVAgoraBundle?.createVehicleAgoraAdapter) break;
+          await new Promise((r) => setTimeout(r, 100));
+        }
+      }
+      state.adapter = createAdapter();
+    }
     setGuide("thinking", "Connecting your private Agora showroom conversation…");
     await state.adapter.joinVehicle({ vehicleId:state.selectedId, language:state.language, voice:"madhur" });
   } catch (error) {
@@ -1095,6 +1112,21 @@ window.EVShowroom = Object.freeze({
   getState:() => ({ vehicleId:state.selectedId, view:state.view, orientation:state.orientation, color:state.color, variant:state.variant, language:state.language, voiceLive:state.voiceLive })
 });
 
-renderCategories(); renderCatalog(); renderDetails(); renderViewTabs(); renderConfiguration(); showCurrentView();
-setGuide("idle", selectedVehicle().greeting);
-setTimeout(() => ui.loading.remove(), 500);
+try {
+  renderCategories();
+  renderCatalog();
+  renderDetails();
+  renderViewTabs();
+  renderConfiguration();
+  showCurrentView();
+  setGuide("idle", selectedVehicle().greeting);
+} catch (err) {
+  console.warn("Showroom initial render warning:", err);
+} finally {
+  setTimeout(() => {
+    if (ui.loading) {
+      ui.loading.classList.add("is-hidden");
+      setTimeout(() => { if (ui.loading?.parentNode) ui.loading.remove(); }, 350);
+    }
+  }, 300);
+}
