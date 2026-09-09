@@ -173,7 +173,6 @@ class SpinViewer {
     if (this.started || this.destroyed) return;
     this.started = true;
     this.draw(0);
-    this.shown = 0;
     this.raf = requestAnimationFrame(() => this.loop());
   }
 
@@ -185,11 +184,11 @@ class SpinViewer {
 
   draw(i) {
     const f = ((Math.round(i) % this.N) + this.N) % this.N;
-    if (f === this.shown) return;
-    if (!this.frames[f]?.complete || !this.frames[f]?.naturalWidth) return;
+    if (f === this.shown && this.img.getAttribute('src')) return;
+    const targetImg = this.frames[f];
+    if (!targetImg || (!targetImg.complete && !targetImg.src)) return;
     this.shown = f;
-    // Instant swap from preloaded cache = no flicker
-    this.img.src = this.frames[f].src;
+    this.img.src = targetImg.src;
     if (this.count) this.count.textContent = `${f + 1} / ${this.N}`;
   }
 
