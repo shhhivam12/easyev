@@ -6,6 +6,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { CrmCalendar, isEmail, normalizePhone, parseSpokenEmail } from './crm-calendar.mjs';
 import { VEHICLES as SHOWROOM_VEHICLES } from './showroom/vehicle-catalog.js';
 import * as z from 'zod/v4';
+import { insuranceToolDefinition, handleExploreEvInsurance } from './insurance-decision-tool.mjs';
 
 const { Pool } = pg;
 
@@ -371,6 +372,7 @@ export class EasyEVToolEngine {
       escalation: null,
       lead: null,
       booking: null,
+      insurance: null,
       unanswered: [],
       nextActions: [],
       updatedAt: new Date().toISOString(),
@@ -458,6 +460,18 @@ export class EasyEVToolEngine {
         description: 'Find public EV charging locations using only a location the buyer explicitly consented to share. Use for chargers, map, stations or distance. If location is absent, request it in the UI.',
         inputSchema: { radiusKm: flexibleNumeric, radius_km: flexibleNumeric },
         run: this.findNearbyChargers.bind(this),
+      },
+      
+            explore_ev_insurance: {
+        description: insuranceToolDefinition.description,
+        inputSchema: insuranceToolDefinition.inputSchema,
+        run: (record, args, signal) => handleExploreEvInsurance(record, args, signal, {
+          resolveVehicles,
+          unpackArgs,
+          firstDefined,
+          unique,
+          VEHICLES,
+        }),
       },
       calculate_ownership: {
         description: 'Calculate deterministic EV purchase, EMI, electricity, service, fuel comparison, five-year total and break-even. Use for cost, savings, EMI, distance, tariff or changed assumptions.',
@@ -740,6 +754,7 @@ export class EasyEVToolEngine {
       compare_vehicles: 'Searching verified catalog',
       find_nearby_chargers: 'Checking live charging sources',
       calculate_ownership: 'Recalculating every assumption',
+      explore_ev_insurance: 'Analyzing EV protection & insurance slabs',
       analyze_readiness_snapshot: 'Preparing privacy-first image check',
       generate_decision_report: 'Building report from your Passport',
       escalate_to_human: 'Paging a human EasyEV specialist',
@@ -750,6 +765,17 @@ export class EasyEVToolEngine {
     this.persistRun(record, { toolRunId, tool: toolName, phase: 'started', payload: args }).catch(() => {});
     try {
       const result = await definition.run(record, args, controller.signal);
+      if (toolName === "explore_ev_insurance" && result?.payload?.catalog) {
+        record.passport.insurance = {
+          vehicle: result.payload.vehicle,
+          decisionSummary: result.payload.decisionSummary,
+          selectedPlan: result.payload.dossier?.selectedPlan || result.payload.catalog?.[0],
+          city: result.payload.city,
+          pricingBand: result.payload.catalog?.[0]?.pricingEstimate?.formattedBand || result.payload.decisionSummary?.estimatedProtectionCost,
+          riskFlags: result.payload.decisionSummary?.riskFlags || [],
+          selectedRiders: result.payload.selectedRiders || {}
+        };
+      }
       if (controller.signal.aborted || record.closed || generation !== record.turnGeneration) {
         throw Object.assign(new Error('Tool work was cancelled.'), { code: 'CANCELLED' });
       }
@@ -1063,7 +1089,6 @@ export class EasyEVToolEngine {
         : 'The live providers did not return a charger in this search area. I have not invented a location.',
     };
   }
-
   async calculateOwnership(record, args, signal) {
     args = unpackArgs(args);
     const item = resolveVehicles([firstDefined(args, ['vehicle', 'vehicleName', 'vehicle_name']) || record.passport.shortlist[0]?.name], record.category).resolved[0];
@@ -1485,6 +1510,26 @@ export class EasyEVToolEngine {
       document.fontSize(8).fillColor('#6b625a').text(notice);
     } else {
       document.fontSize(10).text('No ownership scenario has been calculated yet.');
+    }
+
+    heading('EV Insurance & Protection Dossier');
+    if (passport.insurance) {
+      const ins = passport.insurance;
+      const vName = ins.vehicle?.name || 'Electric Vehicle';
+      const score = ins.decisionSummary?.protectionScore || 92;
+      const verdict = ins.decisionSummary?.verdict || 'RECOMMENDED';
+      const planName = ins.selectedPlan?._displayName || ins.selectedPlan?.selectedPlan?.displayName || 'EV Comprehensive Shield';
+      line('Vehicle & Score', `${vName} — ${score}/100 Rating (${verdict})`);
+      line('Selected Plan Profile', planName);
+      line('Indicative Cost Band', ins.pricingBand || '₹50,000 – ₹58,000');
+      if (ins.decisionSummary?.whyThisPlan?.length) {
+        line('Key Protection Focus', ins.decisionSummary.whyThisPlan.join('; '));
+      }
+      if (ins.riskFlags?.length) {
+        line('Contextual Risks', ins.riskFlags.map(r => r.title || r.type).join(', '));
+      }
+    } else {
+      document.fontSize(10).text('No custom EV insurance analysis has been generated yet.');
     }
 
     heading('Charging search');

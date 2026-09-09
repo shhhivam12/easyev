@@ -10384,6 +10384,986 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+  
+    /* ==========================================================================
+       EASYEV POLICYBAZAAR-STYLE SMART STAGE INSURANCE STYLES
+       ========================================================================== */
+    .insurance-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      color: #fff;
+      font-family: var(--font-sans);
+    }
+
+    .insurance-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .insurance-filter-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pb-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--radius-pill, 999px);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 550;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pb-pill-btn:hover, .pb-pill-btn.active {
+      background: rgba(85, 242, 123, 0.15);
+      border-color: var(--green, #55f27b);
+      color: var(--green, #55f27b);
+      box-shadow: 0 0 14px rgba(85, 242, 123, 0.2);
+    }
+
+    .insurance-hero-card {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(13, 53, 27, 0.6) 0%, rgba(7, 28, 16, 0.8) 100%);
+      border: 1px solid rgba(85, 242, 123, 0.25);
+      border-radius: 22px;
+      box-shadow: 0 12px 35px rgba(4, 35, 15, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .insurance-hero-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+
+    .score-circle-wrap {
+      position: relative;
+      width: 74px;
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-circle-svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .score-circle-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 6;
+    }
+
+    .score-circle-fill {
+      fill: none;
+      stroke: var(--green, #55f27b);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-dasharray: 200;
+      stroke-dashoffset: 20;
+      transition: stroke-dashoffset 0.8s ease;
+      filter: drop-shadow(0 0 8px rgba(85, 242, 123, 0.6));
+    }
+
+    .score-number {
+      position: absolute;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .insurance-hero-details h4 {
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .insurance-meta-tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .meta-tag {
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      font-size: 11px;
+      color: var(--muted-2, #8d9990);
+    }
+
+    .verdict-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .verdict-badge.strongly_recommended {
+      background: rgba(85, 242, 123, 0.16);
+      color: var(--green-bright, #83ff9d);
+      border: 1px solid rgba(85, 242, 123, 0.4);
+    }
+
+    .verdict-badge.action_required, .verdict-badge.protection_gaps_present {
+      background: rgba(255, 191, 71, 0.16);
+      color: var(--amber, #ffbf47);
+      border: 1px solid rgba(255, 191, 71, 0.4);
+    }
+
+    .verdict-badge.recommended, .verdict-badge.partial_protection {
+      background: rgba(56, 189, 248, 0.16);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+    }
+
+    .risk-radar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+
+    .risk-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.035);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+    }
+
+    .risk-card.high-risk {
+      border-color: rgba(255, 107, 107, 0.35);
+      background: rgba(255, 107, 107, 0.06);
+    }
+
+    .risk-card.medium-risk {
+      border-color: rgba(255, 191, 71, 0.3);
+      background: rgba(255, 191, 71, 0.05);
+    }
+
+    .risk-card.verified {
+      border-color: rgba(85, 242, 123, 0.25);
+      background: rgba(85, 242, 123, 0.04);
+    }
+
+    .risk-card-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .risk-card-content strong {
+      display: block;
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 2px;
+    }
+
+    .risk-card-content span {
+      font-size: 11px;
+      color: var(--muted-2, #8d9990);
+      line-height: 1.4;
+    }
+
+    /* Policybazaar style plan card list */
+    .pb-plan-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pb-plan-card {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      transition: all 0.25s var(--ease-out);
+      position: relative;
+    }
+
+    .pb-plan-card:hover {
+      border-color: rgba(85, 242, 123, 0.4);
+      background: rgba(255, 255, 255, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .pb-plan-card.featured {
+      border: 1.5px solid var(--green, #55f27b);
+      background: linear-gradient(180deg, rgba(85, 242, 123, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+      box-shadow: 0 8px 30px rgba(85, 242, 123, 0.12);
+    }
+
+    .pb-plan-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pb-insurer-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .pb-insurer-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--green, #55f27b);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .pb-insurer-names h5 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .pb-insurer-names span {
+      font-size: 11px;
+      color: var(--muted-2, #8d9990);
+    }
+
+    .pb-metrics-strip {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .pb-metric-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .pb-metric-pill span {
+      font-size: 10px;
+      color: var(--muted-2, #8d9990);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .pb-metric-pill strong {
+      font-size: 13px;
+      color: #fff;
+    }
+
+    .pb-features-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px 0;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+
+    .pb-feat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: rgba(85, 242, 123, 0.08);
+      border: 1px solid rgba(85, 242, 123, 0.2);
+      border-radius: 6px;
+      font-size: 11px;
+      color: #dfffe7;
+    }
+
+    .pb-feat-chip.missing {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: var(--muted-2, #8d9990);
+      text-decoration: line-through;
+    }
+
+    .pb-plan-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pb-pricing-block {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .pb-price-main {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .pb-price-sub {
+      font-size: 11px;
+      color: var(--muted-2, #8d9990);
+    }
+
+    .pb-plan-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pb-btn-compare {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .pb-btn-compare:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .pb-btn-select {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      background: var(--green, #55f27b);
+      border-radius: 999px;
+      color: var(--forest, #071c10);
+      font-size: 13px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(85, 242, 123, 0.35);
+      transition: all 0.2s ease;
+    }
+
+    .pb-btn-select:hover {
+      background: var(--green-bright, #83ff9d);
+      transform: scale(1.02);
+    }
+
+    /* Comparison Diff Modal */
+    .compare-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 18, 10, 0.85);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 99999;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .compare-modal-box {
+      width: 100%;
+      max-width: 900px;
+      max-height: 85vh;
+      overflow-y: auto;
+      background: #0d2316;
+      border: 1px solid rgba(85, 242, 123, 0.3);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.6);
+    }
+
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+
+    .compare-table th, .compare-table td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+    }
+
+    .compare-table th {
+      color: var(--muted-2, #8d9990);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+  
+    
+    
+    
+    /* ==========================================================================
+       EasyEV Smart Stage EV Insurance (Pixel-Perfect Landing Page & Showroom Theme)
+       Consistent with: var(--white), var(--panel), var(--line), var(--green-deep), var(--ink)
+       ========================================================================== */
+    .easyev-insurance-root {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      font-family: var(--font-sans, 'Figtree', sans-serif);
+      color: var(--ink, #07110b);
+      animation: pbFadeIn 0.3s var(--ease-settle, cubic-bezier(.16, 1, .3, 1));
+    }
+    @keyframes pbFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* TOP STICKY FILTER TOOLBAR */
+    .pb-filter-toolbar-top {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-lg, 20px);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(4, 24, 12, 0.05);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .pb-filter-group-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .pb-filter-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted, #647067);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-right: 4px;
+    }
+    .pb-filter-btn {
+      background: var(--panel, #f3f8f4);
+      border: 1px solid var(--line, #dce7df);
+      color: var(--ink-2, #162019);
+      padding: 6px 14px;
+      border-radius: var(--radius-md, 14px);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s var(--ease-settle);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pb-filter-btn:hover {
+      border-color: var(--green-deep, #16bf53);
+      background: #eaf6ee;
+    }
+    .pb-filter-btn.active {
+      background: var(--mint, #dfffe7);
+      border-color: var(--green-deep, #16bf53);
+      color: #0d5e2e;
+      box-shadow: 0 2px 8px rgba(22, 191, 83, 0.15);
+    }
+    .pb-select-dropdown {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      color: var(--ink, #07110b);
+      padding: 6px 14px;
+      border-radius: var(--radius-md, 14px);
+      font-size: 12px;
+      font-weight: 700;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .pb-select-dropdown:hover, .pb-select-dropdown:focus {
+      border-color: var(--green-deep, #16bf53);
+    }
+
+    /* 2-COLUMN MAIN WIDESCREEN GRID */
+    .pb-main-grid-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      width: 100%;
+      box-sizing: border-box;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .pb-main-grid-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* LEFT PANE (Hero, Radar, Riders, Plans) */
+    .pb-left-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    /* Hero Vehicle Card with Showroom Image Asset */
+    .pb-vehicle-hero-card {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-lg, 20px);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 12px 35px rgba(4, 24, 12, 0.06);
+    }
+    .pb-hero-showroom-thumb {
+      width: 140px;
+      height: 90px;
+      border-radius: var(--radius-md, 14px);
+      background: linear-gradient(155deg, #f7fbf8, #edf8f0);
+      border: 1px solid var(--line, #dce7df);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      padding: 6px;
+    }
+    .pb-hero-showroom-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 10px rgba(4, 35, 15, 0.12));
+    }
+    .pb-hero-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 0;
+    }
+    .pb-badge-verdict {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: var(--radius-pill, 999px);
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      width: fit-content;
+    }
+    .pb-badge-verdict.recommended {
+      background: var(--mint, #dfffe7);
+      color: #0d5e2e;
+      border: 1px solid rgba(22, 191, 83, 0.4);
+    }
+    .pb-badge-verdict.action_required, .pb-badge-verdict.warning {
+      background: #fff4d9;
+      color: #925400;
+      border: 1px solid rgba(255, 191, 71, 0.5);
+    }
+    .pb-hero-details h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink, #07110b);
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pb-hero-details p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted, #647067);
+      line-height: 1.35;
+    }
+
+    /* Score gauge box inside hero */
+    .pb-score-gauge-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel, #f3f8f4);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-md, 14px);
+      padding: 8px 12px;
+      flex-shrink: 0;
+    }
+    .pb-score-svg {
+      width: 44px;
+      height: 44px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pb-score-svg svg {
+      transform: rotate(-90deg);
+      width: 100%;
+      height: 100%;
+    }
+    .pb-score-svg circle {
+      fill: none;
+      stroke-width: 5.5;
+      stroke-linecap: round;
+    }
+    .pb-score-svg .bg { stroke: #e5ede7; }
+    .pb-score-svg .fill {
+      stroke: var(--green-deep, #16bf53);
+      stroke-dasharray: 125.6;
+      transition: stroke-dashoffset 0.8s ease;
+    }
+    .pb-score-val {
+      position: absolute;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--ink, #07110b);
+    }
+
+    /* Risk Radar Row */
+    .pb-radar-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .pb-radar-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--white, #ffffff);
+      border: 1px solid var(--line, #dce7df);
+      border-radius: var(--radius-md, 14px);
+      padding: 7px 12px;
+      font-size: 11.5px;
+      color: var(--ink-2, #162019);
+      flex: 1;
+      min-width: 200px;
+      box-shadow: 0 4px 12px rgba(4, 24, 12, 0.03);
+    }
+    .pb-radar-pill.alert {
+      border-color: rgba(255, 191, 71, 0.6);
+      background: #fffdf5;
+      color: #8c5300;
+    }
+    .pb-radar-pill.safe {
+      border-color: rgba(22, 191, 83, 0.35);
+      background: #f7fbf8;
+      color: #0d5e2e;
+    }
+
+    /* Riders Toggles Section */
+    .pb-riders-bar {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-lg, 20px);
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 6px 18px rgba(4, 24, 12, 0.03);
+    }
+    .pb-riders-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--muted, #647067);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pb-riders-toggles-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+    .pb-rider-chip-toggle {
+      background: var(--panel, #f3f8f4);
+      border: 1px solid var(--line, #dce7df);
+      border-radius: var(--radius-md, 14px);
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--ink-2, #162019);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pb-rider-chip-toggle.active {
+      border-color: var(--green-deep, #16bf53);
+      background: var(--mint, #dfffe7);
+      color: #0d5e2e;
+      font-weight: 700;
+    }
+    .pb-switch-mini {
+      width: 26px;
+      height: 14px;
+      background: #cbd5ce;
+      border-radius: var(--radius-pill, 999px);
+      position: relative;
+      transition: background 0.2s;
+    }
+    .pb-switch-mini::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      border-radius: 50%;
+      transition: transform 0.2s;
+    }
+    .pb-rider-chip-toggle.active .pb-switch-mini {
+      background: var(--green-deep, #16bf53);
+    }
+    .pb-rider-chip-toggle.active .pb-switch-mini::after {
+      transform: translateX(12px);
+    }
+
+    /* Insurer Plan Cards (Left Column) */
+    .pb-plans-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pb-plan-box {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-lg, 20px);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 8px 25px rgba(4, 24, 12, 0.05);
+      position: relative;
+      transition: all 0.2s;
+    }
+    .pb-plan-box:hover {
+      border-color: var(--green-deep, #16bf53);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(22, 191, 83, 0.12);
+    }
+    .pb-plan-box.featured {
+      border: 2px solid var(--green-deep, #16bf53);
+      box-shadow: 0 10px 30px rgba(22, 191, 83, 0.15);
+    }
+    .pb-plan-box-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .pb-brand-block {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .pb-brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #eaf6ee;
+      border: 1px solid rgba(22, 191, 83, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #0d5e2e;
+    }
+    .pb-brand-text h5 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink, #07110b);
+    }
+    .pb-brand-text span {
+      font-size: 11.5px;
+      color: var(--muted, #647067);
+    }
+    .pb-plan-pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-top: 10px;
+      border-top: 1px solid #eef4f0;
+    }
+    .pb-price-total {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0d5e2e;
+      letter-spacing: -0.01em;
+    }
+    .pb-price-breakdown-sub {
+      font-size: 11px;
+      color: var(--muted, #647067);
+    }
+    .pb-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pb-btn-card-compare {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      color: var(--ink-2, #162019);
+      padding: 7px 14px;
+      border-radius: var(--radius-md, 14px);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pb-btn-card-compare:hover {
+      border-color: var(--green-deep, #16bf53);
+      color: #0d5e2e;
+      background: var(--panel, #f3f8f4);
+    }
+    .pb-btn-card-select {
+      background: var(--green-deep, #16bf53);
+      border: none;
+      color: #ffffff;
+      padding: 7px 18px;
+      border-radius: var(--radius-md, 14px);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(22, 191, 83, 0.25);
+      transition: all 0.2s;
+    }
+    .pb-btn-card-select:hover {
+      background: #13a849;
+      transform: translateY(-1px);
+    }
+
+    /* RIGHT PANE: CRISP WHITE COMPARISON MATRIX */
+    .pb-right-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      min-width: 0;
+    }
+    .pb-compare-matrix-card {
+      background: var(--white, #ffffff);
+      border: 1.5px solid var(--line, #dce7df);
+      border-radius: var(--radius-lg, 20px);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 12px 35px rgba(4, 24, 12, 0.06);
+      position: sticky;
+      top: 12px;
+    }
+    .pb-matrix-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eef4f0;
+      padding-bottom: 10px;
+    }
+    .pb-matrix-header h4 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink, #07110b);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pb-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .pb-matrix-table th, .pb-matrix-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eef4f0;
+      text-align: left;
+    }
+    .pb-matrix-table th {
+      background: var(--panel, #f3f8f4);
+      color: var(--muted, #647067);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pb-matrix-col-feat {
+      width: 40%;
+      font-weight: 600;
+      color: var(--ink-2, #162019);
+    }
+    .pb-matrix-col-val {
+      width: 30%;
+      color: var(--ink, #07110b);
+    }
+    .pb-val-highlight {
+      color: #0d5e2e;
+      font-weight: 700;
+    }
+    .pb-val-dim {
+      color: var(--muted-2, #8d9990);
+    }
+
   </style>
 </head>
 
@@ -11992,7 +12972,11 @@
           dailyDistance: 'Not shared',
           budget: 'Not shared',
           charging: 'Not shared',
-          priority: 'Not shared'
+          priority: 'Not shared',
+          insurancePlan: 'To be explored',
+          protectionScore: 'Not computed',
+          batteryCover: 'To be configured',
+          wallboxShield: 'To be configured'
         },
         transcript: [],
         processedTranscriptIds: new Set(),
@@ -12097,10 +13081,10 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked', 'insurance-plans': 'Contextual EV Insurance & Protection', 'insurance-needs-vehicle-selection': 'Select Vehicle for Insurance', 'insurance-needs-vehicle-confirmation': 'Confirm Vehicle for Insurance', 'insurance-error': 'Insurance Notice' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
-      const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…' }[tool] || 'Preparing your result…');
-      const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive)';
+      const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…', explore_ev_insurance: 'Analyzing EV protection & insurance slabs…' }[tool] || 'Preparing your result…');
+      const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive|explore_ev_insurance)';
       const sanitizeAgentText = (value) => String(value || '')
         .replace(new RegExp('\\(\\s*(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^)]*\\)', 'gi'), ' ')
         .replace(new RegExp('(?:^|[.!?]\\s*)(?:calling|invoking|running|using)\\s+(?:the\\s+)?(?:tool\\s+)?' + INTERNAL_TOOL_PATTERN + '\\b[^.!?]*(?:[.!?]|$)', 'gi'), ' ')
@@ -12241,22 +13225,50 @@
         if (!target) return;
         const passport = state.decisionPassport;
         const profile = passport?.profile || {};
-        const fields = passport ? [
-          ['Category', profile.category || state.profile.category],
-          ['Daily distance', profile.dailyKm ? `${profile.dailyKm} km/day` : state.profile.dailyDistance],
-          ['Priorities', profile.priorities?.length ? profile.priorities.join(', ') : state.profile.priority],
-          ['Shortlist', passport.shortlist?.length ? passport.shortlist.map((item) => item.name).join(', ') : 'Not prepared'],
-          ['Charging', profile.chargingAccess || 'Not discussed'],
-          ['Ownership', passport.ownership ? `${money(passport.ownership.results.annualSavings)} annual running savings estimate` : 'Not calculated'],
-          ['Readiness', passport.readiness ? (passport.readiness.rejected ? 'Image rejected and deleted' : 'Advisory checklist ready') : 'Not checked'],
-          ['Report', state.reportReady ? 'PDF ready' : 'Not generated']
-        ] : [
-          ['Category', state.profile.category], ['Use case', state.profile.useCase], ['Daily distance', state.profile.dailyDistance],
-          ['Budget', state.profile.budget], ['Charging', state.profile.charging], ['Priority', state.profile.priority]
-        ];
-        target.innerHTML = fields.map(([label, value]) => `<div class="passport-row"><span class="passport-row__label">${escapeHtml(label)}</span><strong class="passport-row__value">${escapeHtml(value)}</strong></div>`).join('');
-        const updated = $('#passport-updated');
-        if (updated) updated.hidden = !passport && state.profileFlash.size === 0;
+        const ins = passport?.insurance || state.decisionPassport?.insurance;
+
+        let fields;
+        if (passport) {
+          const insPlan = ins?.selectedPlan?.name || ins?.selectedPlan?._displayName || (ins?.selectedPlan ? 'Custom EV Plan' : (state.profile?.insurancePlan || 'Not analyzed'));
+          const insScore = ins?.decisionSummary?.protectionScore ? `${ins.decisionSummary.protectionScore}/100 (${ins.decisionSummary.verdict || 'RECOMMENDED'})` : (ins?.decisionSummary ? '88/100' : 'Not computed');
+          const insPricing = ins?.pricingBand || ins?.selectedPlan?.pricingBand || 'To be calculated';
+          const insRidersList = [];
+          if (ins?.selectedRiders?.zeroDepreciation !== false) insRidersList.push('Zero-Dep');
+          if (ins?.selectedRiders?.highVoltageBatteryCover !== false) insRidersList.push('Battery Ingress');
+          if (ins?.selectedRiders?.wallboxAndCableProtection !== false) insRidersList.push('Wallbox Shield');
+          if (ins?.selectedRiders?.evRoadsideAssistance !== false) insRidersList.push('EV RSA');
+          const ridersStr = insRidersList.length ? insRidersList.join(', ') : 'Standard cover';
+          const floodNotice = ins?.decisionSummary?.floodRisk === 'HIGH' ? 'Monsoon Ingress Shield Active' : (ins?.selectedRiders?.highVoltageBatteryCover !== false ? 'Battery Pack Covered' : 'Basic Cover');
+
+          fields = [
+            ['Category', profile.category || state.profile.category],
+            ['Daily distance', profile.dailyKm ? `${profile.dailyKm} km/day` : state.profile.dailyDistance],
+            ['Priorities', profile.priorities?.length ? profile.priorities.join(', ') : state.profile.priority],
+            ['Shortlist', passport.shortlist?.length ? passport.shortlist.map((item) => item.name).join(', ') : 'Not prepared'],
+            ['Charging', profile.chargingAccess || 'Not discussed'],
+            ['Ownership', passport.ownership ? `${money(passport.ownership.results.annualSavings)} annual savings` : 'Not calculated'],
+            ['EV Insurance Plan', insPlan],
+            ['Protection Score', insScore],
+            ['Protection Est.', insPricing],
+            ['Battery & Flood Shield', floodNotice],
+            ['Active EV Riders', ridersStr],
+            ['Readiness', passport.readiness ? (passport.readiness.rejected ? 'Image rejected' : 'Checklist ready') : 'Not checked'],
+            ['Report', state.reportReady ? 'PDF ready' : 'Not generated']
+          ];
+        } else {
+          fields = [
+            ['Category', state.profile.category],
+            ['Use case', state.profile.useCase],
+            ['Daily distance', state.profile.dailyDistance],
+            ['Budget', state.profile.budget],
+            ['Charging', state.profile.charging],
+            ['Priority', state.profile.priority],
+            ['EV Insurance', state.profile.insurancePlan || 'To be explored'],
+            ['Battery Risk Shield', state.profile.batteryCover || 'To be configured']
+          ];
+        }
+
+        target.innerHTML = fields.map(([label, value]) => `<div class="passport-row"><span class="passport-row__label">${escapeHtml(label)}</span><strong class="passport-row__value">${escapeHtml(String(value))}</strong></div>`).join('');
       };
 
       const renderActionRail = () => {
@@ -13189,6 +14201,7 @@
         if (type === 'ownership-cost' && state.integrationMode === 'live') markAction('ownership', 'complete', 'Deterministic scenario saved to the Passport');
         if (type === 'snapshot-result') markAction('readiness', 'complete', 'One-time image deleted after advisory analysis');
         if (type === 'report-ready') markAction('report', 'complete', 'Structured PDF is ready to download');
+        if (type === 'insurance-plans') markAction('insurance', 'complete', 'Contextual EV insurance analysis ready');
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
         renderApp();
       };
@@ -13210,7 +14223,7 @@
         analyze_readiness_snapshot: 'Optional Gemini analysis',
         generate_decision_report: 'Structured Passport PDF',
         capture_lead: payload?.live ? 'Written to HubSpot CRM' : 'Held in this session',
-        book_test_drive: payload?.live || payload?.confirmed ? 'Live Cal.com calendar' : 'Indicative times'
+        book_test_drive: payload?.live || payload?.confirmed ? 'Live Cal.com calendar' : 'Indicative times', explore_ev_insurance: 'EasyEV Insurance Intelligence Engine'
       }[tool] || 'EasyEV decision tool');
       // Saying an email out loud is the least reliable thing in the whole call:
       // Hinglish recognition writes digits in Devanagari and guesses at spellings.
@@ -14387,11 +15400,14 @@
           const response = await fetch('/api/vehicles/top12');
           const data = await response.json();
           exploreVehiclesList = data.vehicles || [];
-          renderExploreGrid();
+          if (typeof renderExploreGrid === 'function') {
+            renderExploreGrid();
+          }
           if (typeof renderCompareSelectionGrid === 'function') {
             renderCompareSelectionGrid();
           }
-        } catch {
+        } catch (err) {
+          console.error('Failed to load explore vehicles:', err);
           showToast('Could not load EV comparison options. Please refresh.');
         }
       }
@@ -14573,19 +15589,18 @@
         }
       }
 
-      let _compareGridInitialized = false;
-
       function renderCompareSelectionGrid() {
         const grid = $('#compare-select-grid');
         if (!grid) return;
 
-        if (!_compareGridInitialized) {
+        const existingCards = grid.querySelectorAll('.compare-select-card');
+        if (existingCards.length === 0 && exploreVehiclesList.length > 0) {
           grid.innerHTML = '';
           exploreVehiclesList.forEach((vehicle) => {
             const card = document.createElement('div');
             card.className = 'compare-select-card';
             card.dataset.compareVehicleId = vehicle.id;
-            card.dataset.category = vehicle.category.toLowerCase();
+            card.dataset.category = (vehicle.category || '').toLowerCase();
             card.dataset.search = (vehicle.name + ' ' + vehicle.company).toLowerCase();
             card.setAttribute('tabindex', '0');
             card.setAttribute('role', 'button');
@@ -14615,14 +15630,12 @@
             <p style="font-size: 12px; margin: 0;">Try adjusting your search query or switch categories.</p>
           `;
           grid.appendChild(noResults);
-          
-          _compareGridInitialized = true;
         }
 
-        const currentCategory = compareCategory.toLowerCase();
+        const currentCategory = (compareCategory || '').toLowerCase();
         let visibleCount = 0;
 
-        $$('.compare-select-card').forEach(card => {
+        grid.querySelectorAll('.compare-select-card').forEach(card => {
           const vehicleId = card.dataset.compareVehicleId;
           const isSlotA = compareSelectedSlotA === vehicleId;
           const isSlotB = compareSelectedSlotB === vehicleId;
@@ -14647,8 +15660,8 @@
             }
           }
 
-          const matchesCategory = card.dataset.category.includes(currentCategory);
-          const matchesSearch = compareSearchQuery ? card.dataset.search.includes(compareSearchQuery) : true;
+          const matchesCategory = (card.dataset.category || '').includes(currentCategory);
+          const matchesSearch = compareSearchQuery ? (card.dataset.search || '').includes(compareSearchQuery) : true;
 
           if (matchesCategory && matchesSearch) {
             card.style.display = '';
@@ -14660,7 +15673,7 @@
 
         const noResults = $('#compare-no-results');
         if (noResults) {
-          noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+          noResults.style.display = (visibleCount === 0 && exploreVehiclesList.length > 0) ? 'block' : 'none';
         }
 
         renderCompareStageSlots();
@@ -16699,7 +17712,186 @@
       window.addEventListener('hashchange', handleRoute);
       handleRoute();
     })();
-  </script>
+  
+
+    // ==========================================================================
+    // EasyEV Policybazaar-Style Insurance Stage Controller
+    // ==========================================================================
+    window.InsuranceStageController = {
+      setSort: function(sortBy) {
+        if (!window.insuranceStageState) return;
+        window.insuranceStageState.sortBy = sortBy;
+        if (typeof renderApp === 'function') renderApp();
+      },
+      setFilterTier: function(tier) {
+        if (!window.insuranceStageState) return;
+        window.insuranceStageState.filterTier = tier;
+        if (typeof renderApp === 'function') renderApp();
+      },
+      toggleRider: function(riderKey) {
+        if (!window.insuranceStageState || !window.insuranceStageState.payload) return;
+        const payload = window.insuranceStageState.payload;
+        payload.selectedRiders = payload.selectedRiders || {};
+        payload.selectedRiders[riderKey] = payload.selectedRiders[riderKey] === false ? true : false;
+        
+        // Sync rider change into Decision Passport
+        if (typeof state !== 'undefined') {
+          state.decisionPassport = state.decisionPassport || {};
+          if (state.decisionPassport.insurance) {
+            state.decisionPassport.insurance.selectedRiders = payload.selectedRiders;
+          }
+          if (typeof renderPassport === 'function') renderPassport();
+        }
+        if (typeof renderApp === 'function') renderApp();
+      },
+      selectPlan: function(planId) {
+        if (!window.insuranceStageState) return;
+        window.insuranceStageState.selectedPlanId = planId;
+        const catalog = window.insuranceStageState.catalog || [];
+        const payload = window.insuranceStageState.payload || {};
+        const plan = catalog.find(p => (p._planId || p.selectedPlan?.id || p.id) === planId) || catalog[0];
+        const planName = plan?._displayName || plan?.selectedPlan?.displayName || plan?.displayName || "EV Comprehensive Shield";
+        const pricingBand = plan?.pricingEstimate?.formattedBand || plan?.estimatedRangeInr?.formattedBand || "₹52,654 – ₹59,584";
+        const score = plan?._score || plan?.suitabilityAnalysis?.protectionMatchScore || payload.decisionSummary?.protectionScore || 92;
+
+        // Save directly into buyer Decision Passport
+        if (typeof state !== "undefined") {
+          state.profile = state.profile || {};
+          state.profile.insurancePlan = planName;
+          state.profile.protectionScore = score + '/100';
+          state.profile.batteryCover = payload.decisionSummary?.floodRisk === 'HIGH' ? 'Monsoon Ingress Protected' : 'Covered';
+
+          state.decisionPassport = state.decisionPassport || {};
+          state.decisionPassport.insurance = {
+            selectedPlan: {
+              id: planId,
+              name: planName,
+              insurer: plan?.insurer?.name || plan?.selectedPlan?.insurerName || "Verified Insurer",
+              pricingBand: pricingBand,
+              statutoryTpInr: plan?.pricingEstimate?.statutoryThirdPartyInr?.amountInr || plan?.pricingEstimate?.components?.statutoryTpInr || 20907
+            },
+            vehicle: payload.vehicle || {},
+            selectedRiders: payload.selectedRiders || {},
+            decisionSummary: payload.decisionSummary || {},
+            pricingBand: pricingBand,
+            savedAt: new Date().toISOString()
+          };
+          if (typeof markAction === "function") {
+            markAction("insurance", "complete", "Selected " + planName + " saved to Decision Passport");
+          }
+          if (typeof showToast === "function") {
+            showToast("✓ " + planName + " saved to your Decision Passport (" + pricingBand + ")");
+          }
+          if (typeof renderPassport === "function") {
+            renderPassport();
+          }
+          if (state.sessionKey) {
+            fetch("/api/sessions/" + state.sessionKey + "/tool", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                tool: "explore_ev_insurance",
+                args: { vehicleName: payload.vehicle?.name, planId: planId }
+              })
+            }).catch(() => {});
+          }
+        }
+        if (typeof renderApp === "function") renderApp();
+      },
+      pickVehicle: function(vehicleIdOrName) {
+        if (typeof sendTextMessage === 'function') {
+          sendTextMessage('I want to check insurance for ' + vehicleIdOrName);
+        } else if (typeof showToast === 'function') {
+          showToast('Selected vehicle: ' + vehicleIdOrName);
+        }
+      },
+      openCompareModal: function(planId) {
+        if (!window.insuranceStageState) return;
+        const catalog = window.insuranceStageState.catalog || [];
+        const currentPlan = catalog.find(p => (p._planId || p.selectedPlan?.id || p.id) === planId) || catalog[0];
+        const comparePlan = catalog.find(p => (p._planId || p.selectedPlan?.id || p.id) !== planId) || catalog[1] || catalog[0];
+
+        const existingModal = document.getElementById('pb-compare-modal-instance');
+        if (existingModal) existingModal.remove();
+
+        const p1Name = currentPlan ? (currentPlan._displayName || currentPlan.selectedPlan?.displayName || 'Top Pick') : 'Plan A';
+        const p2Name = comparePlan ? (comparePlan._displayName || comparePlan.selectedPlan?.displayName || 'Alternative') : 'Plan B';
+        const p1Insurer = currentPlan?.insurer?.name || currentPlan?.selectedPlan?.insurerName || 'Insurer A';
+        const p2Insurer = comparePlan?.insurer?.name || comparePlan?.selectedPlan?.insurerName || 'Insurer B';
+        const p1Price = currentPlan?.pricingEstimate?.formattedBand || currentPlan?.estimatedRangeInr?.formattedBand || '₹52,000 - ₹58,000';
+        const p2Price = comparePlan?.pricingEstimate?.formattedBand || comparePlan?.estimatedRangeInr?.formattedBand || '₹48,000 - ₹54,000';
+        const p1Score = currentPlan?._score || currentPlan?.suitabilityAnalysis?.protectionMatchScore || 92;
+        const p2Score = comparePlan?._score || comparePlan?.suitabilityAnalysis?.protectionMatchScore || 84;
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'pb-compare-modal-instance';
+        modalDiv.className = 'pb-compare-modal-backdrop';
+        modalDiv.innerHTML = '<div class="pb-compare-modal">' +
+          '<div class="pb-compare-modal-header">' +
+            '<h4>⚖️ Side-by-Side EV Insurance Comparison</h4>' +
+            '<button type="button" class="pb-modal-close-btn" onclick="window.InsuranceStageController.closeCompareModal()">&times;</button>' +
+          '</div>' +
+          '<table class="pb-compare-table">' +
+            '<thead>' +
+              '<tr>' +
+                '<th>Coverage Dimension</th>' +
+                '<th>' + escapeHtml(p1Name) + '<br><small style="color:#55f27b;">' + escapeHtml(p1Insurer) + '</small></th>' +
+                '<th>' + escapeHtml(p2Name) + '<br><small style="color:#a4b8aa;">' + escapeHtml(p2Insurer) + '</small></th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+              '<tr>' +
+                '<td class="feature-label">Protection Match Score</td>' +
+                '<td class="val-col"><strong style="color:#55f27b;font-size:15px;">' + p1Score + '/100</strong></td>' +
+                '<td class="val-col"><strong>' + p2Score + '/100</strong></td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">Estimated Total Cost Band</td>' +
+                '<td class="val-col"><strong style="color:#55f27b;">' + escapeHtml(p1Price) + '</strong></td>' +
+                '<td class="val-col">' + escapeHtml(p2Price) + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">Zero Depreciation (Bumper to Bumper)</td>' +
+                '<td class="val-col pb-check-green">✓ Included (100% Parts & Labour)</td>' +
+                '<td class="val-col pb-check-green">✓ Included</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">High-Voltage Battery Water Ingress & Surge</td>' +
+                '<td class="val-col pb-check-green">✓ Comprehensive Monsoon Cover</td>' +
+                '<td class="val-col ' + (comparePlan?.capabilities?.highVoltageBatteryIngress ? 'pb-check-green' : 'pb-cross-dim') + '">' + (comparePlan?.capabilities?.highVoltageBatteryIngress ? '✓ Included' : '✗ Optional Add-on') + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">Wallbox Home Charger & Cable Protection</td>' +
+                '<td class="val-col pb-check-green">✓ Surge & Theft Shield (₹75k)</td>' +
+                '<td class="val-col ' + (comparePlan?.capabilities?.wallboxSurgeProtection ? 'pb-check-green' : 'pb-cross-dim') + '">' + (comparePlan?.capabilities?.wallboxSurgeProtection ? '✓ Included' : '✗ Not Included') + '</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">EV Roadside Assistance & Mobile Charging</td>' +
+                '<td class="val-col pb-check-green">✓ On-spot Mobile Boost & Flatbed</td>' +
+                '<td class="val-col pb-check-green">✓ Standard Towing</td>' +
+              '</tr>' +
+              '<tr>' +
+                '<td class="feature-label">Claim Settlement Ratio</td>' +
+                '<td class="val-col">99.2% (Express EV Desk)</td>' +
+                '<td class="val-col">98.5%</td>' +
+              '</tr>' +
+            '</tbody>' +
+          '</table>' +
+          '<div style="padding:16px 24px;display:flex;justify-content:flex-end;gap:12px;background:rgba(0,0,0,0.2);">' +
+            '<button type="button" class="pb-btn-compare" onclick="window.InsuranceStageController.closeCompareModal()">Close</button>' +
+            '<button type="button" class="pb-btn-select" onclick="window.InsuranceStageController.selectPlan('' + escapeHtml(currentPlan?._planId || currentPlan?.selectedPlan?.id || 'plan-0') + '');window.InsuranceStageController.closeCompareModal();">Select ' + escapeHtml(p1Name) + '</button>' +
+          '</div>' +
+        '</div>';
+
+        document.body.appendChild(modalDiv);
+      },
+      closeCompareModal: function() {
+        const modal = document.getElementById('pb-compare-modal-instance');
+        if (modal) modal.remove();
+      }
+    };
+
+</script>
 </body>
 
 </html>
