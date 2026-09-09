@@ -2537,6 +2537,52 @@
       font-weight: 700;
     }
 
+    /* Video during a human handover. The strip stays a fixed 2-column grid for
+       the AI + self tiles the whole call — this only widens it for the short
+       window a specialist is on with their camera on, and never touches the
+       existing layout otherwise. */
+    .participant-strip.has-rep-video {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .participant-tile--rep {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .rep-view {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at 52% 34%, rgba(69, 206, 154, .18), transparent 60%), linear-gradient(145deg, #23392c, #0d1712 76%);
+    }
+
+    /* AgoraRTC.VideoTrack#play() mounts its own <video> element inside this
+       container rather than taking one directly, so the fill rule targets it
+       as a descendant. Not mirrored — this is someone else's camera, not yours. */
+    .rep-view video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .handoff-video-live-dot {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green-bright);
+      box-shadow: 0 0 0 3px rgba(85, 242, 123, .18);
+    }
+
+    #handoff-video-control[aria-pressed="true"] {
+      color: var(--green-bright);
+      border-color: rgba(85, 242, 123, .5);
+      background: rgba(85, 242, 123, .12);
+    }
+
     .participant-tile--self .participant-tile__label {
       position: absolute;
       z-index: 2;
@@ -10939,6 +10985,10 @@
                     id="room-camera-indicator" aria-label="Camera off">Camera off</span><span id="room-mic-indicator"
                     aria-label="Microphone on">Mic on</span></span></div>
             </div>
+            <div class="participant-tile participant-tile--rep" id="rep-participant-tile" hidden>
+              <div class="rep-view" id="handoff-rep-video"></div>
+              <div class="participant-tile__label"><span id="rep-room-name">Specialist</span><span class="participant-indicators"><span class="handoff-video-live-dot" aria-hidden="true"></span></span></div>
+            </div>
           </div>
         </div>
 
@@ -10980,6 +11030,13 @@
               </svg></button>
             <button class="call-control" id="camera-control" type="button" aria-label="Toggle camera" aria-pressed="false"
               data-control="camera" data-tooltip="Camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 7h2l2-2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2l-2-2h-2" />
+                <rect x="3" y="7" width="13" height="10" rx="2" />
+                <circle cx="9.5" cy="12" r="2.5" />
+              </svg></button>
+            <button class="call-control" id="handoff-video-control" type="button" aria-label="Turn on video for the specialist"
+              aria-pressed="false" data-control="handoff-video" data-tooltip="Video call" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M14 7h2l2-2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2l-2-2h-2" />
                 <rect x="3" y="7" width="13" height="10" rx="2" />
@@ -13950,6 +14007,24 @@
           renderApp();
           return;
         }
+        if (event.type === 'REP_VIDEO') {
+          const tile = document.getElementById('rep-participant-tile');
+          const strip = tile ? tile.closest('.participant-strip') : null;
+          if (payload.active && payload.track) {
+            if (tile) tile.hidden = false;
+            if (strip) strip.classList.add('has-rep-video');
+            try { payload.track.play('handoff-rep-video'); } catch {}
+          } else {
+            if (tile) tile.hidden = true;
+            if (strip) strip.classList.remove('has-rep-video');
+          }
+          return;
+        }
+        if (event.type === 'LOCAL_VIDEO') {
+          const videoButton = document.getElementById('handoff-video-control');
+          if (videoButton) videoButton.setAttribute('aria-pressed', String(Boolean(payload.enabled)));
+          return;
+        }
         if (event.type === 'TOOL_EVENT' && isCurrentSession(payload.sessionId)) {
           handleToolEvent(payload);
           return;
@@ -14165,6 +14240,20 @@
           return;
         }
         if (target.matches('[data-control="camera"]')) { toggleRoomCamera(); return; }
+        if (target.matches('[data-control="handoff-video"]')) {
+          target.disabled = true;
+          try {
+            const adapter = activeAdapter();
+            if (typeof adapter?.setHandoffVideoEnabled !== 'function') throw new Error('Video needs the live consultation.');
+            const turningOn = target.getAttribute('aria-pressed') !== 'true';
+            await adapter.setHandoffVideoEnabled(turningOn);
+          } catch (error) {
+            showToast(error?.message || 'Camera could not be turned on. Check the browser has permission.');
+          } finally {
+            target.disabled = false;
+          }
+          return;
+        }
         if (target.matches('[data-control="text"]')) { openPromptDrawer(); return; }
         if (target.matches('[data-control="captions"]')) { state.captionsEnabled = !state.captionsEnabled; renderApp(); return; }
         if (target.matches('[data-control="end"]')) { leaveRoom(); return; }
