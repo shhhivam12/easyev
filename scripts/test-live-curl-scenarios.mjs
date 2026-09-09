@@ -840,13 +840,14 @@ runScenario('15. All Services Positive Declaration & Fast Completion', () => {
       language: 'Hinglish',
       initialValues: {
         shopName: 'Green Velocity EV',
+        dealershipType: 'Authorized OEM Dealership',
         managerName: 'Karan Mehra',
         phone: '9811002233',
         email: 'karan.mehra@greenvelocity.in',
         city: 'Pune',
         address: 'MG Road Camp',
         pincode: '411001',
-        workingDays: 'All 7 Days',
+        workingDays: 'Monday to Saturday',
         brands: ['Tata Motors', 'Ather Energy']
       }
     });

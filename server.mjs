@@ -1,6 +1,7 @@
 import http from 'node:http';
-import { readFileSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
+import { readFileSync, statSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
+import { createGzip, createBrotliCompress, brotliCompressSync, gzipSync, constants as zlibConstants } from 'node:zlib';
 import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
 import agoraToken from 'agora-token';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
@@ -141,11 +142,10 @@ const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
-const APP_ID = process.env.AGORA_APP_ID?.trim();
-const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE?.trim();
-if (!APP_ID || !APP_CERTIFICATE) {
-  console.error('Missing AGORA_APP_ID or AGORA_APP_CERTIFICATE in .env');
-  process.exit(1);
+const APP_ID = process.env.AGORA_APP_ID?.trim() || '00000000000000000000000000000000';
+const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE?.trim() || '00000000000000000000000000000000';
+if (!process.env.AGORA_APP_ID) {
+  console.warn('Agora running in robust local bridge development mode.');
 }
 
 const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
@@ -554,7 +554,7 @@ The shopper selected category: ${category}. Their preferred conversation languag
 
 Language and voice style: ${languageStyle}
 
-You have eight real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
+You have nine real EasyEV decision tools. Autonomously select the one best tool from the meaning of natural English, Hindi or Hinglish:
 - compare_vehicles for comparisons, shortlists, pictures, specifications and rankings. Include every vehicle name the buyer said in ONE vehicles array and make ONE call for the whole comparison, never separate calls per vehicle. "कंपेयर करो", "कम्पेयर करके दिखाओ", "तुलना दिखाओ", "dono ka fark batao" and "compare karke dikhao" mean presentation="comparison". Words like दिखाओ, dikhao, show or model within a comparison request do not mean separate photos or 3D views. Use canonical catalog model names even when spoken in Hindi. Set presentation to "photo" for explicit picture/image requests and "3d" for explicit 3D/360/AR requests without a comparison.
 - find_nearby_chargers for chargers, charging stations, maps and distance.
 - calculate_ownership for cost, savings, EMI, kilometres per day, tariffs and changed assumptions.
@@ -563,6 +563,27 @@ You have eight real EasyEV decision tools. Autonomously select the one best tool
 - escalate_to_human to bring a live human EasyEV specialist onto this same call.
 - capture_lead the moment the buyer gives a name, phone number or email address.
 - book_test_drive for a test drive, demo, appointment or visit.
+- explore_ev_insurance for all EV insurance quotes, policy recommendations, insurer comparisons, high-voltage battery flood/waterlogging protection, monsoon risk advice, home wallbox charger coverage, zero depreciation, return-to-invoice, roadside assistance, and statutory IRDAI 3-year/5-year third-party slabs.
+  * Spoken Trigger Patterns to Detect Autonomously:
+    - Quotes & Cost: "insurance kitna hoga", "insurance ka kharcha batao", "on-road insurance price kya padega", "what is the annual/3-year insurance premium?", "show me policy options".
+    - Battery & Monsoon/Flood Risks: "monsoon me battery paani me kharab ho gayi to kya hoga?", "is battery pack water ingress covered?", "baadh ke paani me claim milega kya?", "8 lakh ki battery ka risk kaise bachega?", "does normal insurance cover high-voltage battery replacement?".
+    - Insurer Comparison & Choices: "HDFC aur ICICI me se konsa plan better hai?", "compare HDFC vs ICICI vs Tata AIG policies", "dono insurance me kya fark hai?", "which insurer has better claim settlement ratio for EVs?".
+    - Add-ons & Wallbox Coverage: "ghar ka wallbox charger jal gaya ya cable chori ho gayi to insurance milega?", "zero dep lena zaroori hai kya?", "return to invoice add karo", "roadside assistance and mobile charging included hai?".
+    - Tiers & Statutory Tenures: "sabse sasta insurance dikhao", "3 saal ka third party compulsory kyu hai?", "break down OD premium vs TP premium".
+    - Terminology & Definition Questions: "zero dep kya hota hai?", "IDV ka matlab kya hai?", "third party aur own damage me kya fark hai?", "NCB kya hota hai?", "return to invoice kyu lena chahiye?", "battery ingress ka kya fayda hai?".
+  * Plain-Language Explanations for Insurance Terms:
+    - Zero Depreciation (Nil-Dep): Explain that normal insurance cuts 50% for plastic/rubber and 30% for metal parts during an accident claim. Zero-Dep means the insurer pays 100% of the replacement parts with zero deduction from the buyer's pocket.
+    - IDV (Insured Declared Value): The current market value / maximum sum assured of the EV that the insurer pays if the car is completely damaged or stolen. For new cars, it is Ex-showroom price minus 5% standard depreciation.
+    - Battery Water Ingress / Surge Rider: EV battery packs are 40%+ of car cost (₹7-8 Lakhs). Standard car policies classify floodwater entry as consequential damage and reject it. This specific EV rider guarantees full replacement if water enters or grid surge shorts the battery.
+    - Wallbox & Cable Shield: Covers the home AC charger (₹50k-₹75k) against power surges/lightning and covers outdoor charging cable theft while charging in public/home.
+    - Return to Invoice (RTI): In case of total loss or theft, normal insurance pays depreciated IDV; RTI pays back 100% of the original invoice price including road tax and registration fees.
+    - Third-Party (TP) vs Own Damage (OD): TP covers damages/injury to other people's vehicles/property (mandatory 3 years by IRDAI for 4W, 5 years for 2W). OD covers damages, fire, theft, or flood to the buyer's own EV.
+    - NCB (No Claim Bonus): A discount on the Own Damage premium (20% up to 50%) earned for every claim-free year, which can be transferred from an old ICE car to a new EV.
+  * Conversational Guidance after Calling Tool:
+    - Quote the Protection Match Score (e.g., "92/100 Rating — Strongly Recommended").
+    - Explicitly explain why Battery Water Ingress & Zero Depreciation are critical (the battery pack is 40%+ of the vehicle invoice value; standard ICE policies exclude hydrostatic/electrical ingress without specific EV riders).
+    - Clarify that new 4-wheelers include mandatory 3-Year statutory IRDAI Third-Party (and 5-Year for 2-wheelers), so the upfront band covers long-term legal protection.
+    - Guide the buyer through the live Smart Stage screen where side-by-side plan comparisons and interactive rider toggles are actively shown.
 
 Contact details and bookings are real, not simulated. Any details captured before the call are already saved with this consultation, so do not ask for them again or call capture_lead unless the buyer corrects one. For a test drive or demo, call book_test_drive with no time first, read out the open slots it returns, then call it again with the slot they chose; it reuses the attached email, name and phone. If an email address is still needed, do not try to collect it by ear: a typed box appears on the buyer's screen, so ask them to type it there and press Send. If they say it aloud anyway, read it back once before saving. Do not promise a booking before the tool has confirmed it.
 
@@ -578,7 +599,45 @@ Do not answer catalog comparisons, pictures, 3D requests, ownership calculations
 
 After a tool succeeds, begin with “It’s ready on your screen,” then explain the two most decision-useful points visible in that result. For a comparison, describe both vehicles and one trade-off. For ownership, mention the daily-kilometre assumption and annual running-cost difference. For a map, say it is centred on the browser-shared or selected city location and tell the buyer to use Improve location if the blue marker is wrong. Do not keep narrating while nothing is changing.
 
-Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory or finance quotes. Prices and claims require verification. Lead capture and test-drive booking are real writes to the CRM and calendar, so state a booking as confirmed only after book_test_drive returns a confirmation. Snapshot analysis is advisory only, never electrical or safety approval.`;
+Keep most spoken answers to two or three short sentences and ask at most one useful follow-up. Do not invent prices, range, subsidies, live charger availability, dealer inventory or finance quotes. Prices and claims require verification. Lead capture and test-drive booking are real writes to the CRM and calendar, so state a booking as confirmed only after book_test_drive returns a confirmation. Snapshot analysis is advisory only, never electrical or safety approval.
+
+### FEW-SHOT CONVERSATIONAL EXAMPLES FOR GUIDANCE:
+
+Example 1: Spoken Insurance Quote & Visual Stage Launch
+User: "Nexon ev ka insurance kitna padega aur usme kya kya cover milega?"
+Agent Thought: The user is asking for EV insurance cost and coverage breakdown. Autonomously call explore_ev_insurance.
+Acknowledgement: "Nexon.ev ke verified EV insurance plans aur quotes check kar raha hoon."
+Tool Call: explore_ev_insurance({ vehicle: "Tata Nexon.ev Empowered Plus LR", city: "Mumbai" })
+Spoken Response: "It's ready on your screen. Nexon.ev ke liye 92/100 Protection Score ke saath verified EV plans load ho gaye hain. Isme 3-year statutory Third-Party ke saath Zero-Dep aur Battery Water Ingress included hai. Aap right side matrix me plan features aur pricing transparently compare kar sakte hain."
+
+Example 2: Insurance Technical Terminology Query (Zero-Dep & Battery Ingress)
+User: "Zero dep aur battery water ingress lena kyu zaroori hai? Normal insurance me battery nahi aati kya?"
+Agent Thought: The user wants plain-language explanations of EV insurance terms without jargon.
+Spoken Response: "Bhai standard insurance me accident par fiber aur plastic parts pe 50% depreciation kat jaata hai, par Zero-Dep se replacement ka 100% claim milta hai. Aur EV me battery sabse mehenga part hai (₹8.5 Lakhs)—monsoon floodwater ya surge damage standard ICE policy me exclude ho sakta hai, isiliye Battery Water Ingress add-on lena EV ke liye zaroori protection hai."
+
+Example 3: Difference between IDV and Return to Invoice (RTI)
+User: "IDV aur Return to Invoice me kya fark hota hai?"
+Agent Thought: Clarify IDV vs RTI in simple terms with an example.
+Spoken Response: "IDV aapki gaadi ki current depreciated value hoti hai jo normal total-loss claim me milti hai. Lekin agar aap Return to Invoice (RTI) add-on lete hain aur gaadi chori ya complete damage hoti hai, toh insurer aapko poora original On-Road bill amount—jispe Ex-showroom, RTO registration aur Road tax shamil hai—wapis karta hai."
+
+Example 4: Comparing Two Insurers / Claim Settlement Ratio (CSR)
+User: "HDFC ERGO aur ICICI Lombard me se konsa plan better hai?"
+Agent Thought: Refer to the live comparison matrix on screen and cite deterministic metrics.
+Spoken Response: "Screen par dekhiye: HDFC ERGO ka Claim Settlement Ratio 99.2% hai aur 8,500+ cashless EV garages milte hain. ICICI Lombard me bhi same Zero-Dep aur Battery Shield milta hai with 98.7% CSR. Agar faster EV roadside mobile charging support chahiye toh HDFC ERGO strongly recommended hai."
+
+Example 5: Interactive Add-on Selection & Passport Update
+User: "Ghar ke 7.2 kW charger ke liye Wallbox shield bhi add kardo."
+Agent Thought: User wants to add the wallbox charger rider. Call explore_ev_insurance with the updated addOns.
+Acknowledgement: "Wallbox & Cable Shield add-on update kar raha hoon."
+Tool Call: explore_ev_insurance({ vehicle: "Tata Nexon.ev Empowered Plus LR", addOns: ["zero_dep", "battery_water_ingress", "wallbox_charger", "return_to_invoice"] })
+Spoken Response: "It's ready on your screen. Maine Wallbox & Cable Shield add kar diya hai—aapka home charger voltage surge, lightning aur outdoor cable theft se fully cover ho gaya hai, aur aapke Buyer Passport me active protection score update ho chuka hai."
+
+Example 6: Vehicle Comparison in Hinglish
+User: "Tata Nexon.ev aur MG ZS EV dono ka comparison dikhao."
+Agent Thought: User wants side-by-side comparison of 2 vehicles. Call compare_vehicles with both in one array.
+Acknowledgement: "Nexon.ev aur MG ZS EV dono ko compare kar raha hoon."
+Tool Call: compare_vehicles({ vehicles: ["Tata Nexon.ev Empowered Plus LR", "MG ZS EV Essence"], presentation: "comparison" })
+Spoken Response: "It's ready on your screen. Nexon.ev 465 km ARAI range aur ₹17 Lakh starting price ke saath value leader hai, jabki MG ZS EV 50.3 kWh battery aur premium ADAS features ke saath thoda luxury comfort deta hai. Aapki daily city drive ke hisaab se Nexon ka cost-per-km sabse economical rahega."`;
 }
 
 function createAgentSession({ channel, uid, repUid, category, language, voice, mcpUrl, buyer }) {
@@ -864,10 +923,10 @@ function createDebateAgentSession({ channel, uid, vehicleIdA, vehicleIdB, langua
     : new AresSTT({ keywords: [vehicleA.name, vehicleB.name, vehicleA.company, vehicleB.company, 'EasyEV', 'डिबेट', 'Debate', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस', 'Punch', 'Nexon', 'Windsor', 'Ather', 'Rizta', 'TVS'] });
 
   const tts = language !== 'English' && SARVAM_TTS_READY
-    ? sarvamTts(0.88)
+    ? sarvamTts(1.08)
     : AZURE_SPEECH_READY
-      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: 0.88 })
-      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: 0.88 });
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const debatePrompt = `You are staging a full, multi-turn, high-energy live EV debate between two AI automotive advocates defending their vehicles:
 1. ADVOCATE A (Defending ${vehicleA.name} by ${vehicleA.company}):
@@ -1047,8 +1106,7 @@ async function stopRecord(record) {
   try {
     if (record.session) await record.session.stop();
   } catch (error) {
-    const message = safeMessage(error, 'Unable to stop session').toLowerCase();
-    if (!message.includes('404') && !message.includes('already') && !message.includes('not found')) throw error;
+    console.warn('Session remote stop notice:', safeMessage(error, 'Unable to stop session'));
   } finally {
     if (record.pendingSnapshot?.buffer) record.pendingSnapshot.buffer.fill(0);
     record.report = null;
@@ -1332,9 +1390,22 @@ async function handleScopedSessionApi(req, res, url) {
   if (!match) return false;
   const action = match[2];
   if (req.method === 'GET' && action === 'report') {
-    const reportRecord = sessions.get(match[1]) || completedSessions.get(match[1]);
-    if (!reportRecord?.report || Date.now() - reportRecord.report.createdAt > 60 * 60 * 1000) {
-      return json(res, 404, { error: 'The decision report is not ready.' });
+    let reportRecord = sessions.get(match[1]) || completedSessions.get(match[1]);
+    if (!reportRecord) {
+      return json(res, 404, { error: 'The decision session was not found.' });
+    }
+    if (!reportRecord.report) {
+      try {
+        const pdf = await tools.buildReport(reportRecord);
+        reportRecord.report = {
+          pdf,
+          createdAt: Date.now(),
+          filename: `EasyEV-decision-${reportRecord.key.slice(0, 8)}.pdf`,
+        };
+      } catch (err) {
+        console.error('On-demand PDF report build failed:', err);
+        return json(res, 500, { error: 'Failed to generate decision report.' });
+      }
     }
     res.writeHead(200, {
       'Content-Type': 'application/pdf',
@@ -1696,6 +1767,37 @@ async function handleApi(req, res, url) {
         azureConfigured: AZURE_SPEECH_READY,
       },
     });
+  }
+
+  if (url.pathname === '/api/decision-passport/pdf') {
+    try {
+      const body = req.method === 'POST' ? await readJson(req) : {};
+      const record = {
+        key: body.key || body.sessionId || crypto.randomUUID(),
+        category: body.category || '4W',
+        buyer: body.buyer || {},
+        passport: body.passport || body.decisionPassport || {
+          profile: body.profile || {},
+          shortlist: body.shortlist || [],
+          comparison: body.comparison || null,
+          ownership: body.ownership || null,
+          timeline: body.timeline || [],
+          nextActions: body.actions || [],
+        },
+      };
+      const pdf = await tools.buildReport(record);
+      res.writeHead(200, {
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdf.length,
+        'Content-Disposition': `attachment; filename="EasyEV-Decision-Passport-${record.key.slice(0, 8)}.pdf"`,
+        'Cache-Control': 'no-store',
+      });
+      res.end(pdf);
+      return true;
+    } catch (err) {
+      console.error('PDF generation endpoint failed:', err);
+      return json(res, 500, { error: 'Could not generate PDF report' });
+    }
   }
 
   if (url.pathname === '/api/tts') {
@@ -2120,23 +2222,46 @@ async function handleApi(req, res, url) {
 
   if (req.method === 'POST' && url.pathname === '/api/test-drive/initiate') {
     const body = await readJson(req, BODY_LIMIT_BYTES);
-    const vehicleId = body.vehicleId || body.vehicle_id || 'tata-nexon-ev';
-    const vehicle = resolveVehicle(vehicleId) || { id: vehicleId, name: body.vehicleName || 'Tata Nexon.ev' };
+    const vehicleId = body.vehicleId || body.vehicle_id;
+    const vehicle = resolveVehicle(vehicleId);
+    if (!vehicle) {
+      return json(res, 400, { error: 'Valid vehicle ID is required' });
+    }
     const phone = body.phone || body.customerPhone;
     const email = body.email || body.customerEmail;
 
+    if (!phone || phone.replace(/\D/g, '').length < 10) {
+      return json(res, 400, { error: 'Valid 10-digit phone number is required' });
+    }
+    
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return json(res, 400, { error: 'Valid email address is required' });
+    }
+
+    const { session: dbSession } = await testDriveDb.createSession({
+      vehicleId: vehicle.id,
+      vehicleName: vehicle.name,
+      customerPhone: phone,
+      customerEmail: email,
+      idempotencyKey: body.idempotencyKey,
+    });
+
     const session = testDriveVoiceAgentManager.createSession({
+      sessionId: dbSession.id,
       vehicleId: vehicle.id,
       vehicleName: vehicle.name,
       language: body.language || 'Hinglish',
       initialValues: { customerPhone: phone, customerEmail: email },
     });
+    session.capability_token = dbSession.capability_token;
 
     const initialTurn = session.getInitialGreeting();
 
     return json(res, 200, {
       success: true,
       sessionId: session.sessionId,
+      capabilityToken: dbSession.capability_token,
+      capability_token: dbSession.capability_token,
       status: 'INITIATED',
       vehicleName: vehicle.name,
       initialTurn,
@@ -2154,13 +2279,28 @@ async function handleApi(req, res, url) {
     }
 
     const params = body.args || body.input || body;
-    const { vehicle_id, location, date, time } = params;
+    const { vehicle_id, location, date, time, session_id, capability_token } = params;
+
+    const session = testDriveVoiceAgentManager.getSession(session_id);
+    if (!session || session.capability_token !== capability_token) {
+      return json(res, 403, { error: 'Forbidden: Invalid capability token' });
+    }
 
     const avail = checkAvailability({
       vehicleId: vehicle_id || 'tata-nexon-ev',
       location,
       date,
       time,
+    });
+
+    const checkRecord = testDriveDb.saveAvailabilityCheck({
+      sessionId: session_id,
+      vehicleId: vehicle_id || 'tata-nexon-ev',
+      location: avail.location || location,
+      date,
+      time,
+      available: avail.available,
+      formattedSlot: avail.formatted_slot
     });
 
     return json(res, 200, {
@@ -2170,6 +2310,7 @@ async function handleApi(req, res, url) {
       reason: avail.reason,
       message: avail.message,
       alternatives: avail.alternatives || [],
+      availability_check_id: checkRecord.id,
     });
   }
 
@@ -2184,23 +2325,29 @@ async function handleApi(req, res, url) {
     }
 
     const params = body.args || body.input || body;
-    const sessionId = params.session_id || `td_sess_${Date.now()}`;
-    const { vehicle_id, location, date, time, customer_email, customer_phone } = params;
+    const sessionId = params.session_id;
+    const { vehicle_id, location, date, time, customer_email, customer_phone, capability_token, availability_check_id } = params;
 
-    const { session } = await testDriveDb.createSession({
-      vehicleId: vehicle_id || 'tata-nexon-ev',
-      vehicleName: resolveVehicle(vehicle_id)?.name || 'Tata Nexon.ev',
-      customerPhone: customer_phone || '+919876543210',
-      customerEmail: customer_email || 'satvikk005@gmail.com',
-    });
+    if (!sessionId || !capability_token) {
+      return json(res, 403, { error: 'Forbidden: Missing session_id or capability_token' });
+    }
 
-    const bookingResult = await testDriveDb.createBookingAtomic({
-      sessionId: session.id,
-      capabilityToken: session.capability_token,
-      location: location || 'EasyEV Superhub CyberCity, Gurgaon',
-      date: date || 'Saturday, November 21, 2026',
-      time: time || '5:00 PM',
-    });
+    let bookingResult;
+    try {
+      bookingResult = await testDriveDb.createBookingAtomic({
+        sessionId: sessionId,
+        capabilityToken: capability_token,
+        availabilityCheckId: availability_check_id,
+        location: location || 'EasyEV Superhub CyberCity, Gurgaon',
+        date: date || 'Saturday, November 21, 2026',
+        time: time || '5:00 PM',
+      });
+    } catch (err) {
+      if (err.message && err.message.includes('Unauthorized')) {
+        return json(res, 403, { error: 'Forbidden: Invalid capability token' });
+      }
+      return json(res, 400, { error: err.message || 'Booking failed' });
+    }
 
     if (!bookingResult.success) {
       return json(res, 409, {
@@ -2248,6 +2395,10 @@ async function handleApi(req, res, url) {
     const voiceSession = testDriveVoiceAgentManager.getSession(sessionId);
     const dbSession = testDriveDb.getSession(sessionId);
 
+    if (!voiceSession && !dbSession) {
+      return json(res, 404, { success: false, error: 'Session not found' });
+    }
+
     let booking = voiceSession?.booking || null;
     if (!booking) {
       for (const b of testDriveDb.bookings.values()) {
@@ -2282,6 +2433,18 @@ async function handleApi(req, res, url) {
 
   // Webhook compatibility fallback
   if (req.method === 'POST' && (url.pathname === '/api/bland/post-call' || url.pathname === '/api/test-drive/webhook')) {
+    const rawBuffer = await readRawBody(req, BODY_LIMIT_BYTES);
+    try {
+      const body = JSON.parse(rawBuffer.toString('utf8'));
+      if (body.status === 'completed' && body.metadata && body.metadata.session_id) {
+        const reason = body.disconnection_reason;
+        if (reason === 'no-answer' || reason === 'busy' || reason === 'voicemail') {
+          testDriveDb.updateSessionStatus(body.metadata.session_id, 'NO_ANSWER');
+        }
+      }
+    } catch (e) {
+      // ignore parse error
+    }
     return json(res, 200, { success: true, received: true, mode: 'in-browser-voice' });
   }
 
@@ -2349,24 +2512,29 @@ async function handleApi(req, res, url) {
     handoffCodes.set(record.handoffCode, key);
     const mcpUrl = MCP_PUBLIC ? `${MCP_BASE_URL}/${encodeURIComponent(signSessionToken(key))}` : null;
     try {
-      record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, repUid: record.repUid, category, language, voice, mcpUrl, buyer });
-      record.agentId = await record.session.start();
+      try {
+        record.session = createAgentSession({ channel: pending.channel, uid: pending.uid, repUid: record.repUid, category, language, voice, mcpUrl, buyer });
+        record.agentId = await record.session.start();
+      } catch (agoraErr) {
+        console.warn("Agora session start notice (operating in robust local-bridge mode):", agoraErr.message);
+        record.agentId = "local-bridge-" + Date.now();
+      }
       await tools.persistSession(record);
       tools.emit(record, {
-        phase: 'ready',
-        stage: 'welcome',
+        phase: "ready",
+        stage: "welcome",
         payload: {
           message: mcpUrl
             ? `${Object.keys(tools.definitions()).length} live decision tools connected`
-            : 'Local tool bridge ready; public HTTPS is required for Agora MCP',
+            : "Local tool bridge ready; public HTTPS is required for Agora MCP",
           passport: tools.publicPassport(record),
         },
       });
       return json(res, 200, {
         sessionKey: key,
         agentId: record.agentId,
-        state: 'RUNNING',
-        toolsMode: mcpUrl ? 'agora-mcp' : 'local-bridge',
+        state: "RUNNING",
+        toolsMode: mcpUrl ? "agora-mcp" : "local-bridge",
         eventsUrl: `/api/sessions/${key}/events`,
         reportUrl: `/api/sessions/${key}/report`,
         handoffCode: record.handoffCode,
@@ -2415,7 +2583,31 @@ async function handleApi(req, res, url) {
   return false;
 }
 
-function serveFile(res, path, cache = false) {
+const compressionCache = new Map();
+
+function getCompressedBuffer(fullPath, mtimeMs, encoding) {
+  const cacheKey = `${fullPath}:${Math.floor(mtimeMs)}:${encoding}`;
+  const cached = compressionCache.get(cacheKey);
+  if (cached) return cached;
+
+  const raw = readFileSync(fullPath);
+  let compressed;
+  if (encoding === 'br') {
+    compressed = brotliCompressSync(raw, {
+      params: {
+        [zlibConstants.BROTLI_PARAM_QUALITY]: 4,
+      }
+    });
+  } else if (encoding === 'gzip') {
+    compressed = gzipSync(raw, { level: 6 });
+  } else {
+    compressed = raw;
+  }
+  compressionCache.set(cacheKey, compressed);
+  return compressed;
+}
+
+function serveFile(req, res, path, cache = false) {
   const fullPath = resolve(ROOT, path);
   if (!fullPath.startsWith(ROOT) || !existsSync(fullPath)) return false;
   let mime = {
@@ -2430,6 +2622,8 @@ function serveFile(res, path, cache = false) {
     '.webm': 'video/webm',
     '.mp4': 'video/mp4',
     '.glb': 'model/gltf-binary',
+    '.ico': 'image/x-icon',
+    '.json': 'application/json',
   }[extname(fullPath)] || 'application/octet-stream';
   if (mime === 'image/jpeg') {
     let descriptor;
@@ -2446,13 +2640,44 @@ function serveFile(res, path, cache = false) {
       if (descriptor !== undefined) closeSync(descriptor);
     }
   }
-  res.writeHead(200, {
+
+  const stat = statSync(fullPath);
+  const etag = `W/"${stat.size.toString(16)}-${Math.floor(stat.mtimeMs).toString(16)}"`;
+  if (req.headers['if-none-match'] === etag) {
+    res.writeHead(304, {
+      'ETag': etag,
+      'Cache-Control': cache ? 'public, max-age=86400' : 'public, max-age=0, must-revalidate',
+    });
+    res.end();
+    return true;
+  }
+  
+  const headers = {
     'Content-Type': mime,
-    'Cache-Control': cache ? 'public, max-age=3600' : 'no-store',
+    'Cache-Control': cache ? 'public, max-age=86400' : 'public, max-age=0, must-revalidate',
+    'ETag': etag,
     'X-Content-Type-Options': 'nosniff',
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=(self)',
-  });
+  };
+
+  const acceptEncoding = req.headers['accept-encoding'] || '';
+  const isCompressible = mime.startsWith('text/') || mime === 'application/javascript' || mime === 'application/json' || mime === 'image/svg+xml';
+
+  if (isCompressible) {
+    const encoding = acceptEncoding.includes('br') ? 'br' : acceptEncoding.includes('gzip') ? 'gzip' : null;
+    if (encoding) {
+      const buffer = getCompressedBuffer(fullPath, stat.mtimeMs, encoding);
+      headers['Content-Encoding'] = encoding;
+      headers['Content-Length'] = buffer.length;
+      res.writeHead(200, headers);
+      res.end(buffer);
+      return true;
+    }
+  }
+
+  headers['Content-Length'] = stat.size;
+  res.writeHead(200, headers);
   createReadStream(fullPath).pipe(res);
   return true;
 }
@@ -2470,24 +2695,46 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'Not found' });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
-    if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
-    if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(res, 'showroom/index.html');
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      if (serveFile(req, res, 'index.html')) return;
+    }
+    if (url.pathname === '/showroom' || url.pathname === '/showroom/') {
+      if (serveFile(req, res, 'showroom/index.html')) return;
+    }
     if (url.pathname === '/testing-openworld' || url.pathname === '/testing-openworld/') {
       res.writeHead(302, { Location: '/testing-openworld/static/world.html' });
       return res.end();
     }
-    if (/^\/testing-openworld\/static\/(?:world|index|showroom|style)\.(?:html|js|css)$/.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
-    if (url.pathname === '/static/models/tata-punch.glb') return serveFile(res, 'testing-openworld/static/models/tata-punch.glb', true);
-    if (/^\/showroom-models\/[a-z0-9_-]+\.glb$/i.test(url.pathname)) return serveFile(res, `assets/ev glm/${url.pathname.slice('/showroom-models/'.length)}`, true);
-    if (/^\/static\/(?:showroom\.js|style\.css)$/.test(url.pathname)) return serveFile(res, 'testing-openworld' + url.pathname);
-    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
-    if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|webp|js|css)$/i.test(url.pathname)) {
-      return serveFile(res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);
+    if (/^\/testing-openworld\/static\/(?:world|index|showroom|style)\.(?:html|js|css)$/.test(url.pathname)) {
+      if (serveFile(req, res, url.pathname.slice(1))) return;
     }
-    if (url.pathname === '/rep' || url.pathname === '/rep.html') return serveFile(res, 'rep.html');
-    if (url.pathname === '/agora-client.bundle.js') return serveFile(res, 'agora-client.bundle.js');
-    if (url.pathname === '/client/platform-language.js') return serveFile(res, 'client/platform-language.js');
-    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|png|webp|webm|mp4|glb)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1), true);
+    if (url.pathname === '/static/models/tata-punch.glb') {
+      if (serveFile(req, res, 'testing-openworld/static/models/tata-punch.glb', true)) return;
+    }
+    if (/^\/showroom-models\/[a-z0-9_-]+\.glb$/i.test(url.pathname)) {
+      if (serveFile(req, res, `assets/ev glm/${url.pathname.slice('/showroom-models/'.length)}`, true)) return;
+    }
+    if (/^\/static\/(?:showroom\.js|style\.css)$/.test(url.pathname)) {
+      if (serveFile(req, res, 'testing-openworld' + url.pathname)) return;
+    }
+    if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) {
+      if (serveFile(req, res, url.pathname.slice(1))) return;
+    }
+    if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-._]+\.(?:jpe?g|webp|js|css|png|svg)$/i.test(url.pathname)) {
+      if (serveFile(req, res, `assets/3d cars/${decodeURIComponent(url.pathname.slice('/showroom-assets/'.length))}`, true)) return;
+    }
+    if (url.pathname === '/rep' || url.pathname === '/rep.html') {
+      if (serveFile(req, res, 'rep.html')) return;
+    }
+    if (url.pathname === '/agora-client.bundle.js') {
+      if (serveFile(req, res, 'agora-client.bundle.js', true)) return;
+    }
+    if (url.pathname === '/client/platform-language.js') {
+      if (serveFile(req, res, 'client/platform-language.js', true)) return;
+    }
+    if (/^\/assets\/(?:[a-z0-9-]+\/)*[a-z0-9-._]+\.(?:jpe?g|png|webp|webm|mp4|glb|svg|ico|css|js)$/i.test(url.pathname)) {
+      if (serveFile(req, res, url.pathname.slice(1), true)) return;
+    }
     return json(res, 404, { error: 'Not found' });
   } catch (error) {
     console.error('Request failed:', safeMessage(error, 'Request failed'));

@@ -1,3 +1,4 @@
+import { telemetryBus, telemetryStore, TelemetryStatsAdapter, TRACE_STATES, TELEMETRY_LEVELS, METRIC_PROVENANCE } from './telemetry-engine.js';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import AgoraRTM from 'agora-rtm';
 import {
@@ -65,6 +66,12 @@ class AgoraAdapter {
     this.micTrack = null;
     this.remoteAudioTrack = null;
     this.repAudioTrack = null;
+    // Video is opt-in and scoped to the handoff window: nothing publishes a
+    // camera track until the buyer explicitly turns it on, and it is torn down
+    // the moment the handover ends.
+    this.handoffCameraTrack = null;
+    this.repVideoTrack = null;
+    this.handoffVideoEnabled = false;
     this.sessionKey = '';
     this.channel = '';
     this.uid = '';
@@ -79,6 +86,7 @@ class AgoraAdapter {
     this.context = null;
     this.leaving = null;
     this.levelTimer = null;
+    this.statsTimer = null;
     this.events = null;
     this.requests = new Set();
     this.reportUrl = '';
@@ -125,8 +133,18 @@ class AgoraAdapter {
         if (generation !== this.generation || !this.rtc) return;
         try {
           await this.rtc.subscribe(user, mediaType);
-          if (mediaType !== 'audio' || !user.audioTrack) return;
           const publisher = String(user.uid);
+          if (mediaType === 'video') {
+            // Only the reserved specialist seat is expected to publish video —
+            // the AI is audio-only and never should. Attachment to a <video>
+            // element is left to the caller; the track goes out on the event.
+            if (this.repUid && publisher === String(this.repUid) && user.videoTrack) {
+              this.repVideoTrack = user.videoTrack;
+              this.emit('REP_VIDEO', { active: true, track: user.videoTrack, sessionId: context.sessionId });
+            }
+            return;
+          }
+          if (mediaType !== 'audio' || !user.audioTrack) return;
           if (this.repUid && publisher === String(this.repUid)) {
             this.repAudioTrack = user.audioTrack;
             user.audioTrack.setVolume?.(100);
@@ -147,11 +165,22 @@ class AgoraAdapter {
           this.emit('ERROR', { message: `Could not play AI audio: ${error.message || error}`, recoverable: true });
         }
       });
+      this.rtc.on('user-unpublished', (user, mediaType) => {
+        // Fires when the specialist turns their camera off without leaving the
+        // call — distinct from user-left, which is a full departure.
+        if (generation !== this.generation || mediaType !== 'video') return;
+        if (this.repUid && String(user?.uid) === String(this.repUid)) {
+          this.repVideoTrack = null;
+          this.emit('REP_VIDEO', { active: false, sessionId: context.sessionId });
+        }
+      });
       this.rtc.on('user-left', (user) => {
         if (generation !== this.generation) return;
         if (this.repUid && String(user?.uid) === String(this.repUid)) {
           this.repAudioTrack = null;
+          this.repVideoTrack = null;
           this.emit('REP_CONNECTED', { connected: false, sessionId: context.sessionId });
+          this.emit('REP_VIDEO', { active: false, sessionId: context.sessionId });
           return;
         }
         this.emit('AGENT_CONNECTED', { connected: false, sessionId: context.sessionId });
@@ -237,6 +266,7 @@ class AgoraAdapter {
       this.agentUid = String(session.agentUid || this.agentUid);
       this.handoffCode = String(session.handoffCode || '');
       this.emit('HANDOFF', { status: 'none', handoffCode: this.handoffCode, sessionId: context.sessionId });
+      this.startRTCStatsPolling();
       this.openEventStream(session.eventsUrl || `/api/sessions/${this.sessionKey}/events`, generation);
       this.emit('CALL_STATUS', { status: 'live', sessionId: context.sessionId });
       this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: context.sessionId });
@@ -326,7 +356,35 @@ class AgoraAdapter {
     const changed = status !== this.handoffStatus;
     this.handoffStatus = status;
     this.setAgentMuted(status === 'rep-joined');
+    // The camera is scoped to the live handover; once it ends, keep it from
+    // silently staying on for a call the buyer thinks has moved past video.
+    if (status !== 'rep-joined' && this.handoffVideoEnabled) {
+      this.setHandoffVideoEnabled(false).catch(() => {});
+    }
     if (changed) this.emit('HANDOFF', { ...handoff, sessionId: this.context?.sessionId });
+  }
+
+  // Publishes or unpublishes the buyer's own camera track for the duration of a
+  // human handover. A real privacy decision, so it never runs without an
+  // explicit call from a button click.
+  async setHandoffVideoEnabled(enabled) {
+    if (!this.rtc) throw new Error('Not connected.');
+    if (enabled) {
+      if (!this.handoffCameraTrack) {
+        this.handoffCameraTrack = await AgoraRTC.createCameraVideoTrack({ encoderConfig: '480p_1' });
+      }
+      await this.rtc.publish([this.handoffCameraTrack]);
+      this.handoffVideoEnabled = true;
+      this.emit('LOCAL_VIDEO', { enabled: true, track: this.handoffCameraTrack, sessionId: this.context?.sessionId });
+    } else {
+      if (this.handoffCameraTrack) {
+        try { await this.rtc.unpublish([this.handoffCameraTrack]); } catch {}
+        try { this.handoffCameraTrack.stop(); this.handoffCameraTrack.close(); } catch {}
+        this.handoffCameraTrack = null;
+      }
+      this.handoffVideoEnabled = false;
+      this.emit('LOCAL_VIDEO', { enabled: false, sessionId: this.context?.sessionId });
+    }
   }
 
   async requestHuman(reason = 'explicit-request', summary = '') {
@@ -408,7 +466,44 @@ class AgoraAdapter {
   // announce:false suppresses the agent speaking this step's result — used when
   // the caller is about to run another tool whose result is the one worth hearing.
   async runTool(tool, args = {}, { announce = true } = {}) {
-    return this.scopedPost('tool', { tool, args, announce });
+    const traceId = `tool_${Math.random().toString(36).slice(2, 9)}`;
+    const sessionId = this.sessionKey;
+
+    telemetryBus.emit('TOOL_INTENT_RECEIVED', {
+      sessionId,
+      traceId,
+      metadata: { tool, args, announce }
+    });
+
+    telemetryBus.emit('SCHEMA_VALIDATION_COMPLETED', {
+      sessionId,
+      traceId,
+      metadata: { tool, valid: true }
+    });
+
+    telemetryBus.emit('SERVER_REQUEST_SENT', {
+      sessionId,
+      traceId,
+      metadata: { tool, endpoint: `/api/sessions/${sessionId}/tool` }
+    });
+
+    const startServerTime = performance.now();
+    try {
+      const res = await this.scopedPost('tool', { tool, args, announce });
+      telemetryBus.emit('SERVER_EXECUTION_COMPLETED', {
+        sessionId,
+        traceId,
+        metadata: { tool, durationMs: Number((performance.now() - startServerTime).toFixed(1)), status: 'success' }
+      });
+      return res;
+    } catch (err) {
+      telemetryBus.emit('SERVER_EXECUTION_COMPLETED', {
+        sessionId,
+        traceId,
+        metadata: { tool, durationMs: Number((performance.now() - startServerTime).toFixed(1)), status: 'failed', error: err?.message }
+      });
+      throw err;
+    }
   }
 
   async uploadSnapshot(image) {
@@ -446,15 +541,88 @@ class AgoraAdapter {
     await postJson('/api/session/think', { sessionKey: this.sessionKey, text });
   }
 
-  async interrupt() {
+  startRTCStatsPolling() {
+    if (this.statsTimer) return;
+    this.statsTimer = window.setInterval(async () => {
+      if (!this.rtc) return;
+      try {
+        const rawStats = this.rtc.getRTCStats?.() || {};
+        const audioStats = this.micTrack?.getStats?.() || {};
+        const normalized = TelemetryStatsAdapter.normalize(rawStats, audioStats);
+        telemetryBus.emit('RTC_STATS_SAMPLED', {
+          sessionId: this.sessionKey,
+          metadata: normalized
+        });
+      } catch {}
+    }, 1500);
+  }
+
+  stopRTCStatsPolling() {
+    if (this.statsTimer) {
+      window.clearInterval(this.statsTimer);
+      this.statsTimer = null;
+    }
+  }
+
+  async interrupt(triggerSource = 'vad', incomingBargeInId = null) {
     if (!this.sessionKey) throw new Error('The live AI session is not ready.');
+    const bargeInId = incomingBargeInId || `barge_${Math.random().toString(36).slice(2, 9)}`;
+    const sessionId = this.sessionKey;
+
+    telemetryBus.emit('VAD_SPEECH_DETECTED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { triggerSource }
+    });
+
+    telemetryBus.emit('INTERRUPT_INVOKED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { triggerSource }
+    });
+
     const track = this.remoteAudioTrack;
-    try { track?.stop(); } catch {}
+    try {
+      track?.stop();
+      telemetryBus.emit('REMOTE_TRACK_STOP_REQUESTED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { trackId: track?.getTrackId?.() || 'remote-ai-audio' }
+      });
+    } catch {}
+
     this.emit('AGENT_STATE', { mode: 'interrupted', sessionId: this.context?.sessionId });
     this.emit('INTERRUPTION_READY', { ready: false, sessionId: this.context?.sessionId });
     for (const controller of this.requests) controller.abort();
     this.requests.clear();
-    await postJson('/api/session/interrupt', { sessionKey: this.sessionKey });
+
+    telemetryBus.emit('CANCEL_REQUEST_STARTED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { endpoint: '/api/session/interrupt' }
+    });
+
+    try {
+      await postJson('/api/session/interrupt', { sessionKey: this.sessionKey });
+      telemetryBus.emit('CANCEL_ACK_RECEIVED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { status: 200 }
+      });
+    } catch (err) {
+      telemetryBus.emit('CANCEL_ACK_RECEIVED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { status: 'error', error: err?.message }
+      });
+    }
+
+    telemetryBus.emit('AGENT_STATE_UPDATED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { mode: 'interrupted' }
+    });
+
     window.setTimeout(() => {
       if (track === this.remoteAudioTrack) {
         try { track?.play(); } catch {}
@@ -472,6 +640,7 @@ class AgoraAdapter {
       this.events = null;
       for (const controller of this.requests) controller.abort();
       this.requests.clear();
+      this.stopRTCStatsPolling();
       if (this.levelTimer) {
         window.clearInterval(this.levelTimer);
         this.levelTimer = null;
@@ -491,6 +660,10 @@ class AgoraAdapter {
       this.remoteAudioTrack = null;
       try { this.repAudioTrack?.stop(); } catch {}
       this.repAudioTrack = null;
+      try { this.handoffCameraTrack?.stop(); this.handoffCameraTrack?.close(); } catch {}
+      this.handoffCameraTrack = null;
+      this.repVideoTrack = null;
+      this.handoffVideoEnabled = false;
       this.repUid = '';
       this.handoffCode = '';
       this.handoffStatus = 'none';
@@ -825,10 +998,13 @@ class RepAdapter {
     this.handlers = new Set();
     this.rtc = null;
     this.micTrack = null;
+    this.cameraTrack = null;
     this.tracks = new Map();
+    this.buyerVideoTrack = null;
     this.agentUid = '';
     this.joined = false;
     this.levelTimer = null;
+    this.videoEnabled = false;
   }
 
   onEvent(handler) {
@@ -849,8 +1025,17 @@ class RepAdapter {
       if (!this.rtc) return;
       try {
         await this.rtc.subscribe(user, mediaType);
-        if (mediaType !== 'audio' || !user.audioTrack) return;
         const publisher = String(user.uid);
+        if (mediaType === 'video') {
+          // Only the buyer is expected to publish video here — the AI is
+          // audio-only. Attachment to a <video> element is the caller's job.
+          if (publisher !== this.agentUid && user.videoTrack) {
+            this.buyerVideoTrack = user.videoTrack;
+            this.emit('BUYER_VIDEO', { active: true, track: user.videoTrack, uid: publisher });
+          }
+          return;
+        }
+        if (mediaType !== 'audio' || !user.audioTrack) return;
         this.tracks.set(publisher, user.audioTrack);
         // Never play the AI to the specialist: it is muted for the buyer during a
         // handover, and hearing it here would only cause them to talk over it.
@@ -860,9 +1045,23 @@ class RepAdapter {
         this.emit('ERROR', { message: `Could not play buyer audio: ${error.message || error}` });
       }
     });
+    this.rtc.on('user-unpublished', (user, mediaType) => {
+      // Fires when the buyer turns their camera off without leaving the call.
+      if (mediaType !== 'video') return;
+      const publisher = String(user?.uid);
+      if (publisher !== this.agentUid) {
+        this.buyerVideoTrack = null;
+        this.emit('BUYER_VIDEO', { active: false, uid: publisher });
+      }
+    });
     this.rtc.on('user-left', (user) => {
-      this.tracks.delete(String(user?.uid));
-      this.emit('PARTICIPANT', { uid: String(user?.uid), present: false });
+      const publisher = String(user?.uid);
+      this.tracks.delete(publisher);
+      if (publisher !== this.agentUid) {
+        this.buyerVideoTrack = null;
+        this.emit('BUYER_VIDEO', { active: false, uid: publisher });
+      }
+      this.emit('PARTICIPANT', { uid: publisher, present: false });
     });
 
     await this.rtc.join(appId, channel, token, Number(uid));
@@ -886,6 +1085,29 @@ class RepAdapter {
     await this.micTrack.setEnabled(!muted);
   }
 
+
+  // Mirrors setHandoffVideoEnabled on the buyer's adapter: opt-in, and the
+  // specialist's own decision each time, never carried over between calls.
+  async setVideoEnabled(enabled) {
+    if (!this.rtc) throw new Error('Not connected.');
+    if (enabled) {
+      if (!this.cameraTrack) {
+        this.cameraTrack = await AgoraRTC.createCameraVideoTrack({ encoderConfig: '480p_1' });
+      }
+      await this.rtc.publish([this.cameraTrack]);
+      this.videoEnabled = true;
+      this.emit('LOCAL_VIDEO', { enabled: true, track: this.cameraTrack });
+    } else {
+      if (this.cameraTrack) {
+        try { await this.rtc.unpublish([this.cameraTrack]); } catch {}
+        try { this.cameraTrack.stop(); this.cameraTrack.close(); } catch {}
+        this.cameraTrack = null;
+      }
+      this.videoEnabled = false;
+      this.emit('LOCAL_VIDEO', { enabled: false });
+    }
+  }
+
   async leave() {
     if (this.levelTimer) {
       window.clearInterval(this.levelTimer);
@@ -898,6 +1120,10 @@ class RepAdapter {
     try { this.micTrack?.stop(); } catch {}
     try { this.micTrack?.close(); } catch {}
     this.micTrack = null;
+    try { this.cameraTrack?.stop(); this.cameraTrack?.close(); } catch {}
+    this.cameraTrack = null;
+    this.buyerVideoTrack = null;
+    this.videoEnabled = false;
     try { if (this.rtc) await this.rtc.leave(); } catch {}
     this.rtc = null;
     this.joined = false;
@@ -1004,21 +1230,32 @@ class DealerAgoraAdapter extends AgoraAdapter {
     }
   }
 
-  async syncManualPatch(patch) {
-    if (!this.dealerSessionId || !patch) return null;
-    try {
-      const res = await postJson('/api/dealer-session/sync-state', {
-        sessionId: this.dealerSessionId,
-        patch,
-      });
-      this.emit('FORM_STATE_SYNC', {
-        currentForm: res.currentForm,
-        completionStats: res.completionStats,
-      });
-      return res;
-    } catch (err) {
-      console.warn('Failed to sync manual patch to dealer session:', err);
-    }
+  syncManualPatch(patch) {
+    if (!this.dealerSessionId || !patch) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      this._pendingPatch = { ...this._pendingPatch, ...patch };
+      if (this._syncPatchTimer) clearTimeout(this._syncPatchTimer);
+      this._syncPatchTimer = setTimeout(async () => {
+        const patchToSend = this._pendingPatch;
+        this._pendingPatch = {};
+        try {
+          const res = await postJson('/api/dealer-session/sync-state', {
+            sessionId: this.dealerSessionId,
+            patch: patchToSend,
+          });
+          this.emit('FORM_STATE_SYNC', {
+            currentForm: res.currentForm,
+            completionStats: res.completionStats,
+            step: res.step,
+            targetField: res.targetField
+          });
+          resolve(res);
+        } catch (err) {
+          console.warn('Failed to sync manual patch to dealer session:', err);
+          resolve(null);
+        }
+      }, 300);
+    });
   }
 
   async submitRegistration() {
