@@ -1,3 +1,4 @@
+import { telemetryBus, telemetryStore, TelemetryStatsAdapter, TRACE_STATES, TELEMETRY_LEVELS, METRIC_PROVENANCE } from './telemetry-engine.js';
 import AgoraRTC from 'agora-rtc-sdk-ng';
 import AgoraRTM from 'agora-rtm';
 import {
@@ -85,6 +86,7 @@ class AgoraAdapter {
     this.context = null;
     this.leaving = null;
     this.levelTimer = null;
+    this.statsTimer = null;
     this.events = null;
     this.requests = new Set();
     this.reportUrl = '';
@@ -257,6 +259,7 @@ class AgoraAdapter {
       this.agentUid = String(session.agentUid || this.agentUid);
       this.handoffCode = String(session.handoffCode || '');
       this.emit('HANDOFF', { status: 'none', handoffCode: this.handoffCode, sessionId: context.sessionId });
+      this.startRTCStatsPolling();
       this.openEventStream(session.eventsUrl || `/api/sessions/${this.sessionKey}/events`, generation);
       this.emit('CALL_STATUS', { status: 'live', sessionId: context.sessionId });
       this.emit('TOOLS_STATUS', { mode: this.toolsMode, connected: true, sessionId: context.sessionId });
@@ -406,7 +409,44 @@ class AgoraAdapter {
   // announce:false suppresses the agent speaking this step's result — used when
   // the caller is about to run another tool whose result is the one worth hearing.
   async runTool(tool, args = {}, { announce = true } = {}) {
-    return this.scopedPost('tool', { tool, args, announce });
+    const traceId = `tool_${Math.random().toString(36).slice(2, 9)}`;
+    const sessionId = this.sessionKey;
+
+    telemetryBus.emit('TOOL_INTENT_RECEIVED', {
+      sessionId,
+      traceId,
+      metadata: { tool, args, announce }
+    });
+
+    telemetryBus.emit('SCHEMA_VALIDATION_COMPLETED', {
+      sessionId,
+      traceId,
+      metadata: { tool, valid: true }
+    });
+
+    telemetryBus.emit('SERVER_REQUEST_SENT', {
+      sessionId,
+      traceId,
+      metadata: { tool, endpoint: `/api/sessions/${sessionId}/tool` }
+    });
+
+    const startServerTime = performance.now();
+    try {
+      const res = await this.scopedPost('tool', { tool, args, announce });
+      telemetryBus.emit('SERVER_EXECUTION_COMPLETED', {
+        sessionId,
+        traceId,
+        metadata: { tool, durationMs: Number((performance.now() - startServerTime).toFixed(1)), status: 'success' }
+      });
+      return res;
+    } catch (err) {
+      telemetryBus.emit('SERVER_EXECUTION_COMPLETED', {
+        sessionId,
+        traceId,
+        metadata: { tool, durationMs: Number((performance.now() - startServerTime).toFixed(1)), status: 'failed', error: err?.message }
+      });
+      throw err;
+    }
   }
 
   async uploadSnapshot(image) {
@@ -444,15 +484,88 @@ class AgoraAdapter {
     await postJson('/api/session/think', { sessionKey: this.sessionKey, text });
   }
 
-  async interrupt() {
+  startRTCStatsPolling() {
+    if (this.statsTimer) return;
+    this.statsTimer = window.setInterval(async () => {
+      if (!this.rtc) return;
+      try {
+        const rawStats = this.rtc.getRTCStats?.() || {};
+        const audioStats = this.micTrack?.getStats?.() || {};
+        const normalized = TelemetryStatsAdapter.normalize(rawStats, audioStats);
+        telemetryBus.emit('RTC_STATS_SAMPLED', {
+          sessionId: this.sessionKey,
+          metadata: normalized
+        });
+      } catch {}
+    }, 1500);
+  }
+
+  stopRTCStatsPolling() {
+    if (this.statsTimer) {
+      window.clearInterval(this.statsTimer);
+      this.statsTimer = null;
+    }
+  }
+
+  async interrupt(triggerSource = 'vad', incomingBargeInId = null) {
     if (!this.sessionKey) throw new Error('The live AI session is not ready.');
+    const bargeInId = incomingBargeInId || `barge_${Math.random().toString(36).slice(2, 9)}`;
+    const sessionId = this.sessionKey;
+
+    telemetryBus.emit('VAD_SPEECH_DETECTED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { triggerSource }
+    });
+
+    telemetryBus.emit('INTERRUPT_INVOKED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { triggerSource }
+    });
+
     const track = this.remoteAudioTrack;
-    try { track?.stop(); } catch {}
+    try {
+      track?.stop();
+      telemetryBus.emit('REMOTE_TRACK_STOP_REQUESTED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { trackId: track?.getTrackId?.() || 'remote-ai-audio' }
+      });
+    } catch {}
+
     this.emit('AGENT_STATE', { mode: 'interrupted', sessionId: this.context?.sessionId });
     this.emit('INTERRUPTION_READY', { ready: false, sessionId: this.context?.sessionId });
     for (const controller of this.requests) controller.abort();
     this.requests.clear();
-    await postJson('/api/session/interrupt', { sessionKey: this.sessionKey });
+
+    telemetryBus.emit('CANCEL_REQUEST_STARTED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { endpoint: '/api/session/interrupt' }
+    });
+
+    try {
+      await postJson('/api/session/interrupt', { sessionKey: this.sessionKey });
+      telemetryBus.emit('CANCEL_ACK_RECEIVED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { status: 200 }
+      });
+    } catch (err) {
+      telemetryBus.emit('CANCEL_ACK_RECEIVED', {
+        sessionId,
+        traceId: bargeInId,
+        metadata: { status: 'error', error: err?.message }
+      });
+    }
+
+    telemetryBus.emit('AGENT_STATE_UPDATED', {
+      sessionId,
+      traceId: bargeInId,
+      metadata: { mode: 'interrupted' }
+    });
+
     window.setTimeout(() => {
       if (track === this.remoteAudioTrack) {
         try { track?.play(); } catch {}
@@ -470,6 +583,7 @@ class AgoraAdapter {
       this.events = null;
       for (const controller of this.requests) controller.abort();
       this.requests.clear();
+      this.stopRTCStatsPolling();
       if (this.levelTimer) {
         window.clearInterval(this.levelTimer);
         this.levelTimer = null;

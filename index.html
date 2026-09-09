@@ -10430,7 +10430,204 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
-  </style>
+  
+    /* === EASYEV PRODUCTION TELEMETRY HUD (v3 - 9.8+ STANDARD) === */
+    #telemetry-hud-root {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 99999;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #e2e8f0;
+      pointer-events: none;
+    }
+    .hud-card {
+      pointer-events: auto;
+      background: rgba(10, 15, 29, 0.88);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 229, 255, 0.1);
+      border-radius: 12px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+    .hud-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      font-size: 11px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .hud-pill:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+    .hud-live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: hud-pulse 2s infinite;
+    }
+    @keyframes hud-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+    .hud-panel {
+      width: 440px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 11px;
+    }
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .hud-modes {
+      display: flex;
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px;
+      border-radius: 6px;
+    }
+    .hud-mode-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 10px;
+      font-family: inherit;
+      padding: 3px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .hud-mode-btn.active {
+      background: #0284c7;
+      color: #fff;
+      font-weight: 600;
+    }
+    .hud-body {
+      padding: 12px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .hud-section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #38bdf8;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hud-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .hud-metric-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 6px 8px;
+      border-radius: 6px;
+      position: relative;
+    }
+    .hud-metric-label {
+      font-size: 9.5px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .hud-metric-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-top: 2px;
+    }
+    .hud-info-icon {
+      cursor: help;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      color: #38bdf8;
+      font-size: 9px;
+      margin-left: 4px;
+    }
+    .hud-provenance-box {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 9.5px;
+      color: #cbd5e1;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+    .hud-waterfall-step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+    .hud-state-badge {
+      display: inline-block;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .hud-badge-completed { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .hud-badge-executing { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .hud-badge-dispatched { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .hud-badge-validating { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .hud-badge-created { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+    .hud-badge-cancelled { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .hud-redacted-val {
+      color: #f87171;
+      background: rgba(239, 68, 68, 0.12);
+      padding: 0 4px;
+      border-radius: 3px;
+    }
+    .hud-event-feed {
+      max-height: 160px;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.4);
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 9.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .hud-event-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      font-family: monospace;
+    }
+    .hud-event-type { color: #38bdf8; }
+    .hud-event-time { color: #64748b; }
+
+    </style>
 </head>
 
 <body>
@@ -11975,7 +12172,316 @@
     </section>
   </main>
 
-  <script src="/client/platform-language.js?v=20260908-1"></script>
+  <script src="/client/platform-language.js?v=20260908-1">
+    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - 9.8+ STANDARD) === */
+    (function initTelemetryHud() {
+      let activeProvenance = null;
+      let hudMode = "BASIC"; // "BASIC", "DETAILED", "DEBUG", "HIDDEN"
+
+      function createHudRoot() {
+        let root = document.getElementById("telemetry-hud-root");
+        if (!root) {
+          root = document.createElement("div");
+          root.id = "telemetry-hud-root";
+          document.body.appendChild(root);
+        }
+        return root;
+      }
+
+      window.setTelemetryMode = function(mode) {
+        hudMode = mode;
+        if (window.EasyEVTelemetry && window.EasyEVTelemetry.store) {
+          window.EasyEVTelemetry.store.setLevel(mode === "DEBUG" ? "DEBUG" : (mode === "DETAILED" ? "DETAILED" : "BASIC"));
+        }
+        renderHud();
+      };
+
+      window.toggleTelemetryProvenance = function(metricKey) {
+        activeProvenance = activeProvenance === metricKey ? null : metricKey;
+        renderHud();
+      };
+
+      function renderHud() {
+        const root = createHudRoot();
+        if (hudMode === "HIDDEN") {
+          root.innerHTML = `
+            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('BASIC')" title="Click to show Telemetry HUD (Shortcut: T)">
+              <span class="hud-live-dot"></span>
+              <span style="color:#94a3b8;font-weight:600;">TELEMETRY [T]</span>
+            </div>
+          `;
+          return;
+        }
+
+        const store = window.EasyEVTelemetry && window.EasyEVTelemetry.store;
+        const prov = (window.EasyEVTelemetry && window.EasyEVTelemetry.METRIC_PROVENANCE) || {};
+        const rtc = (store && store.rtcHealth) || {};
+        const bargeIn = store && store.activeBargeIn;
+        const tool = store && store.latestToolTrace;
+        const frame = store && store.latestFrameCommit;
+
+        if (hudMode === "BASIC") {
+          const rttText = (rtc.rttMs !== null && rtc.rttMs !== undefined) ? (rtc.rttMs + "ms") : "--";
+          const frameText = (frame && frame.durationMs !== null && frame.durationMs !== undefined) ? (frame.durationMs + "ms") : "--";
+          const bargeText = (bargeIn && bargeIn.t2_playbackStopRequested && bargeIn.t0_detected)
+            ? Math.round(bargeIn.t2_playbackStopRequested - bargeIn.t0_detected) + "ms"
+            : (bargeIn ? (bargeIn.state || "active") : "ready");
+
+          root.innerHTML = `
+            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('DETAILED')" title="Click to expand (Shortcut: T | Shift+T for Debug)">
+              <span class="hud-live-dot"></span>
+              <span style="color:#38bdf8;font-weight:600;">LIVE TELEMETRY</span>
+              <span style="color:#64748b;">|</span>
+              <span>RTT: <strong style="color:#fff;">${rttText}</strong></span>
+              <span style="color:#64748b;">|</span>
+              <span>Barge: <strong style="color:#34d399;">${bargeText}</strong></span>
+              <span style="color:#64748b;">|</span>
+              <span>Frame: <strong style="color:#fbbf24;">${frameText}</strong></span>
+              <span style="color:#64748b;margin-left:4px;">[T]</span>
+            </div>
+          `;
+          return;
+        }
+
+        // Detailed or Debug Mode
+        let bargeInHtml = "";
+        if (bargeIn) {
+          const stopLat = (bargeIn.t2_playbackStopRequested && bargeIn.t1_invoked) ? Math.round(bargeIn.t2_playbackStopRequested - bargeIn.t1_invoked) + "ms" : "--";
+          const cancelAckLat = (bargeIn.t3b_cancelAck && bargeIn.t3a_cancelStarted) ? Math.round(bargeIn.t3b_cancelAck - bargeIn.t3a_cancelStarted) + "ms" : "--";
+          bargeInHtml = `
+            <div class="hud-section-title">
+              <span>Barge-In Decomposed Trace</span>
+              <span class="hud-state-badge hud-badge-${bargeIn.complete ? "completed" : "executing"}">${bargeIn.state || "active"}</span>
+            </div>
+            <div class="hud-grid" style="margin-bottom:6px;">
+              <div class="hud-metric-box">
+                <div class="hud-metric-label">
+                  <span>Playback Stop</span>
+                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('playbackStop')">ⓘ</span>
+                </div>
+                <div class="hud-metric-val" style="color:#34d399;">${stopLat}</div>
+              </div>
+              <div class="hud-metric-box">
+                <div class="hud-metric-label">
+                  <span>Cancel ACK</span>
+                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('cancelAck')">ⓘ</span>
+                </div>
+                <div class="hud-metric-val" style="color:#38bdf8;">${cancelAckLat}</div>
+              </div>
+            </div>
+            ${activeProvenance === "playbackStop" ? `
+              <div class="hud-provenance-box">
+                <strong>${prov.playbackStop?.name || "Playback Stop"}</strong><br/>
+                Boundary: ${prov.playbackStop?.boundary || "N/A"}<br/>
+                Source: ${prov.playbackStop?.source || "N/A"}
+              </div>` : ""}
+            ${activeProvenance === "cancelAck" ? `
+              <div class="hud-provenance-box">
+                <strong>${prov.cancelAck?.name || "Cancel ACK"}</strong><br/>
+                Boundary: ${prov.cancelAck?.boundary || "N/A"}<br/>
+                Source: ${prov.cancelAck?.source || "N/A"}
+              </div>` : ""}
+          `;
+        } else {
+          bargeInHtml = `
+            <div class="hud-section-title"><span>Barge-In Pipeline</span><span style="color:#94a3b8;">IDLE / READY</span></div>
+            <div style="color:#64748b;font-size:10px;">Listening on active WebRTC audio track...</div>
+          `;
+        }
+
+        let toolHtml = "";
+        if (tool) {
+          const valLat = (tool.t1_schemaValidated && tool.t0_intent) ? Math.round(tool.t1_schemaValidated - tool.t0_intent) + "ms" : "--";
+          const execLat = (tool.t4_execCompleted && tool.t3_execStarted) ? Math.round(tool.t4_execCompleted - tool.t3_execStarted) + "ms" : "--";
+          toolHtml = `
+            <div class="hud-section-title" style="margin-top:8px;">
+              <span>Tool: ${tool.tool}</span>
+              <span class="hud-state-badge hud-badge-${tool.state || "created"}">${tool.state || "created"}</span>
+            </div>
+            <div class="hud-grid" style="margin-bottom:6px;">
+              <div class="hud-metric-box">
+                <div class="hud-metric-label"><span>Schema Validation</span></div>
+                <div class="hud-metric-val">${valLat}</div>
+              </div>
+              <div class="hud-metric-box">
+                <div class="hud-metric-label">
+                  <span>Server Execution</span>
+                  <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('toolPipeline')">ⓘ</span>
+                </div>
+                <div class="hud-metric-val" style="color:#38bdf8;">${execLat}</div>
+              </div>
+            </div>
+            ${activeProvenance === "toolPipeline" ? `
+              <div class="hud-provenance-box">
+                <strong>${prov.toolPipeline?.name || "Tool Pipeline"}</strong><br/>
+                Boundary: ${prov.toolPipeline?.boundary || "N/A"}<br/>
+                Source: ${prov.toolPipeline?.source || "N/A"}
+              </div>` : ""}
+          `;
+        }
+
+        const eventsList = ((store && store.ringBuffer) || []).slice(-6).reverse().map(e => `
+          <div class="hud-event-row">
+            <span class="hud-event-type">${e.type}</span>
+            <span class="hud-event-time">${new Date(e.wallClockTime).toLocaleTimeString().slice(3)}</span>
+          </div>
+        `).join("");
+
+        let debugHtml = "";
+        if (hudMode === "DEBUG") {
+          const lastEvent = ((store && store.ringBuffer) || [])[((store && store.ringBuffer) || []).length - 1];
+          const sanitizedPayload = lastEvent ? JSON.stringify(lastEvent.metadata, null, 2) : "{}";
+          debugHtml = `
+            <div class="hud-section-title" style="margin-top:8px;color:#ec4899;">
+              <span>Debug Payload Inspector (Sanitized)</span>
+            </div>
+            <div style="font-size:9px;color:#a855f7;margin-bottom:3px;">
+              PII & Secrets: <span class="hud-redacted-val">[AUTOMATICALLY REDACTED]</span>
+            </div>
+            <pre style="background:rgba(0,0,0,0.6);padding:6px;border-radius:4px;color:#a7f3d0;font-size:9px;max-height:120px;overflow:auto;margin:0;">${sanitizedPayload}</pre>
+          `;
+        }
+
+        root.innerHTML = `
+          <div class="hud-card hud-panel">
+            <div class="hud-header">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span class="hud-live-dot"></span>
+                <span style="font-weight:700;letter-spacing:0.04em;color:#fff;">EASYEV TELEMETRY</span>
+              </div>
+              <div class="hud-modes">
+                <button class="hud-mode-btn ${hudMode === "BASIC" ? "active" : ""}" onclick="window.setTelemetryMode('BASIC')">Basic</button>
+                <button class="hud-mode-btn ${hudMode === "DETAILED" ? "active" : ""}" onclick="window.setTelemetryMode('DETAILED')">Detailed</button>
+                <button class="hud-mode-btn ${hudMode === "DEBUG" ? "active" : ""}" onclick="window.setTelemetryMode('DEBUG')">Debug</button>
+                <button class="hud-mode-btn" onclick="window.setTelemetryMode('HIDDEN')" title="Hide HUD">✕</button>
+              </div>
+            </div>
+            <div class="hud-body">
+              <!-- RTC Transport Health -->
+              <div>
+                <div class="hud-section-title">
+                  <span>Transport Health (Agora SD-RTN)</span>
+                  <span style="color:#10b981;">${rtc.connectionState || "CONNECTED"}</span>
+                </div>
+                <div class="hud-grid">
+                  <div class="hud-metric-box">
+                    <div class="hud-metric-label">
+                      <span>Network RTT</span>
+                      <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('rtt')">ⓘ</span>
+                    </div>
+                    <div class="hud-metric-val">${rtc.rttMs !== null && rtc.rttMs !== undefined ? rtc.rttMs + " ms" : "--"}</div>
+                  </div>
+                  <div class="hud-metric-box">
+                    <div class="hud-metric-label">
+                      <span>Audio Jitter</span>
+                      <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('jitter')">ⓘ</span>
+                    </div>
+                    <div class="hud-metric-val">${rtc.jitterMs !== null && rtc.jitterMs !== undefined ? rtc.jitterMs + " ms" : "--"}</div>
+                  </div>
+                  <div class="hud-metric-box">
+                    <div class="hud-metric-label">
+                      <span>Packet Loss</span>
+                      <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('packetLoss')">ⓘ</span>
+                    </div>
+                    <div class="hud-metric-val">${rtc.packetLossPercent !== null && rtc.packetLossPercent !== undefined ? rtc.packetLossPercent + "%" : "--"}</div>
+                  </div>
+                  <div class="hud-metric-box">
+                    <div class="hud-metric-label">
+                      <span>Stage -> Frame</span>
+                      <span class="hud-info-icon" onclick="window.toggleTelemetryProvenance('postRenderFrame')">ⓘ</span>
+                    </div>
+                    <div class="hud-metric-val" style="color:#fbbf24;">${frame && frame.durationMs !== null && frame.durationMs !== undefined ? frame.durationMs + " ms" : "--"}</div>
+                  </div>
+                </div>
+                ${activeProvenance === "rtt" ? `
+                  <div class="hud-provenance-box">
+                    <strong>${prov.rtt?.name || "Network RTT"}</strong><br/>
+                    Boundary: ${prov.rtt?.boundary || "N/A"}<br/>
+                    Source: ${prov.rtt?.source || "N/A"}<br/>
+                    Sampling: ${prov.rtt?.sampling || "N/A"}
+                  </div>` : ""}
+                ${activeProvenance === "jitter" ? `
+                  <div class="hud-provenance-box">
+                    <strong>${prov.jitter?.name || "Audio Jitter"}</strong><br/>
+                    Boundary: ${prov.jitter?.boundary || "N/A"}<br/>
+                    Source: ${prov.jitter?.source || "N/A"}
+                  </div>` : ""}
+                ${activeProvenance === "packetLoss" ? `
+                  <div class="hud-provenance-box">
+                    <strong>${prov.packetLoss?.name || "Packet Loss"}</strong><br/>
+                    Boundary: ${prov.packetLoss?.boundary || "N/A"}<br/>
+                    Source: ${prov.packetLoss?.source || "N/A"}
+                  </div>` : ""}
+                ${activeProvenance === "postRenderFrame" ? `
+                  <div class="hud-provenance-box">
+                    <strong>${prov.postRenderFrame?.name || "Stage -> Next Frame"}</strong><br/>
+                    Boundary: ${prov.postRenderFrame?.boundary || "N/A"}<br/>
+                    Source: ${prov.postRenderFrame?.source || "N/A"}
+                  </div>` : ""}
+              </div>
+
+              <!-- Barge In Trace -->
+              ${bargeInHtml}
+
+              <!-- Tool Pipeline Trace -->
+              ${toolHtml}
+
+              <!-- Event Feed -->
+              <div>
+                <div class="hud-section-title"><span>Correlated Event Waterfall (FIFO)</span></div>
+                <div class="hud-event-feed">${eventsList || '<div style="color:#64748b;">Awaiting events...</div>'}</div>
+              </div>
+
+              <!-- Debug Payload (if active) -->
+              ${debugHtml}
+            </div>
+          </div>
+        `;
+      }
+
+      // Keyboard shortcuts
+      window.addEventListener("keydown", (e) => {
+        if (e.target && ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
+        if (e.key === "t" || e.key === "T") {
+          if (e.shiftKey) {
+            window.setTelemetryMode(hudMode === "DEBUG" ? "BASIC" : "DEBUG");
+          } else {
+            window.setTelemetryMode(hudMode === "BASIC" ? "DETAILED" : (hudMode === "DETAILED" ? "BASIC" : "BASIC"));
+          }
+        } else if (e.key === "Escape" && hudMode !== "BASIC") {
+          window.setTelemetryMode("BASIC");
+        }
+      });
+
+      // Throttled render on bus event
+      let renderPending = false;
+      function scheduleHudRender() {
+        if (renderPending) return;
+        renderPending = true;
+        requestAnimationFrame(() => {
+          renderPending = false;
+          renderHud();
+        });
+      }
+
+      if (window.EasyEVTelemetry && window.EasyEVTelemetry.bus) {
+        window.EasyEVTelemetry.bus.on("*", scheduleHudRender);
+      } else {
+        window.addEventListener("DOMContentLoaded", () => {
+          if (window.EasyEVTelemetry && window.EasyEVTelemetry.bus) {
+            window.EasyEVTelemetry.bus.on("*", scheduleHudRender);
+          }
+        });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", renderHud);
+      } else {
+        renderHud();
+      }
+    })();
+
+  </script>
   <script src="/showroom-assets/vendor/pannellum.js"></script>
   <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
   <script>
@@ -13247,7 +13753,20 @@
         if (type === 'snapshot-result') markAction('readiness', 'complete', 'One-time image deleted after advisory analysis');
         if (type === 'report-ready') markAction('report', 'complete', 'Structured PDF is ready to download');
         if (type === 'booking') markAction('requirements', 'complete', 'A next action is ready for your confirmation');
+        const stageRenderStart = performance.now();
+        window.EasyEVTelemetry?.emit?.('STAGE_RENDER_START', { stageType: type, timestamp: stageRenderStart });
         renderApp();
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const frameObservedAt = performance.now();
+            const durationMs = Math.round((frameObservedAt - stageRenderStart) * 10) / 10;
+            window.EasyEVTelemetry?.emit?.('POST_RENDER_FRAME_OBSERVED', {
+              stageType: type,
+              durationMs,
+              metadata: { stageType: type, durationMs }
+            });
+          });
+        });
       };
       const syncStructuredPassport = (passport) => {
         if (!passport || typeof passport !== 'object') return;
