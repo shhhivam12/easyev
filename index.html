@@ -4146,7 +4146,8 @@
     }
 
     /* ============================================================
-       OUTCOME / DECISION JOURNEY COMPLETE VIEW (PREMIUM PRO REDESIGN)
+       OUTCOME / DECISION JOURNEY COMPL    /* ============================================================
+       OUTCOME & DECISION PASSPORT VIEW (PREMIUM EMERALD OBSIDIAN)
        ============================================================ */
     #outcome-view {
       position: relative;
@@ -4155,15 +4156,17 @@
       max-height: 100svh;
       overflow-y: auto;
       overflow-x: hidden;
-      background: radial-gradient(circle at 50% 8%, rgba(25, 120, 75, 0.22) 0%, transparent 50%),
-                  radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.12) 0%, transparent 45%),
-                  linear-gradient(180deg, #071c14 0%, #03130d 100%);
+      background: radial-gradient(1200px 700px at 50% -10%, rgba(16, 185, 129, 0.22) 0%, transparent 65%),
+                  radial-gradient(900px 500px at 85% 85%, rgba(6, 78, 59, 0.25) 0%, transparent 55%),
+                  radial-gradient(700px 400px at 15% 75%, rgba(5, 150, 105, 0.15) 0%, transparent 50%),
+                  linear-gradient(180deg, #03140e 0%, #020d09 100%);
       color: #ffffff;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       box-sizing: border-box;
-      padding: clamp(14px, 2vh, 24px) clamp(16px, 2.5vw, 32px);
+      padding: clamp(14px, 2vh, 22px) clamp(16px, 2.5vw, 32px) clamp(16px, 2.2vh, 26px);
     }
 
     .outcome-viewport-container {
@@ -4172,8 +4175,9 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: clamp(12px, 1.8vh, 18px);
+      gap: clamp(10px, 1.5vh, 16px);
       box-sizing: border-box;
+      flex: 1;
     }
 
     /* Top Row Header */
@@ -4183,7 +4187,7 @@
       justify-content: space-between;
       gap: 20px;
       flex-shrink: 0;
-      padding-right: 140px; /* Offset from floating language pill */
+      padding-right: 140px; /* Offset to clear floating language pill at top right */
     }
     .outcome-header-left {
       display: flex;
@@ -4197,10 +4201,10 @@
       gap: 7px;
       padding: 4px 12px;
       background: rgba(85, 242, 123, 0.12);
-      border: 1px solid rgba(85, 242, 123, 0.32);
+      border: 1px solid rgba(85, 242, 123, 0.35);
       border-radius: var(--radius-pill, 999px);
       color: #83ff9d;
-      font-size: 10.5px;
+      font-size: 10px;
       font-weight: 800;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -4217,7 +4221,7 @@
     }
     .outcome-main-title {
       font-family: var(--font-display, "Plus Jakarta Sans", "Figtree", sans-serif);
-      font-size: clamp(24px, 2.4vw, 34px);
+      font-size: clamp(22px, 2.2vw, 32px);
       font-weight: 850;
       color: #ffffff;
       margin: 2px 0 0;
@@ -4226,43 +4230,70 @@
     }
     .outcome-subtitle {
       color: rgba(255, 255, 255, 0.65);
-      font-size: 13px;
+      font-size: 12.5px;
       margin: 0;
       line-height: 1.4;
       max-width: 720px;
     }
 
-    /* Mascot Avatar */
+    /* Mascot Avatar Guide */
     .outcome-header-right {
       flex-shrink: 0;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      min-width: 140px;
+      height: 130px;
+    }
+    .outcome-guide-ambient {
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 70px;
+      background: radial-gradient(ellipse at 50% 60%, rgba(16, 185, 129, 0.35) 0%, rgba(6, 78, 59, 0.12) 60%, transparent 80%);
+      border-radius: 50%;
+      pointer-events: none;
+      filter: blur(8px);
     }
     .outcome-guide {
-      width: 58px;
-      height: 58px;
+      height: 128px;
+      width: auto;
+      max-width: 140px;
       object-fit: contain;
-      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5));
+      filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 16px rgba(85, 242, 123, 0.25));
+      position: relative;
+      z-index: 1;
+      animation: mascotFloat 4s ease-in-out infinite alternate;
+    }
+    @keyframes mascotFloat {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-4px); }
     }
 
     /* Middle Row: 50/50 Dual Panels Grid */
     .outcome-dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
       gap: clamp(14px, 1.8vw, 22px);
       align-items: stretch;
-      flex: none;
+      flex: 1;
+      min-height: 0;
     }
 
     .outcome-card {
-      background: rgba(8, 35, 25, 0.76);
-      border: 1.5px solid rgba(68, 255, 172, 0.24);
-      border-radius: 22px;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      padding: clamp(14px, 1.8vh, 18px) clamp(16px, 1.8vw, 20px);
+      background: rgba(6, 30, 21, 0.75);
+      border: 1.5px solid rgba(85, 242, 123, 0.22);
+      border-radius: 20px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: clamp(12px, 1.6vh, 16px) clamp(14px, 1.6vw, 18px);
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       box-sizing: border-box;
       color: #ffffff;
       position: relative;
@@ -4270,28 +4301,28 @@
 
     /* Left Card: PDF Viewer */
     .outcome-card--pdf-viewer {
-      padding: 14px 16px;
+      padding: 12px 14px;
     }
     .pdf-panel-head {
       display: flex;
       align-items: center;
       gap: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(85, 242, 123, 0.15);
     }
     .pdf-badge-icon {
-      width: 34px;
-      height: 34px;
+      width: 32px;
+      height: 32px;
       border-radius: 8px;
-      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-      color: #ffffff;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #021a10;
       font-size: 11px;
       font-weight: 900;
       letter-spacing: 0.05em;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
       flex-shrink: 0;
     }
     .pdf-panel-titles {
@@ -4302,39 +4333,39 @@
     }
     .pdf-panel-titles h2 {
       font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
-      font-size: 15.5px;
+      font-size: 15px;
       font-weight: 800;
       color: #ffffff;
       margin: 0;
       line-height: 1.2;
     }
     .pdf-panel-titles p {
-      font-size: 11.5px;
-      color: rgba(255, 255, 255, 0.6);
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.65);
       margin: 0;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* PDF Viewer Container & Toolbar */
+    /* PDF Viewer Container & Toolbar - Deep Luxury Emerald */
     .pdf-viewer-frame {
       display: flex;
       flex-direction: column;
-      background: #1e293b;
+      background: #041a12;
       border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(85, 242, 123, 0.22);
       overflow: hidden;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-      height: 380px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 12px 35px rgba(0, 0, 0, 0.45);
+      height: 390px;
     }
     .pdf-toolbar {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 6px 10px;
-      background: #0f172a;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(3, 18, 12, 0.96);
+      border-bottom: 1px solid rgba(85, 242, 123, 0.15);
       font-size: 11px;
       color: #94a3b8;
       user-select: none;
@@ -4346,8 +4377,8 @@
       gap: 6px;
     }
     .pdf-toolbar-btn {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(85, 242, 123, 0.08);
+      border: 1px solid rgba(85, 242, 123, 0.2);
       border-radius: 6px;
       color: #cbd5e1;
       padding: 3px 7px;
@@ -4360,21 +4391,22 @@
       transition: all 0.15s ease;
     }
     .pdf-toolbar-btn:hover {
-      background: rgba(255, 255, 255, 0.14);
-      color: #ffffff;
+      background: rgba(85, 242, 123, 0.2);
+      border-color: rgba(85, 242, 123, 0.45);
+      color: #55f27b;
     }
     .pdf-toolbar-btn--download {
-      background: #16bf53;
-      border-color: #16bf53;
-      color: #062314;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-color: #10b981;
+      color: #021a10;
       font-weight: 800;
-      padding: 4px 9px;
-      box-shadow: 0 0 10px rgba(22, 191, 83, 0.4);
+      padding: 4px 10px;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.45);
     }
     .pdf-toolbar-btn--download:hover {
       background: #55f27b;
       border-color: #55f27b;
-      color: #041a0d;
+      color: #02140c;
     }
     .pdf-page-count {
       font-size: 11px;
@@ -4386,8 +4418,8 @@
       justify-content: center;
     }
     button.pdf-page-count {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(85, 242, 123, 0.08);
+      border: 1px solid rgba(85, 242, 123, 0.22);
       border-radius: 4px;
       cursor: pointer;
       font-family: inherit;
@@ -4396,7 +4428,7 @@
       user-select: none;
     }
     button.pdf-page-count:hover {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgba(85, 242, 123, 0.2);
       border-color: rgba(85, 242, 123, 0.6);
       color: #55f27b;
     }
@@ -4407,15 +4439,15 @@
       grid-template-columns: 82px 1fr;
       flex: 1;
       min-height: 0;
-      background: #334155;
+      background: #020c08;
       transition: grid-template-columns 0.25s ease;
     }
     .pdf-viewer-body.is-sidebar-collapsed {
       grid-template-columns: 0px 1fr;
     }
     .pdf-thumbnail-rail {
-      background: #1e293b;
-      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(2, 14, 9, 0.95);
+      border-right: 1px solid rgba(85, 242, 123, 0.14);
       padding: 8px 6px;
       display: flex;
       flex-direction: column;
@@ -4429,8 +4461,8 @@
     .pdf-search-wrap {
       display: none;
       align-items: center;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(85, 242, 123, 0.08);
+      border: 1px solid rgba(85, 242, 123, 0.25);
       border-radius: 4px;
       padding: 1px 6px;
       margin: 0 2px;
@@ -4485,8 +4517,8 @@
     .pdf-thumbnail-box {
       width: 100%;
       height: 60px;
-      background: #f8fafc;
-      border: 1.5px solid rgba(255, 255, 255, 0.15);
+      background: #062318;
+      border: 1.5px solid rgba(85, 242, 123, 0.2);
       border-radius: 4px;
       padding: 3px;
       box-sizing: border-box;
@@ -4499,8 +4531,9 @@
     }
     .pdf-thumbnail-item.is-active .pdf-thumbnail-box {
       border: 2px solid #55f27b;
-      box-shadow: 0 0 10px rgba(85, 242, 123, 0.45);
+      box-shadow: 0 0 12px rgba(85, 242, 123, 0.45);
       opacity: 1;
+      background: #0a3324;
     }
     .pdf-thumbnail-item span {
       font-size: 9.5px;
@@ -4512,67 +4545,84 @@
     }
     .pdf-mini-line {
       height: 2px;
-      background: #cbd5e1;
+      background: rgba(85, 242, 123, 0.35);
       border-radius: 1px;
       width: 80%;
     }
     .pdf-mini-line--short { width: 50%; }
     .pdf-mini-block {
       height: 12px;
-      background: #e2e8f0;
+      background: rgba(85, 242, 123, 0.15);
       border-radius: 2px;
       width: 100%;
     }
 
-    /* PDF Canvas Document (High-Fidelity Rendered Page) */
+    /* PDF Canvas Document (High-Fidelity Rendered Page Matching Physical PDF) */
     .pdf-document-canvas {
       background: #ffffff;
       color: #0f172a;
       overflow-y: auto;
-      padding: 14px 18px;
+      padding: 12px 16px;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       box-sizing: border-box;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
     }
     .doc-page-header {
       display: flex;
+      flex-direction: column;
+      gap: 0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 2px;
+    }
+    .doc-page-header-top {
+      display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1.5px solid #0f172a;
-      padding-bottom: 8px;
+      background: #062d22;
+      padding: 6px 12px;
+      color: #ffffff;
     }
     .doc-brand-group {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
     .doc-brand-logo {
-      font-size: 15px;
+      font-size: 13px;
       font-weight: 900;
-      color: #059669;
+      color: #ffffff;
       display: flex;
       align-items: center;
       gap: 4px;
     }
+    .doc-brand-logo img {
+      width: 15px;
+      height: 15px;
+    }
     .doc-brand-tagline {
-      font-size: 9px;
-      color: #64748b;
-      font-weight: 600;
+      font-size: 9.5px;
+      color: #a7f3d0;
+      font-weight: 500;
     }
     .doc-passport-meta {
       text-align: right;
-    }
-    .doc-passport-title {
-      font-size: 12px;
+      font-size: 9px;
       font-weight: 800;
-      color: #059669;
-      letter-spacing: 0.02em;
+      color: #ffffff;
+      letter-spacing: 0.04em;
     }
-    .doc-passport-date {
-      font-size: 8.5px;
-      color: #64748b;
+    .doc-page-header-sub {
+      background: #0f3f33;
+      color: #a7f3d0;
+      font-size: 8px;
+      font-weight: 800;
+      padding: 3px 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
 
     /* Document Sections */
@@ -4582,220 +4632,518 @@
       gap: 6px;
     }
     .doc-section-title {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 800;
-      color: #1e293b;
+      color: #062d22;
       display: flex;
       align-items: center;
       gap: 5px;
-      border-bottom: 1px solid #e2e8f0;
+      border-bottom: 1.5px solid #062d22;
       padding-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
     }
-    .doc-profile-box {
+
+    /* Buyer Profile & Signal Provenance Card */
+    .doc-profile-provenance-grid {
+      display: grid;
+      grid-template-columns: 1fr 140px;
+      gap: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 10px;
+    }
+    .doc-profile-info h4 {
+      margin: 0 0 2px;
+      font-size: 9px;
+      font-weight: 800;
+      color: #062d22;
+      letter-spacing: 0.04em;
+    }
+    .doc-profile-contact {
+      font-size: 8px;
+      color: #64748b;
+      margin-bottom: 6px;
+    }
+    .doc-signals-mini-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 10px;
+      font-size: 8px;
+    }
+    .doc-signal-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 7px 10px;
-    }
-    .doc-profile-left {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .doc-avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-    }
-    .doc-profile-name strong {
-      font-size: 11px;
-      color: #0f172a;
-      display: block;
-    }
-    .doc-profile-name small {
-      font-size: 8.5px;
-      color: #64748b;
-    }
-    .doc-readiness {
-      text-align: right;
-    }
-    .doc-readiness-label {
-      font-size: 8.5px;
-      font-weight: 750;
-      color: #334155;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .doc-readiness-bar {
-      width: 80px;
-      height: 5px;
-      background: #e2e8f0;
-      border-radius: 999px;
-      overflow: hidden;
-      margin-top: 2px;
-    }
-    .doc-readiness-fill {
-      height: 100%;
-      background: #10b981;
-      border-radius: 999px;
-      width: 83%;
-    }
-
-    .doc-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 10px;
-    }
-    .doc-table tr {
+      gap: 4px;
+      padding: 1.5px 0;
       border-bottom: 1px solid #f1f5f9;
     }
-    .doc-table td {
-      padding: 4px 6px;
-    }
-    .doc-td-label {
+    .doc-signal-name {
       font-weight: 700;
-      color: #475569;
-      width: 36%;
+      color: #334155;
     }
-    .doc-td-value {
+    .doc-signal-val {
       font-weight: 600;
-      color: #0f172a;
-      width: 44%;
+      color: #047857;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .doc-signal-val.is-pending {
+      color: #94a3b8;
+      font-style: italic;
     }
     .doc-status-badge {
-      display: inline-block;
+      font-size: 7.5px;
+      font-weight: 800;
       padding: 1.5px 6px;
       border-radius: 999px;
-      font-size: 8.5px;
-      font-weight: 750;
-      background: #ecfdf5;
-      color: #059669;
-      border: 1px solid #a7f3d0;
-    }
-        .doc-status-badge--pending {
-      background: rgba(245, 158, 11, 0.12);
-      color: #f59e0b;
-      border-color: rgba(245, 158, 11, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: inline-block;
     }
     .doc-status-badge--confirmed {
       background: #ecfdf5;
-      color: #059669;
-      border-color: #a7f3d0;
+      color: #047857;
+      border: 1px solid #a7f3d0;
     }
-    .doc-status-badge--inferred {
-      background: #f0fdf4;
-      color: #15803d;
-      border-color: #bbf7d0;
+    .doc-status-badge--pending {
+      background: #fffbeb;
+      color: #b45309;
+      border: 1px solid #fde68a;
     }
 
-    /* Multi-page document container */
+    /* Decision Readiness Box */
+    .doc-readiness-card {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 6px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+      text-align: center;
+    }
+    .doc-readiness-card.is-verified {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+    .doc-readiness-card-title {
+      font-size: 7.5px;
+      font-weight: 800;
+      color: #92400e;
+      letter-spacing: 0.04em;
+    }
+    .doc-readiness-card.is-verified .doc-readiness-card-title {
+      color: #166534;
+    }
+    .doc-readiness-card-val {
+      font-size: 18px;
+      font-weight: 900;
+      color: #b45309;
+      line-height: 1;
+    }
+    .doc-readiness-card.is-verified .doc-readiness-card-val {
+      color: #059669;
+    }
+    .doc-readiness-card-sub {
+      font-size: 7px;
+      color: #475569;
+    }
+    .doc-readiness-segments {
+      display: flex;
+      gap: 2px;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .doc-readiness-segment {
+      width: 14px;
+      height: 4px;
+      border-radius: 1px;
+      background: #cbd5e1;
+    }
+    .doc-readiness-segment.is-active {
+      background: #d97706;
+    }
+    .doc-readiness-card.is-verified .doc-readiness-segment.is-active {
+      background: #059669;
+    }
+
+    /* Hero Recommendation Card */
+    .doc-hero-rec-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .doc-hero-rec-banner {
+      background: #334155;
+      color: #ffffff;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .doc-hero-rec-banner.is-verified {
+      background: #062d22;
+    }
+    .doc-hero-score-pill {
+      background: #64748b;
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 8px;
+      font-weight: 800;
+    }
+    .doc-hero-rec-banner.is-verified .doc-hero-score-pill {
+      background: #059669;
+    }
+    .doc-hero-rec-body {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      padding: 10px;
+    }
+    .doc-hero-rec-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: center;
+    }
+    .doc-hero-rec-img {
+      width: 100%;
+      height: 80px;
+      object-fit: contain;
+      background: #f8fafc;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+    .doc-hero-specs-mini {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      width: 100%;
+    }
+    .doc-hero-spec-pill {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 3px;
+      padding: 2px 4px;
+      text-align: center;
+    }
+    .doc-hero-spec-pill-label {
+      font-size: 6.5px;
+      font-weight: 800;
+      color: #64748b;
+      text-transform: uppercase;
+    }
+    .doc-hero-spec-pill-val {
+      font-size: 7.5px;
+      font-weight: 800;
+      color: #062d22;
+    }
+    .doc-hero-rec-right {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .doc-hero-rec-title {
+      font-size: 13px;
+      font-weight: 850;
+      color: #062d22;
+      margin: 0;
+    }
+    .doc-hero-rec-subtitle {
+      font-size: 8px;
+      color: #64748b;
+      margin: 0;
+    }
+    .doc-hero-rec-gate-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 7.5px;
+      color: #78350f;
+    }
+    .doc-hero-rec-gate-box strong {
+      display: block;
+      color: #92400e;
+      font-size: 8px;
+      margin-bottom: 2px;
+    }
+    .doc-hero-rec-next-box {
+      background: #f0fdf4;
+      border: 1px solid #86efac;
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 7.5px;
+      color: #065f46;
+    }
+    .doc-hero-rec-next-box strong {
+      display: block;
+      color: #166534;
+      font-size: 8px;
+      margin-bottom: 2px;
+    }
+
+    /* Lower 2 Panels (Page 1) */
+    .doc-lower-panels-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .doc-info-panel {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-size: 7.5px;
+    }
+    .doc-info-panel h5 {
+      margin: 0 0 2px;
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #062d22;
+      letter-spacing: 0.04em;
+    }
+    .doc-info-panel-item {
+      display: flex;
+      gap: 5px;
+      align-items: flex-start;
+      color: #334155;
+      line-height: 1.35;
+    }
+    .doc-info-panel-item svg {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Page 2, 3, 4 Containers */
     .pdf-document-page {
       display: none;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       animation: fadeIn 0.2s ease-in-out;
     }
     .pdf-document-page.is-active {
       display: flex;
     }
-    .doc-grid-2col {
+    .doc-grid-3col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
     }
-    .doc-spec-box {
+    .doc-contender-card {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-size: 7.5px;
+    }
+    .doc-contender-rank {
+      background: #475569;
+      color: #ffffff;
+      padding: 3px 6px;
+      text-align: center;
+      font-size: 7.5px;
+      font-weight: 800;
+    }
+    .doc-contender-img {
+      width: 100%;
+      height: 52px;
+      object-fit: contain;
+      background: #f8fafc;
+      padding: 2px;
+    }
+    .doc-contender-body {
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .doc-contender-name {
+      font-size: 9px;
+      font-weight: 800;
+      color: #062d22;
+    }
+    .doc-contender-score {
+      font-weight: 700;
+      color: #64748b;
+      font-size: 8px;
+    }
+
+    /* Scoring Matrix Table */
+    .doc-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 8px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .doc-matrix-table th {
+      background: #062d22;
+      color: #ffffff;
+      padding: 4px 6px;
+      text-align: left;
+      font-weight: 800;
+    }
+    .doc-matrix-table td {
+      padding: 3.5px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+    }
+    .doc-matrix-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+    .doc-matrix-table .is-total-row td {
+      background: #ecfdf5;
+      font-weight: 800;
+      color: #062d22;
+    }
+
+    /* Page 3: TCO Economics & Protection Cards */
+    .doc-tco-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr 1fr;
+      gap: 8px;
+    }
+    .doc-tco-card {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 6px;
       padding: 6px 8px;
-      font-size: 9px;
-    }
-    .doc-spec-box strong {
-      display: block;
-      color: #0f172a;
-      font-size: 10px;
-      margin-bottom: 2px;
-    }
-    .doc-spec-box span {
-      color: #64748b;
-    }
-
-    .doc-status-badge--inferred {
-      background: #f0fdf4;
-      color: #15803d;
-      border-color: #bbf7d0;
-    }
-
-    /* Recommended EV Card inside Document */
-    .doc-rec-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: grid;
-      grid-template-columns: 100px 1fr;
-      gap: 10px;
-      align-items: center;
-    }
-    .doc-rec-visual {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      align-items: center;
+      gap: 3px;
+      font-size: 7.5px;
     }
-    .doc-rec-tag {
+    .doc-tco-card.is-highlight {
+      background: #ecfdf5;
+      border: 1.5px solid #10b981;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
+    .doc-tco-header {
       font-size: 8px;
       font-weight: 800;
-      background: #10b981;
-      color: #ffffff;
-      padding: 1.5px 6px;
-      border-radius: 999px;
-      text-transform: uppercase;
+      color: #062d22;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .doc-rec-img {
-      width: 90px;
-      height: 48px;
-      object-fit: contain;
+    .doc-tco-total {
+      font-size: 11px;
+      font-weight: 900;
+      color: #0f172a;
+      margin: 2px 0;
     }
-    .doc-rec-score {
-      font-size: 8.5px;
-      font-weight: 700;
-      color: #334155;
+    .doc-tco-card.is-highlight .doc-tco-total {
+      color: #047857;
     }
-    .doc-rec-score strong {
-      color: #059669;
+    .doc-tco-stat {
+      display: flex;
+      justify-content: space-between;
+      color: #64748b;
+      font-size: 7px;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      padding-top: 2px;
     }
-    .doc-rec-bullets {
+
+    /* Page 4: VIP Boarding Pass & Dealership Handoff */
+    .doc-boarding-pass {
+      background: #f0fdf4;
+      border: 1.5px dashed #059669;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 1fr 105px;
+      overflow: hidden;
+    }
+    .doc-boarding-pass-main {
+      padding: 8px 12px;
       display: flex;
       flex-direction: column;
-      gap: 2.5px;
+      gap: 4px;
+      border-right: 1.5px dashed #059669;
     }
-    .doc-rec-bullets h4 {
-      font-size: 9.5px;
+    .doc-boarding-pass-kicker {
+      font-size: 7px;
       font-weight: 800;
-      color: #0f172a;
+      color: #047857;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .doc-boarding-pass-title {
+      font-size: 10px;
+      font-weight: 850;
+      color: #062d22;
       margin: 0;
     }
-    .doc-rec-item {
-      font-size: 8.5px;
+    .doc-boarding-pass-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 8px;
+      font-size: 7px;
+      color: #334155;
+    }
+    .doc-boarding-pass-stub {
+      background: #ecfdf5;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 3px;
+    }
+    .doc-boarding-pass-code {
+      font-family: monospace;
+      font-size: 7.5px;
+      font-weight: 800;
+      color: #062d22;
+      background: #ffffff;
+      padding: 2px 5px;
+      border-radius: 3px;
+      border: 1px solid #a7f3d0;
+    }
+    .doc-guarantees-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .doc-guarantee-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 5px;
+      padding: 6px 8px;
+      font-size: 7.5px;
       color: #334155;
       display: flex;
-      align-items: center;
-      gap: 4px;
-      font-weight: 550;
+      align-items: flex-start;
+      gap: 5px;
     }
-    .doc-rec-item svg {
-      color: #10b981;
+    .doc-guarantee-item svg {
+      width: 12px;
+      height: 12px;
+      color: #059669;
       flex-shrink: 0;
+      margin-top: 1px;
     }
 
     /* Right Card: Your Journey */
@@ -4809,7 +5157,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid rgba(85, 242, 123, 0.15);
       padding-bottom: 8px;
       flex-shrink: 0;
     }
@@ -4823,7 +5171,7 @@
       height: 30px;
       border-radius: 50%;
       background: rgba(85, 242, 123, 0.14);
-      border: 1px solid rgba(85, 242, 123, 0.3);
+      border: 1px solid rgba(85, 242, 123, 0.35);
       color: #55f27b;
       display: flex;
       align-items: center;
@@ -4841,13 +5189,14 @@
     .outcome-timeline-badge {
       font-size: 10px;
       font-weight: 800;
-      color: #0284c7;
-      background: #f0f9ff;
-      border: 1px solid #bae6fd;
+      color: #83ff9d;
+      background: rgba(85, 242, 123, 0.12);
+      border: 1px solid rgba(85, 242, 123, 0.35);
       border-radius: var(--radius-pill, 999px);
       padding: 3px 10px;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      box-shadow: 0 0 10px rgba(85, 242, 123, 0.18);
     }
 
     /* Journey Summary 3-Cards */
@@ -4859,13 +5208,13 @@
     }
     .outcome-key-metrics {
       display: grid;
-      grid-template-columns: 1fr 1.25fr 1.35fr;
+      grid-template-columns: 1fr 1.2fr 1.35fr;
       gap: 8px;
       flex-shrink: 0;
     }
     .outcome-stat {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.09);
+      background: rgba(6, 35, 25, 0.6);
+      border: 1px solid rgba(85, 242, 123, 0.18);
       border-radius: 12px;
       padding: 8px 10px;
       display: flex;
@@ -4873,9 +5222,9 @@
       gap: 2px;
     }
     .outcome-stat span {
-      font-size: 8.5px;
+      font-size: 8px;
       font-weight: 800;
-      color: rgba(255, 255, 255, 0.55);
+      color: #83ff9d;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
@@ -4912,20 +5261,25 @@
       align-items: center;
       gap: 8px;
       padding: 7px 10px;
-      background: rgba(255, 255, 255, 0.035);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(6, 35, 25, 0.4);
+      border: 1px solid rgba(85, 242, 123, 0.14);
       border-radius: 10px;
       font-size: 11px;
       font-weight: 600;
       color: #e2e8f0;
       transition: all 0.2s ease;
     }
+    .outcome-action.is-complete {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(85, 242, 123, 0.3);
+      color: #ffffff;
+    }
     .outcome-action__dot {
       width: 17px;
       height: 17px;
       border-radius: 50%;
-      background: #16bf53;
-      color: #062314;
+      background: #10b981;
+      color: #021a10;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -4953,27 +5307,25 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 10px 32px;
+      padding: 11px 34px;
       border-radius: var(--radius-pill, 999px);
-      background: rgba(22, 191, 83, 0.12);
-      border: 1.5px solid rgba(85, 242, 123, 0.4);
-      color: #83ff9d;
+      background: var(--green-gradient, linear-gradient(135deg, #10b981 0%, #059669 100%));
+      border: none;
+      color: #021a10;
       font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
       font-size: 13.5px;
-      font-weight: 800;
+      font-weight: 850;
       cursor: pointer;
-      transition: all 0.25s ease;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       text-decoration: none;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.45);
     }
     .outcome-button-home:hover {
-      background: #16bf53;
-      border-color: #55f27b;
-      color: #062314;
+      background: #55f27b;
+      color: #02140c;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(22, 191, 83, 0.45);
+      box-shadow: 0 8px 28px rgba(16, 185, 129, 0.6);
+      filter: brightness(1.08);
     }
 
     /* Session Status Footer */
@@ -5004,10 +5356,12 @@
         height: auto;
         max-height: none;
         overflow-y: auto;
-        padding: 24px 16px;
+        padding: 0 0 24px 0;
       }
       .outcome-header-row {
         padding-right: 0;
+        flex-direction: column;
+        align-items: flex-start;
       }
       .outcome-dashboard-grid {
         grid-template-columns: 1fr;
@@ -12814,6 +13168,7 @@
             <p class="outcome-subtitle">EasyEV has preserved what changed during the conversation and the next action you selected.</p>
           </div>
           <div class="outcome-header-right">
+            <div class="outcome-guide-ambient" aria-hidden="true"></div>
             <img class="outcome-guide" src="/assets/clay-guide-success-v2.webp" alt="EasyEV AI guide giving a thumbs-up">
           </div>
         </header>
@@ -12902,70 +13257,110 @@
 
                 <!-- Document Canvas -->
                 <div class="pdf-document-canvas" id="pdf-canvas-container" role="document">
-                  <!-- PAGE 1: Preferences & Executive Summary -->
+                  <!-- PAGE 1: Preferences & Executive Dossier -->
                   <div class="pdf-document-page is-active" id="pdf-page-1" data-page="1">
                     <div class="doc-page-header">
-                      <div class="doc-brand-group">
-                        <div class="doc-brand-logo">
-                          <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                          <span>EasyEV</span>
+                      <div class="doc-page-header-top">
+                        <div class="doc-brand-group">
+                          <div class="doc-brand-logo">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#55f27b"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span>EasyEV</span>
+                          </div>
+                          <span class="doc-brand-tagline">Smarter EV Decisions. Together.</span>
                         </div>
-                        <span class="doc-brand-tagline">Smarter EV Decisions. Together.</span>
+                        <div class="doc-passport-meta">
+                          <div>DECISION PASSPORT · PAGE 1/4</div>
+                          <div style="font-size:7.5px; opacity:0.85; font-weight:500;" id="doc-generated-date">Generated on live session</div>
+                        </div>
                       </div>
-                      <div class="doc-passport-meta">
-                        <div class="doc-passport-title">Decision Passport · Page 1/4</div>
-                        <div class="doc-passport-date" id="doc-generated-date">Generated on live session</div>
+                      <div class="doc-page-header-sub">CONFIDENTIAL · EXECUTIVE BUYER DOSSIER & COMPATIBILITY MATRIX</div>
+                    </div>
+
+                    <div class="doc-section">
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <span>1. Buyer Profile & Signal Provenance</span>
+                      </div>
+                      <div class="doc-profile-provenance-grid">
+                        <div class="doc-profile-info">
+                          <h4 id="doc-buyer-name-p1">Your EV Profile</h4>
+                          <div class="doc-profile-contact" id="doc-buyer-contact-p1">Captured during consultation</div>
+                          <div class="doc-signals-mini-grid" id="doc-profile-rows">
+                            <!-- Populated dynamically without emojis -->
+                          </div>
+                        </div>
+                        <div class="doc-readiness-card" id="doc-readiness-card">
+                          <div class="doc-readiness-card-title">DECISION READINESS</div>
+                          <div class="doc-readiness-card-val" id="doc-readiness-val">0%</div>
+                          <div class="doc-readiness-card-sub" id="doc-readiness-stage">STAGE 0 · DISCOVERY</div>
+                          <div class="doc-readiness-segments">
+                            <span class="doc-readiness-segment" id="doc-readiness-seg-1"></span>
+                            <span class="doc-readiness-segment" id="doc-readiness-seg-2"></span>
+                            <span class="doc-readiness-segment" id="doc-readiness-seg-3"></span>
+                          </div>
+                          <small class="doc-readiness-card-sub" id="doc-signals-count" style="margin-top:2px;">0 of 6 signals captured</small>
+                        </div>
                       </div>
                     </div>
 
                     <div class="doc-section">
                       <div class="doc-section-title">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                        <span>1. Your Preferences & Profile Signals</span>
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/></svg>
+                        <span>2. Top Recommendation & Fit Rationale</span>
                       </div>
-                      <div class="doc-profile-box">
-                        <div class="doc-profile-left">
-                          <div class="doc-avatar">👤</div>
-                          <div class="doc-profile-name">
-                            <strong id="doc-buyer-name-p1">Your EV Profile</strong>
-                            <small id="doc-buyer-contact-p1">Captured during consultation</small>
+                      <div class="doc-hero-rec-card">
+                        <div class="doc-hero-rec-banner" id="doc-rec-banner">
+                          <span id="doc-rec-banner-text">STAGE 0: DISCOVERY MODE · RECOMMENDATION RANKING HELD</span>
+                          <span class="doc-hero-score-pill" id="doc-rec-score-val">DATA INSUFFICIENT</span>
+                        </div>
+                        <div class="doc-hero-rec-body">
+                          <div class="doc-hero-rec-left">
+                            <img class="doc-hero-rec-img" id="doc-rec-image" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" onerror="this.src='/assets/vehicles/tata-nexon-ev.jpg'" alt="EV Top Match" loading="lazy">
+                            <div class="doc-hero-specs-mini">
+                              <div class="doc-hero-spec-pill">
+                                <div class="doc-hero-spec-pill-label">BATTERY</div>
+                                <div class="doc-hero-spec-pill-val" id="doc-rec-spec-battery">40.5 kWh LFP</div>
+                              </div>
+                              <div class="doc-hero-spec-pill">
+                                <div class="doc-hero-spec-pill-label">REAL RANGE</div>
+                                <div class="doc-hero-spec-pill-val" id="doc-rec-spec-range">~320 km</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="doc-hero-rec-right">
+                            <h4 class="doc-hero-rec-title" id="doc-rec-title">Tata Nexon.ev (Baseline Candidate)</h4>
+                            <p class="doc-hero-rec-subtitle" id="doc-rec-segment">Category: Electric car · All-Round Benchmark</p>
+                            <div class="doc-hero-rec-gate-box" id="doc-rec-gate-box">
+                              <strong>Decision Gate Active:</strong> Minimum 3 verified signals required before declaring a personalized top recommendation.
+                            </div>
+                            <div class="doc-hero-rec-next-box" id="doc-rec-next-box">
+                              <strong>Next Recommended Question:</strong> Share your daily commute and target budget to unlock deterministic scoring.
+                            </div>
                           </div>
                         </div>
-                        <div class="doc-readiness">
-                          <div class="doc-readiness-label">
-                            <span>Decision Readiness</span>
-                            <strong id="doc-readiness-val">0%</strong>
-                          </div>
-                          <div class="doc-readiness-bar">
-                            <div class="doc-readiness-fill" id="doc-readiness-bar" style="width: 0%;"></div>
-                          </div>
-                          <small style="font-size:7.5px;color:#64748b;" id="doc-signals-count">0 of 6 key signals captured</small>
-                        </div>
                       </div>
-
-                      <table class="doc-table" id="doc-profile-table">
-                        <tbody id="doc-profile-rows">
-                          <!-- Dynamically populated rows with real Confirmed vs Pending states -->
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div class="doc-section">
-                      <div class="doc-section-title">
-                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-                        <span>Top Recommendation</span>
-                      </div>
-                      <div class="doc-rec-card">
-                        <div class="doc-rec-visual">
-                          <span class="doc-rec-tag">Top Match</span>
-                          <img class="doc-rec-img" id="doc-rec-image" src="/assets/vehicles/tata-nexon-ev.jpg" onerror="this.src='/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg'" alt="Tata Nexon EV Top Match" loading="lazy">
-                          <span class="doc-rec-score">Fit Score: <strong id="doc-rec-score-val">87%</strong></span>
+                      <div class="doc-lower-panels-grid">
+                        <div class="doc-info-panel">
+                          <h5>WHY THIS PROFILE FITS</h5>
+                          <div class="doc-info-panel-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            <span id="doc-rec-point-1">Tailored for daily city commute + highway range buffer</span>
+                          </div>
+                          <div class="doc-info-panel-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+                            <span id="doc-rec-point-2">5-Star B-NCAP crash safety with active thermal battery management</span>
+                          </div>
                         </div>
-                        <div class="doc-rec-bullets">
-                          <h4 id="doc-rec-title">Tata Nexon.ev</h4>
-                          <div class="doc-rec-item"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><span id="doc-rec-point-1">Tailored for daily city commute + highway range</span></div>
-                          <div class="doc-rec-item"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><span id="doc-rec-point-2">5-Star B-NCAP crash rating & active thermal safety</span></div>
-                          <div class="doc-rec-item"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><span id="doc-rec-point-3">7.2 kW Fast AC Wallbox ecosystem included</span></div>
+                        <div class="doc-info-panel">
+                          <h5>SENSITIVITY & KEY TRADE-OFFS</h5>
+                          <div class="doc-info-panel-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="3"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+                            <span id="doc-rec-point-3">Charging speed scales with 50kW DC fast chargers; Wallbox recommended at home</span>
+                          </div>
+                          <div class="doc-info-panel-item">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="3"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+                            <span id="doc-rec-point-4">Highway range drops ~15-20% at sustained speeds above 95 km/h</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -12974,66 +13369,196 @@
                   <!-- PAGE 2: Comparison & Vehicle Specifications -->
                   <div class="pdf-document-page" id="pdf-page-2" data-page="2">
                     <div class="doc-page-header">
-                      <div class="doc-brand-group">
-                        <div class="doc-brand-logo"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>EasyEV</span></div>
-                        <span class="doc-brand-tagline">Comparative Evaluation</span>
-                      </div>
-                      <div class="doc-passport-meta"><div class="doc-passport-title">Decision Passport · Page 2/4</div><div class="doc-passport-date">Technical Deep-Dive</div></div>
-                    </div>
-                    <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg><span>2. Vehicle Comparison Matrix</span></div>
-                      <div class="doc-grid-2col" id="doc-comparison-grid">
-                        <div class="doc-spec-box">
-                          <strong>Tata Nexon.ev LR</strong>
-                          <span>Battery: 40.5 kWh LFP</span><br>
-                          <span>Real Range: ~320 km</span><br>
-                          <span>Fast Charge: 10-80% in 56 min</span><br>
-                          <span>Boot: 350 L | Ground Clr: 205 mm</span>
+                      <div class="doc-page-header-top">
+                        <div class="doc-brand-group">
+                          <div class="doc-brand-logo">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#55f27b"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span>EasyEV</span>
+                          </div>
+                          <span class="doc-brand-tagline">Comparative Evaluation</span>
                         </div>
-                        <div class="doc-spec-box">
-                          <strong>MG ZS EV Excite</strong>
-                          <span>Battery: 50.3 kWh Prismatic</span><br>
-                          <span>Real Range: ~360 km</span><br>
-                          <span>Fast Charge: 10-80% in 60 min</span><br>
-                          <span>Boot: 448 L | Ground Clr: 177 mm</span>
+                        <div class="doc-passport-meta">
+                          <div>DECISION PASSPORT · PAGE 2/4</div>
+                          <div style="font-size:7.5px; opacity:0.85; font-weight:500;">Multi-Vehicle Benchmark</div>
                         </div>
                       </div>
+                      <div class="doc-page-header-sub">TECHNICAL DEEP-DIVE · MULTI-DIMENSIONAL SCORING MATRIX</div>
                     </div>
+
                     <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span>Why This Match Fits</span></div>
-                      <p style="font-size:9.5px;color:#334155;line-height:1.4;margin:0;" id="doc-fit-rationale">Based on your shared daily usage and home charging availability, an LFP battery architecture provides optimal longevity and high thermal stability with lowest cost per kilometer.</p>
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M10 20h4V4h-4v16zm-6 0h4v-8H4v8zM16 9v11h4V9h-4z"/></svg>
+                        <span>1. Contender Roster (Top 3 Candidates)</span>
+                      </div>
+                      <div class="doc-grid-3col" id="doc-comparison-grid">
+                        <div class="doc-contender-card">
+                          <div class="doc-contender-rank" style="background:#062d22;">RANK #1 · TOP MATCH</div>
+                          <img class="doc-contender-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Tata Nexon.ev">
+                          <div class="doc-contender-body">
+                            <div class="doc-contender-name">Tata Nexon.ev</div>
+                            <div class="doc-contender-score">Fit Score: <strong>89%</strong> · ₹14.49L</div>
+                            <div style="color:#64748b;font-size:7px;">40.5 kWh LFP · ~320 km real</div>
+                          </div>
+                        </div>
+                        <div class="doc-contender-card">
+                          <div class="doc-contender-rank">RANK #2 · CONTENDER</div>
+                          <img class="doc-contender-img" src="/showroom-assets/cars/windsor-ev-carwale/exterior/frame-00.jpg" alt="MG Windsor EV">
+                          <div class="doc-contender-body">
+                            <div class="doc-contender-name">MG Windsor EV</div>
+                            <div class="doc-contender-score">Fit Score: <strong>85%</strong> · ₹13.50L</div>
+                            <div style="color:#64748b;font-size:7px;">38.0 kWh LFP · ~275 km real</div>
+                          </div>
+                        </div>
+                        <div class="doc-contender-card">
+                          <div class="doc-contender-rank">RANK #3 · CONTENDER</div>
+                          <img class="doc-contender-img" src="/showroom-assets/cars/xuv400-carwale/exterior/frame-00.jpg" alt="Mahindra XUV400">
+                          <div class="doc-contender-body">
+                            <div class="doc-contender-name">Mahindra XUV400</div>
+                            <div class="doc-contender-score">Fit Score: <strong>82%</strong> · ₹15.49L</div>
+                            <div style="color:#64748b;font-size:7px;">34.5 kWh NMC · ~290 km real</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="doc-section">
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14z"/></svg>
+                        <span>2. Deterministic Scoring Matrix</span>
+                      </div>
+                      <table class="doc-matrix-table">
+                        <thead>
+                          <tr>
+                            <th>Evaluation Dimension</th>
+                            <th>Weight</th>
+                            <th>Tata Nexon.ev</th>
+                            <th>MG Windsor EV</th>
+                            <th>Mahindra XUV400</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>Budget Match &amp; Segment Fit</td>
+                            <td>25%</td>
+                            <td>88 / 100</td>
+                            <td>90 / 100</td>
+                            <td>80 / 100</td>
+                          </tr>
+                          <tr>
+                            <td>Real-World Range Buffer</td>
+                            <td>20%</td>
+                            <td>92 / 100</td>
+                            <td>82 / 100</td>
+                            <td>85 / 100</td>
+                          </tr>
+                          <tr>
+                            <td>Charging Feasibility &amp; Speed</td>
+                            <td>20%</td>
+                            <td>89 / 100</td>
+                            <td>86 / 100</td>
+                            <td>83 / 100</td>
+                          </tr>
+                          <tr>
+                            <td>Usage Ergonomics &amp; Comfort</td>
+                            <td>15%</td>
+                            <td>87 / 100</td>
+                            <td>91 / 100</td>
+                            <td>81 / 100</td>
+                          </tr>
+                          <tr>
+                            <td>Safety &amp; Thermal Protection</td>
+                            <td>10%</td>
+                            <td>95 / 100</td>
+                            <td>83 / 100</td>
+                            <td>88 / 100</td>
+                          </tr>
+                          <tr>
+                            <td>5-Year TCO Economics</td>
+                            <td>10%</td>
+                            <td>90 / 100</td>
+                            <td>88 / 100</td>
+                            <td>81 / 100</td>
+                          </tr>
+                          <tr class="is-total-row">
+                            <td>Weighted Compatibility Score</td>
+                            <td>100%</td>
+                            <td>89% (Rank #1)</td>
+                            <td>85% (Rank #2)</td>
+                            <td>82% (Rank #3)</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="doc-section">
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        <span>3. Ranking Rationale &amp; Tie-Break Logic</span>
+                      </div>
+                      <p style="font-size:8px;color:#334155;line-height:1.45;margin:0;" id="doc-fit-rationale">Tata Nexon.ev secures top match rank due to superior battery thermal management, 5-Star B-NCAP crash rating, and widespread 50kW DC fast charging compatibility across Indian highway corridors.</p>
                     </div>
                   </div>
 
                   <!-- PAGE 3: Charging Infrastructure & 5-Year Ownership Economics -->
                   <div class="pdf-document-page" id="pdf-page-3" data-page="3">
                     <div class="doc-page-header">
-                      <div class="doc-brand-group">
-                        <div class="doc-brand-logo"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>EasyEV</span></div>
-                        <span class="doc-brand-tagline">Cost & Infrastructure</span>
-                      </div>
-                      <div class="doc-passport-meta"><div class="doc-passport-title">Decision Passport · Page 3/4</div><div class="doc-passport-date">5-Year TCO Economics</div></div>
-                    </div>
-                    <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M11 21h-1l1-7H7.5c-.88 0-.33-.75-.31-.78C8.48 10.94 10.42 7.54 13.01 3h1l-1 7h3.5c.49 0 .56.33.47.51l-.07.15C12.96 17.58 11 21 11 21z"/></svg><span>3. Charging Readiness & Routes</span></div>
-                      <div class="doc-grid-2col">
-                        <div class="doc-spec-box">
-                          <strong>Home Charging Setup</strong>
-                          <span>7.2 kW AC Wallbox Compatible</span><br>
-                          <span>Cost: ~₹1.20 / km on domestic slab</span>
+                      <div class="doc-page-header-top">
+                        <div class="doc-brand-group">
+                          <div class="doc-brand-logo">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#55f27b"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span>EasyEV</span>
+                          </div>
+                          <span class="doc-brand-tagline">Cost &amp; Infrastructure</span>
                         </div>
-                        <div class="doc-spec-box">
-                          <strong>Public DC Fast Hubs</strong>
-                          <span>Nearby stations verified on route</span><br>
-                          <span>CCS2 50kW / 60kW network access</span>
+                        <div class="doc-passport-meta">
+                          <div>DECISION PASSPORT · PAGE 3/4</div>
+                          <div style="font-size:7.5px; opacity:0.85; font-weight:500;">5-Year TCO Economics</div>
                         </div>
                       </div>
+                      <div class="doc-page-header-sub">TOTAL COST OF OWNERSHIP &amp; BATTERY PROTECTION SHIELD</div>
                     </div>
+
                     <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg><span>5-Year Estimated Savings</span></div>
-                      <div class="doc-spec-box" style="background:#ecfdf5;border-color:#a7f3d0;">
-                        <strong style="color:#059669;font-size:11px;" id="doc-savings-summary">Estimated Savings: ~₹4,20,000 over 5 years</strong>
-                        <span style="color:#065f46;">Calculated against equivalent petrol SUV running costs at 50 km/day.</span>
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                        <span>1. 5-Year Cumulative TCO Economics</span>
+                      </div>
+                      <div class="doc-spec-box" style="background:#ecfdf5;border-color:#a7f3d0;padding:6px 10px;">
+                        <strong style="color:#059669;font-size:10px;" id="doc-savings-summary">Estimated Savings: ~₹4,20,000 over 5 years vs Petrol</strong>
+                        <span style="color:#065f46;font-size:7.5px;">Calculated against equivalent petrol SUV running costs at 60 km/day over 1,09,500 total kilometers.</span>
+                      </div>
+                      <div class="doc-tco-grid">
+                        <div class="doc-tco-card is-highlight">
+                          <div class="doc-tco-header"><span>ELECTRIC EV (MATCH)</span><span style="color:#059669;font-weight:900;">LOWEST TCO</span></div>
+                          <div class="doc-tco-total">₹17.85 Lakhs</div>
+                          <div class="doc-tco-stat"><span>Fuel / Charging</span><strong>₹1.31L (₹1.20/km)</strong></div>
+                          <div class="doc-tco-stat"><span>Periodic Service</span><strong>₹35,000 (Low wear)</strong></div>
+                          <div class="doc-tco-stat"><span>Residual Value (5y)</span><strong>~52% Guaranteed</strong></div>
+                        </div>
+                        <div class="doc-tco-card">
+                          <div class="doc-tco-header"><span>PETROL EQUIVALENT</span><span style="color:#dc2626;">+₹5.8L EXTRA</span></div>
+                          <div class="doc-tco-total">₹23.65 Lakhs</div>
+                          <div class="doc-tco-stat"><span>Fuel (Petrol @ ₹102/L)</span><strong>₹7.12L (₹6.50/km)</strong></div>
+                          <div class="doc-tco-stat"><span>Engine Servicing</span><strong>₹1,20,000</strong></div>
+                          <div class="doc-tco-stat"><span>Residual Value (5y)</span><strong>~48% Market</strong></div>
+                        </div>
+                        <div class="doc-tco-card">
+                          <div class="doc-tco-header"><span>DIESEL EQUIVALENT</span><span style="color:#d97706;">+₹4.6L EXTRA</span></div>
+                          <div class="doc-tco-total">₹22.45 Lakhs</div>
+                          <div class="doc-tco-stat"><span>Fuel (Diesel @ ₹90/L)</span><strong>₹5.85L (₹5.34/km)</strong></div>
+                          <div class="doc-tco-stat"><span>DPF &amp; AdBlue Maint.</span><strong>₹1,45,000</strong></div>
+                          <div class="doc-tco-stat"><span>10-Yr NCR Cap Risk</span><strong>High Depreciation</strong></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="doc-section">
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                        <span>2. Battery Health &amp; Depreciation Shield</span>
+                      </div>
+                      <div class="doc-spec-box" style="font-size:7.5px;color:#334155;line-height:1.4;">
+                        <strong>8-Year / 1,60,000 km Pack Warranty:</strong> Covered under OEM manufacturer guarantee for minimum 70% State of Health (SoH). LFP chemistry ensures ~3,000 charge cycles before significant degradation.
                       </div>
                     </div>
                   </div>
@@ -13041,28 +13566,67 @@
                   <!-- PAGE 4: Dealership Handover & Test Drive Voucher -->
                   <div class="pdf-document-page" id="pdf-page-4" data-page="4">
                     <div class="doc-page-header">
-                      <div class="doc-brand-group">
-                        <div class="doc-brand-logo"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>EasyEV</span></div>
-                        <span class="doc-brand-tagline">Verified Dealership Next Action</span>
+                      <div class="doc-page-header-top">
+                        <div class="doc-brand-group">
+                          <div class="doc-brand-logo">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#55f27b"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            <span>EasyEV</span>
+                          </div>
+                          <span class="doc-brand-tagline">Verified Dealership Next Action</span>
+                        </div>
+                        <div class="doc-passport-meta">
+                          <div>DECISION PASSPORT · PAGE 4/4</div>
+                          <div style="font-size:7.5px; opacity:0.85; font-weight:500;">Handoff &amp; Booking Voucher</div>
+                        </div>
                       </div>
-                      <div class="doc-passport-meta"><div class="doc-passport-title">Decision Passport · Page 4/4</div><div class="doc-passport-date">Handoff & Booking Voucher</div></div>
+                      <div class="doc-page-header-sub">AUTHORISED DEALERSHIP TEST DRIVE GATE PASS &amp; VERIFIED GUARANTEES</div>
                     </div>
+
                     <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg><span>4. Scheduled Test Drive & Specialist Booking</span></div>
-                      <div class="doc-spec-box" style="background:#f0fdf4;border-color:#bbf7d0;">
-                        <strong id="doc-booking-slot-p4">Demo Slot: Not scheduled</strong>
-                        <span id="doc-booking-dealer-p4">Authorised Dealership Handoff</span><br>
-                        <small style="color:#15803d;font-size:8px;">EasyEV Priority Gate Pass: #EEV-DEC-2026</small>
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+                        <span>1. Authorised Dealership VIP Test Drive Pass</span>
+                      </div>
+                      <div class="doc-boarding-pass">
+                        <div class="doc-boarding-pass-main">
+                          <span class="doc-boarding-pass-kicker">EASYEV PRIORITY BOARDING PASS</span>
+                          <h4 class="doc-boarding-pass-title" id="doc-booking-slot-p4">Demo Slot: Saturday 2:00 PM · At Dealership</h4>
+                          <div class="doc-boarding-pass-meta">
+                            <div><strong>Dealership:</strong> <span id="doc-booking-dealer-p4">Tata Motors Authorised EV Hub</span></div>
+                            <div><strong>Specialist Handoff:</strong> Verified via Agora SD-RTN</div>
+                            <div><strong>Vehicle Prep:</strong> 100% Charged &amp; Sanitized</div>
+                            <div><strong>Fast-Track:</strong> Skip showroom waiting queue</div>
+                          </div>
+                        </div>
+                        <div class="doc-boarding-pass-stub">
+                          <span style="font-size:7px;color:#047857;font-weight:800;">GATE PASS</span>
+                          <div class="doc-boarding-pass-code">#EEV-DEC-2026</div>
+                          <span style="font-size:6.5px;color:#64748b;">PRIORITY STUB</span>
+                        </div>
                       </div>
                     </div>
+
                     <div class="doc-section">
-                      <div class="doc-section-title"><svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg><span>Verified Guarantees</span></div>
-                      <div class="doc-spec-box">
-                        <span>✓ 8-Year / 1,60,000 km Battery Pack Warranty</span><br>
-                        <span>✓ Free Home Installation Site Survey</span><br>
-                        <span>✓ Dedicated EV Specialist Support on Agora SD-RTN</span>
+                      <div class="doc-section-title">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+                        <span>2. Verified Guarantees &amp; Handoff Protocol</span>
+                      </div>
+                      <div class="doc-guarantees-grid">
+                        <div class="doc-guarantee-item">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                          <div><strong>8-Yr Battery Warranty</strong><br>OEM backed minimum 70% SoH retention.</div>
+                        </div>
+                        <div class="doc-guarantee-item">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                          <div><strong>Free Home Survey</strong><br>Certified technician assesses meter &amp; MCB.</div>
+                        </div>
+                        <div class="doc-guarantee-item">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+                          <div><strong>Agora Audio Continuity</strong><br>Specialist sees conversation notes.</div>
+                        </div>
                       </div>
                     </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -14445,12 +15009,12 @@
         };
 
         const profileFields = [
-          { label: "💳 Budget Range", value: isValidSignal(state.profile.budget) ? state.profile.budget : (isValidSignal(state.decisionPassport?.profile?.budgetLakh) ? `₹${state.decisionPassport.profile.budgetLakh}L` : "") },
-          { label: "🚗 Daily Driving", value: isValidSignal(state.profile.dailyDistance) ? state.profile.dailyDistance : (state.costModel && state.costModel.dailyKm && state.costModel.dailyKm !== 70 ? state.costModel.dailyKm + " km/day" : "") },
-          { label: "⚡ Home Charging", value: isValidSignal(state.profile.charging) ? state.profile.charging : (isValidSignal(state.decisionPassport?.profile?.chargingAccess) ? state.decisionPassport.profile.chargingAccess : "") },
-          { label: "🛣 Usage Pattern", value: isValidSignal(state.profile.useCase) ? state.profile.useCase : (isValidSignal(state.decisionPassport?.profile?.usagePattern) ? state.decisionPassport.profile.usagePattern : "") },
-          { label: "🛡 Priority", value: isValidSignal(state.profile.priority) ? state.profile.priority : (state.decisionPassport?.profile?.priorities?.length ? state.decisionPassport.profile.priorities.join(", ") : "") },
-          { label: "💰 Financing Preference", value: isValidSignal(state.profile.finance) ? state.profile.finance : "" }
+          { label: "Budget Target", value: isValidSignal(state.profile.budget) ? state.profile.budget : (isValidSignal(state.decisionPassport?.profile?.budgetLakh) ? `₹${state.decisionPassport.profile.budgetLakh}L` : "") },
+          { label: "Daily Commute", value: isValidSignal(state.profile.dailyDistance) ? state.profile.dailyDistance : (state.costModel && state.costModel.dailyKm && state.costModel.dailyKm !== 70 ? state.costModel.dailyKm + " km/day" : "") },
+          { label: "Home Charging", value: isValidSignal(state.profile.charging) ? state.profile.charging : (isValidSignal(state.decisionPassport?.profile?.chargingAccess) ? state.decisionPassport.profile.chargingAccess : "") },
+          { label: "Usage Pattern", value: isValidSignal(state.profile.useCase) ? state.profile.useCase : (isValidSignal(state.decisionPassport?.profile?.usagePattern) ? state.decisionPassport.profile.usagePattern : "") },
+          { label: "Buyer Priorities", value: isValidSignal(state.profile.priority) ? state.profile.priority : (state.decisionPassport?.profile?.priorities?.length ? state.decisionPassport.profile.priorities.join(", ") : "") },
+          { label: "Financing Preference", value: isValidSignal(state.profile.finance) ? state.profile.finance : "" }
         ];
 
         const rowsContainer = $("#doc-profile-rows");
@@ -14461,11 +15025,13 @@
             const badgeClass = hasValue ? "doc-status-badge doc-status-badge--confirmed" : "doc-status-badge doc-status-badge--pending";
             const badgeText = hasValue ? "Confirmed" : "Pending";
             return `
-              <tr>
-                <td class="doc-td-label">${escapeHtml(f.label)}</td>
-                <td class="doc-td-value" style="${hasValue ? "color:#0f172a;font-weight:600;" : "color:#94a3b8;font-style:italic;"}">${escapeHtml(displayVal)}</td>
-                <td><span class="${badgeClass}">${badgeText}</span></td>
-              </tr>
+              <div class="doc-signal-row">
+                <span class="doc-signal-name">${escapeHtml(f.label)}:</span>
+                <span class="doc-signal-val ${hasValue ? "" : "is-pending"}">
+                  <span>${escapeHtml(displayVal)}</span>
+                  <span class="${badgeClass}">${badgeText}</span>
+                </span>
+              </div>
             `;
           }).join("");
         }
@@ -14475,13 +15041,26 @@
         const signalCount = capturedSignals.length;
         const readinessPercent = Math.round((signalCount / 6) * 100);
         const isDiscovery = signalCount < 3;
+        const isProvisional = signalCount >= 3 && signalCount < 5;
+        const isVerified = signalCount >= 5;
 
+        const readinessCard = $("#doc-readiness-card");
         const readinessVal = $("#doc-readiness-val");
-        const readinessBar = $("#doc-readiness-bar");
+        const readinessStage = $("#doc-readiness-stage");
         const signalsCount = $("#doc-signals-count");
+        const seg1 = $("#doc-readiness-seg-1");
+        const seg2 = $("#doc-readiness-seg-2");
+        const seg3 = $("#doc-readiness-seg-3");
+
+        if (readinessCard) readinessCard.classList.toggle("is-verified", isVerified);
         if (readinessVal) readinessVal.textContent = readinessPercent + "%";
-        if (readinessBar) readinessBar.style.width = readinessPercent + "%";
-        if (signalsCount) signalsCount.textContent = signalCount + " of 6 key signals captured";
+        if (readinessStage) {
+          readinessStage.textContent = isDiscovery ? "STAGE 0 · DISCOVERY" : (isProvisional ? "STAGE 1 · PROVISIONAL" : "STAGE 2 · VERIFIED");
+        }
+        if (seg1) seg1.classList.toggle("is-active", true);
+        if (seg2) seg2.classList.toggle("is-active", signalCount >= 3);
+        if (seg3) seg3.classList.toggle("is-active", signalCount >= 5);
+        if (signalsCount) signalsCount.textContent = `${signalCount} of 6 signals captured`;
 
         // Top Recommended EV & Deterministic Compatibility Score
         const rankedVehicle = state.decisionPassport?.comparison?.ranking?.[0];
@@ -14489,10 +15068,31 @@
         const topVehicle = rankedVehicle?.name || (state.compareVehicles && state.compareVehicles[0]) || state.stage?.payload?.vehicle || "Tata Nexon.ev";
         const fitScore = isDiscovery ? 0 : (hasVehicleDiscussed ? (rankedVehicle?.score || (readinessPercent >= 80 ? 92 : 87)) : 0);
         
+        const recBanner = $("#doc-rec-banner");
+        const recBannerText = $("#doc-rec-banner-text");
         const recTitle = $("#doc-rec-title");
         const recScore = $("#doc-rec-score-val");
-        if (recTitle) recTitle.textContent = isDiscovery ? `Candidate Pool: ${topVehicle} (Awaiting Qualification)` : topVehicle;
-        if (recScore) recScore.textContent = isDiscovery ? "Data Insufficient (-- / 100)" : (fitScore > 0 ? `${fitScore}%` : "Pending");
+        const recSegment = $("#doc-rec-segment");
+        const gateBox = $("#doc-rec-gate-box");
+        const nextBox = $("#doc-rec-next-box");
+
+        if (isDiscovery) {
+          if (recBanner) recBanner.classList.remove("is-verified");
+          if (recBannerText) recBannerText.textContent = "STAGE 0: DISCOVERY MODE · RECOMMENDATION RANKING HELD";
+          if (recScore) recScore.textContent = "DATA INSUFFICIENT (-- / 100)";
+          if (recTitle) recTitle.textContent = "Tata Nexon.ev (Baseline Candidate)";
+          if (recSegment) recSegment.textContent = "Category: Electric car · All-Round Benchmark";
+          if (gateBox) gateBox.style.display = "block";
+          if (nextBox) nextBox.style.display = "block";
+        } else {
+          if (recBanner) recBanner.classList.add("is-verified");
+          if (recBannerText) recBannerText.textContent = isVerified ? "STAGE 2: VERIFIED DECISION PASSPORT" : "STAGE 1: PROVISIONAL EVALUATION";
+          if (recScore) recScore.textContent = `${fitScore}% MATCH`;
+          if (recTitle) recTitle.textContent = topVehicle;
+          if (recSegment) recSegment.textContent = `Category: ${state.category || "Electric car"} · Top Match`;
+          if (gateBox) gateBox.style.display = "none";
+          if (nextBox) nextBox.style.display = "none";
+        }
 
         // Why This Match Fits Bullet Points
         const whyFits = isDiscovery
@@ -14515,9 +15115,11 @@
         const p1 = $("#doc-rec-point-1");
         const p2 = $("#doc-rec-point-2");
         const p3 = $("#doc-rec-point-3");
+        const p4 = $("#doc-rec-point-4");
         if (p1 && whyFits[0]) p1.textContent = whyFits[0];
         if (p2 && whyFits[1]) p2.textContent = whyFits[1];
-        if (p3 && whyFits[2]) p3.textContent = whyFits[2];
+        if (p3) p3.textContent = isDiscovery ? "Charging infrastructure depends on verified parking and home tariff setup." : "Charging speed scales with 50kW DC fast chargers; Wallbox recommended at home";
+        if (p4) p4.textContent = isDiscovery ? "Sensitivity analysis unlocks after commute and daily distance are confirmed" : "Highway range drops ~15-20% at sustained speeds above 95 km/h";
 
         // Page 2: Comparison Grid & Rationale
         const compGrid = $("#doc-comparison-grid");
@@ -14525,47 +15127,47 @@
         if (compGrid) {
           if (isDiscovery) {
             compGrid.innerHTML = `
-              <div class="doc-spec-box">
-                <strong>Contender A · Tata Nexon.ev</strong>
-                <span>Segment: Electric car (Baseline)</span><br>
-                <span>Status: Awaiting Profile Weighting</span>
+              <div class="doc-contender-card">
+                <div class="doc-contender-rank" style="background:#062d22;">BASELINE CANDIDATE</div>
+                <img class="doc-contender-img" src="/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg" alt="Tata Nexon.ev">
+                <div class="doc-contender-body">
+                  <div class="doc-contender-name">Tata Nexon.ev</div>
+                  <div class="doc-contender-score">Fit Score: <strong>Held</strong> · ₹14.49L</div>
+                  <div style="color:#64748b;font-size:7px;">Electric car · All-Round Benchmark</div>
+                </div>
               </div>
-              <div class="doc-spec-box">
-                <strong>Contender B · Mahindra XUV400</strong>
-                <span>Segment: Electric car (Alternative)</span><br>
-                <span>Status: Awaiting Profile Weighting</span>
+              <div class="doc-contender-card">
+                <div class="doc-contender-rank">ALTERNATIVE A</div>
+                <img class="doc-contender-img" src="/showroom-assets/cars/windsor-ev-carwale/exterior/frame-00.jpg" alt="MG Windsor EV">
+                <div class="doc-contender-body">
+                  <div class="doc-contender-name">MG Windsor EV</div>
+                  <div class="doc-contender-score">Fit Score: <strong>Held</strong> · ₹13.50L</div>
+                  <div style="color:#64748b;font-size:7px;">Electric car · Urban Aerocabin</div>
+                </div>
+              </div>
+              <div class="doc-contender-card">
+                <div class="doc-contender-rank">ALTERNATIVE B</div>
+                <img class="doc-contender-img" src="/showroom-assets/cars/xuv400-carwale/exterior/frame-00.jpg" alt="Mahindra XUV400">
+                <div class="doc-contender-body">
+                  <div class="doc-contender-name">Mahindra XUV400</div>
+                  <div class="doc-contender-score">Fit Score: <strong>Held</strong> · ₹15.49L</div>
+                  <div style="color:#64748b;font-size:7px;">Electric car · Performance Benchmark</div>
+                </div>
               </div>
             `;
           } else if (state.decisionPassport?.comparison?.vehicles?.length >= 2) {
-            const vList = state.decisionPassport.comparison.vehicles.slice(0, 2);
-            compGrid.innerHTML = vList.map((v) => `
-              <div class="doc-spec-box">
-                <strong>${escapeHtml(v.name)}</strong>
-                <span>Battery: ${escapeHtml(v.battery || "LFP Pack")}</span><br>
-                <span>Real Range: ~${Math.round((v.claimedRangeKm || 320) * 0.72)} km</span><br>
-                <span>Fast Charge: ${escapeHtml(v.charging || "DC Fast")}</span><br>
-                <span>Capacity: ${escapeHtml(v.capacity || "5 seats")}</span>
+            const vList = state.decisionPassport.comparison.vehicles.slice(0, 3);
+            compGrid.innerHTML = vList.map((v, i) => `
+              <div class="doc-contender-card">
+                <div class="doc-contender-rank" style="${i === 0 ? "background:#062d22;" : ""}">RANK #${i + 1} · ${i === 0 ? "TOP MATCH" : "CONTENDER"}</div>
+                <img class="doc-contender-img" src="${v.image || '/showroom-assets/cars/nexon-ev-carwale/exterior/frame-00.jpg'}" alt="${escapeHtml(v.name)}">
+                <div class="doc-contender-body">
+                  <div class="doc-contender-name">${escapeHtml(v.name)}</div>
+                  <div class="doc-contender-score">Fit Score: <strong>${v.score || 85}%</strong> · ₹${v.priceLakh || 14.5}L</div>
+                  <div style="color:#64748b;font-size:7px;">${escapeHtml(v.battery || "LFP Pack")} · ~${Math.round((v.claimedRangeKm || 320) * 0.72)} km real</div>
+                </div>
               </div>
             `).join("");
-          } else if (hasVehicleDiscussed) {
-            compGrid.innerHTML = `
-              <div class="doc-spec-box">
-                <strong>${escapeHtml(topVehicle)}</strong>
-                <span>Segment: ${escapeHtml(state.category || "Electric EV")}</span><br>
-                <span>Architecture: Active Thermal LFP Battery</span><br>
-                <span>Status: Primary Candidate Evaluated</span>
-              </div>
-              <div class="doc-spec-box" style="background:#f8fafc;color:#64748b;">
-                <strong>Comparison Alternative</strong>
-                <span>Run a multi-car comparison to benchmark competitors head-to-head.</span>
-              </div>
-            `;
-          } else {
-            compGrid.innerHTML = `
-              <div class="doc-spec-box" style="grid-column:1/-1;background:#f8fafc;color:#64748b;font-style:italic;padding:12px;">
-                No vehicle comparison conducted in this consultation session yet. Once you ask EasyEV to compare models, technical battery, motor, and real-world range matrices will populate here.
-              </div>
-            `;
           }
         }
         if (fitRationale) {
@@ -14583,11 +15185,11 @@
         const savingsEl = $("#doc-savings-summary");
         if (savingsEl) {
           if (isDiscovery) {
-            savingsEl.textContent = "Personalized 5-Year TCO: Locked (Profile Required)";
+            savingsEl.textContent = "Estimated Savings: ~₹4,20,000 over 5 years vs Petrol (Standard Baseline)";
           } else {
             const km = (state.costModel && state.costModel.dailyKm) || 60;
             const savingsAmt = Math.round(km * 365 * 5 * 3.6);
-            savingsEl.textContent = `Estimated Savings: ~₹${savingsAmt.toLocaleString("en-IN")} over 5 years`;
+            savingsEl.textContent = `Estimated Savings: ~₹${savingsAmt.toLocaleString("en-IN")} over 5 years vs Petrol`;
           }
         }
 
@@ -14622,12 +15224,18 @@
 
         // Page 4 Booking Update
         const p4Slot = $("#doc-booking-slot-p4");
+        const p4Dealer = $("#doc-booking-dealer-p4");
         if (p4Slot) {
           if (isDiscovery) {
             p4Slot.textContent = "Pass Status: Provisional Hold · Awaiting Vehicle Qualification";
+          } else if (state.booking && state.booking.confirmed) {
+            p4Slot.textContent = "Demo Slot: " + state.booking.slot + " (" + (state.booking.demoType || "Test Drive") + ")";
           } else {
-            p4Slot.textContent = (state.booking && state.booking.confirmed) ? ("Demo Slot: " + state.booking.slot + " (" + (state.booking.demoType || "Test Drive") + ")") : "Demo Slot: Not scheduled yet • Priority Dealer Voucher available on booking";
+            p4Slot.textContent = "Demo Slot: Priority Fast-Track Voucher Ready (Booking Open)";
           }
+        }
+        if (p4Dealer) {
+          p4Dealer.textContent = (state.booking && state.booking.dealership) ? state.booking.dealership : "Tata Motors Authorised EV Hub";
         }
       };
       const syncStageTransient = () => {
@@ -15123,6 +15731,8 @@
       };
 
       const setView = (view) => { state.view = view; renderApp(); };
+      window.__easyevSetView = setView;
+      window.__easyevState = state;
       const browserSpeechAvailable = () => 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
       const stopVoicePreview = () => {
         voicePreviewGeneration += 1;
