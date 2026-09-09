@@ -15736,10 +15736,11 @@
           let pdfBlob = null;
           let downloadUrl = state.reportUrl;
 
-          // 1. Try fetching existing session report URL if set
+          // 1. Try fetching existing session report URL if set (with cache buster)
           if (downloadUrl) {
             try {
-              const res = await fetch(downloadUrl);
+              const urlWithBuster = downloadUrl + (downloadUrl.includes('?') ? '&' : '?') + `fresh=1&t=${Date.now()}`;
+              const res = await fetch(urlWithBuster);
               if (res.ok) pdfBlob = await res.blob();
             } catch {}
           }

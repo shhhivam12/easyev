@@ -1228,7 +1228,7 @@ async function handleScopedSessionApi(req, res, url) {
     if (!reportRecord) {
       return json(res, 404, { error: 'The decision session was not found.' });
     }
-    if (!reportRecord.report) {
+    if (!reportRecord.report || url.searchParams.get('fresh') === '1' || url.searchParams.get('refresh') === 'true') {
       try {
         const pdf = await tools.buildReport(reportRecord);
         reportRecord.report = {
