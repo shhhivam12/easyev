@@ -68,9 +68,11 @@ assert(stopRes.status === 200 && stopRes.data.success === true, "POST /api/sessi
 
 // --- SECTION 2: BLAND AI VOICE TEST-DRIVE MULTI-TURN PIPELINE ---
 console.log("\n--- 2. Bland AI Test Drive Voice Booking & Collision Pipeline ---");
-const uniqueDay = 15 + Math.floor(Math.random() * 10);
-const testDate = `2026-10-${uniqueDay}`;
-const testTime = "14:00";
+const uniqueDay = 10 + Math.floor(Math.random() * 18);
+const uniqueHour = 10 + Math.floor(Math.random() * 7);
+const uniqueMin = Math.random() > 0.5 ? "00" : "30";
+const testDate = `2026-12-${String(uniqueDay).padStart(2, "0")}`;
+const testTime = `${String(uniqueHour).padStart(2, "0")}:${uniqueMin}`;
 
 const tdInit = await postJson("/api/test-drive/initiate", {
   vehicleId: "tata-punch-ev",
