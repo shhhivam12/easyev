@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#06140c">
+  <link rel="icon" href="/assets/icon.png">
+  <title>EasyEV Experience Centre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">  <link rel="stylesheet" href="./world.css?v=11">
+  <script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<main class="experience-shell">
+  <section id="entry-loader" class="entry-loader" aria-labelledby="entry-title" aria-modal="true" aria-busy="true">
+    <div class="entry-loader__glow" aria-hidden="true"></div>
+    <div class="entry-loader__card">
+      <div class="entry-loader__brand"><img src="/assets/icon.png" alt=""><strong>EasyEV</strong><b>AI</b></div>
+      <p class="entry-loader__eyebrow">PRIVATE EXPERIENCE CENTRE</p>
+      <h1 id="entry-title">Virtual showroom loading, please wait</h1>
+      <p id="entry-copy">Preparing the vehicles, lighting and interactive experience.</p>
+      <div class="entry-loader__progress" role="progressbar" aria-label="Virtual showroom loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="entry-progress"></i></div>
+      <div class="entry-loader__meta"><span id="entry-stage">Preparing your experience</span><strong id="entry-count">0%</strong></div>
+      <div id="entry-ready" class="entry-loader__actions" aria-hidden="true" hidden inert>
+        <button id="enter-guided" class="primary" type="button" disabled>Enter with AI guide</button>
+        <button id="enter-silent" type="button" disabled>Explore silently</button>
+      </div>
+      <button id="entry-retry" class="entry-loader__retry" type="button" hidden>Retry vehicle loading</button>
+      <small>Your microphone is requested only if you enter with the AI guide.</small>
+    </div>
+  </section>
+
+  <canvas id="world" aria-label="EasyEV premium 3D electric vehicle showroom"></canvas>
+  <div class="ambient-vignette" aria-hidden="true"></div>
+
+  <header class="site-nav">
+    <a class="brand" href="/" aria-label="EasyEV AI home">
+      <img src="/assets/icon.png" alt="">
+      <strong>EasyEV</strong><b>AI</b><span>EXPERIENCE CENTRE</span>
+    </a>
+    <nav class="hall-tabs" aria-label="Showroom halls">
+      <button data-section="four" aria-pressed="true">EV cars <span>4</span></button>
+      <button data-section="two" aria-pressed="false">Two-wheelers <span>2</span></button>
+    </nav>
+    <div class="nav-actions">
+      <button id="sound-toggle" class="sound-toggle" type="button" aria-pressed="true"><i></i><span>Sound on</span></button>
+      <button id="overview" type="button">Hall overview</button>
+      <button id="credits-open" type="button">Credits</button>
+      <a href="/showroom/">Exit</a>
+    </div>
+  </header>
+
+  <section class="hall-title" aria-label="Current showroom section">
+    <p id="hall-kicker">GALLERY 01</p>
+    <h1 id="hall-name">The EV car hall</h1>
+    <span id="hall-count">Four vehicles on display</span>
+    <label class="vehicle-picker" for="vehicle-select">
+      <span>Choose a display</span>
+      <select id="vehicle-select" aria-label="Choose a vehicle in this hall"></select>
+    </label>
+  </section>
+
+  <section id="vehicle-story" class="vehicle-story" aria-label="Selected vehicle" hidden>
+    <div class="eyebrow"><span id="category">CURATED COLLECTION</span><i></i><span id="position">01 / 02</span></div>
+    <h2 id="name">Electric cars, properly presented.</h2>
+    <p id="description">Walk up to any vehicle to inspect it, or let the EasyEV guide take you through the gallery.</p>
+    <div id="quick-specs" class="quick-specs"></div>
+    <strong id="selected-price" class="selected-price"></strong>
+    <div class="story-actions">
+      <button id="closer" class="primary" type="button">Walk closer</button>
+      <button id="details-open" type="button" disabled>Full details</button>
+      <button id="angle" type="button" disabled>New angle</button>
+    </div>
+  </section>  <aside class="guide" aria-label="EasyEV AI showroom guide">
+    <div class="guide-avatar" data-speaking="false">
+      <img id="guide-idle" src="/assets/clay-guide-presenting.webp" alt="Aarav, EasyEV showroom guide">
+      <video id="guide-video-one" src="/assets/talking-showroom-1-cropped.webm" muted loop playsinline preload="auto" hidden></video>
+      <video id="guide-video-two" src="/assets/talking-showroom-2-cropped.webm" muted loop playsinline preload="auto" hidden></video>
+    </div>
+    <button id="guide-toggle" class="guide-toggle" type="button" aria-expanded="true" aria-label="Hide Aarav controls">&lsaquo;</button>
+    <div class="guide-copy">
+      <div class="guide-heading"><strong>Aarav &middot; EasyEV specialist</strong><span id="status" role="status">OFFLINE</span></div>
+      <p id="commentary" aria-live="polite">I can commentate, answer questions, or guide you through every display.</p>
+      <div class="voice-modes" role="group" aria-label="AI guide modes">
+        <button id="commentary-start" type="button">Commentate</button>
+        <button id="start" class="primary" type="button">Guided tour</button>
+        <button id="next" type="button">Next stop &rarr;</button>
+        <button id="pause" type="button" disabled>Pause</button>
+      </div>
+      <form id="ask-form" class="guide-question">
+        <input id="ask-input" type="text" maxlength="260" placeholder="Ask about any vehicle..." aria-label="Ask Aarav about the showroom">
+        <button id="ask-send" type="submit">Ask</button>
+      </form>
+      <div class="voice-controls">
+        <button id="voice-toggle" type="button">Start voice</button>
+        <button id="mic-toggle" type="button" aria-pressed="true" disabled>Mic on</button>
+        <button id="audio-enable" class="audio-enable" type="button" hidden>Enable sound</button>
+        <span id="voice-detail">Explore silently or connect Aarav.</span>
+      </div>
+    </div>
+  </aside>
+
+  <button id="section-jump" class="street-nav" type="button" aria-label="Go to two-wheeler hall" hidden>
+    <span class="street-ring"><i></i></span>
+    <b id="jump-title">Go to two-wheelers</b>
+    <small id="jump-subtitle">Gallery 02 · follow the illuminated path</small>
+  </button>
+
+  <nav id="vehicles" class="vehicle-dock" aria-label="Vehicles in the current hall" hidden></nav>
+
+  <div id="loading" class="load-status" role="status">
+    <span class="load-spinner"></span>
+    <div><strong id="load-title">Opening the EV car hall</strong><small id="load-detail">Preparing premium lighting</small></div>
+    <b id="load-count">0 / 6</b>
+  </div>
+
+  <div id="transition" class="hall-transition" aria-live="polite">
+    <img src="/assets/icon.png" alt="">
+    <span>Moving through EasyEV</span>
+    <strong id="transition-label">Two-wheeler gallery</strong>
+  </div>
+
+  <dialog id="vehicle-modal" class="vehicle-modal">
+    <button id="modal-close" class="modal-close" type="button" aria-label="Close details">×</button>
+    <div class="modal-brand"><img src="/assets/icon.png" alt=""><span>EasyEV intelligence card</span></div>
+    <div class="modal-layout">
+      <div class="modal-copy">
+        <p id="modal-eyebrow">EV FOUR-WHEELER</p>
+        <h2 id="modal-name">Vehicle</h2>
+        <p id="modal-description"></p>
+        <div class="modal-price-row"><strong id="modal-price"></strong><span id="modal-availability"></span></div>
+        <div id="modal-specs" class="modal-specs"></div>
+      </div>
+      <div class="modal-insights">
+        <p class="insight-label">WHY IT STANDS OUT</p>
+        <p id="modal-brand-story" class="modal-brand-story"></p>
+        <ul id="modal-highlights"></ul>
+        <div class="model-note"><span>3D DISPLAY NOTE</span><p id="modal-note"></p></div>
+        <div class="modal-actions">
+          <button id="modal-view" class="primary" type="button">View in showroom</button>
+          <a id="modal-source" href="#" target="_blank" rel="noreferrer">Official specifications ↗</a>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="credits" class="credits">
+    <button id="credits-close" class="modal-close" type="button" aria-label="Close credits">×</button>
+    <p class="dialog-kicker">MODEL ATTRIBUTION</p>
+    <h2>Prototype 3D assets</h2>
+    <p>Creator credits and embedded licences are retained here for this hackathon demonstration.</p>
+    <ul>
+      <li><span><strong>Tata Punch prototype</strong><small>Generated with Tripo</small></span><b>Prototype asset</b></li>
+      <li><a href="https://sketchfab.com/3d-models/2022-byd-han-ev-facelift-98b9fdf30fc742f39b8600f2cd3f4b49" target="_blank" rel="noreferrer"><span><strong>2022 BYD Han EV</strong><small>Ddiaz Design</small></span><b>CC BY-NC-SA 4.0</b></a></li>
+      <li><a href="https://sketchfab.com/3d-models/kia-sportage-gt-line-2023-fa9c34bf1bed4350a80759fe4fa54490" target="_blank" rel="noreferrer"><span><strong>Kia Sportage GT-Line shell</strong><small>3D Cars Studio</small></span><b>CC BY-NC-SA 4.0</b></a></li>
+      <li><a href="https://sketchfab.com/3d-models/mg-comet-f05488a57b17491381c759e54c4d9c2e" target="_blank" rel="noreferrer"><span><strong>MG Comet</strong><small>Oren garage</small></span><b>CC BY 4.0</b></a></li>
+      <li><a href="https://sketchfab.com/3d-models/ola-electric-scooter-black-color-7b0cac285c654c248cecec50f97d459a" target="_blank" rel="noreferrer"><span><strong>OLA electric scooter</strong><small>neshallads</small></span><b>CC BY 4.0</b></a></li>
+      <li><a href="https://sketchfab.com/3d-models/vespa-368aeee32a784480acae4608441db325" target="_blank" rel="noreferrer"><span><strong>Vespa shell</strong><small>Lokeig</small></span><b>CC BY-NC 4.0</b></a></li>
+    </ul>
+  </dialog>
+</main>
+<script src="/client/platform-language.js?v=20260908-1"></script>
+<script src="/agora-client.bundle.js?v=world-guide-v2"></script>
+<script type="module" src="./world.js?v=20"></script>
+</body>
+</html>
+
+
+
+

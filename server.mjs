@@ -55,6 +55,88 @@ const FILLER_PHRASES = Object.freeze({
   Hindi: ['एक सेकंड।', 'मैं देख रहा हूँ।', 'अभी चेक करता हूँ।', 'बस एक पल।'],
   Hinglish: ['Ek second.', 'Main check kar raha hoon.', 'Bas ek pal.', 'Abhi dekhta hoon.'],
 });
+const WORLD_SHOWROOM_VEHICLES = Object.freeze([
+  { id: 'tata-punch-ev', section: 'four', name: 'Tata Punch.ev', brand: 'Tata.ev', kind: 'compact electric SUV', colour: 'grey', price: 'current quote required', features: 'sunroof available on equipped variants', facts: '365 to 375 km ARAI-certified range with 30 kWh, or 468 km with 40 kWh; 65 or 95 kW; 366 L boot; 195 mm ground clearance', efficiency: 'about 11.7 to 12.5 certified km per kWh from the displayed variant figures', fit: 'city buyers wanting compact SUV practicality', visual: 'prototype shell' },
+  { id: 'byd-han-ev', section: 'four', name: 'BYD Han EV', brand: 'BYD', kind: 'flagship electric sedan', colour: 'orange', price: 'no official India listing; global reference', features: 'panoramic sunroof; Blade Battery; rotating 15.6 inch display', facts: '521 km WLTP; 85.4 kWh Blade Battery; 380 kW; 700 Nm; AWD; 0 to 100 km/h in 3.9 seconds', efficiency: 'about 6.1 WLTP km per kWh from 521 divided by 85.4', fit: 'premium performance and long range', visual: '2022 facelift shell' },
+  { id: 'kia-electric-range', section: 'four', name: 'Kia electric range', brand: 'Kia', kind: 'EV technology display', colour: 'black', price: 'INR 60.97 lakh ex-showroom reference', features: 'wide electric sunroof; vehicle-to-load; 10 to 80 percent charging in 18 minutes on a suitable 350 kW charger', facts: 'EV6 GT-Line AWD reference: 663 km ARAI MIDC; 84 kWh; 325 PS; 605 Nm', efficiency: 'about 7.9 ARAI MIDC km per kWh from 663 divided by 84', fit: 'fast charging and long distance technology', visual: 'Sportage shell mapped to official EV6 data' },
+  { id: 'mg-comet-ev', section: 'four', name: 'MG Comet EV', brand: 'JSW MG Motor India', kind: 'urban electric car', colour: 'white', price: 'current MG quote required', features: 'four seats; connected-car features; no sunroof listed', facts: '230 km ARAI-certified range; 17.3 kWh; 42 hp; four seats; 4.2 m turning radius; about seven hours for 0 to 100 percent charging', efficiency: 'about 13.3 ARAI-certified km per kWh from 230 divided by 17.3, the highest ratio among the four displayed cars', fit: 'dense city use and easy parking', visual: 'exact model shell' },
+  { id: 'ola-s1-pro-reference', section: 'two', name: 'OLA S1 Pro', brand: 'OLA Electric', kind: 'performance electric scooter', colour: 'black', price: 'current OLA quote required', features: 'MoveOS; seven inch touchscreen; four ride modes', facts: '242 km IDC; 4 kWh; 11 kW peak power; 125 km/h; 0 to 40 km/h in 2.7 seconds; 0 to 80 percent in 4 hours 50 minutes', efficiency: 'about 60.5 IDC km per kWh from 242 divided by 4, the highest ratio among the two displayed scooters', fit: 'connected urban commuting with strong performance', visual: 'generic OLA shell used as an S1 Pro reference' },
+  { id: 'vespa-elettrica-reference', section: 'two', name: 'Vespa Elettrica', brand: 'Vespa', kind: 'urban electric scooter', colour: 'yellow', price: 'no official India listing; global reference', features: 'Eco, Power and Reverse modes; regeneration', facts: 'up to 80 km WMTC; 4.2 kWh; about four hour charge', efficiency: 'about 19.0 WMTC km per kWh from 80 divided by 4.2', fit: 'short stylish city travel', visual: 'generic Vespa shell mapped to Primavera Tech Elettrica data' },
+]);
+
+const WORLD_SHOWROOM_ALIASES = Object.freeze([
+  { id: 'tata-punch-ev', aliases: ['punch', 'tata', 'grey car', 'gray car', 'silver car', 'compact suv', 'टाटा', 'स्लेटी कार'] },
+  { id: 'byd-han-ev', aliases: ['byd', 'han', 'orange car', 'red car', 'orange sedan', 'बीवाईडी', 'नारंगी कार'] },
+  { id: 'kia-electric-range', aliases: ['kia', 'ev6', 'black car', 'black suv', 'dark suv', 'किआ', 'किया वाली', 'काली कार'] },
+  { id: 'mg-comet-ev', aliases: ['comet', 'mg', 'white car', 'small white car', 'boxy white', 'एमजी', 'सफेद कार'] },
+  { id: 'ola-s1-pro-reference', aliases: ['ola', 's1', 'black scooter', 'ओला'] },
+  { id: 'vespa-elettrica-reference', aliases: ['vespa', 'yellow scooter', 'वेस्पा', 'पीला स्कूटर'] },
+]);
+
+function normalizeWorldShowroomText(text) {
+  return String(text || '').toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{M}\p{N}\s-]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function worldVehicleNavigation(vehicleId, matchedBy) {
+  const vehicle = WORLD_SHOWROOM_VEHICLES.find(item => item.id === vehicleId);
+  return vehicle ? { type: 'vehicle', vehicleId: vehicle.id, section: vehicle.section, matchedBy } : null;
+}
+
+function resolveWorldShowroomNavigation(text, context = {}) {
+  const value = normalizeWorldShowroomText(text);
+  if (!value) return null;
+  const matches = [...new Set(WORLD_SHOWROOM_ALIASES
+    .filter(item => item.aliases.some(alias => value.includes(alias)))
+    .map(item => item.id))];
+  if (matches.length === 1) return worldVehicleNavigation(matches[0], 'identity');
+
+  const section = context.section === 'two' ? 'two' : 'four';
+  const scooterContext = /(scooter|two.?wheeler|bike|स्कूटर|दुपहिया)/.test(value) || (section === 'two' && !/(car|suv|sedan)/.test(value));
+  if (/(most efficient|best efficiency|highest efficiency|most economical|least energy|sabse efficient|sabse kifayati|सबसे कुशल)/.test(value)) {
+    return worldVehicleNavigation(scooterContext ? 'ola-s1-pro-reference' : 'mg-comet-ev', 'efficiency');
+  }
+  if (/(panoramic sunroof|panoramic roof)/.test(value)) return worldVehicleNavigation('byd-han-ev', 'sunroof');
+  if (/(wide electric sunroof|electric sunroof|sunroof|roof wali|सनरूफ)/.test(value)) return worldVehicleNavigation('kia-electric-range', 'sunroof');
+  if (/(another|any other|next car|next vehicle|agli|dusri|doosri)/.test(value)) {
+    const list = WORLD_SHOWROOM_VEHICLES.filter(vehicle => vehicle.section === section);
+    const index = Math.max(-1, list.findIndex(vehicle => vehicle.id === context.vehicleId));
+    return worldVehicleNavigation(list[(index + 1) % list.length].id, 'next');
+  }
+  if (/(two.?wheeler|scooter section|gallery two)/.test(value)) {
+    return { type: 'section', section: 'two', vehicleId: 'ola-s1-pro-reference', matchedBy: 'section' };
+  }
+  if (/(car hall|four.?wheeler|gallery one)/.test(value)) {
+    return { type: 'section', section: 'four', vehicleId: 'tata-punch-ev', matchedBy: 'section' };
+  }
+  return null;
+}
+
+function worldVehicle(id) {
+  return WORLD_SHOWROOM_VEHICLES.find((vehicle) => vehicle.id === id) || WORLD_SHOWROOM_VEHICLES[0];
+}
+
+function worldShowroomInstructions({ language = 'Hinglish', activeVehicleId = 'tata-punch-ev', section = 'four', mode = 'commentary' } = {}) {
+  const active = worldVehicle(activeVehicleId);
+  const languageRule = language === 'Hindi'
+    ? 'Speak in conversational Hindi, using short natural sentences.'
+    : language === 'English'
+      ? 'Speak in warm Indian English, using clear automotive language.'
+      : 'Speak in natural modern Indian Hinglish, mixing Hindi and English comfortably.';
+  const catalogue = WORLD_SHOWROOM_VEHICLES.map((vehicle) =>
+    '- ' + vehicle.name + ' [' + vehicle.id + '] by ' + vehicle.brand + ' in ' + (vehicle.section === 'four' ? 'EV car hall' : 'two-wheeler studio') + ': ' + vehicle.kind + '; display colour: ' + vehicle.colour + '; price context: ' + vehicle.price + '; features: ' + vehicle.features + '; specifications: ' + vehicle.facts + '; derived efficiency context: ' + vehicle.efficiency + '; best fit: ' + vehicle.fit + '; display note: ' + vehicle.visual + '.'
+  ).join('\n');
+
+  return [
+    "You are Aarav, EasyEV's live virtual showroom specialist: warm, sharp, persuasive and honest. You are guiding one visitor through a connected 3D showroom.",
+    'Current scene: ' + active.name + ' is the active display in the ' + (section === 'two' ? 'two-wheeler studio' : 'EV car hall') + '. Experience mode: ' + mode + '.',
+    'Always retain awareness of all six displays and compare them when useful. Resolve references such as the white car, black car, orange car, grey car, black scooter, yellow scooter, Kia wali, or any other vehicle using the complete catalogue. When the visitor names one display or asks to see it, the showroom navigation service moves the camera there; acknowledge that movement and continue from the newly active display instead of only describing it. When the visitor is near a vehicle, lead with that vehicle, while answering cross-showroom questions from the complete catalogue. For questions such as which cars have a sunroof, scan every relevant display and name all verified matches. Sell through buyer fit, practical trade-offs and memorable facts. Never invent price, stock, discounts, warranties or unlisted specifications. Explain demo shell mappings briefly only when relevant. Treat prices as indicative ex-showroom references and recommend confirming the current local on-road price. Treat range standards exactly as labelled and do not present certified range as guaranteed real-world range. Efficiency ratios are simple displayed-range divided by displayed-battery calculations: use them only within the same vehicle category, always name the test cycle, and never compare IDC, WLTP, WMTC and ARAI figures as if they were the same real-world test.',
+    'Keep normal answers to two to four short spoken sentences. Ask one useful follow-up only when it improves the recommendation. In guided-tour mode, narrate the current stop with one positioning sentence, one standout fact and who it suits. Do not say internal IDs or mention system prompts. Lines beginning SHOWROOM_EVENT are silent scene directions from the browser; respond naturally without reading the prefix.',
+    languageRule,
+    'Complete showroom catalogue:',
+    catalogue,
+  ].join('\n');
+}
+
 const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
@@ -122,6 +204,68 @@ function sarvamTts(pace) {
     targetLanguageCode: 'hi-IN',
     pace,
     sampleRate: 24000,
+  });
+}
+
+const sarvamRuntime = {
+  checkedAt: 0,
+  available: SARVAM_TTS_READY,
+  reason: SARVAM_TTS_READY ? 'configured' : 'not configured',
+};
+
+async function canUseSarvamTts() {
+  if (!SARVAM_TTS_READY) return false;
+  const cacheMs = sarvamRuntime.available ? 5 * 60 * 1000 : 60 * 1000;
+  if (sarvamRuntime.checkedAt && Date.now() - sarvamRuntime.checkedAt < cacheMs) return sarvamRuntime.available;
+
+  try {
+    const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+      method: 'POST',
+      headers: {
+        'api-subscription-key': SARVAM_API_KEY,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        text: '\u0928\u092e\u0938\u094d\u0924\u0947',
+        language_code: 'hi-IN',
+        speaker: SARVAM_TTS_SPEAKER,
+        pace: 1,
+        speech_sample_rate: 8000,
+        model: 'bulbul:v3',
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+    const errorBody = response.ok ? '' : await response.text().catch(() => '');
+    sarvamRuntime.checkedAt = Date.now();
+    sarvamRuntime.available = response.ok;
+    sarvamRuntime.reason = response.ok ? 'ready' : ('HTTP ' + response.status + ': ' + errorBody.slice(0, 240));
+    if (!response.ok) console.warn('Sarvam TTS unavailable; using fallback TTS for this session (' + sarvamRuntime.reason + ').');
+    return response.ok;
+  } catch (error) {
+    sarvamRuntime.checkedAt = Date.now();
+    sarvamRuntime.available = false;
+    sarvamRuntime.reason = safeMessage(error, 'health check failed');
+    console.warn('Sarvam TTS check failed; using fallback TTS for this session (' + sarvamRuntime.reason + ').');
+    return false;
+  }
+}
+
+async function conversationalTts({ language, voice, speechInstructions, pace = 1.08 }) {
+  if (language !== 'English' && await canUseSarvamTts()) return sarvamTts(pace);
+  if (AZURE_SPEECH_READY) {
+    return new MicrosoftTTS({
+      key: AZURE_SPEECH_KEY,
+      region: AZURE_SPEECH_REGION,
+      voiceName: selectedVoice(voice).voiceName,
+      sampleRate: 24000,
+      speed: language === 'English' ? 1.12 : pace,
+    });
+  }
+  return new OpenAITTS({
+    model: 'tts-1',
+    voice: 'onyx',
+    instructions: speechInstructions,
+    speed: language === 'English' ? 1.15 : pace,
   });
 }
 
@@ -526,15 +670,25 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
   });
 }
 
-function createVehicleAgentSession({ channel, uid, vehicleId, language, voice }) {
-  const vehicle = getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
+async function createVehicleAgentSession({ channel, uid, vehicleId, language, voice, worldMode = false, section = 'four', commentaryMode = 'commentary' }) {
+  const vehicle = worldMode
+    ? worldVehicle(vehicleId)
+    : getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
   const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
-  const greeting = language === 'Hindi'
+  const vehicleGreeting = language === 'Hindi'
     ? `नमस्ते! मैं ${vehicle.name} (${vehicle.company}) का AI एक्सपर्ट हूँ। आप इस गाड़ी की कीमत, बैटरी, रेंज या फीचर्स के बारे में जो पूछना चाहें, पूछिए!`
     : language === 'Hinglish'
       ? `Hello! Main ${vehicle.name} (${vehicle.company}) ka dedicated AI expert hoon. Iski real-world range, charging, price ya features ke bare me aap kuch bhi pooch sakte hain.`
       : `Hello! I am your dedicated AI specialist for the ${vehicle.name} by ${vehicle.company}. Ask me anything about its real-world range, battery, pricing, or charging in India.`;
+
+  const greeting = worldMode
+    ? (language === 'Hindi'
+      ? 'EasyEV showroom mein aapka swagat hai. Main Aarav hoon. Main aapko guided tour de sakta hoon, har vehicle samjha sakta hoon, ya aapke sawaalon ka jawab de sakta hoon.'
+      : language === 'English'
+        ? 'Welcome to the EasyEV virtual showroom. I am Aarav. I can guide the full tour, introduce any display, or answer questions across the collection.'
+        : 'Welcome to the EasyEV virtual showroom. Main Aarav hoon. Main complete guided tour kara sakta hoon, kisi bhi vehicle ko explain kar sakta hoon, ya poore collection par aapke questions le sakta hoon.')
+    : vehicleGreeting;
 
   const speechInstructions = language === 'Hindi'
     ? 'Speak in conversational Hindi with clear pronunciation and natural phrasing.'
@@ -542,7 +696,7 @@ function createVehicleAgentSession({ channel, uid, vehicleId, language, voice })
       ? 'Speak in modern Indian Hinglish with natural pacing and warm automotive terminology.'
       : 'Speak in warm Indian English with clear automotive terminology.';
 
-  const availableViews = vehicle.makeView
+  const availableViews = worldMode ? [] : vehicle.makeView
     ? ['configurable exterior']
     : Object.values(vehicle.views || {}).map((view) => view.label);
   const availableColors = Object.values(vehicle.colors || {});
@@ -558,15 +712,13 @@ function createVehicleAgentSession({ channel, uid, vehicleId, language, voice })
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: [vehicle.name, vehicle.company, 'EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस'] });
 
-  const tts = language !== 'English' && SARVAM_TTS_READY
-    ? sarvamTts(1.08)
-    : AZURE_SPEECH_READY
-      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
-      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
+  const tts = await conversationalTts({ language, voice, speechInstructions, pace: 1.08 });
 
   const agent = new Agent({
     client,
-    instructions: `${vehicle.knowledgePrompt}
+    instructions: worldMode
+      ? worldShowroomInstructions({ language, activeVehicleId: vehicleId, section, mode: commentaryMode })
+      : `${vehicle.knowledgePrompt}
 Price context: the showroom currently displays ${vehicle.price || 'no verified public price'} (${vehicle.priceNote || 'pricing must be verified'}). You may quote this only as an indicative starting price, clearly say ex-showroom, and recommend confirming the current local on-road price. Never invent discounts, finance, inventory or a final payable amount.
 Interactive showroom controls for this exact vehicle: ${showroomControls}.
 The browser executes supported visual commands directly from the live transcript, without waiting for an AI tool round-trip. When the buyer asks for a supported view, angle, colour, or body style, acknowledge it immediately in one short present-tense sentence in the active language, such as "Main aapko car ka back view dikha raha hoon." Never claim to show a control that is listed as unavailable. A top, roof, overhead, underside, or underbody angle is not available; say so briefly and offer front, rear, left, or right instead.
@@ -603,9 +755,23 @@ Keep answers concise, accurate, and conversational. For visual commands use one 
       greetingMessage: greeting,
       failureMessage: 'I had trouble answering that. Please ask once more.',
       maxHistory: TOOL_SAFE_MAX_HISTORY,
-      params: { max_tokens: 180, temperature: 0.2, top_p: 0.9 },
+      params: { max_tokens: worldMode ? 240 : 180, temperature: 0.2, top_p: 0.9 },
     }))
     .withTts(tts);
+
+  if (worldMode) {
+    agent.withFillerWords({
+      enable: true,
+      trigger: { mode: 'fixed_time', fixed_time_config: { response_wait_ms: 650 } },
+      content: {
+        mode: 'static',
+        static_config: {
+          phrases: FILLER_PHRASES[language] || FILLER_PHRASES.Hinglish,
+          selection_rule: 'shuffle',
+        },
+      },
+    });
+  }
 
   return agent.createSession({
     channel,
@@ -1162,7 +1328,7 @@ async function handleMcp(req, res, url) {
 }
 
 async function handleScopedSessionApi(req, res, url) {
-  const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool|transcript|escalate)$/i);
+  const match = url.pathname.match(/^\/api\/sessions\/([0-9a-f-]{36})\/(events|context|snapshot|cancel|report|tool|transcript|escalate|showroom)$/i);
   if (!match) return false;
   const action = match[2];
   if (req.method === 'GET' && action === 'report') {
@@ -1208,6 +1374,67 @@ async function handleScopedSessionApi(req, res, url) {
       record.sseClients.delete(res);
     });
     return true;
+  }
+
+  if (req.method === 'POST' && action === 'showroom') {
+    if (record.kind !== 'world-showroom') return json(res, 400, { error: 'This is not a world showroom session.' });
+    const body = await readJson(req);
+    const current = record.context.showroom || { vehicleId: 'tata-punch-ev', section: 'four', mode: 'commentary' };
+    const navigation = body.action === 'resolve' ? resolveWorldShowroomNavigation(body.text, current) : null;
+    if (body.action === 'resolve' && !navigation) {
+      return json(res, 200, { success: true, navigation: null, context: current });
+    }
+    const requestedVehicleId = navigation?.vehicleId || body.vehicleId;
+    const requestedVehicle = WORLD_SHOWROOM_VEHICLES.find((vehicle) => vehicle.id === requestedVehicleId);
+    const requestedSection = navigation?.section || body.section;
+    const next = {
+      vehicleId: requestedVehicle?.id || current.vehicleId,
+      section: requestedSection === 'two' || requestedSection === 'four' ? requestedSection : requestedVehicle?.section || current.section,
+      mode: ['commentary', 'tour', 'questions'].includes(body.mode) ? body.mode : current.mode,
+    };
+    record.context.showroom = next;
+    await record.session.update({
+      llm: {
+        system_messages: [{ role: 'system', content: worldShowroomInstructions({
+          language: record.language,
+          activeVehicleId: next.vehicleId,
+          section: next.section,
+          mode: next.mode,
+        }) }],
+        params: { ...LLM_PARAMS, max_tokens: 240 },
+      },
+    });
+
+    const selected = worldVehicle(next.vehicleId);
+    if (body.action === 'resolve') {
+      return json(res, 200, { success: true, navigation, context: next });
+    }
+    let prompt = '';
+    if (body.action === 'select' && body.autoExplain !== false) {
+      prompt = 'SHOWROOM_EVENT: The visitor selected ' + selected.name + '. Give a crisp introduction with its strongest buyer benefit and one verified number. Invite a question.';
+    } else if (body.action === 'commentary') {
+      prompt = body.vehicleId
+        ? 'SHOWROOM_EVENT: The visitor started commentary for ' + selected.name + '. Explain its positioning, strongest facts and ideal buyer in three short sentences.'
+        : 'SHOWROOM_EVENT: The visitor started commentary in the ' + (next.section === 'two' ? 'two-wheeler studio' : 'EV car hall') + '. Introduce every display in this hall as one connected, concise overview.';
+    } else if (body.action === 'tour') {
+      prompt = 'SHOWROOM_EVENT: Guided tour stop ' + (Number(body.stop || 0) + 1) + '. The camera has arrived at ' + selected.name + '. Narrate this stop with positioning, one standout fact, buyer fit, and a brief comparison to the nearest alternative.';
+    } else if (body.action === 'section') {
+      prompt = 'SHOWROOM_EVENT: The visitor entered the ' + (next.section === 'two' ? 'two-wheeler studio' : 'EV car hall') + '. Welcome them to this section and explain what they can compare here.';
+    } else if (body.action === 'stop') {
+      try { await record.session.interrupt(); } catch {}
+      return json(res, 200, { success: true, context: next });
+    }
+
+    if (prompt) {
+      await record.session.think(prompt, {
+        on_listening_action: 'interrupt',
+        on_thinking_action: 'interrupt',
+        on_speaking_action: 'interrupt',
+        interruptable: true,
+        metadata: { source: 'easyev-world-showroom', action: body.action || 'focus' },
+      });
+    }
+    return json(res, 200, { success: true, context: next });
   }
 
   if (req.method === 'POST' && action === 'context') {
@@ -1542,20 +1769,42 @@ async function handleApi(req, res, url) {
     }
     bootstraps.delete(body.bootstrapKey);
     const vehicleId = body.vehicleId || pending.vehicleId || 'tata-punch-ev';
-    const vehicle = getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
+    const worldMode = Boolean(body.worldMode);
+    const vehicle = worldMode
+      ? worldVehicle(vehicleId)
+      : getShowroomVehicleById(vehicleId) || getVehicleById(vehicleId) || TOP_12_EVS[0];
     const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
     const voice = selectedVoice(body.voice).id;
     const key = randomUUID();
-    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category: vehicle.category, language, voice });
+    const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category: vehicle.category || vehicle.kind, language, voice });
+    if (worldMode) {
+      record.kind = 'world-showroom';
+      record.context.showroom = {
+        vehicleId,
+        section: body.section === 'two' ? 'two' : 'four',
+        mode: ['commentary', 'tour', 'questions'].includes(body.commentaryMode) ? body.commentaryMode : 'commentary',
+      };
+    }
     sessions.set(key, record);
     try {
-      record.session = createVehicleAgentSession({ channel: pending.channel, uid: pending.uid, vehicleId, language, voice });
+      record.session = await createVehicleAgentSession({
+        channel: pending.channel,
+        uid: pending.uid,
+        vehicleId,
+        language,
+        voice,
+        worldMode,
+        section: record.context.showroom?.section,
+        commentaryMode: record.context.showroom?.mode,
+      });
       record.agentId = await record.session.start();
       return json(res, 200, {
         sessionKey: key,
         agentId: record.agentId,
         state: 'RUNNING',
         vehicle,
+        worldMode,
+        catalogue: worldMode ? WORLD_SHOWROOM_VEHICLES : undefined,
       });
     } catch (error) {
       sessions.delete(key);
@@ -2223,6 +2472,14 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
     if (url.pathname === '/' || url.pathname === '/index.html') return serveFile(res, 'index.html');
     if (url.pathname === '/showroom' || url.pathname === '/showroom/') return serveFile(res, 'showroom/index.html');
+    if (url.pathname === '/testing-openworld' || url.pathname === '/testing-openworld/') {
+      res.writeHead(302, { Location: '/testing-openworld/static/world.html' });
+      return res.end();
+    }
+    if (/^\/testing-openworld\/static\/(?:world|index|showroom|style)\.(?:html|js|css)$/.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
+    if (url.pathname === '/static/models/tata-punch.glb') return serveFile(res, 'testing-openworld/static/models/tata-punch.glb', true);
+    if (/^\/showroom-models\/[a-z0-9_-]+\.glb$/i.test(url.pathname)) return serveFile(res, `assets/ev glm/${url.pathname.slice('/showroom-models/'.length)}`, true);
+    if (/^\/static\/(?:showroom\.js|style\.css)$/.test(url.pathname)) return serveFile(res, 'testing-openworld' + url.pathname);
     if (/^\/showroom\/[a-z0-9-]+\.(?:html|js|css)$/i.test(url.pathname)) return serveFile(res, url.pathname.slice(1));
     if (/^\/showroom-assets\/(?:[a-z0-9-]+\/)*[a-z0-9-]+\.(?:jpe?g|webp|js|css)$/i.test(url.pathname)) {
       return serveFile(res, `assets/3d cars/${url.pathname.slice('/showroom-assets/'.length)}`, true);

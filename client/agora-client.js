@@ -83,6 +83,8 @@ class AgoraAdapter {
     this.requests = new Set();
     this.reportUrl = '';
     this.toolsMode = 'unavailable';
+    this.audioAutoplayBlocked = false;
+    this.autoplayHandler = null;
   }
 
   onEvent(handler) {
@@ -127,6 +129,7 @@ class AgoraAdapter {
           const publisher = String(user.uid);
           if (this.repUid && publisher === String(this.repUid)) {
             this.repAudioTrack = user.audioTrack;
+            user.audioTrack.setVolume?.(100);
             user.audioTrack.play();
             this.emit('REP_CONNECTED', { connected: true, sessionId: context.sessionId });
             return;
@@ -134,7 +137,11 @@ class AgoraAdapter {
           this.remoteAudioTrack = user.audioTrack;
           // While a specialist holds the call the AI stays subscribed — so it keeps
           // transcribing — but is not played to anyone.
-          if (!this.agentMuted) user.audioTrack.play();
+          if (!this.agentMuted) {
+            user.audioTrack.setVolume?.(100);
+            user.audioTrack.play();
+            this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now(), sessionId: context.sessionId });
+          }
           this.emit('AGENT_CONNECTED', { connected: true, sessionId: context.sessionId });
         } catch (error) {
           this.emit('ERROR', { message: `Could not play AI audio: ${error.message || error}`, recoverable: true });
@@ -342,10 +349,60 @@ class AgoraAdapter {
     } finally {
       this.requests.delete(controller);
     }
+  }  async setContext(payload) {
+    return this.scopedPost('context', payload);
   }
 
-  async setContext(payload) {
-    return this.scopedPost('context', payload);
+  watchAudioAutoplay() {
+    if (this.autoplayHandler || typeof AgoraRTC.on !== 'function') return;
+    this.autoplayHandler = () => {
+      this.audioAutoplayBlocked = true;
+      this.emit('AUDIO_AUTOPLAY_BLOCKED', { sessionId: this.context?.sessionId });
+    };
+    AgoraRTC.on('autoplay-failed', this.autoplayHandler);
+  }
+
+  async unlockAudio() {
+    this.watchAudioAutoplay();
+    try {
+      await AgoraRTC.resumeAudioContext?.();
+      this.audioAutoplayBlocked = false;
+      if (!this.remoteAudioTrack) return true;
+      return await this.resumeRemoteAudio({ skipContextResume: true });
+    } catch (error) {
+      this.audioAutoplayBlocked = true;
+      this.emit('AUDIO_AUTOPLAY_BLOCKED', { message: error?.message || String(error) });
+      return false;
+    }
+  }
+
+  async resumeRemoteAudio({ skipContextResume = false } = {}) {
+    const track = this.remoteAudioTrack;
+    if (!track || this.agentMuted) return false;
+    try {
+      if (!skipContextResume) await AgoraRTC.resumeAudioContext?.();
+      track.setVolume?.(100);
+      track.play();
+      this.audioAutoplayBlocked = false;
+      this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now(), sessionId: this.context?.sessionId });
+      return true;
+    } catch (error) {
+      this.audioAutoplayBlocked = true;
+      this.emit('AUDIO_AUTOPLAY_BLOCKED', { message: error?.message || String(error) });
+      return false;
+    }
+  }
+
+  getAudioState() {
+    return {
+      hasRemoteTrack: Boolean(this.remoteAudioTrack),
+      blocked: this.audioAutoplayBlocked,
+      level: Math.max(0, Math.min(1, Number(this.remoteAudioTrack?.getVolumeLevel?.() || 0))),
+    };
+  }
+
+  async showroomAction(action, payload = {}) {
+    return this.scopedPost('showroom', { action, ...payload });
   }
 
   // announce:false suppresses the agent speaking this step's result — used when
@@ -473,6 +530,7 @@ class AgoraAdapter {
 class VehicleAgoraAdapter extends AgoraAdapter {
   async joinVehicle(context) {
     await this.leave({ skipStop: false });
+    this.watchAudioAutoplay();
     const generation = ++this.generation;
     this.context = context;
     this.emit('CALL_STATUS', { status: 'connecting', vehicleId: context.vehicleId });
@@ -501,7 +559,10 @@ class VehicleAgoraAdapter extends AgoraAdapter {
           await this.rtc.subscribe(user, mediaType);
           if (mediaType === 'audio' && user.audioTrack) {
             this.remoteAudioTrack = user.audioTrack;
+            await AgoraRTC.resumeAudioContext?.();
+            user.audioTrack.setVolume?.(100);
             user.audioTrack.play();
+            this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now(), vehicleId: context.vehicleId });
             this.emit('AGENT_CONNECTED', { connected: true, vehicleId: context.vehicleId });
           }
         } catch (error) {
@@ -530,6 +591,10 @@ class VehicleAgoraAdapter extends AgoraAdapter {
         if (generation !== this.generation || !this.micTrack) return;
         const level = Math.max(0, Math.min(1, Number(this.micTrack.getVolumeLevel?.() || 0)));
         this.emit('LOCAL_AUDIO_LEVEL', { level, vehicleId: context.vehicleId });
+        if (this.remoteAudioTrack) {
+          const remoteLevel = Math.max(0, Math.min(1, Number(this.remoteAudioTrack.getVolumeLevel?.() || 0)));
+          this.emit('REMOTE_AUDIO_LEVEL', { level: remoteLevel, vehicleId: context.vehicleId });
+        }
       }, 180);
 
       try {
@@ -576,8 +641,10 @@ class VehicleAgoraAdapter extends AgoraAdapter {
         channel: this.channel,
         uid: this.uid,
         vehicleId: context.vehicleId,
-        language: context.language || 'Hinglish',
-        voice: context.voice || 'madhur',
+        language: context.language || 'Hinglish',        voice: context.voice || 'madhur',
+        worldMode: Boolean(context.worldMode),
+        section: context.section || 'four',
+        commentaryMode: context.commentaryMode || 'commentary',
       });
       if (generation !== this.generation) {
         await postJson('/api/session/stop', { sessionKey: session.sessionKey }, { keepalive: true }).catch(() => {});
@@ -1098,6 +1165,7 @@ class TestDriveAgoraAdapter extends AgoraAdapter {
 
 export const createAgoraAdapter = () => new AgoraAdapter();
 export const createVehicleAgoraAdapter = () => new VehicleAgoraAdapter();
+export const createWorldShowroomAgoraAdapter = () => new VehicleAgoraAdapter();
 export const createRepAdapter = () => new RepAdapter();
 export const createCompareDebateAdapter = () => new CompareDebateAdapter();
 export const createDealerAgoraAdapter = () => new DealerAgoraAdapter();

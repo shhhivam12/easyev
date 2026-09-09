@@ -20,5 +20,53 @@
   <script src="/client/platform-language.js?v=20260908-1"></script>
   <script src="/agora-client.bundle.js?v=20260905-2"></script>
   <script type="module" src="/showroom/showroom.js?v=20260905-2"></script>
+  <a class="vr-showroom-tour-cta" href="/testing-openworld/" aria-label="Experience the VR Showroom Guided Tour">
+    Experience the VR Showroom Guided Tour <span aria-hidden="true">→</span>
+  </a>
+  <style>
+    .vr-showroom-tour-cta {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      z-index: 10000;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 52px;
+      padding: 0 22px;
+      border: 1px solid rgba(130, 255, 157, .58);
+      border-radius: 14px;
+      background: #52f47c;
+      box-shadow: 0 12px 34px rgba(0, 0, 0, .28);
+      color: #04170b;
+      font: 800 14px/1.2 Figtree, Inter, system-ui, sans-serif;
+      text-decoration: none;
+      transform: translateX(-50%);
+      transition: transform .18s ease, background-color .18s ease, box-shadow .18s ease;
+    }
+    .vr-showroom-tour-cta:hover,
+    .vr-showroom-tour-cta:focus-visible {
+      background: #75ff99;
+      box-shadow: 0 16px 40px rgba(28, 236, 92, .28);
+      transform: translateX(-50%) translateY(-2px);
+    }
+    .vr-showroom-tour-cta:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+    .vr-showroom-tour-cta span { font-size: 18px; }
+    @media (max-width: 640px) {
+      .vr-showroom-tour-cta {
+        bottom: 14px;
+        width: calc(100% - 28px);
+        padding: 0 16px;
+        text-align: center;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .vr-showroom-tour-cta { transition: none; }
+    }
+  </style>
 </body>
 </html>

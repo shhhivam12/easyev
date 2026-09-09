@@ -64,6 +64,7 @@ app.innerHTML = `
     <main class="experience">
       <div class="stage-heading">
         <div><span id="stage-badge"></span><h1 id="stage-name"></h1><p id="stage-company"></p></div>
+        <a class="subtle-button" href="/testing-openworld/">Explore the 3D showroom ↗</a>
       </div>
       <section class="viewer-shell" id="viewer-shell" aria-label="Interactive 360 degree vehicle view">
         <div class="studio-lines" aria-hidden="true"></div>
