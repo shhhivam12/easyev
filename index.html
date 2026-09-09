@@ -17018,10 +17018,10 @@
   </script>
 
   <script>
-    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - ROCK-SOLID TOGGLE & DRAGGABLE) === */
+    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - COMPACT PILL & EXPANDABLE) === */
     (function initTelemetryHud() {
       let activeProvenance = null;
-      let hudMode = "BASIC"; // "BASIC", "DETAILED", "DEBUG"
+      let hudMode = "COMPACT"; // "COMPACT", "DETAILED", "DEBUG"
       let posX = null;
       let posY = null;
       let isDragging = false;
@@ -17069,8 +17069,8 @@
             let newX = elemStartX + dx;
             let newY = elemStartY + dy;
 
-            const width = el.offsetWidth || 300;
-            const height = el.offsetHeight || 40;
+            const width = el.offsetWidth || 200;
+            const height = el.offsetHeight || 36;
             newX = Math.max(8, Math.min(window.innerWidth - width - 8, newX));
             newY = Math.max(8, Math.min(window.innerHeight - height - 8, newY));
 
@@ -17090,10 +17090,10 @@
 
           if (wasClick) {
             if (e.target.closest(".hud-close-btn")) {
-              window.setTelemetryMode("BASIC");
+              window.setTelemetryMode("COMPACT");
             } else if (!e.target.closest(".hud-mode-btn") && !e.target.closest(".hud-info-icon")) {
-              // Clicked on pill -> toggle to Detailed
-              window.setTelemetryMode(hudMode === "DETAILED" ? "BASIC" : "DETAILED");
+              // Click anywhere on compact pill toggles between COMPACT and DETAILED
+              window.setTelemetryMode(hudMode === "COMPACT" ? "DETAILED" : "COMPACT");
             }
           }
         };
@@ -17131,31 +17131,20 @@
         const tool = store && store.latestToolTrace;
         const frame = store && store.latestFrameCommit;
 
-        if (hudMode === "BASIC") {
-          const rttText = (rtc.rttMs !== null && rtc.rttMs !== undefined) ? (rtc.rttMs + "ms") : "--";
-          const frameText = (frame && frame.durationMs !== null && frame.durationMs !== undefined) ? (frame.durationMs + "ms") : "--";
-          const bargeText = (bargeIn && bargeIn.t2_playbackStopRequested && bargeIn.t0_detected)
-            ? Math.round(bargeIn.t2_playbackStopRequested - bargeIn.t0_detected) + "ms"
-            : (bargeIn ? (bargeIn.state || "active") : "ready");
-
+        // 1. Ultra-Clean Compact Pill State
+        if (hudMode === "COMPACT") {
           root.innerHTML = `
-            <div class="hud-card hud-pill" title="Click anywhere to open Detailed Engineering Panel (Shortcut: T | Drag to move)">
+            <div class="hud-card hud-pill" style="padding:6px 14px;gap:8px;" title="Click to open Detailed Engineering Panel (Shortcut: T | Drag to move)">
               <span class="hud-drag-handle" title="Drag anywhere on screen">⠿</span>
               <span class="hud-live-dot"></span>
-              <span style="color:#38bdf8;font-weight:600;">LIVE TELEMETRY</span>
-              <span style="color:#64748b;">|</span>
-              <span>RTT: <strong style="color:#fff;">${rttText}</strong></span>
-              <span style="color:#64748b;">|</span>
-              <span>Barge: <strong style="color:#34d399;">${bargeText}</strong></span>
-              <span style="color:#64748b;">|</span>
-              <span>Frame: <strong style="color:#fbbf24;">${frameText}</strong></span>
-              <span style="color:#38bdf8;font-weight:700;margin-left:4px;border:1px solid rgba(56,189,248,0.4);border-radius:4px;padding:2px 6px;font-size:10px;background:rgba(56,189,248,0.1);">▲ OPEN [T]</span>
+              <span style="color:#cbd5e1;font-weight:700;letter-spacing:0.04em;">TELEMETRY</span>
+              <span style="color:#38bdf8;font-weight:700;font-size:10px;margin-left:2px;background:rgba(56,189,248,0.12);padding:1px 5px;border-radius:3px;border:1px solid rgba(56,189,248,0.3);">[T]</span>
             </div>
           `;
           return;
         }
 
-        // Detailed or Debug Mode
+        // 2. Detailed or Debug Mode
         let bargeInHtml = "";
         if (bargeIn) {
           const stopLat = (bargeIn.t2_playbackStopRequested && bargeIn.t1_invoked) ? Math.round(bargeIn.t2_playbackStopRequested - bargeIn.t1_invoked) + "ms" : "--";
@@ -17265,7 +17254,7 @@
               <div class="hud-modes">
                 <button class="hud-mode-btn ${hudMode === "DETAILED" ? "active" : ""}" onclick="window.setTelemetryMode('DETAILED')">Detailed</button>
                 <button class="hud-mode-btn ${hudMode === "DEBUG" ? "active" : ""}" onclick="window.setTelemetryMode('DEBUG')">Debug</button>
-                <button class="hud-mode-btn hud-close-btn" onclick="window.setTelemetryMode('BASIC')" title="Minimize to Pill (Esc)">—</button>
+                <button class="hud-mode-btn hud-close-btn" onclick="window.setTelemetryMode('COMPACT')" title="Minimize to Compact Pill (Esc / T)">—</button>
               </div>
             </div>
             <div class="hud-body">
@@ -17309,8 +17298,7 @@
                   <div class="hud-provenance-box">
                     <strong>${prov.rtt?.name || "Network RTT"}</strong><br/>
                     Boundary: ${prov.rtt?.boundary || "N/A"}<br/>
-                    Source: ${prov.rtt?.source || "N/A"}<br/>
-                    Sampling: ${prov.rtt?.sampling || "N/A"}
+                    Source: ${prov.rtt?.source || "N/A"}
                   </div>` : ""}
                 ${activeProvenance === "jitter" ? `
                   <div class="hud-provenance-box">
@@ -17356,12 +17344,12 @@
         if (e.target && ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName)) return;
         if (e.key === "t" || e.key === "T") {
           if (e.shiftKey) {
-            window.setTelemetryMode(hudMode === "DEBUG" ? "BASIC" : "DEBUG");
+            window.setTelemetryMode(hudMode === "DEBUG" ? "COMPACT" : "DEBUG");
           } else {
-            window.setTelemetryMode(hudMode === "BASIC" ? "DETAILED" : "BASIC");
+            window.setTelemetryMode(hudMode === "COMPACT" ? "DETAILED" : "COMPACT");
           }
-        } else if (e.key === "Escape" && hudMode !== "BASIC") {
-          window.setTelemetryMode("BASIC");
+        } else if (e.key === "Escape" && hudMode !== "COMPACT") {
+          window.setTelemetryMode("COMPACT");
         }
       });
 
