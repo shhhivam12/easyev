@@ -237,6 +237,27 @@
   .hint { color: var(--ink-3); font-size: 12px; margin: 0; }
   .meter { height: 4px; border-radius: 3px; background: var(--rule); overflow: hidden; }
   .meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .12s linear; }
+
+  /* Video tiles: same box for the buyer's incoming stream and our own preview.
+     AgoraRTC's VideoTrack#play() mounts its own <video> inside the container we
+     hand it, so the fill rule below targets that as a descendant, not a <video>
+     we author ourselves. */
+  .video-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+  .video-mount {
+    position: relative; aspect-ratio: 4/3; border-radius: 10px; overflow: hidden;
+    background: linear-gradient(145deg, #1c2a22, #0c130f); border: 1px solid var(--rule);
+  }
+  .video-mount video { width: 100%; height: 100%; object-fit: cover; }
+  .video-mount.is-self video { transform: scaleX(-1); }
+  .video-mount__label {
+    position: absolute; left: 7px; bottom: 6px; z-index: 2;
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .05em; text-transform: uppercase;
+    color: rgba(255,255,255,.85); background: rgba(0,0,0,.42); padding: 2px 7px; border-radius: 20px;
+  }
+  .video-mount__empty {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    color: var(--ink-3); font-size: 11px; text-align: center; padding: 0 10px;
+  }
   .toast {
     position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
     background: var(--panel-2); border: 1px solid var(--rule-2); color: var(--ink);
@@ -338,6 +359,11 @@
       </div>
 
       <div class="stack hide" id="live-panel">
+        <div class="video-row">
+          <div class="video-mount is-self" id="rep-self-video"><span class="video-mount__empty" id="rep-self-video-empty">Camera off</span></div>
+          <div class="video-mount" id="rep-buyer-video"><span class="video-mount__empty" id="rep-buyer-video-empty">Buyer's camera is off</span></div>
+        </div>
+        <button class="cta ghost" id="video-button">Turn on my camera</button>
         <div class="meter" aria-hidden="true"><i id="level"></i></div>
         <button class="cta ghost" id="mute-button">Mute my microphone</button>
 
@@ -727,6 +753,18 @@ renderLeadBooking(passport);
       state.adapter.onEvent((event) => {
         if (event.type === 'LOCAL_AUDIO_LEVEL') $('level').style.width = `${Math.round(event.payload.level * 100)}%`;
         if (event.type === 'ERROR') toast(event.payload.message);
+        if (event.type === 'LOCAL_VIDEO' && event.payload.enabled && event.payload.track) {
+          try { event.payload.track.play('rep-self-video'); } catch {}
+        }
+        if (event.type === 'BUYER_VIDEO') {
+          const empty = $('rep-buyer-video-empty');
+          if (event.payload.active && event.payload.track) {
+            if (empty) empty.hidden = true;
+            try { event.payload.track.play('rep-buyer-video'); } catch {}
+          } else if (empty) {
+            empty.hidden = false;
+          }
+        }
       });
       await state.adapter.join({
         appId: credentials.appId,
@@ -749,7 +787,24 @@ renderLeadBooking(passport);
     }
   });
 
-  $('mute-button').addEventListener('click', async () => {
+  $('video-button').addEventListener('click', async () => {
+    const btn = $('video-button');
+    btn.disabled = true;
+    try {
+      if (!state.adapter) throw new Error('Join the call before turning on video.');
+      const turningOn = btn.textContent.trim() === 'Turn on my camera';
+      await state.adapter.setVideoEnabled(turningOn);
+      btn.textContent = turningOn ? 'Turn off my camera' : 'Turn on my camera';
+      const empty = $('rep-self-video-empty');
+      if (empty) empty.hidden = turningOn;
+    } catch (error) {
+      toast(error.message || 'Camera could not be turned on. Check the browser has permission.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+    $('mute-button').addEventListener('click', async () => {
     try {
       state.muted = !state.muted;
       await state.adapter.setMuted(state.muted);
