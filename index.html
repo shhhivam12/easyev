@@ -4146,14 +4146,13 @@
     }
 
     /* ============================================================
-       OUTCOME / DECISION JOURNEY COMPL    /* ============================================================
        OUTCOME & DECISION PASSPORT VIEW (PREMIUM EMERALD OBSIDIAN)
        ============================================================ */
     #outcome-view {
       position: relative;
       min-height: 100svh;
-      height: 100svh;
-      max-height: 100svh;
+      height: auto;
+      max-height: none;
       overflow-y: auto;
       overflow-x: hidden;
       background: radial-gradient(1200px 700px at 50% -10%, rgba(16, 185, 129, 0.22) 0%, transparent 65%),
@@ -4166,7 +4165,7 @@
       align-items: center;
       justify-content: flex-start;
       box-sizing: border-box;
-      padding: clamp(14px, 2vh, 22px) clamp(16px, 2.5vw, 32px) clamp(16px, 2.2vh, 26px);
+      padding: clamp(16px, 2.5vh, 28px) clamp(16px, 2.5vw, 32px) clamp(32px, 4vh, 48px);
     }
 
     .outcome-viewport-container {
@@ -4175,7 +4174,7 @@
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: clamp(10px, 1.5vh, 16px);
+      gap: clamp(12px, 1.8vh, 18px);
       box-sizing: border-box;
       flex: 1;
     }
@@ -4194,30 +4193,6 @@
       flex-direction: column;
       gap: 4px;
       min-width: 0;
-    }
-    .outcome-topline {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 4px 12px;
-      background: rgba(85, 242, 123, 0.12);
-      border: 1px solid rgba(85, 242, 123, 0.35);
-      border-radius: var(--radius-pill, 999px);
-      color: #83ff9d;
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      width: fit-content;
-      box-shadow: 0 0 14px rgba(85, 242, 123, 0.18);
-    }
-    .outcome-pulse-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #55f27b;
-      box-shadow: 0 0 8px #55f27b;
-      animation: pulse-dot 1.4s infinite;
     }
     .outcome-main-title {
       font-family: var(--font-display, "Plus Jakarta Sans", "Figtree", sans-serif);
@@ -4273,11 +4248,11 @@
       100% { transform: translateY(-4px); }
     }
 
-    /* Middle Row: 50/50 Dual Panels Grid */
+    /* Middle Row: Dual Panels Grid */
     .outcome-dashboard-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-      gap: clamp(14px, 1.8vw, 22px);
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: clamp(16px, 2vw, 24px);
       align-items: stretch;
       flex: 1;
       min-height: 0;
@@ -4290,10 +4265,10 @@
       box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      padding: clamp(12px, 1.6vh, 16px) clamp(14px, 1.6vw, 18px);
+      padding: clamp(14px, 1.8vh, 18px) clamp(14px, 1.6vw, 18px);
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       box-sizing: border-box;
       color: #ffffff;
       position: relative;
@@ -4301,7 +4276,11 @@
 
     /* Left Card: PDF Viewer */
     .outcome-card--pdf-viewer {
-      padding: 12px 14px;
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 720px;
     }
     .pdf-panel-head {
       display: flex;
@@ -4309,6 +4288,7 @@
       gap: 12px;
       padding-bottom: 8px;
       border-bottom: 1px solid rgba(85, 242, 123, 0.15);
+      flex-shrink: 0;
     }
     .pdf-badge-icon {
       width: 32px;
@@ -4352,12 +4332,14 @@
     .pdf-viewer-frame {
       display: flex;
       flex-direction: column;
-      background: #041a12;
+      background: #020d09;
       border-radius: 12px;
       border: 1px solid rgba(85, 242, 123, 0.22);
       overflow: hidden;
-      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 12px 35px rgba(0, 0, 0, 0.45);
-      height: 390px;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 14px 40px rgba(0, 0, 0, 0.5);
+      flex: 1;
+      min-height: 720px;
+      height: clamp(720px, 82vh, 980px);
     }
     .pdf-toolbar {
       display: flex;
@@ -4441,6 +4423,7 @@
       min-height: 0;
       background: #020c08;
       transition: grid-template-columns 0.25s ease;
+      overflow: hidden;
     }
     .pdf-viewer-body.is-sidebar-collapsed {
       grid-template-columns: 0px 1fr;
@@ -4448,10 +4431,10 @@
     .pdf-thumbnail-rail {
       background: rgba(2, 14, 9, 0.95);
       border-right: 1px solid rgba(85, 242, 123, 0.14);
-      padding: 8px 6px;
+      padding: 10px 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       overflow-y: auto;
       transition: opacity 0.2s ease, width 0.2s ease;
     }
@@ -4516,15 +4499,16 @@
     }
     .pdf-thumbnail-box {
       width: 100%;
-      height: 60px;
+      height: 88px;
+      aspect-ratio: 1 / 1.35;
       background: #062318;
       border: 1.5px solid rgba(85, 242, 123, 0.2);
       border-radius: 4px;
-      padding: 3px;
+      padding: 6px;
       box-sizing: border-box;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
       overflow: hidden;
       opacity: 0.75;
       transition: all 0.2s ease;
@@ -4551,24 +4535,26 @@
     }
     .pdf-mini-line--short { width: 50%; }
     .pdf-mini-block {
-      height: 12px;
+      height: 14px;
       background: rgba(85, 242, 123, 0.15);
       border-radius: 2px;
       width: 100%;
     }
 
-    /* PDF Canvas Document (High-Fidelity Rendered Page Matching Physical PDF) */
+    /* PDF Canvas Document (Deep Obsidian-Emerald Desk Surface) */
     .pdf-document-canvas {
-      background: #ffffff;
-      color: #0f172a;
+      background: #03140e;
+      background-image: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.06) 1px, transparent 1px);
+      background-size: 16px 16px;
       overflow-y: auto;
-      padding: 12px 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: auto;
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      align-items: center;
       box-sizing: border-box;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+      flex: 1;
+      min-height: 0;
     }
     .doc-page-header {
       display: flex;
@@ -4932,12 +4918,23 @@
       margin-top: 1px;
     }
 
-    /* Page 2, 3, 4 Containers */
+    /* Page 1, 2, 3, 4 Containers - Vertical Portrait A4 Sheets */
     .pdf-document-page {
       display: none;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+      background: #ffffff;
+      color: #0f172a;
+      width: 100%;
+      max-width: 580px;
+      min-height: 820px;
+      box-sizing: border-box;
+      padding: 22px 24px 30px;
+      border-radius: 4px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.35);
       animation: fadeIn 0.2s ease-in-out;
+      margin: 0 auto 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     .pdf-document-page.is-active {
       display: flex;
@@ -5151,24 +5148,27 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
+      min-height: 720px;
+      height: 100%;
+      padding: 16px 18px 20px;
     }
     .outcome-card__head {
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid rgba(85, 242, 123, 0.15);
-      padding-bottom: 8px;
+      padding-bottom: 10px;
       flex-shrink: 0;
     }
     .outcome-card__title-group {
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 10px;
     }
     .outcome-card__icon {
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
       background: rgba(85, 242, 123, 0.14);
       border: 1px solid rgba(85, 242, 123, 0.35);
@@ -5180,7 +5180,7 @@
     }
     .outcome-card h2 {
       font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
-      font-size: 16px;
+      font-size: 17px;
       font-weight: 800;
       color: #ffffff;
       margin: 0;
@@ -5203,33 +5203,33 @@
     .outcome-journey-body {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
       flex: 1;
     }
     .outcome-key-metrics {
       display: grid;
       grid-template-columns: 1fr 1.2fr 1.35fr;
-      gap: 8px;
+      gap: 10px;
       flex-shrink: 0;
     }
     .outcome-stat {
       background: rgba(6, 35, 25, 0.6);
       border: 1px solid rgba(85, 242, 123, 0.18);
       border-radius: 12px;
-      padding: 8px 10px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
     }
     .outcome-stat span {
-      font-size: 8px;
+      font-size: 8.5px;
       font-weight: 800;
       color: #83ff9d;
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
     .outcome-stat strong {
-      font-size: 12.5px;
+      font-size: 13px;
       font-weight: 800;
       color: #ffffff;
       white-space: nowrap;
@@ -5241,11 +5241,11 @@
     .outcome-milestones-wrap {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 10px;
       flex: 1;
     }
     .outcome-milestones-title {
-      font-size: 10px;
+      font-size: 10.5px;
       font-weight: 800;
       color: #83ff9d;
       letter-spacing: 0.1em;
@@ -5254,17 +5254,17 @@
     .outcome-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 6px 9px;
+      gap: 8px 10px;
     }
     .outcome-action {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 7px 10px;
-      background: rgba(6, 35, 25, 0.4);
-      border: 1px solid rgba(85, 242, 123, 0.14);
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(6, 35, 25, 0.45);
+      border: 1px solid rgba(85, 242, 123, 0.16);
       border-radius: 10px;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 600;
       color: #e2e8f0;
       transition: all 0.2s ease;
@@ -5275,8 +5275,8 @@
       color: #ffffff;
     }
     .outcome-action__dot {
-      width: 17px;
-      height: 17px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
       background: #10b981;
       color: #021a10;
@@ -13160,10 +13160,6 @@
         <!-- Top Row: Compact Header with Mascot Avatar -->
         <header class="outcome-header-row">
           <div class="outcome-header-left">
-            <div class="outcome-topline">
-              <span class="outcome-pulse-dot"></span>
-              <span>CONSULTATION COMPLETE · EASYEV LIVE</span>
-            </div>
             <h1 tabindex="-1" id="outcome-title" class="outcome-main-title">Your EV decision journey is ready</h1>
             <p class="outcome-subtitle">EasyEV has preserved what changed during the conversation and the next action you selected.</p>
           </div>
