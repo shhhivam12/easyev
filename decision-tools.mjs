@@ -375,20 +375,27 @@ export function evaluateVehicleCompatibility(vehicleItem, passport, weights = co
       budgetScore = Math.max(2, Math.round(weights.budget * (1 - penalty)));
     }
   } else {
-    // Neutral provisional baseline when budget is unconfirmed
-    budgetScore = Math.round(weights.budget * 0.76);
+    // Intrinsic affordability evaluation: accessible entry price scores higher
+    const maxReferencePrice = vehicleItem.category === 'Electric scooter' ? 2.5 : (vehicleItem.category === 'Electric 3-wheeler' ? 5.0 : 25.0);
+    const priceRatio = Math.min(1.0, vehicleItem.priceMinLakh / maxReferencePrice);
+    budgetScore = Math.round(weights.budget * (0.60 + 0.35 * (1 - priceRatio)));
   }
 
   // 2. Range Fit
+  let rangeScore = weights.range;
   const evalKm = dailyKm || 45;
   const requiredRange = isHighway ? Math.max(evalKm * 2.5, 320) : evalKm * 1.4;
-  const rangeRatio = Math.min(1.2, vehicleItem.claimedRangeKm / requiredRange);
-  let rangeScore = Math.min(weights.range, Math.round(weights.range * Math.min(1, rangeRatio)));
-  if (isHighway && vehicleItem.claimedRangeKm < 280) {
-    rangeScore = Math.max(2, Math.round(rangeScore * 0.6));
-  }
-  if (!hasDailyKm) {
-    rangeScore = Math.min(rangeScore, Math.round(weights.range * 0.80));
+  if (hasDailyKm) {
+    const rangeRatio = Math.min(1.2, vehicleItem.claimedRangeKm / requiredRange);
+    rangeScore = Math.min(weights.range, Math.round(weights.range * Math.min(1, rangeRatio)));
+    if (isHighway && vehicleItem.claimedRangeKm < 280) {
+      rangeScore = Math.max(2, Math.round(rangeScore * 0.6));
+    }
+  } else {
+    // Intrinsic range buffer evaluation based on verified claimed range
+    const maxRefRange = vehicleItem.category === 'Electric scooter' ? 200 : (vehicleItem.category === 'Electric 3-wheeler' ? 180 : 500);
+    const rangeBufferRatio = Math.min(1.0, vehicleItem.claimedRangeKm / maxRefRange);
+    rangeScore = Math.round(weights.range * (0.60 + 0.38 * rangeBufferRatio));
   }
 
   // 3. Charging Fit
@@ -399,7 +406,14 @@ export function evaluateVehicleCompatibility(vehicleItem, passport, weights = co
   } else if (chargingKnown) {
     chargingScore = supportsDcFast ? Math.round(weights.charging * 0.88) : Math.round(weights.charging * 0.40);
   } else {
-    chargingScore = supportsDcFast ? Math.round(weights.charging * 0.82) : Math.round(weights.charging * 0.65);
+    // Differentiate by peak charging turnaround capability
+    if (vehicleItem.category === 'Electric car') {
+      if (/40\s*min/i.test(vehicleItem.charging)) chargingScore = Math.round(weights.charging * 0.95);
+      else if (/50|55|56\s*min/i.test(vehicleItem.charging)) chargingScore = Math.round(weights.charging * 0.88);
+      else chargingScore = Math.round(weights.charging * 0.55); // slow AC only like Comet
+    } else {
+      chargingScore = Math.round(weights.charging * 0.80);
+    }
   }
 
   // 4. Usage Pattern Fit
@@ -408,7 +422,7 @@ export function evaluateVehicleCompatibility(vehicleItem, passport, weights = co
     if (isHighway) {
       usageScore = vehicleItem.claimedRangeKm >= 400 ? weights.usage : Math.round(weights.usage * 0.75);
     } else {
-      usageScore = weights.usage;
+      usageScore = vehicleItem.claimedRangeKm >= 300 ? weights.usage : Math.round(weights.usage * 0.85);
     }
   } else if (vehicleItem.category === 'Electric scooter') {
     usageScore = isHighway ? Math.round(weights.usage * 0.3) : weights.usage;
@@ -421,7 +435,7 @@ export function evaluateVehicleCompatibility(vehicleItem, passport, weights = co
   if (/nexon|punch|xuv400/i.test(vehicleItem.id)) {
     safetyScore = weights.safety;
   } else if (/windsor|ec3/i.test(vehicleItem.id)) {
-    safetyScore = Math.round(weights.safety * 0.85);
+    safetyScore = Math.round(weights.safety * 0.88);
   } else if (/comet/i.test(vehicleItem.id)) {
     safetyScore = Math.round(weights.safety * 0.65);
   } else if (vehicleItem.category === 'Electric scooter') {
@@ -429,7 +443,7 @@ export function evaluateVehicleCompatibility(vehicleItem, passport, weights = co
   }
 
   // 6. Economics / TCO Fit
-  let economicsScore = Math.round(weights.economics * (1 - (vehicleItem.kwhPer100Km || 13) / 30));
+  let economicsScore = Math.round(weights.economics * (1 - (vehicleItem.kwhPer100Km || 13) / 35));
   economicsScore = Math.min(weights.economics, Math.max(3, economicsScore));
 
   const totalScore = Math.min(100, Math.max(10, Math.round(budgetScore + rangeScore + chargingScore + usageScore + safetyScore + economicsScore)));
@@ -1940,30 +1954,31 @@ export class EasyEVToolEngine {
         try { doc.image(iconPath, 48, 38, { width: 22, height: 22 }); } catch {}
       }
       doc.font('Helvetica-Bold').fontSize(12).fillColor('#ffffff').text('EasyEV', iconPath ? 76 : 52, 43, { continued: true });
-      doc.font('Helvetica').fontSize(9.5).fillColor('#a7f3d0').text('   Smarter EV Decisions. Together.');
-      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text(`DECISION PASSPORT - PAGE ${pageNum}/4`, 380, 44, { align: 'right', width: 165 });
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text(`DECISION PASSPORT - PAGE ${pageNum}/4`, 380, 44, { width: 160, align: 'right' });
+      doc.rect(40, 68, 515, 20).fill('#0f3f33');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#a7f3d0').text(pageTitle.toUpperCase(), 52, 73);
       doc.restore();
-
-      doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(pageTitle, 40, 72);
-      doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
-        `Generated ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}  -  Session #${cleanPdfText(sessionKey).slice(0, 8)}  -  Deterministic Decision Brain v2.6`,
-        40, 89
-      );
     };
 
     const drawFooter = (pageNum) => {
       doc.save();
-      doc.rect(40, 792, 515, 1).fill('#e2e8f0');
-      doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(
-        `EasyEV AI Decision Engine  -  Sourced OEM Technical Specifications & Deterministic Compatibility Engine  -  Page ${pageNum} of 4`,
-        40, 800,
-        { align: 'center', width: 515 }
+      const fy = 792;
+      doc.rect(40, fy, 515, 1).fill('#e2e8f0');
+      doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text(
+        `EasyEV Intelligence Engine   |   Deterministic Verification Hash: SHA256-${cleanPdfText(sessionKey).slice(0, 10).toUpperCase()}   |   Page ${pageNum} of 4`,
+        40, fy + 8, { width: 515, align: 'center' }
       );
       doc.restore();
     };
 
     // 1. Audit Signals & Provenance
-    const hasCategory = Boolean(profile.category && profile.category !== 'Not sure');
+    const hasCategory = Boolean(profile.category && profile.category !== 'Not sure' && profile.category !== 'Not selected' && profile.category !== 'exploring all categories');
+    // CRITICAL DOMAIN RULE: EasyEV is primarily an EV car decision platform. Default to 'Electric car' unless user explicitly chooses scooters or 3-wheelers.
+    const effectiveCategory = hasCategory ? profile.category : 'Electric car';
+    const isScooterCategory = /scooter|two-wheeler|bike/i.test(effectiveCategory);
+    const is3WheelerCategory = /3-wheeler|three-wheeler|auto|cargo/i.test(effectiveCategory);
+    const isCarCategory = !isScooterCategory && !is3WheelerCategory;
+
     const hasBudget = Boolean(profile.budgetLakh && Number(profile.budgetLakh) > 0);
     const hasDailyKm = Boolean(profile.dailyKm && Number(profile.dailyKm) > 0);
     const hasCharging = Boolean(profile.chargingAccess && !/not (?:discussed|shared)/i.test(profile.chargingAccess));
@@ -1982,27 +1997,42 @@ export class EasyEVToolEngine {
     const capturedCount = signalItems.filter((s) => Boolean(s.value)).length;
     const readinessPercent = Math.round((capturedCount / 6) * 100);
 
-    // Strict Confidence Tier Invariant
-    let confidenceTier = 'PRELIMINARY';
-    let confidenceLabel = 'Provisional Match';
+    // =========================================================================
+    // DECISION READINESS GATE
+    // Stage 0: Discovery Mode (capturedCount < 3, readiness < 50%) -> Gated, no fake recommendation
+    // Stage 1: Provisional Mode (capturedCount 3-4, readiness 50%-79%) -> Provisional candidate
+    // Stage 2: Verified Decision Ready (capturedCount >= 5, readiness >= 80%) -> Full verified passport
+    // =========================================================================
+    const isDiscoveryMode = capturedCount < 3;
+    const isProvisionalMode = capturedCount >= 3 && capturedCount < 5;
+    const isVerifiedMode = capturedCount >= 5;
+
+    let confidenceTier = 'DISCOVERY STATE';
+    let confidenceLabel = 'Insufficient Signals';
     let confidenceColor = '#d97706'; // amber
     let confidenceBg = '#fffbeb';
-    if (capturedCount >= 5) {
+    if (isVerifiedMode) {
       confidenceTier = 'HIGH CONFIDENCE';
       confidenceLabel = 'High Confidence Match';
       confidenceColor = '#15803d';
       confidenceBg = '#f0fdf4';
-    } else if (capturedCount >= 3) {
+    } else if (isProvisionalMode) {
       confidenceTier = 'EMERGING MATCH';
       confidenceLabel = 'Emerging Match';
       confidenceColor = '#0284c7';
       confidenceBg = '#f0f9ff';
     }
 
-    // Dynamic Weights & Compatibility Engine
+    // Dynamic Weights & Compatibility Engine with Category Enforcement
     const weights = computeDynamicWeights(passport);
-    const catalogVehicles = VEHICLES.filter((v) => !hasCategory || v.category === profile.category);
-    const candidatePool = catalogVehicles.length >= 3 ? catalogVehicles : VEHICLES;
+    const catalogVehicles = VEHICLES.filter((v) => {
+      if (isScooterCategory) return v.category === 'Electric scooter';
+      if (is3WheelerCategory) return v.category === 'Electric 3-wheeler';
+      return v.category === 'Electric car';
+    });
+    const candidatePool = catalogVehicles.length >= 3
+      ? catalogVehicles
+      : VEHICLES.filter((v) => v.category === (isScooterCategory ? 'Electric scooter' : (is3WheelerCategory ? 'Electric 3-wheeler' : 'Electric car')));
 
     const scoredCandidates = candidatePool.map((v) => ({
       vehicle: v,
@@ -2072,7 +2102,7 @@ export class EasyEVToolEngine {
       doc.rect(bx, barY, 21, 6).fill(isFilled ? confidenceColor : '#cbd5e1');
     }
     doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text(
-      capturedCount >= 5 ? 'High confidence deterministic match' : (capturedCount >= 3 ? 'Emerging match - key signals present' : 'Provisional match - baseline model'),
+      isVerifiedMode ? 'High confidence deterministic match' : (isProvisionalMode ? 'Emerging match - key signals present' : 'Discovery state - signals required before recommendation'),
       397, y + 68, { width: 150 }
     );
     doc.restore();
@@ -2081,12 +2111,23 @@ export class EasyEVToolEngine {
     y = 200;
     doc.save();
     doc.rect(40, y, 515, 230).fillAndStroke('#ffffff', '#cbd5e1');
-    doc.rect(40, y, 515, 24).fill(primaryColor);
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text('RECOMMENDED BEST MATCH  -  OVERALL #1 RANK', 52, y + 7);
 
-    // Score Pill on Right
-    doc.rect(420, y + 4, 125, 16).fill('#059669');
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text(`COMPATIBILITY: ${topCompat.score}/100`, 425, y + 8, { align: 'center', width: 115 });
+    if (isDiscoveryMode) {
+      // INSUFFICIENT SIGNALS / DISCOVERY STATE
+      doc.rect(40, y, 515, 24).fill('#334155');
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text('DECISION GATE: INSUFFICIENT SIGNALS FOR RESPONSIBLE RECOMMENDATION', 52, y + 7);
+
+      // Score Pill on Right
+      doc.rect(395, y + 4, 150, 16).fill('#64748b');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#ffffff').text('DATA INSUFFICIENT (-- / 100)', 395, y + 8, { align: 'center', width: 150 });
+    } else {
+      doc.rect(40, y, 515, 24).fill(primaryColor);
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text(isProvisionalMode ? 'PROVISIONAL CANDIDATE - SENSITIVITY EVALUATION' : 'RECOMMENDED BEST MATCH - OVERALL #1 RANK', 52, y + 7);
+
+      // Score Pill on Right
+      doc.rect(420, y + 4, 125, 16).fill('#059669');
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#ffffff').text(`COMPATIBILITY: ${topCompat.score}/100`, 425, y + 8, { align: 'center', width: 115 });
+    }
 
     // Hero Image Embed
     const heroImg = resolveVehicleImage(topVehicle.id, topVehicle.category);
@@ -2122,129 +2163,211 @@ export class EasyEVToolEngine {
     doc.font('Helvetica-Bold').fontSize(7.5).fillColor(primaryColor).text(cleanPdfText(topVehicle.battery).slice(0, 16), 54, imgY + 172);
 
     doc.rect(151, imgY + 158, 94, 28).fillAndStroke('#f8fafc', '#e2e8f0');
-    doc.font('Helvetica-Bold').fontSize(6.5).fillColor(mutedColor).text('FAST DC CHARGING', 155, imgY + 161);
+    doc.font('Helvetica-Bold').fontSize(6.5).fillColor(mutedColor).text('FAST CHARGING', 155, imgY + 161);
     doc.font('Helvetica-Bold').fontSize(7.5).fillColor(primaryColor).text(cleanPdfText(topVehicle.charging).slice(0, 16), 155, imgY + 172);
 
     // Right Side Hero Content
     const rx = 258;
-    doc.font('Helvetica-Bold').fontSize(16).fillColor(primaryColor).text(topVehicle.name, rx, y + 34);
-    doc.font('Helvetica').fontSize(8.5).fillColor(mutedColor).text(
-      `${topVehicle.category}  -  Permanent Magnet Synchronous Motor  -  ${topVehicle.capacity || '5 Seats'}`,
-      rx, y + 54
-    );
+    if (isDiscoveryMode) {
+      doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(`Candidate Pool: ${topVehicle.name}`, rx, y + 34);
+      doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
+        `${topVehicle.category}  -  Segment Baseline Contender  -  Awaiting Qualification`,
+        rx, y + 52
+      );
 
-    // Confidence Banner
-    doc.rect(rx, y + 68, 285, 34).fillAndStroke(confidenceBg, confidenceColor);
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(confidenceColor).text(`RECOMMENDATION CONFIDENCE: ${confidenceTier}`, rx + 8, y + 74);
-    doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(
-      capturedCount >= 5
-        ? 'Fully verified against your commute distance, charging access, and budget constraints.'
-        : (capturedCount >= 3
-            ? 'Emerging match based on key preferences. Verify remaining parameters for high confidence.'
-            : 'Provisional baseline match. Commute and budget not yet shared; recommendation is subject to refinement.'),
-      rx + 8, y + 85, { width: 270 }
-    );
+      // Confidence Banner in Discovery State
+      doc.rect(rx, y + 64, 285, 38).fillAndStroke('#fffbeb', '#fde68a');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#92400e').text('RECOMMENDATION GATE: LOCKED', rx + 8, y + 70);
+      doc.font('Helvetica').fontSize(7.5).fillColor('#78350f').text(
+        'EasyEV adheres to strict automotive decision ethics. We require at least 3 verified signals (Category, Budget, Commute) before issuing a personalized vehicle recommendation.',
+        rx + 8, y + 81, { width: 270 }
+      );
 
-    // Key Decision Highlights
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(primaryColor).text('KEY TECHNICAL SPECIFICATIONS & BENCHMARKS', rx, y + 112);
-    const specsGrid = [
-      ['Real-World Est. Range', `~${Math.round(topVehicle.claimedRangeKm * 0.72)} km (Realistic Highway/City Mix)`],
-      ['Energy Efficiency', `~${topVehicle.kwhPer100Km || 13.5} kWh / 100 km (Low Running Cost)`],
-      ['Manufacturer Warranty', cleanPdfText(topVehicle.warranty || '8 Years / 160,000 km')],
-      ['Structural Platform', '5-Star B-NCAP Platform Safety Architecture'],
-    ];
-    let hY = y + 125;
-    specsGrid.forEach(([lbl, val]) => {
-      doc.font('Helvetica-Bold').fontSize(7.5).fillColor(mutedColor).text(lbl + ':', rx, hY);
-      doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(val, rx + 105, hY, { width: 180 });
-      hY += 16;
-    });
+      // Callout Box for Next Best Question
+      const qBoxY = y + 108;
+      doc.rect(rx, qBoxY, 285, 98).fillAndStroke('#f0fdf4', '#86efac');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text('NEXT BEST QUESTION TO UNLOCK RECOMMENDATION:', rx + 8, qBoxY + 8);
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#065f46').text('"What is your target budget and everyday commute distance?"', rx + 8, qBoxY + 22, { width: 270 });
+      doc.font('Helvetica').fontSize(7.5).fillColor('#047857').text(
+        'Confirming your budget band and daily driving distance will immediately trigger our multi-vector compatibility engine and unlock personalized contender rankings.',
+        rx + 8, qBoxY + 48, { width: 270 }
+      );
+      doc.font('Helvetica-Bold').fontSize(7).fillColor('#0284c7').text(
+        `Verified OEM Manufacturer Technical Catalog (${cleanPdfText(topVehicle.sourceDate || '2026')})`,
+        rx, y + 214
+      );
+    } else {
+      doc.font('Helvetica-Bold').fontSize(16).fillColor(primaryColor).text(topVehicle.name, rx, y + 34);
+      doc.font('Helvetica').fontSize(8.5).fillColor(mutedColor).text(
+        `${topVehicle.category}  -  Permanent Magnet Synchronous Motor  -  ${topVehicle.capacity || '5 Seats'}`,
+        rx, y + 54
+      );
 
-    // Source provenance
-    doc.font('Helvetica-Bold').fontSize(7).fillColor('#0284c7').text(
-      `Verified OEM Manufacturer Technical Catalog (${cleanPdfText(topVehicle.sourceDate || '2026')})`,
-      rx, y + 210
-    );
+      // Confidence Banner
+      doc.rect(rx, y + 68, 285, 34).fillAndStroke(confidenceBg, confidenceColor);
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(confidenceColor).text(`RECOMMENDATION CONFIDENCE: ${confidenceTier}`, rx + 8, y + 74);
+      doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(
+        isVerifiedMode
+          ? 'Fully verified against your commute distance, charging access, and budget constraints.'
+          : 'Provisional candidate based on emerging preferences. Verify remaining parameters for high confidence.',
+        rx + 8, y + 85, { width: 270 }
+      );
+
+      // Key Decision Highlights
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(primaryColor).text('KEY TECHNICAL SPECIFICATIONS & BENCHMARKS', rx, y + 112);
+      const specsGrid = [
+        ['Real-World Est. Range', `~${Math.round(topVehicle.claimedRangeKm * 0.72)} km (Realistic Highway/City Mix)`],
+        ['Energy Efficiency', `~${topVehicle.kwhPer100Km || 13.5} kWh / 100 km (Low Running Cost)`],
+        ['Manufacturer Warranty', cleanPdfText(topVehicle.warranty || '8 Years / 160,000 km')],
+        ['Structural Platform', '5-Star B-NCAP Platform Safety Architecture'],
+      ];
+      let hY = y + 125;
+      specsGrid.forEach(([lbl, val]) => {
+        doc.font('Helvetica-Bold').fontSize(7.5).fillColor(mutedColor).text(lbl + ':', rx, hY);
+        doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(val, rx + 105, hY, { width: 180 });
+        hY += 16;
+      });
+
+      doc.font('Helvetica-Bold').fontSize(7).fillColor('#0284c7').text(
+        `Verified OEM Manufacturer Technical Catalog (${cleanPdfText(topVehicle.sourceDate || '2026')})`,
+        rx, y + 210
+      );
+    }
     doc.restore();
 
-    // Two Panels Below Hero: Why Fits (Left) vs Honest Watch-Outs (Right)
+    // Two Panels Below Hero:
     y = 438;
     doc.save();
+    if (isDiscoveryMode) {
+      // 1. What EasyEV Knows So Far (Left)
+      doc.rect(40, y, 252, 260).fillAndStroke('#f8fafc', '#cbd5e1');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor(primaryColor).text('WHAT EASYEV KNOWS SO FAR', 50, y + 10);
+      doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text('Verified signal provenance audit', 50, y + 21);
 
-    // 1. Why Fits Panel (Left)
-    doc.rect(40, y, 252, 260).fillAndStroke('#f0fdf4', '#86efac');
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#166534').text('WHY THIS MATCH FITS YOUR LIFE', 50, y + 10);
-    doc.font('Helvetica').fontSize(7).fillColor('#047857').text('Personalized evaluation against your captured profile', 50, y + 21);
+      const discoverySignals = [
+        { label: 'Consultation Session', val: 'Active · Session initiated', verified: true },
+        { label: 'Vehicle Category', val: hasCategory ? profile.category : 'Not confirmed (Defaulting to Electric car)', verified: hasCategory },
+        { label: 'Target Budget', val: hasBudget ? `Rs. ${Number(profile.budgetLakh).toFixed(1)} Lakh` : 'Not shared yet (Required for EMI)', verified: hasBudget },
+        { label: 'Daily Commute', val: hasDailyKm ? `${profile.dailyKm} km/day` : 'Not shared yet (Required for battery buffer)', verified: hasDailyKm },
+        { label: 'Home Charging Access', val: hasCharging ? profile.chargingAccess : 'Not shared yet (Required for tariff calc)', verified: hasCharging },
+        { label: 'Primary Use Case', val: hasUsage ? profile.usagePattern : 'Not shared yet (City vs Highway)', verified: hasUsage },
+      ];
 
-    const honestWhyFits = [];
-    if (hasBudget) {
-      honestWhyFits.push(`Fits comfortably within your Rs. ${Number(profile.budgetLakh).toFixed(1)}L target budget band with competitive on-road financing.`);
+      let dsY = y + 36;
+      discoverySignals.forEach((ds) => {
+        if (ds.verified) drawCheckIcon(doc, 56, dsY + 5, 4);
+        else drawPendingDot(doc, 56, dsY + 5, 4);
+        doc.font('Helvetica-Bold').fontSize(7.5).fillColor(textColor).text(ds.label + ':', 68, dsY);
+        doc.font('Helvetica').fontSize(7).fillColor(ds.verified ? '#047857' : '#94a3b8').text(ds.val, 68, dsY + 10, { width: 215 });
+        dsY += 36;
+      });
+
+      // 2. Why We Require 3 Signals & Sensitivity (Right)
+      doc.rect(302, y, 253, 260).fillAndStroke('#fffbeb', '#fde68a');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#92400e').text('WHY EASYEV REQUIRES 3 SIGNALS', 312, y + 10);
+      doc.font('Helvetica').fontSize(7).fillColor('#78350f').text('Automotive decision ethics & sensitivity triggers', 312, y + 21);
+
+      const ethicsNotes = [
+        'Commute distance determines whether a 25 kWh city battery suffices or a 45 kWh highway pack is mandatory.',
+        'Home vs public charging split changes your 5-year running costs by more than Rs. 3,50,000.',
+        'Recommending a specific EV before knowing your budget can push buyers toward unaffordable loans.',
+      ];
+      let etY = y + 36;
+      ethicsNotes.forEach((note) => {
+        drawInfoIcon(doc, 318, etY + 5, 4);
+        doc.font('Helvetica').fontSize(7.5).fillColor('#78350f').text(note, 330, etY, { width: 215 });
+        etY += 34;
+      });
+
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#92400e').text('WHAT HAPPENS WHEN SIGNALS ARE SHARED?', 312, etY + 4);
+      const whatHappens = [
+        { trigger: 'Budget confirmed', result: 'Filters models exceeding 15% debt-to-income margin' },
+        { trigger: 'Commute confirmed', result: 'Calculates real daily range buffer & kWh consumption' },
+        { trigger: 'Charging confirmed', result: 'Simulates exact domestic slab vs DC fast tariff' },
+      ];
+      let whY = etY + 18;
+      whatHappens.forEach((wh) => {
+        drawCheckIcon(doc, 318, whY + 4, 3.5);
+        doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#0f172a').text(wh.trigger + ':', 328, whY);
+        doc.font('Helvetica').fontSize(7.5).fillColor('#64748b').text(wh.result, 328, whY + 9, { width: 220 });
+        whY += 24;
+      });
     } else {
-      honestWhyFits.push(`Ex-showroom pricing starting from Rs. ${topVehicle.priceMinLakh.toFixed(2)}L provides an accessible entry point (budget target pending confirmation).`);
+      // 1. Why Fits Panel (Left)
+      doc.rect(40, y, 252, 260).fillAndStroke('#f0fdf4', '#86efac');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#166534').text('WHY THIS MATCH FITS YOUR LIFE', 50, y + 10);
+      doc.font('Helvetica').fontSize(7).fillColor('#047857').text('Personalized evaluation against your captured profile', 50, y + 21);
+
+      const honestWhyFits = [];
+      if (hasBudget) {
+        honestWhyFits.push(`Fits comfortably within your Rs. ${Number(profile.budgetLakh).toFixed(1)}L target budget band with competitive on-road financing.`);
+      } else {
+        honestWhyFits.push(`Ex-showroom pricing starting from Rs. ${topVehicle.priceMinLakh.toFixed(2)}L provides an accessible entry point.`);
+      }
+
+      if (hasDailyKm) {
+        honestWhyFits.push(`Real-world range (~${Math.round(topVehicle.claimedRangeKm * 0.72)} km) provides generous buffer for your ${profile.dailyKm} km daily commute.`);
+      } else {
+        honestWhyFits.push(`Claimed range of ${topVehicle.claimedRangeKm} km provides strong baseline travel buffer.`);
+      }
+
+      if (hasCharging) {
+        honestWhyFits.push(`Seamless home AC wallbox charging keeps your running cost under Rs. 1.20/km with overnight top-ups.`);
+      } else {
+        honestWhyFits.push(`Equipped with standard fast charging (${cleanPdfText(topVehicle.charging).slice(0, 24)}) for reliable public top-ups.`);
+      }
+
+      honestWhyFits.push('High structural safety rating with active liquid-cooled thermal management for Indian weather.');
+
+      let wfY = y + 36;
+      honestWhyFits.slice(0, 4).forEach((item) => {
+        drawCheckIcon(doc, 56, wfY + 6, 4.5);
+        doc.font('Helvetica').fontSize(8).fillColor('#065f46').text(cleanPdfText(item), 68, wfY, { width: 215 });
+        wfY += 52;
+      });
+
+      // 2. Honest Watch-Outs Panel (Right)
+      doc.rect(302, y, 253, 260).fillAndStroke('#fffbeb', '#fde68a');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#92400e').text('HONEST WATCH-OUTS & SENSITIVITY', 312, y + 10);
+      doc.font('Helvetica').fontSize(7).fillColor('#78350f').text('Genuine automotive trade-offs & recommendation triggers', 312, y + 21);
+
+      const honestTradeOffs = [];
+      if (topVehicle.id === 'tata-nexon-ev') {
+        honestTradeOffs.push('Highway range drops ~25% at sustained speeds above 90 km/h; plan DC charging stops every 200-240 km.');
+        honestTradeOffs.push('Public DC fast charging speed tapers significantly above 80% state-of-charge to protect battery longevity.');
+      } else if (topVehicle.id === 'tata-punch-ev') {
+        honestTradeOffs.push('Compact rear seat legroom and boot capacity (366L) compared to larger crossover alternatives.');
+        honestTradeOffs.push('Peak DC charging speed (30kW) is slower than larger Nexon.ev (50kW+ dual gun).');
+      } else if (topVehicle.id === 'mg-comet-ev') {
+        honestTradeOffs.push('Compact 4-seater with no fast DC charging (slow AC only); strictly designed for urban city commuting.');
+        honestTradeOffs.push('Limited luggage space with all seats occupied; not suited for intercity highway journeys.');
+      } else {
+        honestTradeOffs.push('Real-world range varies by ~15-20% based on aggressive air-conditioning and highway driving speeds.');
+        honestTradeOffs.push('Home electrical connection requires minimum 15A socket or dedicated 3.3kW / 7.2kW AC wallbox meter.');
+      }
+
+      let toY = y + 36;
+      honestTradeOffs.slice(0, 2).forEach((item) => {
+        drawWarningIcon(doc, 318, toY + 6, 4.5);
+        doc.font('Helvetica').fontSize(8).fillColor('#78350f').text(cleanPdfText(item), 330, toY, { width: 215 });
+        toY += 46;
+      });
+
+      // Sensitivity Simulations
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#92400e').text('WHAT WOULD CHANGE THIS RECOMMENDATION?', 312, toY + 4);
+      const sensitivities = [
+        { trigger: 'Daily commute > 150 km/day', shift: 'Upgrade to Long-Range pack variant or Windsor EV' },
+        { trigger: 'No home charging access', shift: 'Shift priority to models with higher peak DC charging speed' },
+        { trigger: 'Budget expands to Rs. 18L+', shift: 'Consider Mahindra XUV400 or MG Windsor EV for larger cabin' },
+      ];
+      let sY = toY + 18;
+      sensitivities.forEach((s) => {
+        drawInfoIcon(doc, 318, sY + 5, 3.5);
+        doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#0f172a').text(s.trigger + ':', 328, sY);
+        doc.font('Helvetica').fontSize(7.5).fillColor('#64748b').text(s.shift, 328, sY + 9, { width: 220 });
+        sY += 24;
+      });
     }
-
-    if (hasDailyKm) {
-      honestWhyFits.push(`Real-world range (~${Math.round(topVehicle.claimedRangeKm * 0.72)} km) provides generous buffer for your ${profile.dailyKm} km daily commute.`);
-    } else {
-      honestWhyFits.push(`Claimed range of ${topVehicle.claimedRangeKm} km provides strong baseline travel buffer (daily commute distance pending confirmation).`);
-    }
-
-    if (hasCharging) {
-      honestWhyFits.push(`Seamless home AC wallbox charging keeps your running cost under Rs. 1.20/km with overnight top-ups.`);
-    } else {
-      honestWhyFits.push(`Equipped with standard CCS2 DC fast charging (${cleanPdfText(topVehicle.charging).slice(0, 24)}) for reliable public network top-ups.`);
-    }
-
-    honestWhyFits.push('High structural safety rating with active liquid-cooled thermal management for Indian weather.');
-
-    let wfY = y + 36;
-    honestWhyFits.slice(0, 4).forEach((item) => {
-      drawCheckIcon(doc, 56, wfY + 6, 4.5);
-      doc.font('Helvetica').fontSize(8).fillColor('#065f46').text(cleanPdfText(item), 68, wfY, { width: 215 });
-      wfY += 52;
-    });
-
-    // 2. Honest Watch-Outs Panel (Right)
-    doc.rect(302, y, 253, 260).fillAndStroke('#fffbeb', '#fde68a');
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#92400e').text('HONEST WATCH-OUTS & SENSITIVITY', 312, y + 10);
-    doc.font('Helvetica').fontSize(7).fillColor('#78350f').text('Genuine automotive trade-offs & recommendation triggers', 312, y + 21);
-
-    const honestTradeOffs = [];
-    if (topVehicle.id === 'tata-nexon-ev') {
-      honestTradeOffs.push('Highway range drops ~25% at sustained speeds above 90 km/h; plan DC charging stops every 200-240 km.');
-      honestTradeOffs.push('Public DC fast charging speed tapers significantly above 80% state-of-charge to protect battery longevity.');
-    } else if (topVehicle.id === 'tata-punch-ev') {
-      honestTradeOffs.push('Compact rear seat legroom and boot capacity (366L) compared to larger crossover alternatives.');
-      honestTradeOffs.push('Peak DC charging speed (30kW) is slower than larger Nexon.ev (50kW+ dual gun).');
-    } else if (topVehicle.id === 'mg-comet-ev') {
-      honestTradeOffs.push('Compact 4-seater with no fast DC charging (slow AC only); strictly designed for urban city commuting.');
-      honestTradeOffs.push('Limited luggage space with all seats occupied; not suited for intercity highway journeys.');
-    } else {
-      honestTradeOffs.push('Real-world range varies by ~15-20% based on aggressive air-conditioning and highway driving speeds.');
-      honestTradeOffs.push('Home electrical connection requires minimum 15A socket or dedicated 3.3kW / 7.2kW AC wallbox meter.');
-    }
-
-    let toY = y + 36;
-    honestTradeOffs.slice(0, 2).forEach((item) => {
-      drawWarningIcon(doc, 318, toY + 6, 4.5);
-      doc.font('Helvetica').fontSize(8).fillColor('#78350f').text(cleanPdfText(item), 330, toY, { width: 215 });
-      toY += 46;
-    });
-
-    // Sensitivity Simulations (What would change recommendation?)
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#92400e').text('WHAT WOULD CHANGE THIS RECOMMENDATION?', 312, toY + 4);
-    const sensitivities = [
-      { trigger: 'Daily commute > 150 km/day', shift: 'Upgrade to Long-Range pack variant or Windsor EV' },
-      { trigger: 'No home charging access', shift: 'Shift priority to models with higher peak DC charging speed' },
-      { trigger: 'Budget expands to Rs. 18L+', shift: 'Consider Mahindra XUV400 or MG Windsor EV for larger cabin' },
-    ];
-    let sY = toY + 18;
-    sensitivities.forEach((s) => {
-      drawInfoIcon(doc, 318, sY + 5, 3.5);
-      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#0f172a').text(s.trigger + ':', 328, sY);
-      doc.font('Helvetica').fontSize(7.5).fillColor('#64748b').text(s.shift, 328, sY + 9, { width: 220 });
-      sY += 24;
-    });
     doc.restore();
 
     // Bottom Deterministic Guarantee Box
@@ -2257,7 +2380,7 @@ export class EasyEVToolEngine {
       52, y + 21, { width: 490 }
     );
     doc.font('Helvetica-Bold').fontSize(7).fillColor('#059669').text(
-      `Cryptographic Verification ID: SHA256-${cleanPdfText(sessionKey).slice(0, 12).toUpperCase()}  -  Source Catalog: 2026 OEM Technical Repository`,
+      `Decision Engine Verification Hash: SHA256-${cleanPdfText(sessionKey).slice(0, 12).toUpperCase()}  -  Source Catalog: 2026 OEM Technical Repository`,
       52, y + 56
     );
     doc.restore();
@@ -2268,7 +2391,7 @@ export class EasyEVToolEngine {
     // PAGE 2: WHY THIS EV WON (THE COMPETITION)
     // ==========================================
     doc.addPage();
-    drawHeader(2, 'The Competition & Explainability Matrix');
+    drawHeader(2, isDiscoveryMode ? 'Decision Space Explorer · Contenders Awaiting Qualification' : 'The Competition & Explainability Matrix');
 
     // Top Section: Top 3 Contender Cards
     y = 104;
@@ -2277,16 +2400,18 @@ export class EasyEVToolEngine {
       const cx = 40 + idx * (colW + 8);
       const v = cand.vehicle;
       const c = cand.compat;
-      const isTop = idx === 0;
-      const borderCol = isTop ? '#10b981' : (idx === 1 ? '#38bdf8' : '#cbd5e1');
-      const bgCol = isTop ? '#f0fdf4' : '#ffffff';
+      const isTop = idx === 0 && !isDiscoveryMode;
+      const borderCol = isDiscoveryMode ? '#cbd5e1' : (isTop ? '#10b981' : (idx === 1 ? '#38bdf8' : '#cbd5e1'));
+      const bgCol = isDiscoveryMode ? '#ffffff' : (isTop ? '#f0fdf4' : '#ffffff');
 
       doc.save();
       doc.rect(cx, y, colW, 194).fillAndStroke(bgCol, borderCol);
 
       // Rank Header Pill
-      const rankLabel = idx === 0 ? '#1 TOP MATCH' : (idx === 1 ? '#2 RUNNER UP' : '#3 CONTENDER');
-      const pillBg = idx === 0 ? '#059669' : (idx === 1 ? '#0284c7' : '#64748b');
+      const rankLabel = isDiscoveryMode
+        ? `CONTENDER ${String.fromCharCode(65 + idx)} · ${v.name}`
+        : (idx === 0 ? '#1 TOP MATCH' : (idx === 1 ? '#2 RUNNER UP' : '#3 CONTENDER'));
+      const pillBg = isDiscoveryMode ? '#475569' : (idx === 0 ? '#059669' : (idx === 1 ? '#0284c7' : '#64748b'));
       doc.rect(cx, y, colW, 18).fill(pillBg);
       doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(rankLabel, cx, y + 5, { align: 'center', width: colW });
 
@@ -2307,7 +2432,8 @@ export class EasyEVToolEngine {
 
       // Vehicle Name & Score
       doc.font('Helvetica-Bold').fontSize(10).fillColor(primaryColor).text(cleanPdfText(v.name), cx + 8, y + 95, { width: colW - 16 });
-      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(secondaryColor).text(`Compatibility: ${c.score}/100`, cx + 8, y + 109);
+      const scoreStr = isDiscoveryMode ? 'Compatibility: Baseline (Unranked)' : `Compatibility: ${c.score}/100`;
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(isDiscoveryMode ? mutedColor : secondaryColor).text(scoreStr, cx + 8, y + 109);
 
       // Specs
       const vMinP = v.priceMinLakh != null ? Number(v.priceMinLakh).toFixed(2) : '12.00';
@@ -2333,8 +2459,13 @@ export class EasyEVToolEngine {
     // Section 2: 6-Dimension Compatibility Matrix Table
     y = 306;
     doc.save();
-    doc.font('Helvetica-Bold').fontSize(10).fillColor(primaryColor).text('1. Deterministic Compatibility Scoring Matrix', 40, y);
-    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text('Mathematical breakdown across 6 core evaluation dimensions (normalized to 100 points)', 40, y + 12);
+    doc.font('Helvetica-Bold').fontSize(10).fillColor(primaryColor).text(isDiscoveryMode ? '1. Contender Technical Matrix (Awaiting Profile Weighting)' : '1. Deterministic Compatibility Scoring Matrix', 40, y);
+    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(
+      isDiscoveryMode
+        ? 'Mathematical breakdown across 6 evaluation vectors. Full personalized weighting unlocks upon budget & commute input.'
+        : 'Mathematical breakdown across 6 core evaluation dimensions (normalized to 100 points)',
+      40, y + 12
+    );
 
     y += 24;
     doc.rect(40, y, 515, 156).fillAndStroke('#ffffff', '#e2e8f0');
@@ -2343,9 +2474,9 @@ export class EasyEVToolEngine {
     doc.rect(40, y, 515, 20).fill(primaryColor);
     doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text('EVALUATION DIMENSION', 50, y + 6);
     doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text('MAX WEIGHT', 185, y + 6);
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`#1 ${cleanPdfText(top3[0]?.vehicle.name || 'Match')}`, 265, y + 6, { width: 90, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`#2 ${cleanPdfText(top3[1]?.vehicle.name || 'Match')}`, 365, y + 6, { width: 90, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`#3 ${cleanPdfText(top3[2]?.vehicle.name || 'Match')}`, 460, y + 6, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`${isDiscoveryMode ? 'Contender A: ' : '#1 '}${cleanPdfText(top3[0]?.vehicle.name || 'Match')}`, 265, y + 6, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`${isDiscoveryMode ? 'Contender B: ' : '#2 '}${cleanPdfText(top3[1]?.vehicle.name || 'Match')}`, 365, y + 6, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(`${isDiscoveryMode ? 'Contender C: ' : '#3 '}${cleanPdfText(top3[2]?.vehicle.name || 'Match')}`, 460, y + 6, { width: 90, align: 'center' });
 
     const matrixRows = [
       { name: 'Budget Compatibility', max: weights.budget, key: 'budget' },
@@ -2374,15 +2505,15 @@ export class EasyEVToolEngine {
     });
 
     // Total Score Row
-    doc.rect(40, mRowY, 515, 24).fill('#ecfdf5');
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text('TOTAL COMPATIBILITY SCORE', 50, mRowY + 7);
+    doc.rect(40, mRowY, 515, 24).fill(isDiscoveryMode ? '#f8fafc' : '#ecfdf5');
+    doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text(isDiscoveryMode ? 'BASELINE TECHNICAL SCORE' : 'TOTAL COMPATIBILITY SCORE', 50, mRowY + 7);
     doc.font('Helvetica-Bold').fontSize(8).fillColor(mutedColor).text('100 pts', 185, mRowY + 7);
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#059669').text(`${top3[0]?.compat.score || 0}/100`, 265, mRowY + 7, { width: 90, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#0284c7').text(`${top3[1]?.compat.score || 0}/100`, 365, mRowY + 7, { width: 90, align: 'center' });
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#64748b').text(`${top3[2]?.compat.score || 0}/100`, 460, mRowY + 7, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(isDiscoveryMode ? '#475569' : '#059669').text(`${top3[0]?.compat.score || 0}/100`, 265, mRowY + 7, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(isDiscoveryMode ? '#475569' : '#0284c7').text(`${top3[1]?.compat.score || 0}/100`, 365, mRowY + 7, { width: 90, align: 'center' });
+    doc.font('Helvetica-Bold').fontSize(9).fillColor(isDiscoveryMode ? '#475569' : '#64748b').text(`${top3[2]?.compat.score || 0}/100`, 460, mRowY + 7, { width: 90, align: 'center' });
     doc.restore();
 
-    // Section 3: Why #1 Match Won (Tie-Break & Explainability Analysis)
+    // Section 3: Tie-Break & Explainability Analysis
     y = 492;
     const v1 = top3[0]?.vehicle || topVehicle;
     const v2 = top3[1]?.vehicle || top3[0]?.vehicle;
@@ -2390,68 +2521,124 @@ export class EasyEVToolEngine {
     const c2 = top3[1]?.compat || top3[0]?.compat;
 
     doc.save();
-    doc.rect(40, y, 515, 288).fillAndStroke('#f0fdf4', '#86efac');
-    doc.rect(40, y, 515, 26).fill('#065f46');
-    doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text('WHY THE #1 MATCH WON  -  EXPLAINABLE AI TIE-BREAK ANALYSIS', 52, y + 8);
+    if (isDiscoveryMode) {
+      doc.rect(40, y, 515, 288).fillAndStroke('#fffbeb', '#fde68a');
+      doc.rect(40, y, 515, 26).fill('#78350f');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text('WHY EASYEV HOLDS RANKING - INSUFFICIENT SIGNAL DIFFERENTIATION', 52, y + 8);
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text(
+        'Without verified commute and budget requirements, assigning a #1 rank would be deceptive.',
+        52, y + 36
+      );
 
-    const diffScore = Math.abs(c1.score - c2.score);
-    const isClose = diffScore <= 4;
-    const subHead = isClose
-      ? `Close decision between #1 ${v1.name} (${c1.score}/100) and #2 ${v2.name} (${c2.score}/100)  -  Deterministic Tie-Breaker Applied`
-      : `Clear victory: #1 ${v1.name} leads #2 ${v2.name} by ${diffScore} points across core ownership dimensions`;
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text(subHead, 52, y + 36);
+      // Two comparison cards
+      const compY = y + 54;
+      // Left Box: Key Contender Differences
+      doc.rect(50, compY, 240, 134).fillAndStroke('#ffffff', '#cbd5e1');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(primaryColor).text('KEY ARCHITECTURAL TRADE-OFFS AMONG CONTENDERS', 60, compY + 8);
+      const cand0 = top3[0]?.vehicle || topVehicle;
+      const cand1 = top3[1]?.vehicle || top3[0]?.vehicle;
+      const cand2 = top3[2]?.vehicle || top3[1]?.vehicle;
 
-    // Two comparison cards side-by-side
-    const compY = y + 54;
-    // Left Box: Why V1 Won
-    doc.rect(50, compY, 240, 134).fillAndStroke('#ffffff', '#bbf7d0');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text(`WHERE #1 ${cleanPdfText(v1.name.toUpperCase())} TAKES THE LEAD`, 60, compY + 8);
+      const diffs = [
+        `${cand0.name}: ${cand0.priceMinLakh ? `From Rs. ${cand0.priceMinLakh.toFixed(2)}L` : 'Accessible price'}, ${cand0.claimedRangeKm} km range, ${cleanPdfText(cand0.charging).slice(0, 22)}.`,
+        `${cand1.name}: ${cand1.priceMinLakh ? `From Rs. ${cand1.priceMinLakh.toFixed(2)}L` : 'Competitive price'}, ${cand1.claimedRangeKm} km range, ${cleanPdfText(cand1.charging).slice(0, 22)}.`,
+        `${cand2.name}: ${cand2.priceMinLakh ? `From Rs. ${cand2.priceMinLakh.toFixed(2)}L` : 'Value entry'}, ${cand2.claimedRangeKm} km range, ${cleanPdfText(cand2.charging).slice(0, 22)}.`,
+      ];
+      let dY = compY + 24;
+      diffs.forEach((d) => {
+        drawCheckIcon(doc, 66, dY + 5, 4);
+        doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(d, 76, dY, { width: 205 });
+        dY += 34;
+      });
 
-    const v1Pros = [];
-    if (v1.claimedRangeKm > v2.claimedRangeKm) {
-      v1Pros.push(`+${v1.claimedRangeKm - v2.claimedRangeKm} km claimed range cushion (${v1.claimedRangeKm} vs ${v2.claimedRangeKm} km), reducing charging anxiety on highway trips.`);
+      // Right Box: The Tie-Breaker Question
+      doc.rect(305, compY, 240, 134).fillAndStroke('#ffffff', '#86efac');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text('THE DECISIVE TIE-BREAKER QUESTION', 315, compY + 8);
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#065f46').text('"What matters most to you?"', 315, compY + 24);
+      const options = [
+        `Option A: ${cand0.name} (${cand0.priceMinLakh <= cand1.priceMinLakh ? 'Lowest upfront price' : 'Segment range cushion'})`,
+        `Option B: ${cand1.name} (${cand1.claimedRangeKm >= cand0.claimedRangeKm ? 'Higher claimed range' : 'Balanced crossover agility'})`,
+        `Option C: ${cand2.name} (Alternative cabin packaging & comfort)`,
+      ];
+      let oY = compY + 38;
+      options.forEach((opt) => {
+        drawInfoIcon(doc, 321, oY + 5, 4);
+        doc.font('Helvetica').fontSize(7.2).fillColor(textColor).text(opt, 331, oY, { width: 205 });
+        oY += 30;
+      });
+
+      // Final Verdict Box
+      const vBoxY = compY + 144;
+      doc.rect(50, vBoxY, 495, 78).fillAndStroke('#f8fafc', '#cbd5e1');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(primaryColor).text('EXPLAINABLE RECOMMENDATION STATUS: DISCOVERY HOLD', 60, vBoxY + 8);
+      doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(
+        `EasyEV is an independent consumer intelligence platform. We do not promote sponsored rankings. Because your verified readiness is ${readinessPercent}%, these candidate vehicles exhibit minimal personalized differentiation. As soon as you confirm your daily driving distance and target budget in consultation, EasyEV's deterministic scoring engine will assign multi-dimensional weights and calculate your mathematically verified ranking.`,
+        60, vBoxY + 22, { width: 475 }
+      );
     } else {
-      v1Pros.push(`High battery pack resilience with active thermal cooling management for heavy duty commuting.`);
+      doc.rect(40, y, 515, 288).fillAndStroke('#f0fdf4', '#86efac');
+      doc.rect(40, y, 515, 26).fill('#065f46');
+      doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text('WHY THE #1 MATCH WON - EXPLAINABLE AI TIE-BREAK ANALYSIS', 52, y + 8);
+
+      const diffScore = Math.abs(c1.score - c2.score);
+      const isClose = diffScore <= 4;
+      const subHead = isClose
+        ? `Close decision between #1 ${v1.name} (${c1.score}/100) and #2 ${v2.name} (${c2.score}/100) - Deterministic Tie-Breaker Applied`
+        : `Clear victory: #1 ${v1.name} leads #2 ${v2.name} by ${diffScore} points across core ownership dimensions`;
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text(subHead, 52, y + 36);
+
+      // Two comparison cards side-by-side
+      const compY = y + 54;
+      // Left Box: Why V1 Won
+      doc.rect(50, compY, 240, 134).fillAndStroke('#ffffff', '#bbf7d0');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text(`WHERE #1 ${cleanPdfText(v1.name.toUpperCase())} TAKES THE LEAD`, 60, compY + 8);
+
+      const v1Pros = [];
+      if (v1.claimedRangeKm > v2.claimedRangeKm) {
+        v1Pros.push(`+${v1.claimedRangeKm - v2.claimedRangeKm} km claimed range cushion (${v1.claimedRangeKm} vs ${v2.claimedRangeKm} km), reducing charging anxiety on highway trips.`);
+      } else {
+        v1Pros.push(`High battery pack resilience with active thermal cooling management for heavy duty commuting.`);
+      }
+      v1Pros.push(`Faster peak DC charging turnaround (${cleanPdfText(v1.charging).slice(0, 28)}) for expedited highway travel.`);
+      v1Pros.push(`Superior high-speed structural stability and spacious cabin packaging for family comfort.`);
+
+      let p1Y = compY + 24;
+      v1Pros.forEach((pro) => {
+        drawCheckIcon(doc, 66, p1Y + 5, 4);
+        doc.font('Helvetica').fontSize(7.5).fillColor('#065f46').text(cleanPdfText(pro), 76, p1Y, { width: 205 });
+        p1Y += 34;
+      });
+
+      // Right Box: Where V2 Remains Competitive
+      doc.rect(305, compY, 240, 134).fillAndStroke('#ffffff', '#cbd5e1');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(textColor).text(`WHERE #2 ${cleanPdfText(v2.name.toUpperCase())} REMAINS STRONG`, 315, compY + 8);
+
+      const v2Pros = [];
+      const priceDiff = (v1.priceMinLakh - v2.priceMinLakh).toFixed(2);
+      if (Number(priceDiff) > 0) {
+        v2Pros.push(`Lower initial acquisition cost: Saves approx. Rs. ${priceDiff} Lakh on entry ex-showroom pricing.`);
+      } else {
+        v2Pros.push(`Highly competitive entry pricing band in its vehicle class.`);
+      }
+      v2Pros.push(`Compact urban maneuverability: Tighter turning radius ideal for congested city traffic.`);
+      v2Pros.push(`High stop-and-go energy efficiency in dense urban crawl conditions.`);
+
+      let p2Y = compY + 24;
+      v2Pros.forEach((pro) => {
+        drawInfoIcon(doc, 321, p2Y + 5, 4);
+        doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(cleanPdfText(pro), 331, p2Y, { width: 205 });
+        p2Y += 34;
+      });
+
+      // Final Explainable Verdict Box
+      const vBoxY = compY + 144;
+      doc.rect(50, vBoxY, 495, 78).fillAndStroke('#ecfdf5', '#a7f3d0');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text('EXPLAINABLE AI RECOMMENDATION VERDICT', 60, vBoxY + 8);
+      doc.font('Helvetica').fontSize(7.5).fillColor('#065f46').text(
+        `Recommendation Decision: ${v1.name} takes the #1 ranking because your usage priorities and range requirements place greater value on highway versatility, battery capacity reserve, and long-term multi-role adaptability. Even when compatibility scores are closely matched, ${v1.name}'s higher real-world range buffer and faster DC charging rate serve as deterministic tie-breakers. If your primary objective shifts exclusively to minimizing upfront capital outlay or navigating cramped city alleys, ${v2.name} would be the logical runner-up choice.`,
+        60, vBoxY + 22, { width: 475 }
+      );
     }
-    v1Pros.push(`Faster peak DC charging turnaround (${cleanPdfText(v1.charging).slice(0, 28)}) for expedited highway travel.`);
-    v1Pros.push(`Superior high-speed structural stability and spacious cabin packaging for family comfort.`);
-
-    let p1Y = compY + 24;
-    v1Pros.forEach((pro) => {
-      drawCheckIcon(doc, 66, p1Y + 5, 4);
-      doc.font('Helvetica').fontSize(7.5).fillColor('#065f46').text(cleanPdfText(pro), 76, p1Y, { width: 205 });
-      p1Y += 34;
-    });
-
-    // Right Box: Where V2 Remains Competitive
-    doc.rect(305, compY, 240, 134).fillAndStroke('#ffffff', '#cbd5e1');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(textColor).text(`WHERE #2 ${cleanPdfText(v2.name.toUpperCase())} REMAINS STRONG`, 315, compY + 8);
-
-    const v2Pros = [];
-    const priceDiff = (v1.priceMinLakh - v2.priceMinLakh).toFixed(2);
-    if (Number(priceDiff) > 0) {
-      v2Pros.push(`Lower initial acquisition cost: Saves approx. Rs. ${priceDiff} Lakh on entry ex-showroom pricing.`);
-    } else {
-      v2Pros.push(`Highly competitive entry pricing band in its vehicle class.`);
-    }
-    v2Pros.push(`Compact urban maneuverability: Tighter turning radius ideal for congested city traffic.`);
-    v2Pros.push(`High stop-and-go energy efficiency in dense urban crawl conditions.`);
-
-    let p2Y = compY + 24;
-    v2Pros.forEach((pro) => {
-      drawInfoIcon(doc, 321, p2Y + 5, 4);
-      doc.font('Helvetica').fontSize(7.5).fillColor(textColor).text(cleanPdfText(pro), 331, p2Y, { width: 205 });
-      p2Y += 34;
-    });
-
-    // Final Explainable Verdict Box
-    const vBoxY = compY + 144;
-    doc.rect(50, vBoxY, 495, 78).fillAndStroke('#ecfdf5', '#a7f3d0');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#166534').text('EXPLAINABLE AI RECOMMENDATION VERDICT', 60, vBoxY + 8);
-    doc.font('Helvetica').fontSize(7.5).fillColor('#065f46').text(
-      `Recommendation Decision: ${v1.name} takes the #1 ranking because your usage priorities and range requirements place greater value on highway versatility, battery capacity reserve, and long-term multi-role adaptability. Even when compatibility scores are closely matched, ${v1.name}'s higher real-world range buffer and faster DC charging rate serve as deterministic tie-breakers. If your primary objective shifts exclusively to minimizing upfront capital outlay or navigating cramped city alleys, ${v2.name} would be the logical runner-up choice.`,
-      60, vBoxY + 22, { width: 475 }
-    );
     doc.restore();
 
     drawFooter(2);
@@ -2465,59 +2652,101 @@ export class EasyEVToolEngine {
     // Section 1: Hero Savings Banner
     y = 104;
     doc.save();
-    doc.rect(40, y, 515, 76).fill(primaryColor);
 
     const hasRealOwnership = Boolean(passport.ownership?.results && passport.ownership?.assumptions);
     const ownResults = hasRealOwnership ? passport.ownership.results : null;
 
+    // Segment-aware benchmark names
+    const baselineLabel = isScooterCategory ? 'Petrol Scooter Benchmark (110-125cc)' : (topVehicle.priceMinLakh > 13 ? 'Petrol SUV Baseline (1.5L)' : 'Petrol Car Baseline (1.2L)');
+    const evLabel = isScooterCategory ? `${topVehicle.name} (Electric)` : topVehicle.name;
+
     const netSavingsVal = (ownResults && typeof ownResults.totalFuel === 'number' && typeof ownResults.totalEv === 'number')
-      ? Math.max(50000, (ownResults.totalFuel - ownResults.totalEv))
-      : (typeof ownResults?.savings5Year === 'number' ? ownResults.savings5Year : 420000);
-    const breakEvenYears = ownResults?.breakEvenYears || '2.8';
-    const monthlyEmiStr = ownResults?.monthlyEmi ? `Rs. ${Math.round(ownResults.monthlyEmi).toLocaleString('en-IN')}` : 'Rs. 26,450';
-    const annualFuelStr = ownResults?.annualRunningFuel ? `Rs. ${Math.round(ownResults.annualRunningFuel).toLocaleString('en-IN')}` : 'Rs. 1,42,000';
-    const annualEvStr = ownResults?.annualRunningEv ? `Rs. ${Math.round(ownResults.annualRunningEv).toLocaleString('en-IN')}` : 'Rs. 24,800';
-    const totalEvOutlay = ownResults?.totalEv ? `Rs. ${Math.round(ownResults.totalEv).toLocaleString('en-IN')}` : 'Rs. 15,40,000';
-    const totalFuelOutlay = ownResults?.totalFuel ? `Rs. ${Math.round(ownResults.totalFuel).toLocaleString('en-IN')}` : 'Rs. 19,60,000';
+      ? Math.max(20000, (ownResults.totalFuel - ownResults.totalEv))
+      : (isScooterCategory ? 110000 : 420000);
+    const breakEvenYears = ownResults?.breakEvenYears || (isScooterCategory ? '1.8' : '2.8');
+    const monthlyEmiStr = ownResults?.monthlyEmi ? `Rs. ${Math.round(ownResults.monthlyEmi).toLocaleString('en-IN')}` : (isScooterCategory ? 'Rs. 3,450' : 'Rs. 26,450');
+    const annualFuelStr = ownResults?.annualRunningFuel ? `Rs. ${Math.round(ownResults.annualRunningFuel).toLocaleString('en-IN')}` : (isScooterCategory ? 'Rs. 26,000' : 'Rs. 1,42,000');
+    const annualEvStr = ownResults?.annualRunningEv ? `Rs. ${Math.round(ownResults.annualRunningEv).toLocaleString('en-IN')}` : (isScooterCategory ? 'Rs. 3,200' : 'Rs. 24,800');
+    const totalEvOutlay = ownResults?.totalEv ? `Rs. ${Math.round(ownResults.totalEv).toLocaleString('en-IN')}` : (isScooterCategory ? 'Rs. 1,35,000' : 'Rs. 15,40,000');
+    const totalFuelOutlay = ownResults?.totalFuel ? `Rs. ${Math.round(ownResults.totalFuel).toLocaleString('en-IN')}` : (isScooterCategory ? 'Rs. 2,45,000' : 'Rs. 19,60,000');
 
-    const evNum = typeof ownResults?.totalEv === 'number' ? ownResults.totalEv : 1540000;
-    const fuelNum = typeof ownResults?.totalFuel === 'number' ? ownResults.totalFuel : 1960000;
-    const savingsPct = fuelNum > 0 ? (((fuelNum - evNum) / fuelNum) * 100).toFixed(1) : '21.4';
+    const evNum = typeof ownResults?.totalEv === 'number' ? ownResults.totalEv : (isScooterCategory ? 135000 : 1540000);
+    const fuelNum = typeof ownResults?.totalFuel === 'number' ? ownResults.totalFuel : (isScooterCategory ? 245000 : 1960000);
+    const savingsPct = fuelNum > 0 ? (((fuelNum - evNum) / fuelNum) * 100).toFixed(1) : (isScooterCategory ? '44.9' : '21.4');
 
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#a7f3d0').text('ESTIMATED 5-YEAR NET SAVINGS', 56, y + 12);
-    doc.font('Helvetica-Bold').fontSize(24).fillColor('#34d399').text(`Rs. ${(netSavingsVal / 100000).toFixed(1)} LAKH`, 56, y + 26);
-    doc.font('Helvetica').fontSize(8).fillColor('#ffffff').text('Lower cash outlay vs comparable ICE petrol vehicle', 56, y + 54);
+    if (isDiscoveryMode) {
+      // Locked TCO in Discovery State
+      doc.rect(40, y, 515, 76).fill('#1e293b');
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#94a3b8').text('5-YEAR PERSONALIZED TCO: LOCKED PENDING USAGE PROFILE', 56, y + 12);
+      doc.font('Helvetica-Bold').fontSize(22).fillColor('#f8fafc').text('Rs. -- LAKH', 56, y + 26);
+      doc.font('Helvetica').fontSize(8).fillColor('#cbd5e1').text('Daily commute & current fuel baseline required for personalized savings', 56, y + 54);
 
-    // Divider
-    doc.rect(320, y + 14, 1, 48).fill('#166534');
+      // Divider
+      doc.rect(320, y + 14, 1, 48).fill('#475569');
 
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#a7f3d0').text('BREAK-EVEN PERIOD', 340, y + 12);
-    doc.font('Helvetica-Bold').fontSize(22).fillColor('#ffffff').text(`${breakEvenYears} YEARS`, 340, y + 26);
-    doc.font('Helvetica').fontSize(8).fillColor('#a7f3d0').text('Acquisition price premium recovered via fuel arbitrage', 340, y + 54);
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#94a3b8').text('BREAK-EVEN PERIOD', 340, y + 12);
+      doc.font('Helvetica-Bold').fontSize(22).fillColor('#94a3b8').text('LOCKED', 340, y + 26);
+      doc.font('Helvetica').fontSize(8).fillColor('#cbd5e1').text('Requires current vehicle fuel type & annual distance', 340, y + 54);
+    } else {
+      doc.rect(40, y, 515, 76).fill(primaryColor);
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#a7f3d0').text('ESTIMATED 5-YEAR NET SAVINGS', 56, y + 12);
+      doc.font('Helvetica-Bold').fontSize(24).fillColor('#34d399').text(`Rs. ${(netSavingsVal / 100000).toFixed(1)} LAKH`, 56, y + 26);
+      doc.font('Helvetica').fontSize(8).fillColor('#ffffff').text(`Lower cash outlay vs comparable ${isScooterCategory ? 'petrol scooter' : 'ICE petrol car'}`, 56, y + 54);
+
+      // Divider
+      doc.rect(320, y + 14, 1, 48).fill('#166534');
+
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor('#a7f3d0').text('BREAK-EVEN PERIOD', 340, y + 12);
+      doc.font('Helvetica-Bold').fontSize(22).fillColor('#ffffff').text(`${breakEvenYears} YEARS`, 340, y + 26);
+      doc.font('Helvetica').fontSize(8).fillColor('#a7f3d0').text('Acquisition price premium recovered via fuel arbitrage', 340, y + 54);
+    }
     doc.restore();
 
     // Section 2: Visual Horizontal Comparison Bar Chart
     y = 188;
     doc.save();
     doc.rect(40, y, 515, 88).fillAndStroke('#ffffff', '#e2e8f0');
-    doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text('5-YEAR TOTAL OWNERSHIP OUTLAY (VEHICLE PURCHASE + 5-YR ENERGY & RUNNING)', 52, y + 8);
 
-    // Bar 1: Petrol
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor(textColor).text('Petrol SUV Baseline', 52, y + 27);
-    doc.rect(170, y + 25, 260, 16).fill('#94a3b8');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor(textColor).text(totalFuelOutlay, 440, y + 29);
+    if (isDiscoveryMode) {
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text('5-YEAR OWNERSHIP TCO METHODOLOGY · ILLUSTRATIVE REFERENCE MODEL', 52, y + 8);
+      doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text('[ILLUSTRATIVE MODEL ONLY — 15-LAKH ELECTRIC CAR VS 1.2L PETROL CAR AT 40 KM/DAY]', 52, y + 18);
 
-    // Bar 2: EV
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#059669').text(`${topVehicle.name}`, 52, y + 51);
-    const evBarW = Math.round(260 * Math.min(1, Math.max(0.2, evNum / (fuelNum || 1))));
-    doc.rect(170, y + 49, evBarW, 16).fill('#059669');
-    doc.font('Helvetica-Bold').fontSize(8).fillColor('#059669').text(totalEvOutlay, 170 + evBarW + 10, y + 53);
+      // Bar 1: Petrol
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor(textColor).text(baselineLabel, 52, y + 33);
+      doc.rect(170, y + 31, 260, 16).fill('#94a3b8');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(textColor).text(totalFuelOutlay, 440, y + 35);
 
-    // Callout
-    doc.font('Helvetica-Bold').fontSize(7).fillColor('#059669').text(
-      `CASHFLOW BENEFIT: You save ~Rs. ${(netSavingsVal / 100000).toFixed(1)} Lakh (${savingsPct}% lower total 5-year ownership outlay)`,
-      170, y + 72
-    );
+      // Bar 2: EV
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#059669').text(evLabel, 52, y + 53);
+      const evBarW = Math.round(260 * Math.min(1, Math.max(0.2, evNum / (fuelNum || 1))));
+      doc.rect(170, y + 51, evBarW, 16).fill('#059669');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#059669').text(totalEvOutlay, 170 + evBarW + 10, y + 55);
+
+      // Callout
+      doc.font('Helvetica-Bold').fontSize(7).fillColor('#059669').text(
+        'METHODOLOGY: Modeled at 40 km/day (14,600 km/yr) with 14 km/L petrol vs 13.5 kWh/100km EV. Your personalized savings unlock upon commute confirmation.',
+        170, y + 72
+      );
+    } else {
+      doc.font('Helvetica-Bold').fontSize(8.5).fillColor(primaryColor).text('5-YEAR TOTAL OWNERSHIP OUTLAY (VEHICLE PURCHASE + 5-YR ENERGY & RUNNING)', 52, y + 8);
+
+      // Bar 1: Petrol
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor(textColor).text(baselineLabel, 52, y + 27);
+      doc.rect(170, y + 25, 260, 16).fill('#94a3b8');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor(textColor).text(totalFuelOutlay, 440, y + 29);
+
+      // Bar 2: EV
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#059669').text(evLabel, 52, y + 51);
+      const evBarW = Math.round(260 * Math.min(1, Math.max(0.2, evNum / (fuelNum || 1))));
+      doc.rect(170, y + 49, evBarW, 16).fill('#059669');
+      doc.font('Helvetica-Bold').fontSize(8).fillColor('#059669').text(totalEvOutlay, 170 + evBarW + 10, y + 53);
+
+      // Callout
+      doc.font('Helvetica-Bold').fontSize(7).fillColor('#059669').text(
+        `CASHFLOW BENEFIT: You save ~Rs. ${(netSavingsVal / 100000).toFixed(1)} Lakh (${savingsPct}% lower total 5-year ownership outlay)`,
+        170, y + 72
+      );
+    }
     doc.restore();
 
     // Section 3: Detailed Financial Breakdown Grid
@@ -2528,18 +2757,27 @@ export class EasyEVToolEngine {
     doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text(
       hasDailyKm
         ? `Modeled on verified ${profile.dailyKm} km/day (${profile.dailyKm * 300} km/year) at residential electricity tariff.`
-        : 'Provisional reference simulation based on standard 40 km/day (12,000 km/year) urban commuting baseline.',
+        : 'Illustrative reference simulation based on standard 40 km/day (12,000 km/year) urban commuting baseline.',
       52, y + 19
     );
 
-    const tcoGrid = [
-      ['Monthly Indicative EMI', monthlyEmiStr, '80% loan, 5-yr tenure @ 9.5% interest'],
-      ['Annual Petrol Fuel Cost', annualFuelStr, 'Standard ICE SUV @ 12 km/L, Rs. 102/L'],
-      ['Annual EV Electricity Cost', annualEvStr, 'Home wallbox AC charging @ Rs. 8/kWh'],
-      ['5-Year Total EV Outlay', totalEvOutlay, 'Includes acquisition, power & maintenance'],
-      ['5-Year Petrol Outlay', totalFuelOutlay, 'Includes vehicle, fuel & periodic servicing'],
-      ['Running Cost / km', 'EV: Rs. 1.05  vs  Petrol: Rs. 8.50', '87.6% reduction in per-km energy cost'],
-    ];
+    const tcoGrid = isScooterCategory
+      ? [
+          ['Monthly Indicative EMI', monthlyEmiStr, '85% loan, 3-yr tenure @ 10.5% interest'],
+          ['Annual Petrol Fuel Cost', annualFuelStr, 'Standard 110cc scooter @ 45 km/L, Rs. 102/L'],
+          ['Annual EV Electricity Cost', annualEvStr, 'Home 15A socket charging @ Rs. 8/kWh'],
+          ['5-Year Total EV Outlay', totalEvOutlay, 'Includes acquisition, power & periodic checkup'],
+          ['5-Year Petrol Outlay', totalFuelOutlay, 'Includes vehicle, fuel & regular oil servicing'],
+          ['Running Cost / km', 'EV: Rs. 0.25  vs  Petrol: Rs. 2.25', '88.9% reduction in per-km fuel cost'],
+        ]
+      : [
+          ['Monthly Indicative EMI', monthlyEmiStr, '80% loan, 5-yr tenure @ 9.5% interest'],
+          ['Annual Petrol Fuel Cost', annualFuelStr, 'Standard ICE car @ 13 km/L, Rs. 102/L'],
+          ['Annual EV Electricity Cost', annualEvStr, 'Home wallbox AC charging @ Rs. 8/kWh'],
+          ['5-Year Total EV Outlay', totalEvOutlay, 'Includes acquisition, power & maintenance'],
+          ['5-Year Petrol Outlay', totalFuelOutlay, 'Includes vehicle, fuel & periodic servicing'],
+          ['Running Cost / km', 'EV: Rs. 1.05  vs  Petrol: Rs. 7.85', '86.6% reduction in per-km energy cost'],
+        ];
 
     let tgY = y + 34;
     tcoGrid.forEach(([title, val, sub], idx) => {
@@ -2554,9 +2792,9 @@ export class EasyEVToolEngine {
     // Section 4: EV Protection & Battery Shield Dossier
     y = 432;
     const ins = passport.insurance || {};
-    const protScore = ins.decisionSummary?.protectionScore || 92;
-    const planName = ins.selectedPlan?._displayName || 'EV Battery & Zero-Depreciation Protection Shield';
-    const priceBand = ins.pricingBand || 'Rs. 50,000 - Rs. 58,000 / year';
+    const protScore = isDiscoveryMode ? null : (ins.decisionSummary?.protectionScore || 92);
+    const planName = ins.selectedPlan?._displayName || (isScooterCategory ? 'EV Scooter Battery & Comprehensive Shield' : 'EV Battery & Zero-Depreciation Protection Shield');
+    const priceBand = ins.pricingBand || (isScooterCategory ? 'Rs. 4,500 - Rs. 6,200 / year' : 'Rs. 42,000 - Rs. 52,000 / year');
 
     doc.save();
     doc.rect(40, y, 515, 348).fillAndStroke('#f0fdf4', '#86efac');
@@ -2564,13 +2802,22 @@ export class EasyEVToolEngine {
     doc.font('Helvetica-Bold').fontSize(9).fillColor('#ffffff').text('EV BATTERY & HARDWARE PROTECTION DOSSIER (RECOMMENDED COVERAGE)', 52, y + 8);
 
     // Top Protection Summary
-    doc.font('Helvetica-Bold').fontSize(10.5).fillColor(primaryColor).text(`EV Protection Score: ${protScore}/100  -  Comprehensive Shield`, 52, y + 34);
-    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(`Recommended Tier: ${cleanPdfText(planName).slice(0, 36)}  (Est: ${cleanPdfText(priceBand)})`, 52, y + 48, { width: 310 });
+    if (isDiscoveryMode) {
+      doc.font('Helvetica-Bold').fontSize(10.5).fillColor(primaryColor).text('Insurance Readiness: Pre-Qualification State', 52, y + 34);
+      doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text('Personalized multi-insurer quotes (Tata AIG, ICICI Lombard, Digit) generate upon vehicle and pin code input.', 52, y + 48, { width: 310 });
 
-    // Progress Bar on right side
-    doc.rect(380, y + 36, 160, 8).fill('#cbd5e1');
-    doc.rect(380, y + 36, Math.round(160 * (protScore / 100)), 8).fill('#059669');
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#059669').text(`${protScore}% Comprehensive Cover`, 380, y + 48, { width: 160, align: 'right' });
+      // Progress Bar on right side in discovery mode
+      doc.rect(380, y + 36, 160, 8).fill('#cbd5e1');
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor(mutedColor).text('Quotes Pending Vehicle Selection', 380, y + 48, { width: 160, align: 'right' });
+    } else {
+      doc.font('Helvetica-Bold').fontSize(10.5).fillColor(primaryColor).text(`EV Protection Score: ${protScore}/100 - Comprehensive Shield`, 52, y + 34);
+      doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(`Recommended Tier: ${cleanPdfText(planName).slice(0, 36)}  (Est: ${cleanPdfText(priceBand)})`, 52, y + 48, { width: 310 });
+
+      // Progress Bar on right side
+      doc.rect(380, y + 36, 160, 8).fill('#cbd5e1');
+      doc.rect(380, y + 36, Math.round(160 * (protScore / 100)), 8).fill('#059669');
+      doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#059669').text(`${protScore}% Comprehensive Cover`, 380, y + 48, { width: 160, align: 'right' });
+    }
 
     // 4 Core Protection Inclusions (2x2 Grid)
     const inclusions = [
@@ -2583,12 +2830,12 @@ export class EasyEVToolEngine {
         desc: 'Full hydrostatic protection for battery pack and drive motor during waterlogged Indian monsoon road conditions.',
       },
       {
-        title: 'Home Wallbox & Portable Charger Theft',
-        desc: 'Comprehensive accidental damage and short-circuit cover for dedicated home AC charger and portable charging cables.',
+        title: isScooterCategory ? 'Portable Charger Theft & Damage' : 'Home Wallbox & Portable Charger Theft',
+        desc: 'Comprehensive accidental damage and short-circuit cover for dedicated home charger and portable charging cables.',
       },
       {
-        title: '24x7 Specialized Flatbed EV Roadside Towing',
-        desc: 'Guaranteed non-regenerative flatbed towing to nearest verified DC fast charging station in case of zero state-of-charge.',
+        title: '24x7 Specialized EV Roadside Assistance',
+        desc: 'Guaranteed flatbed towing to nearest verified charging station in case of emergency zero state-of-charge.',
       },
     ];
 
@@ -2622,54 +2869,98 @@ export class EasyEVToolEngine {
     // PAGE 4: THE NEXT MOVE (ACTIONABLE ROADMAP)
     // ==========================================
     doc.addPage();
-    drawHeader(4, 'Actionable Roadmap & Priority Test Drive Pass');
+    drawHeader(4, isDiscoveryMode ? 'Decision Roadmap & Test Drive Eligibility' : 'Actionable Roadmap & Priority Test Drive Pass');
 
     // Section 1: Charging Infrastructure Confidence
     y = 104;
     doc.save();
     doc.font('Helvetica-Bold').fontSize(10).fillColor(primaryColor).text('1. Charging Infrastructure Confidence & Feasibility', 40, y);
-    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text('Verified assessment of home charging compatibility and highway charging corridor readiness', 40, y + 12);
+    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(
+      isScooterCategory
+        ? 'Verified assessment of home socket charging and city fast-network accessibility'
+        : 'Verified assessment of home charging compatibility and highway charging corridor readiness',
+      40, y + 12
+    );
 
     y += 24;
     const chW = 166;
-    const chargingPillars = [
-      {
-        title: 'HOME WALLBOX CHARGING',
-        status: hasCharging ? 'VERIFIED READY' : 'PENDING SITE SURVEY',
-        color: hasCharging ? '#059669' : '#d97706',
-        bg: hasCharging ? '#f0fdf4' : '#fffbeb',
-        details: [
-          hasCharging ? 'Home parking access confirmed' : 'Home access pending verification',
-          'Standard 3.3kW / 7.2kW AC compatible',
-          'Overnight 0-100% in 6-8 hours',
-          'Free electrical load survey included',
-        ],
-      },
-      {
-        title: 'PUBLIC DC FAST CHARGING',
-        status: passport.charging?.stations?.length ? `${passport.charging.stations.length} HUBS MAPPED` : 'CCS2 COMPATIBLE',
-        color: '#0284c7',
-        bg: '#f0f9ff',
-        details: [
-          'Dual-gun CCS2 50kW protocol',
-          '10-80% top-up in ~40-50 min',
-          passport.charging?.stations?.length ? 'Live geospatial search completed' : 'Corridor search activates on location',
-          'Compatible with Tata, Statiq, Jio-bp',
-        ],
-      },
-      {
-        title: 'HIGHWAY READINESS',
-        status: 'INTERCITY CAPABLE',
-        color: '#15803d',
-        bg: '#f0fdf4',
-        details: [
-          `Real highway range: ~${Math.round(topVehicle.claimedRangeKm * 0.72 * 0.85)} km`,
-          'Safe intercity hop: 180-220 km',
-          'National highway corridor coverage',
-          'Active pack thermal cooling',
-        ],
-      },
-    ];
+    const chargingPillars = isScooterCategory
+      ? [
+          {
+            title: 'HOME SOCKET CHARGING',
+            status: hasCharging ? 'VERIFIED READY' : '15A SOCKET READY',
+            color: hasCharging ? '#059669' : '#d97706',
+            bg: hasCharging ? '#f0fdf4' : '#fffbeb',
+            details: [
+              'Plugs into standard domestic 15A socket',
+              'Portable charger included with vehicle',
+              'Overnight 0-80% in 4.5 hours',
+              'No high-voltage wallbox installation needed',
+            ],
+          },
+          {
+            title: 'CITY CHARGING NETWORK',
+            status: 'METRO ACCESSIBLE',
+            color: '#0284c7',
+            bg: '#f0f9ff',
+            details: [
+              'Access to OEM fast grid network',
+              'Quick 15-minute emergency top-ups',
+              'Mall, parking, and metro station hubs',
+              'App-based reservation and monitoring',
+            ],
+          },
+          {
+            title: 'CITY COMMUTE FEASIBILITY',
+            status: 'URBAN COMMUTE OPTIMIZED',
+            color: '#15803d',
+            bg: '#f0fdf4',
+            details: [
+              `Real city range: ~${Math.round(topVehicle.claimedRangeKm * 0.72)} km`,
+              'Safe daily city hop: 50-75 km',
+              'Regenerative braking for traffic crawl',
+              'IP67 water-resistant battery enclosure',
+            ],
+          },
+        ]
+      : [
+          {
+            title: 'HOME WALLBOX CHARGING',
+            status: hasCharging ? 'VERIFIED READY' : 'PENDING SITE SURVEY',
+            color: hasCharging ? '#059669' : '#d97706',
+            bg: hasCharging ? '#f0fdf4' : '#fffbeb',
+            details: [
+              hasCharging ? 'Home parking access confirmed' : 'Home access pending verification',
+              'Standard 3.3kW / 7.2kW AC compatible',
+              'Overnight 0-100% in 6-8 hours',
+              'Free electrical load survey included',
+            ],
+          },
+          {
+            title: 'PUBLIC DC FAST CHARGING',
+            status: passport.charging?.stations?.length ? `${passport.charging.stations.length} HUBS MAPPED` : 'CCS2 COMPATIBLE',
+            color: '#0284c7',
+            bg: '#f0f9ff',
+            details: [
+              'Dual-gun CCS2 50kW protocol',
+              '10-80% top-up in ~40-50 min',
+              passport.charging?.stations?.length ? 'Live geospatial search completed' : 'Corridor search activates on location',
+              'Compatible with Tata, Statiq, Jio-bp',
+            ],
+          },
+          {
+            title: 'HIGHWAY READINESS',
+            status: isDiscoveryMode ? 'PENDING QUALIFICATION' : 'INTERCITY CAPABLE',
+            color: isDiscoveryMode ? '#64748b' : '#15803d',
+            bg: isDiscoveryMode ? '#f8fafc' : '#f0fdf4',
+            details: [
+              `Real highway range: ~${Math.round(topVehicle.claimedRangeKm * 0.72 * 0.85)} km`,
+              'Safe intercity hop: 180-220 km',
+              'National highway corridor coverage',
+              'Active pack thermal cooling',
+            ],
+          },
+        ];
 
     chargingPillars.forEach((ch, idx) => {
       const cx = 40 + idx * (chW + 8);
@@ -2696,32 +2987,59 @@ export class EasyEVToolEngine {
 
     const genuineTimeline = (passport.evolutionTimeline && passport.evolutionTimeline.length)
       ? passport.evolutionTimeline.slice(-4)
-      : [
-          {
-            timestamp: 'Step 1',
-            title: 'Session Initialized',
-            detail: `Selected category: ${profile.category || 'Electric car'} (Confirmed)`,
-            color: '#059669',
-          },
-          {
-            timestamp: 'Step 2',
-            title: 'Signals Audit',
-            detail: `${capturedCount} of 6 signals captured (${readinessPercent}% readiness)`,
-            color: '#0284c7',
-          },
-          {
-            timestamp: 'Step 3',
-            title: 'Deterministic Scoring',
-            detail: `Evaluated across 6 vectors; ${topVehicle.name} leads with ${topCompat.score}/100`,
-            color: '#059669',
-          },
-          {
-            timestamp: 'Step 4',
-            title: 'Decision Passport Compiled',
-            detail: `Issued with ${confidenceTier} match rating and explainability tie-break`,
-            color: '#15803d',
-          },
-        ];
+      : (isDiscoveryMode
+          ? [
+              {
+                timestamp: 'Step 1',
+                title: 'Session Initialized',
+                detail: `Domain set: ${effectiveCategory} · Consultation initiated`,
+                color: '#059669',
+              },
+              {
+                timestamp: 'Step 2',
+                title: 'Signal Provenance Audited',
+                detail: `${capturedCount} of 6 signals captured (${readinessPercent}% readiness) · Discovery State active`,
+                color: '#0284c7',
+              },
+              {
+                timestamp: 'Step 3',
+                title: 'Decision Readiness Gate Enforced',
+                detail: 'Personalized recommendation held until 3 verified signals (Category, Budget, Commute) are confirmed',
+                color: '#d97706',
+              },
+              {
+                timestamp: 'Step 4',
+                title: 'Decision Roadmap Generated',
+                detail: 'Candidate contenders benchmarked; awaiting user commute and budget input to unlock final ranking',
+                color: '#059669',
+              },
+            ]
+          : [
+              {
+                timestamp: 'Step 1',
+                title: 'Session Initialized',
+                detail: `Selected category: ${effectiveCategory} (Confirmed)`,
+                color: '#059669',
+              },
+              {
+                timestamp: 'Step 2',
+                title: 'Signals Audit',
+                detail: `${capturedCount} of 6 signals captured (${readinessPercent}% readiness)`,
+                color: '#0284c7',
+              },
+              {
+                timestamp: 'Step 3',
+                title: 'Deterministic Scoring',
+                detail: `Evaluated across 6 vectors; ${topVehicle.name} leads with ${topCompat.score}/100`,
+                color: '#059669',
+              },
+              {
+                timestamp: 'Step 4',
+                title: 'Decision Passport Compiled',
+                detail: `Issued with ${confidenceTier} match rating and explainability tie-break`,
+                color: '#15803d',
+              },
+            ]);
 
     let tStepY = y + 32;
     genuineTimeline.forEach((ev, idx) => {
@@ -2746,26 +3064,32 @@ export class EasyEVToolEngine {
     const passH = 295;
 
     // Pass Outer Shell
-    doc.rect(40, y, passW, passH).lineWidth(2).strokeColor('#059669').fill('#ffffff');
+    const passBorderCol = isDiscoveryMode ? '#64748b' : '#059669';
+    doc.rect(40, y, passW, passH).lineWidth(2).strokeColor(passBorderCol).fill('#ffffff');
 
     // Pass Top Header Bar
-    doc.rect(40, y, passW, 36).fill(primaryColor);
+    doc.rect(40, y, passW, 36).fill(isDiscoveryMode ? '#334155' : primaryColor);
     if (iconPath) {
       try { doc.image(iconPath, 48, y + 8, { width: 20, height: 20 }); } catch {}
     }
-    doc.font('Helvetica-Bold').fontSize(11).fillColor('#ffffff').text('EASYEV VIP TEST DRIVE & DEALERSHIP HANDOFF PASS', iconPath ? 74 : 52, y + 12);
+    const passTitle = isDiscoveryMode
+      ? 'EASYEV DECISION ROADMAP & TEST DRIVE ELIGIBILITY PASS'
+      : 'EASYEV VIP TEST DRIVE & DEALERSHIP HANDOFF PASS';
+    doc.font('Helvetica-Bold').fontSize(11).fillColor('#ffffff').text(passTitle, iconPath ? 74 : 52, y + 12);
 
     // Booking Status Badge
     const isBooked = Boolean(passport.booking && passport.booking.confirmed);
-    const passStatusText = isBooked ? 'CONFIRMED VIP BOOKING' : 'TEST DRIVE READY - ON DEMAND';
-    const passStatusBg = isBooked ? '#059669' : '#d97706';
-    doc.rect(370, y + 8, 175, 20).fill(passStatusBg);
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(passStatusText, 370, y + 13, { align: 'center', width: 175 });
+    const passStatusText = isDiscoveryMode
+      ? 'PROVISIONAL HOLD - AWAITING PROFILE'
+      : (isBooked ? 'CONFIRMED VIP BOOKING' : 'TEST DRIVE READY - ON DEMAND');
+    const passStatusBg = isDiscoveryMode ? '#d97706' : (isBooked ? '#059669' : '#0284c7');
+    doc.rect(350, y + 8, 195, 20).fill(passStatusBg);
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#ffffff').text(passStatusText, 350, y + 13, { align: 'center', width: 195 });
 
     // Pass Sub-banner
-    doc.rect(40, y + 36, passW, 20).fill('#ecfdf5');
-    doc.font('Helvetica-Bold').fontSize(7.5).fillColor('#065f46').text(
-      `PASS ID: #EEV-${cleanPdfText(sessionKey).slice(0, 8).toUpperCase()}-2026   |   PRIORITY DEALER SHOWROOM CLEARANCE   |   NON-TRANSFERABLE`,
+    doc.rect(40, y + 36, passW, 20).fill('#f8fafc');
+    doc.font('Helvetica-Bold').fontSize(7.5).fillColor(mutedColor).text(
+      `PASS ID: #EEV-${cleanPdfText(sessionKey).slice(0, 8).toUpperCase()}-2026   |   ${isDiscoveryMode ? 'DISCOVERY STAGE PASS' : 'PRIORITY DEALER SHOWROOM CLEARANCE'}   |   NON-TRANSFERABLE`,
       52, y + 42
     );
 
@@ -2777,13 +3101,23 @@ export class EasyEVToolEngine {
 
     // Left Section of Boarding Pass
     const lpX = 52;
-    doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(topVehicle.name, lpX, y + 64);
-    doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
-      `${topVehicle.category}  -  ${cleanPdfText(topVehicle.battery).slice(0, 24)}  -  Top Recommended Specification`,
-      lpX, y + 80
-    );
+    if (isDiscoveryMode) {
+      doc.font('Helvetica-Bold').fontSize(13).fillColor(primaryColor).text('Candidate Selection Pending Consultation Qualification', lpX, y + 64);
+      doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
+        `Decision Roadmap  -  Phase 1 of 3: Signal Discovery State  -  ${effectiveCategory} Domain`,
+        lpX, y + 80
+      );
+    } else {
+      doc.font('Helvetica-Bold').fontSize(14).fillColor(primaryColor).text(topVehicle.name, lpX, y + 64);
+      doc.font('Helvetica').fontSize(8).fillColor(mutedColor).text(
+        `${topVehicle.category}  -  ${cleanPdfText(topVehicle.battery).slice(0, 24)}  -  Top Recommended Specification`,
+        lpX, y + 80
+      );
+    }
 
-    const slotTime = isBooked ? passport.booking.when : 'Scheduled upon request (Valid for 30 days)';
+    const slotTime = isDiscoveryMode
+      ? 'Unlocks upon vehicle candidate qualification'
+      : (isBooked ? passport.booking.when : 'Scheduled upon request (Valid for 30 days)');
     const demoType = passport.booking?.demoType || 'At-Home Test Drive / Showroom Priority Walkaround';
     const leadBuyer = passport.lead ? [passport.lead.name, passport.lead.email, passport.lead.phone].filter(Boolean).join('  -  ') : 'Registered EasyEV Buyer';
 
@@ -2819,7 +3153,7 @@ export class EasyEVToolEngine {
     // Right Section: Ticket Stub
     const stubX = 392;
     doc.font('Helvetica-Bold').fontSize(8).fillColor(primaryColor).text('VIP TICKET STUB', stubX, y + 64);
-    doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text('Scan at Dealership Reception', stubX, y + 74);
+    doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text(isDiscoveryMode ? 'Roadmap Step 1 / 3' : 'Scan at Dealership Reception', stubX, y + 74);
 
     // Thumbnail Image
     if (heroImg) {
@@ -2854,7 +3188,7 @@ export class EasyEVToolEngine {
     doc.save();
     doc.rect(40, y, 515, 94).fillAndStroke('#f8fafc', '#e2e8f0');
     doc.font('Helvetica-Bold').fontSize(7.5).fillColor(primaryColor).text('OFFICIAL STATUTORY & ADVISORY DISCLAIMER', 52, y + 8);
-    doc.font('Helvetica').fontSize(7).fillColor(mutedColor).text(
+    doc.font('Helvetica').fontSize(7.5).fillColor(mutedColor).text(
       'This Decision Passport is an explainable decision intelligence dossier generated to assist prospective EV buyers. All technical specifications, claimed ranges (MIDC/ARAI), battery chemistry details, charging turnaround durations, and TCO ownership projections are derived deterministically from authorized OEM technical sheets and mathematical models. On-road vehicle prices, local state road taxes, central/state EV subsidies, and dealer inventory availability must be formally validated at an authorized OEM dealership prior to financial commitment.',
       52, y + 20, { width: 490 }
     );
