@@ -41,7 +41,7 @@ export const CANONICAL_DEALER_FIELDS = {
 };
 
 /**
- * 11 Active Core Voice Interview Questions
+ * 11 Active Core Voice Interview Fields
  */
 export const VOICE_INTERVIEW_FIELDS = [
   'shopName',
@@ -450,6 +450,230 @@ export function handleDealerFaq(text = '', language = 'Hinglish') {
 }
 
 /**
+ * Phonetic Devanagari to Latin Transliteration for Indian STT
+ */
+export function transliterateDevanagari(text = '') {
+  if (!text) return '';
+  const devMap = {
+    'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo', 'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au',
+    'क': 'k', 'ख': 'kh', 'ग': 'g', 'घ': 'gh', 'ङ': 'ng',
+    'च': 'ch', 'छ': 'chh', 'ज': 'j', 'झ': 'jh', 'ञ': 'ny',
+    'ट': 't', 'ठ': 'th', 'ड': 'd', 'ढ': 'dh', 'ण': 'n',
+    'त': 't', 'थ': 'th', 'द': 'd', 'ध': 'dh', 'न': 'n',
+    'प': 'p', 'फ': 'ph', 'ब': 'b', 'भ': 'bh', 'म': 'm',
+    'य': 'y', 'र': 'r', 'ल': 'l', 'व': 'v', 'श': 'sh', 'ष': 'sh', 'स': 's', 'ह': 'h',
+    'ा': 'a', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo', 'े': 'e', 'ै': 'ai', 'ो': 'o', 'ौ': 'au',
+    '्': '', 'ं': 'n', 'ँ': 'n', 'ः': 'h', '़': '', '।': ''
+  };
+  return text.split('').map(char => devMap[char] ?? char).join('');
+}
+
+/**
+ * Ultra-Comprehensive Affirmative Classifier for Hindi, Hinglish, and English
+ * Covers 150+ natural human colloquial expressions, slangs, regional variations, and conversational confirmations
+ */
+export function isAffirmative(text = '') {
+  if (!text) return false;
+  const clean = String(text).trim().toLowerCase()
+    .replace(/[.,!?;:'"()[\]{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // 1. Devanagari rich affirmations (50+ variations)
+  if (/(?:हाँ|हां|हा|हाँजी|हांजी|जी\s*हाँ|जी\s*हां|जी|ज़रूर|जरूर|बिल्कुल|बिलकुल|सही|ठीक|उपलब्ध|उपलब्ध\s*है|देते|देते\s*हैं|कर\s*दो|कर\s*दीजिए|डाल\s*दो|डाल\s*दीजिए|लिख\s*दो|लिख\s*दीजिए|जोड़\s*दो|जोड़\s*दीजिए|रख\s*दो|रख\s*दीजिए|सभी|सब|दोनों|करवाते|कराते|करते|करवाते\s*हैं|कराते\s*हैं|करते\s*हैं|कर\s*देना|डाल\s*देना|बिल्कुल\s*सही|एकदम\s*सही|बढ़िया|बढ़िया|चलेगा|चालू\s*करो|ऑन\s*करो|चलो|आगे|आगे\s*बढ़ो|आगे\s*बढो|बढ़ो|बढो|सबमिट|सबमिट\s*करो|सबमिट\s*कर\s*दो|जमा|जमा\s*करो|पक्का|निश्चय\s*ही)/.test(clean)) {
+    return true;
+  }
+
+  // 2. Exact match / phrase patterns covering 150+ English & Hinglish colloquial expressions with word boundaries
+  const affPattern = /\b(?:haan+|ha+|han+|haa+|haaji|haanji|haji|ji\s*haan|ji\s*ha|ji|yes+|yeah+|yep+|yup+|sure+|ok+|okay+|alright|fine|perfect|done|absolutely|definitely|exactly|precisely|right|correct|true|bingo|noted|agreed|confirmed|confirm|theek|thik|thek|sahi|sahi\s*hai|theek\s*hai|thik\s*hai|bilkul|bilkul\s*sahi|ekdam\s*sahi|ekdum\s*sahi|sahi\s*baat|sahi\s*h|theek\s*h|thik\s*h|chalega|bilkul\s*chalega|available|available\s*hai|available\s*h|milta|milta\s*hai|milte\s*hain|mil\s*jayega|mil\s*jaega|rehta|rehta\s*hai|rehte\s*hain|hota|hota\s*hai|hote\s*hain|hoti\s*hai|dete|dete\s*hai|dete\s*hain|dete\s*h|provide|provide\s*karte|provide\s*karte\s*hai|provide\s*karte\s*hain|provide\s*hota\s*hai|karwate|karwate\s*hai|karwate\s*hain|karate|karate\s*hai|karate\s*hain|karte|karte\s*hai|karte\s*hain|kardo|kar\s*do|kar\s*dijiye|kardijiye|kar\s*dena|kardena|karo|karein|daldo|daaldo|daal\s*do|dal\s*do|daal\s*dijiye|dal\s*dijiye|daal\s*dena|dal\s*dena|daalo|dalo|likh\s*do|likhdo|likho|likh\s*dijiye|rakh\s*do|rakhdo|rakho|rakh\s*dijiye|add\s*kardo|add\s*kar\s*do|add\s*kar\s*dijiye|add\s*karo|add|jod\s*do|jod\s*dijiye|enter\s*kardo|enter\s*kar\s*do|save\s*kardo|save\s*kar\s*do|lock\s*kardo|set\s*kardo|bana\s*do|badiya|badhiya|bohot\s*badiya|mast|mast\s*hai|shandar|awesome|great|cool|no\s*problem|koi\s*dikkat\s*nahi|koi\s*issue\s*nahi|all\s*services|sab\s*kuch|sab\s*hai|sab\s*kardo|sab\s*daldo|sab\s*dete|sab\s*provide|sabhi|saare|sabhi\s*brands|saare\s*brands|all\s*brands|sabhi\s*available|dono|dono\s*hai|dono\s*dete|dono\s*kardo|dono\s*daldo|dono\s*available|dono\s*karwate|dono\s*chalega|dono\s*test\s*drive|teeno|charo|both|everything|all\s*of\s*them|chalo|aage\s*chalo|aage\s*badho|badho|aage|next|proceed|continue|aage\s*badhayein|agle\s*step|submit\s*kardo|submit\s*kar\s*do|submit\s*kar\s*dijiye|submit|register\s*kardo|register\s*kar\s*do|final\s*submit|verified\s*submit|h|hai)\b/i;
+
+  if (affPattern.test(clean)) {
+    return true;
+  }
+
+  // 3. Conversational phrases combined with address words (bhai, yaar, sir, etc.)
+  if (/\b(?:haan|ha|han|yes|haa|sahi|theek|thik|kardo|daldo|available|dete|chalo|badho|submit|हाँ|हां|हा)\b/i.test(clean) && /\b(?:bhai|yaar|ji|sir|boss|bro|dost|veerji|please|na|to|ab|kardo|daldo|bol|bola|bolo|bataya|suno|likho|rakho)\b/i.test(clean)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check if the utterance consists purely of affirmative confirmation / filler tokens
+ */
+export function isPureAffirmation(text = '') {
+  if (!text) return false;
+  let str = String(text).trim().toLowerCase()
+    .replace(/[.,!?;:'"()[\]{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Strip all conversational affirmation tokens and fillers
+  const tokensToRemove = [
+    /\b(?:haan+|ha+|han+|haa+|haaji|haanji|haji|ji\s*haan|ji\s*ha|ji|yes+|yeah+|yep+|yup+|sure+|ok+|okay+|alright|fine|perfect|done|absolutely|definitely|exactly|precisely|right|correct|true|bingo|noted|agreed)\b/gi,
+    /\b(?:kardo|kar\s*do|kar\s*dijiye|kardijiye|kar\s*dena|kardena|karo|karein|kar)\b/gi,
+    /\b(?:daldo|daaldo|daal\s*do|dal\s*do|daal\s*dijiye|dal\s*dijiye|daal\s*dena|dal\s*dena|daalo|dalo|daal)\b/gi,
+    /\b(?:likh\s*do|likhdo|likho|likh\s*dijiye|likh\s*dena|likh|rakh\s*do|rakhdo|rakho|rakh\s*dijiye|rakh\s*dena|rakh)\b/gi,
+    /\b(?:add\s*kardo|add\s*kar\s*do|add\s*kar\s*dijiye|add\s*karo|add|jod\s*do|jod\s*dijiye|enter\s*kardo|enter\s*kar\s*do|save\s*kardo|save\s*kar\s*do|lock\s*kardo|set\s*kardo|bana\s*do)\b/gi,
+    /\b(?:available\s*hai|available\s*h|available|milta\s*hai|milte\s*hain|mil\s*jayega|mil\s*jaega|rehta\s*hai|rehte\s*hain|rehta\s*h|hota\s*hai|hote\s*hain|hoti\s*hai)\b/gi,
+    /\b(?:sahi\s*hai|sahi\s*h|bilkul\s*sahi|bilkul\s*sahi\s*hai|ekdam\s*sahi|ekdam\s*sahi\s*hai|ekdum\s*sahi\s*hai|sahi\s*baat|sahi|theek\s*hai|thik\s*hai|theek\s*h|thik\s*h|thek\s*hai|bilkul\s*theek|theek|thik|chalega|bilkul\s*chalega|bilkul|badiya|badhiya|mast|shandar|awesome|great|cool)\b/gi,
+    /\b(?:no\s*problem|koi\s*dikkat\s*nahi|koi\s*issue\s*nahi|all\s*services)\b/gi,
+    /\b(?:dete\s*hai|dete\s*hain|dete\s*h|dete|provide\s*karte\s*hai|provide\s*karte\s*hain|provide\s*hota\s*hai|provide\s*karte|provide|karwate\s*hai|karwate\s*hain|karwate|karate\s*hai|karate\s*hain|karate|karte\s*hai|karte\s*hain|karte)\b/gi,
+    /\b(?:chalo|aage\s*chalo|aage\s*badho|badho|aage|next|proceed|continue|aage\s*badhayein|agle\s*step)\b/gi,
+    /\b(?:sab\s*kuch|sab\s*hai|sab\s*kardo|sab\s*daldo|sab\s*add\s*kardo|sab\s*on\s*kardo|sab\s*dete\s*hai|sab\s*provide\s*karte|sab|sabhi|saare|sabhi\s*available|all\s*of\s*them|both|everything)\b/gi,
+    /\b(?:dono\s*hai|dono\s*kardo|dono\s*daldo|dono\s*dete\s*hai|dono\s*available\s*hai|dono\s*karwate\s*hai|dono\s*chalega|dono\s*test\s*drive|dono|teeno|charo)\b/gi,
+    /\b(?:submit\s*kardo|submit\s*kar\s*do|submit\s*kar\s*dijiye|submit|register\s*kardo|register\s*kar\s*do|final\s*submit|verified\s*submit|confirm\s*kardo|confirm\s*kar\s*do|confirm|confirmed)\b/gi,
+    /\b(?:bhai|yaar|ji|sir|boss|bro|dost|veerji|please|na|to|ab|to\s*fir|hain|hai|h|hoon|me|mein|par|aur|bhi|kar|do|raha|rahe|diya|bol|bola|bolo|bataya|suno|yahi|yahi\s*hai)\b/gi,
+    /(?:हाँ|हां|हा|हाँजी|हांजी|जी\s*हाँ|जी\s*हां|जी|ज़रूर|जरूर|बिल्कुल|बिलकुल|सही\s*है|ठीक\s*है|उपलब्ध\s*है|उपलब्ध|देते\s*हैं|देते|कर\s*दो|कर\s*दीजिए|डाल\s*दो|डाल\s*दीजिए|लिख\s*दो|लिख\s*दीजिए|जोड़\s*दो|रख\s*दो|सभी|सब|दोनों|करवाते\s*हैं|कराते\s*हैं|करते\s*हैं|कर\s*देना|डाल\s*देना|बिल्कुल\s*सही|एकदम\s*सही|बढ़िया|बढ़िया|चलेगा|सही|ठीक|चलो|आगे|आगे\s*बढ़ो|आगे\s*बढो|बढ़ो|बढो|सबमिट|सबमिट\s*करो|जमा|जमा\s*करो|पक्का)/g
+  ];
+
+  for (const pat of tokensToRemove) {
+    str = str.replace(pat, ' ');
+  }
+  str = str.replace(/\s+/g, ' ').trim();
+
+  return str.length === 0;
+}
+
+/**
+ * Clean spoken value by stripping conversational carrier phrases and filler wrappers
+ */
+export function cleanSpokenValue(text = '') {
+  if (!text) return '';
+  let str = String(text).trim();
+
+  // Strip leading conversational phrases / affirmation prefixes / salutations
+  str = str.replace(/^(?:(?:haan+|ha+|han+|haa+|haaji|haanji|haji|yes+|yeah+|yep+|yup+|sure+|ok+|okay+|ji\s*haan|ji\s*ha|ji|arre\s*haan|are\s*haan|bhai\s*haan|haan\s*bhai|haa\s*bhai|bhai|yaar|ji|sir|boss|bro|dost|arre|are|suno|sunno|dekho|hello|namaste|hi)\s*)+/i, '');
+  
+  // Strip common field intro prefixes (100+ variations)
+  str = str.replace(/^(?:hamara|humara|hamare|humare|mera|mere|meri|apna|apne|apni|the|our|my|dealership\s*ka|dealership\s*ki|dealership\s*ke|dealership\s*name|showroom\s*ka|showroom\s*ki|showroom\s*ke|showroom\s*name|hub\s*ka|agency\s*ka|store\s*ka|official|primary|contact\s*person|contact)?\s*(?:naam|name|address|pata|location|phone|mobile|number|email|mail|id|city|shahar|pincode|pin|postal|zip|brands?|manager|owner|proprietor)?\s*(?:hai|is|:|=|ka|ki|ke|ye\s*hai|wo\s*hai)?\s*(?:likho|likh\s*do|likh\s*dijiye|likh\s*dena|rakho|rakh\s*do|rakh\s*dijiye|kardo|kar\s*do|kardijiye|kar\s*dijiye|kardena|kar\s*dena|karo|karein|daldo|daaldo|daal\s*do|dal\s*do|daldijiye|daal\s*dijiye|dal\s*dijiye|daal\s*dena|dal\s*dena|daalo|dalo|add\s*kardo|add\s*kar\s*do|enter\s*kardo|enter\s*kar\s*do|save\s*kardo|save\s*kar\s*do|batao|batayein|note\s*karo|note\s*kar\s*lo)?\s*/i, '');
+
+  // Strip trailing commands / fillers / affirmations (100+ variations)
+  str = str.replace(/\s+(?:likh\s*do|likhdo|likho|likh\s*dijiye|likh\s*dena|rakh\s*do|rakhdo|rakho|rakh\s*dijiye|kardo|kar\s*do|kar\s*dijiye|kardijiye|kar\s*dena|kardena|karo|karein|daldo|daaldo|daal\s*do|dal\s*do|daal\s*dijiye|dal\s*dijiye|daal\s*dena|dal\s*dena|daalo|dalo|add\s*kardo|add\s*kar\s*do|add\s*kar\s*dijiye|add\s*karo|add|jod\s*do|jod\s*dijiye|enter\s*kardo|enter\s*kar\s*do|save\s*kardo|save\s*kar\s*do|lock\s*kardo|set\s*kardo|note\s*karo|note\s*kar\s*lo|note\s*kijiye|register\s*kardo|register\s*kar\s*do|submit\s*kardo|submit\s*kar\s*do|bhi\s*hai|available\s*hai|available\s*h|available|dete\s*hai|dete\s*hain|karwate\s*hai|karate\s*hai|karte\s*hai|karte\s*hain|sahi\s*hai|theek\s*hai|thik\s*hai|badiya|badhiya|mast|bhai|yaar|sir|ji|boss|bro|na|hai|is|hoon|h|है|कर\s*दो|डाल\s*दो|लिख\s*दो|रख\s*दो)$/i, '');
+
+  str = str.replace(/\s+/g, ' ').trim();
+  return str;
+}
+
+/**
+ * Ultra-Comprehensive Negative (Nahi / No) Classifier for Hindi, Hinglish, and English
+ * Covers 80+ negative variations, rejections, opt-outs, and conversational expressions
+ */
+export function isNegative(text = '') {
+  if (!text) return false;
+  const clean = String(text).trim().toLowerCase()
+    .replace(/[.,!?;:'"()[\]{}]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  // Devanagari negatives
+  if (/(?:नहीं|ना|न|मत|बिल्कुल\s*नहीं|नहीं\s*है|नहीं\s*देते|नहीं\s*चाहिए|बंद\s*करो|हटा\s*दो|मना\s*है|छोड़\s*दो|कैंसिल)/.test(clean)) {
+    return true;
+  }
+
+  // English & Hinglish negative expressions with word boundaries
+  const negPattern = /\b(?:nahi+|nahin+|na+|no+|nah+|nope+|not+|dont|do\s*not|without|mat|never|nahi\s*hai|nahi\s*dete|nahi\s*karwate|nahi\s*karate|nahi\s*hota|nahi\s*chalega|available\s*nahi|nahi\s*chahiye|mat\s*karo|mat\s*dalo|mat\s*likho|mana\s*hai|cancel|no\s*thanks|no\s*need|bilkul\s*nahi|koi\s*nahi|nahi\s*bhai|nahi\s*yaar|band\s*kardo|off\s*kardo|disable\s*kardo|hata\s*do|drop\s*kardo|chhod\s*do|zero|none|neither|never\s*mind)\b/i;
+
+  if (negPattern.test(clean)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * High-Precision Spoken Email Extraction for Indian STT (Hindi & English)
+ */
+export function extractEmailFromUtterance(text = '') {
+  if (!text) return null;
+  let str = String(text).trim();
+
+  // 1. Direct regex match if already valid email syntax
+  const directMatch = str.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/i);
+  if (directMatch) {
+    const valid = validators.email(directMatch[0]);
+    if (valid.valid) return valid.value;
+  }
+
+  // 2. Hindi Devanagari to English phonetic normalization
+  let normalized = str
+    .replace(/(?:एट\s*द\s*रेट|ऐट\s*द\s*रेट|एटदरेट|ऐटदरेट|एट\s*रेट|ऐट\s*रेट)/gi, '@')
+    .replace(/(?:डॉट\s*को\s*डॉट\s*इन|डोट\s*को\s*डोट\s*इन)/gi, '.co.in')
+    .replace(/(?:डॉट\s*कॉम|डोट\s*कॉम)/gi, '.com')
+    .replace(/(?:डॉट\s*इन|डोट\s*इन)/gi, '.in')
+    .replace(/(?:डॉट\s*ओआरजी|डोट\s*ओआरजी)/gi, '.org')
+    .replace(/(?:डॉट\s*नेट|डोट\s*नेट)/gi, '.net')
+    .replace(/(?:डॉट|डोट)/gi, '.')
+    .replace(/जीमेल/gi, 'gmail')
+    .replace(/याहू/gi, 'yahoo')
+    .replace(/आउटलुक/gi, 'outlook')
+    .replace(/रेडिफमेल/gi, 'rediffmail');
+
+  // 3. Spoken English & Hinglish keyword normalization (including STT acoustic misrecognitions)
+  normalized = normalized
+    .replace(/\s*(?:at\s*the\s*rate\s*of|at\s*the\s*rate|attherate|at\s*rate|rate\s*of|atthedate|at\s*the\s*date|enter\s*rate|add\s*the\s*rate|at\s*the\s*direct|app\s*the\s*rate|at\s*that\s*rate|at\s*there\s*it|and\s*the\s*rate)\s*/gi, '@')
+    .replace(/([a-zA-Z0-9._%+-]+)\s+at\s+([a-zA-Z0-9.-]+)/gi, '$1@$2')
+    .replace(/\s*@\s*/g, '@')
+    .replace(/\s*(?:dot|\.)\s*co\s*(?:dot|\.)\s*in\b/gi, '.co.in')
+    .replace(/\s+dot\s+(com|in|org|net|co|io|edu|gov|ac|biz)\b/gi, '.$1')
+    .replace(/\s+dot\s+/gi, '.')
+    .replace(/\s+gmail\s+(?:com|in)\b/gi, '@gmail.com')
+    .replace(/\s+yahoo\s+(?:com|in)\b/gi, '@yahoo.com')
+    .replace(/\s+outlook\s+(?:com|in)\b/gi, '@outlook.com');
+
+  // 4. Look for @ in the string and extract localPart@domainPart
+  const atIndex = normalized.indexOf('@');
+  if (atIndex > 0) {
+    const leftRaw = normalized.slice(0, atIndex).trim();
+    const rightRaw = normalized.slice(atIndex + 1).trim();
+
+    // Clean leading speech filler words from local part
+    let cleanLeft = leftRaw
+      .replace(/^(?:(?:mera|humara|hamara|apna|my|official|primary|the|showroom)\s+)*(?:(?:business|contact)\s+)?(?:email|mail)?\s*(?:id|address)?\s*(?:hai|is|:|=)?\s*/i, '')
+      .trim();
+    
+    // Transliterate Devanagari to English if present
+    cleanLeft = transliterateDevanagari(cleanLeft);
+    cleanLeft = cleanLeft.replace(/\s*dot\s*/gi, '.').replace(/\s*डॉट\s*/g, '.');
+    cleanLeft = cleanLeft.replace(/[^a-zA-Z0-9._%+-]/g, '').toLowerCase();
+
+    // Clean domain part
+    let cleanRight = rightRaw
+      .split(/[\s,]/)[0]
+      .replace(/[^a-zA-Z0-9.-]/g, '')
+      .toLowerCase();
+
+    if (cleanRight && !cleanRight.includes('.')) {
+      cleanRight = `${cleanRight}.com`;
+    }
+
+    if (cleanLeft && cleanRight && cleanRight.includes('.')) {
+      const candidate = `${cleanLeft}@${cleanRight}`;
+      const valid = validators.email(candidate);
+      if (valid.valid) return valid.value;
+    }
+  }
+
+  // 5. Look for "username domain.com" pattern where @ was omitted in speech
+  const domainMatch = normalized.match(/([a-zA-Z0-9._%+-]+(?:\s+[a-zA-Z0-9._%+-]+)*)\s+(gmail|yahoo|outlook|hotmail|dealership|evhub|tata|mahindra)\.(com|in|org|net|co\.in)/i);
+  if (domainMatch) {
+    let local = domainMatch[1]
+      .replace(/^(?:(?:mera|humara|hamara|apna|my|official|primary|the|showroom)\s+)*(?:(?:business|contact)\s+)?(?:email|mail)?\s*(?:id|address)?\s*(?:hai|is|:|=)?\s*/i, '')
+      .trim();
+    local = transliterateDevanagari(local).replace(/[^a-zA-Z0-9._%+-]/g, '').toLowerCase();
+    const domain = `${domainMatch[2].toLowerCase()}.${domainMatch[3].toLowerCase()}`;
+    if (local) {
+      const candidate = `${local}@${domain}`;
+      const valid = validators.email(candidate);
+      if (valid.valid) return valid.value;
+    }
+  }
+
+  return null;
+}
+
+/**
  * Robust Multi-Field Compound Entity Extraction (Principles 4, 5, 6, 17)
  */
 export function normalizeEntities(text = '', currentForm = {}, currentTargetField = null, currentStep = 1) {
@@ -463,6 +687,12 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   const tenDigitPhone = spokenSequences.find(s => s.length === 10 && /^[6-9]/.test(s));
   const sixDigitPin = spokenSequences.find(s => s.length === 6 && /^[1-9]/.test(s));
 
+  // Email extraction (High Priority to prevent false managerName captures)
+  const extractedEmail = extractEmailFromUtterance(cleanedText);
+  if (extractedEmail) {
+    extracted.email = extractedEmail;
+  }
+
   // Explicit Compound Extraction: Shop Name (only when shopName is not yet captured)
   const shopNameNotYetFilled = !currentForm.shopName || currentForm.shopName.length === 0;
   const _shopMatchResult = shopNameNotYetFilled ? (
@@ -473,9 +703,8 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   ) : null;
   if (_shopMatchResult && _shopMatchResult[1]) {
     let sName = _shopMatchResult[1].split(/(?:,\s*|\s+(?:hai\s+|is\s+|manager|owner|proprietor|contact|phone|mobile|city|address|location|pin|pincode|email|aur\s*mera|aur\s*owner|aur\s*hamara|और|मालिक|फोन))/i)[0].trim();
-    sName = sName.replace(/^(?:name|naam|is|hai|ka|ki|ke|actual|sahi|real|new)\s+/i, '').replace(/\s+(?:hai|hoon|h|me|mein|city|है)$/i, '').trim();
-    sName = sName.replace(/^(?:showroom|dealership|agency|store)\s+/i, '').trim();
-    if (sName.length >= 2 && !/^(?:hai|mera|hamara|naam|step|skip|badlo|change|badal|galat|update)$/i.test(sName)) {
+    sName = cleanSpokenValue(sName);
+    if (sName.length >= 2 && !/^(?:hai|mera|hamara|naam|step|skip|badlo|change|badal|galat|update)$/i.test(sName) && !isPureAffirmation(sName)) {
       extracted.shopName = sName;
     }
   }
@@ -488,10 +717,9 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
     || cleanedText.match(/(?:मेरा\s*नाम|मालिक\s*का\s*नाम|ओनर\s*का\s*नाम)\s+([^\s,.-]+(?:\s+[^\s,.-]+)?)/);
   if (mgrMatch && mgrMatch[1]) {
     let mName = mgrMatch[1].split(/(?:,\s*|\s+(?:phone|mobile|city|address|location|pin|pincode|email|baat\s*kar|bol\s*raha|yaha\s*ka))/i)[0].trim();
-    mName = mName.replace(/^(?:naam|name|is|hai|ka|ki|ke|main|mera|hu|hoon|actual|sahi|real|new)\s+/i, '').replace(/\s+(?:hai|hoon|h|sir|ji|kardo|kar\s*do|proprietor|owner|manager|है)$/i, '').trim();
-    // Guard: don't extract if name contains shop/business words
+    mName = cleanSpokenValue(mName);
     const isLikeShopName = /\b(?:motors|hub|agency|dealership|showroom|ev\s*hub|center|centre|store|shop|garage|auto)\b/i.test(mName);
-    if (mName.length >= 2 && !/^(?:hai|naam|name|is|step|skip|phone|city|address|badlo|change|badal|galat)$/i.test(mName) && !isLikeShopName) {
+    if (mName.length >= 2 && !/^(?:hai|naam|name|is|step|skip|phone|city|address|badlo|change|badal|galat)$/i.test(mName) && !isLikeShopName && !isPureAffirmation(mName)) {
       extracted.managerName = mName;
     }
   }
@@ -499,9 +727,9 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   // Explicit Compound Extraction: Address
   const addrMatch = cleanedText.match(/(?:address(?:\s*hai)?|location(?:\s*hai)?|pata(?:\s*hai)?)\s*(?:badal\s*ke|change\s*karke|is|hai|[:=])?\s*([A-Za-z0-9\s,.-]+)/i);
   if (addrMatch && addrMatch[1]) {
-    let aVal = addrMatch[1].split(/(?:,\s*|\s+(?:pin|pincode|city|working|timing|timings|open|close|kardo))/i)[0].trim();
-    aVal = aVal.replace(/^(?:badal\s*ke|change\s*karke|is|hai)\s+/i, '').replace(/\s+(?:hai|hoon|h)$/i, '').trim();
-    if (aVal.length >= 3 && !/^(?:step|skip|repeat|back)$/i.test(aVal)) {
+    let aVal = addrMatch[1].split(/(?:,\s*|\s+(?:pin|pincode|city|working|timing|timings|open|close|kardo|daldo))/i)[0].trim();
+    aVal = cleanSpokenValue(aVal);
+    if (aVal.length >= 3 && !/^(?:step|skip|repeat|back)$/i.test(aVal) && !isPureAffirmation(aVal)) {
       extracted.address = aVal;
     }
   }
@@ -509,34 +737,31 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   const noisePattern = /\b(?:blah|gibberish|uh+|uhm+|um+|umm+|hmm+|ahem+|err+|kuch\s*bhi|pata\s*nahi|dont\s*know|don't\s*know|hello|hi|namaste|test|testing|kya|kyu|why|what|ruko|wait|sunno|suno|ek\s*min|nahi\s*pata|maloom\s*nahi|biryani|khani)\b/i;
 
   // Fallback Contextual Direct Answer for shopName
-  let cleanUtterance = cleanedText.replace(/^(?:mera|humara|hamara|dealership\s*ka|showroom\s*ka|my)\s*(?:name\s*is|naam\s*hai)?\s*/i, '').trim();
-  cleanUtterance = cleanUtterance.replace(/^(?:showroom|dealership|agency|store)\s+/i, '').trim();
-  cleanUtterance = cleanUtterance.replace(/^(?:name|naam)\s*(?:hai|is)?\s*/i, '').trim();
-  // Only apply shopName fallback when explicitly targeting shopName or when it's not yet filled
   const shopNameIsMissing = !currentForm.shopName || currentForm.shopName.length === 0;
-  if (!extracted.shopName && shopNameIsMissing && (currentTargetField === 'shopName' || currentStep === 1) && cleanUtterance.length >= 2) {
-    if (!noisePattern.test(cleanUtterance) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update|yes|haan|no|nahi|biryani|test\s*drive|drive|facility|emi|loan)\b/i.test(cleanUtterance) && !/^[0-9]{10}$/.test(cleanUtterance)) {
-      extracted.shopName = cleanUtterance;
+  const isPureAff = isPureAffirmation(cleanedText);
+
+  if (!extracted.shopName && shopNameIsMissing && (currentTargetField === 'shopName' || currentStep === 1) && !isPureAff) {
+    const cleanShopCandidate = cleanSpokenValue(cleanedText);
+    if (cleanShopCandidate.length >= 2 && !noisePattern.test(cleanShopCandidate) && !isNegative(cleanShopCandidate) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|pincode|2\s*wheeler|4\s*wheeler|स्कूटर|गाड़ी|dealership|badal|change|update|test\s*drive|drive|facility|emi|loan)\b/i.test(cleanShopCandidate) && !/^[0-9]{10}$/.test(cleanShopCandidate) && !extracted.email) {
+      extracted.shopName = cleanShopCandidate;
     }
   }
 
   // Fallback Contextual Direct Answer for managerName
-  const nonDigitText = cleanUtterance.replace(/(?:\+?91[\s-]?)?([6-9]\d{9})/g, '').replace(/[0-9]/g, '').replace(/[,.-]/g, ' ').trim();
   const shopNameAlreadyFilled = currentForm.shopName && currentForm.shopName.length > 0;
-  if (!extracted.managerName && (currentTargetField === 'managerName' || (shopNameAlreadyFilled && !currentForm.managerName && currentStep === 1)) && nonDigitText.length >= 2) {
-    let cleanMgr = nonDigitText
-      .replace(/^(?:namaste|hello|hi|haan|mera|humara|my|main)?\s*(?:manager|owner|contact\s*person)?\s*(?:ka)?\s*(?:naam|name)?\s*(?:is|hai)?\s*[:=]?\s*/i, '')
-      .replace(/\s+(?:baat\s*kar\s*raha\s*(?:hu|hoon)?|bol\s*raha\s*(?:hu|hoon)?|yaha\s*ka\s*proprietor|yaha\s*ka\s*owner|proprietor|owner|manager|hai|hoon|h|sir|ji)$/i, '')
-      .trim();
-    if (!noisePattern.test(cleanMgr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change|yes|haan|no|nahi|biryani|khani|horn|sound|beep|showroom|dealership|motors|hub|agency|ev\s*hub)\b/i.test(cleanMgr)) {
+  const isEmailUtterance = Boolean(extracted.email) || /(?:@|email|gmail|yahoo|outlook|ईमेल)/i.test(cleanedText);
+  if (!extracted.managerName && !isEmailUtterance && !isPureAff && (currentTargetField === 'managerName' || (shopNameAlreadyFilled && !currentForm.managerName && currentStep === 1))) {
+    let cleanMgr = cleanSpokenValue(cleanedText).replace(/(?:\+?91[\s-]?)?([6-9]\d{9})/g, '').replace(/[0-9]/g, '').replace(/[,.-]/g, ' ').trim();
+    if (cleanMgr.length >= 2 && !noisePattern.test(cleanMgr) && !isNegative(cleanMgr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|address|pincode|2\s*wheeler|4\s*wheeler|badal|change|biryani|khani|horn|sound|beep|showroom|dealership|motors|hub|agency|ev\s*hub)\b/i.test(cleanMgr)) {
       extracted.managerName = cleanMgr;
     }
   }
 
   // Fallback Contextual Direct Answer for address
-  if (!extracted.address && (currentTargetField === 'address' || (!currentForm.address && currentStep === 2)) && cleanUtterance.length >= 3) {
-    if (!/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|emi|loan|bima|badal|change|yes|haan|no|nahi)\b/i.test(cleanUtterance)) {
-      extracted.address = cleanUtterance.replace(/\b([1-9][0-9]{5})\b/, '').replace(/[,.-]$/, '').trim();
+  if (!extracted.address && !isPureAff && (currentTargetField === 'address' || (!currentForm.address && currentStep === 2))) {
+    let cleanAddr = cleanSpokenValue(cleanedText);
+    if (cleanAddr.length >= 3 && !noisePattern.test(cleanAddr) && !isNegative(cleanAddr) && !/\b(?:step|skip|repeat|back|cancel|reset|phone|number|email|emi|loan|bima|badal|change)\b/i.test(cleanAddr)) {
+      extracted.address = cleanAddr.replace(/\b([1-9][0-9]{5})\b/, '').replace(/[,.-]$/, '').trim();
     }
   }
 
@@ -549,19 +774,6 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
   } else if (tenDigitPhone) {
     const valid = validators.phone(tenDigitPhone);
     if (valid.valid) extracted.phone = valid.value;
-  }
-
-  // Email extraction (Standard Regex + Contextual STT Speech Variations)
-  let emailMatch = cleanedText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  if (!emailMatch && (currentTargetField === 'email' || /(?:email|ईमेल|gmail|yahoo|outlook|mail)/i.test(cleanedText))) {
-    const contextualCandidate = cleanedText
-      .replace(/\b([a-zA-Z0-9._%+-]+)\s+at\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/gi, '$1@$2')
-      .replace(/\b([a-zA-Z0-9._%+-]+)\s+at\s+([a-zA-Z0-9.-]+)\s*\.\s*(com|in|org|net|co|io)/gi, '$1@$2.$3');
-    emailMatch = contextualCandidate.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
-  }
-  if (emailMatch) {
-    const valid = validators.email(emailMatch[0]);
-    if (valid.valid) extracted.email = valid.value;
   }
 
   // Pincode extraction (Guard against 6-digit phone number fragments)
@@ -634,56 +846,76 @@ export function normalizeEntities(text = '', currentForm = {}, currentTargetFiel
       matchedBrands.push(b.name);
     }
   }
+
+  const isAllBrandsMention = /\b(?:sabhi|saare|all|sab|entire|poora|pure)\s+(?:brands?|evs?|cars?|scooters?|gaadi|gaadiya|deal|bechte|represent)\b/i.test(lower) || /\b(?:sabhi\s*brands|saare\s*brands|all\s*brands)\b/i.test(lower);
+  if (isAllBrandsMention || (currentTargetField === 'brands' && /\b(?:sabhi|saare|all|sab|dono)\b/i.test(lower) && matchedBrands.length === 0)) {
+    matchedBrands.push('Tata Motors', 'Mahindra', 'MG Motor', 'Ather Energy', 'Ola Electric', 'TVS', 'BYD');
+  }
+
   if (matchedBrands.length > 0) {
     const existing = Array.isArray(currentForm.brands) ? currentForm.brands : [];
     extracted.brands = Array.from(new Set([...existing, ...matchedBrands]));
   }
 
-  // Services: EMI & Insurance
-  if (/(?:emi|loan|financing|finance|kist|ईएमआई|लोन|किस्त)/i.test(lower) || currentTargetField === 'emiAvailable') {
-    if (/\b(?:nahi|no|dont|do\s*not|without\s*emi|nahi\s*hai|नहीं)\b/i.test(lower)) {
+  // Working days (Step 2)
+  if (/(?:all\s*7\s*days|saaton\s*din|daily|everyday|rooz|सातों\s*दिन|रोज)/i.test(lower)) {
+    extracted.workingDays = 'All 7 Days';
+  } else if (/(?:monday\s*to\s*saturday|somwar\s*se\s*shaniwar|mon-sat|सोमवार\s*से\s*शनिवार)/i.test(lower)) {
+    extracted.workingDays = 'Monday to Saturday';
+  } else if (currentTargetField === 'workingDays' && isAffirmative(lower)) {
+    extracted.workingDays = 'All 7 Days';
+  }
+
+  // Services: EMI & Insurance (Step 4)
+  if (/(?:emi|loan|financing|finance|kist|insurance|bima|policy|ईएमआई|लोन|किस्त|बीमा|इंश्योरेंस)/i.test(lower) || currentTargetField === 'emiAvailable' || currentTargetField === 'insuranceAvailable') {
+    if (isNegative(lower)) {
       extracted.emiAvailable = false;
-    } else if (/(?:haan|yes|available|dete|provide|milta|हाँ|ज़रूर|जरूर)/i.test(lower) || /(?:emi|loan|financing|finance|kist)/i.test(lower)) {
+      extracted.insuranceAvailable = false;
+    } else if (isAffirmative(lower) || /(?:emi|loan|financing|finance|kist|insurance|bima)/i.test(lower)) {
       extracted.emiAvailable = true;
       extracted.insuranceAvailable = true;
     }
   }
 
   if (/(?:insurance|bima|zero dep|policy|बीमा|इंश्योरेंस)/i.test(lower)) {
-    if (/\b(?:nahi|no|dont|do\s*not|without\s*insurance|nahi\s*hai|नहीं)\b/i.test(lower)) {
+    if (isNegative(lower)) {
       extracted.insuranceAvailable = false;
-    } else {
+    } else if (isAffirmative(lower) || /(?:insurance|bima|zero dep|policy)/i.test(lower)) {
       extracted.insuranceAvailable = true;
     }
   }
 
-  // Services: Charging & Test Drive
+  // Services: Charging & Test Drive (Step 4)
   if (/(?:charger|charging|fast charger|on-site charge|चार्जर|चार्जिंग)/i.test(lower)) {
-    extracted.chargingOnSite = !/\b(?:nahi|no|nahi\s*hai|नहीं)\b/i.test(lower);
+    extracted.chargingOnSite = !isNegative(lower);
   }
 
-  if (/(?:test drive|home test drive|doorstep|ghar pe|टेस्ट\s*ड्राइव)/i.test(lower) || currentTargetField === 'showroomTestDrive') {
-    if (/\b(?:nahi|no|dont|do\s*not|not\s*available|nahi\s*hai|नहीं)\b/i.test(lower)) {
+  if (/(?:test drive|home test drive|doorstep|ghar pe|drive|karwate|karate|facility|टेस्ट\s*ड्राइव|गाड़ी\s*चलाना|चलाने)/i.test(lower) || currentTargetField === 'showroomTestDrive' || currentTargetField === 'homeTestDrive') {
+    if (isNegative(lower)) {
       extracted.showroomTestDrive = false;
-    } else if (/(?:haan|yes|available|dete|provide|milta|हाँ|ज़रूर|जरूर)/i.test(lower) || /(?:test drive|doorstep)/i.test(lower)) {
-      if (/(?:home|doorstep|ghar pe|घर)/i.test(lower)) extracted.homeTestDrive = true;
+      extracted.homeTestDrive = false;
+    } else if (isAffirmative(lower) || /(?:test drive|doorstep|drive|karwate|karate)/i.test(lower)) {
+      if (/(?:home|doorstep|ghar pe|घर|dono|sab)/i.test(lower)) extracted.homeTestDrive = true;
       extracted.showroomTestDrive = true;
     }
   }
 
-  // All services positive declaration
-  if (currentStep === 4 && /(?:sabhi\s*services|all\s*services|sab\s*kuch|sab\s*uplabdh|sab\s*suvidha)/i.test(lower)) {
-    extracted.emiAvailable = true;
-    extracted.insuranceAvailable = true;
-    extracted.chargingOnSite = true;
-    extracted.showroomTestDrive = true;
-  }
-
-  // Working days
-  if (/(?:all\s*7\s*days|saaton\s*din|daily|everyday|rooz|सातों\s*दिन|रोज)/i.test(lower)) {
-    extracted.workingDays = 'All 7 Days';
-  } else if (/(?:monday\s*to\s*saturday|somwar\s*se\s*shaniwar|mon-sat|सोमवार\s*से\s*शनिवार)/i.test(lower)) {
-    extracted.workingDays = 'Monday to Saturday';
+  // All services positive declaration or general affirmative on Step 4
+  if (currentStep === 4 && isAffirmative(lower)) {
+    if (!isNegative(lower)) {
+      if (currentTargetField === 'showroomTestDrive' || currentTargetField === 'homeTestDrive') {
+        extracted.showroomTestDrive = true;
+        if (/(?:home|doorstep|ghar|dono|sab)/i.test(lower)) extracted.homeTestDrive = true;
+      } else if (currentTargetField === 'emiAvailable' || currentTargetField === 'insuranceAvailable') {
+        extracted.emiAvailable = true;
+        extracted.insuranceAvailable = true;
+      } else {
+        extracted.emiAvailable = true;
+        extracted.insuranceAvailable = true;
+        extracted.chargingOnSite = true;
+        extracted.showroomTestDrive = true;
+      }
+    }
   }
 
   return extracted;
@@ -989,10 +1221,10 @@ export function classifyIntent(text = '') {
   if (/(?:(?:don't|dont)\s*know|not\s*sure|no\s*idea|pata\s*nahi|nahi\s*pata|maloom\s*nahi|yaad\s*nahi|(?:can't|cant)\s*remember|come\s*back|baad\s*me\s*bataunga|पता\s*नहीं|याद\s*नहीं|नहीं\s*मालूम|बाद\s*में)/i.test(trimmed)) {
     return INTENT.UNKNOWN;
   }
-  if (/^(?:yes|haan|ha|sahi hai|correct|bilkul|confirm|हाँ|हा|सही है)$/i.test(trimmed)) {
+  if (isAffirmative(trimmed)) {
     return INTENT.CONFIRM_YES;
   }
-  if (/^(?:no|nahi|galat|wrong|cancel|नहीं|गलत)$/i.test(trimmed)) {
+  if (isNegative(trimmed)) {
     return INTENT.CONFIRM_NO;
   }
 
@@ -1011,20 +1243,22 @@ export class DealerFormStateMachine {
     this.formStatus = FORM_STATE.NOT_STARTED;
 
     for (const [key, meta] of Object.entries(CANONICAL_DEALER_FIELDS)) {
-      const isTextProvided = typeof initialValues[key] === 'string' && initialValues[key].trim().length > 0;
-      const isCustomArrayProvided = Array.isArray(initialValues[key]) && initialValues[key].length > 0 && key === 'brands';
-      const isUserFilled = isTextProvided || isCustomArrayProvided;
+      const isTextProvided = typeof initialValues[key] === 'string' && initialValues[key].trim().length > 0 && (!meta.isDefault || initialValues[key] !== meta.default);
+      const isCustomArrayProvided = Array.isArray(initialValues[key]) && initialValues[key].length > 0 && (!meta.isDefault || JSON.stringify(initialValues[key]) !== JSON.stringify(meta.default));
+      const isBoolProvided = typeof initialValues[key] === 'boolean' && meta.default === undefined;
+      const isUserFilled = isTextProvided || isCustomArrayProvided || isBoolProvided;
 
       const initial = isUserFilled ? initialValues[key] : (meta.default !== undefined ? meta.default : '');
+      const hasDefault = meta.default !== undefined || meta.isDefault;
 
       this.fields[key] = {
         value: initial,
-        status: isUserFilled ? FIELD_STATE.FILLED : FIELD_STATE.MISSING,
+        status: isUserFilled ? FIELD_STATE.FILLED : (hasDefault && !meta.required ? FIELD_STATE.FILLED : FIELD_STATE.MISSING),
         attempts: 0,
-        confidence: isUserFilled ? 1.0 : 0.0,
-        validated: isUserFilled,
+        confidence: isUserFilled ? 1.0 : (hasDefault ? 0.8 : 0.0),
+        validated: Boolean(isUserFilled || (hasDefault && !meta.required)),
         confirmed: false,
-        source: isUserFilled ? 'manual_ui' : (meta.isDefault ? 'default' : 'none'),
+        source: isUserFilled ? 'manual_ui' : (hasDefault ? 'default' : 'none'),
         sourceUtterance: isUserFilled ? 'initial_ui_prefill' : '',
         history: isUserFilled ? [{
           value: initial,
@@ -1226,7 +1460,6 @@ export class DealerFormStateMachine {
   }
 
   updateCurrentTargetField() {
-    const validSources = new Set(['voice', 'voice_extracted', 'voice_compound', 'manual_ui', 'manual_ui_sync']);
     const allStepFields = {
       1: ['shopName', 'managerName', 'phone', 'email', 'city'],
       2: ['address', 'pincode', 'workingDays'],
@@ -1237,7 +1470,7 @@ export class DealerFormStateMachine {
     for (let s = this.currentStep; s <= 4; s++) {
       for (const key of allStepFields[s]) {
         const f = this.fields[key];
-        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED);
         if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
           this.currentTargetField = key;
           return;
@@ -1247,7 +1480,7 @@ export class DealerFormStateMachine {
     for (let s = 1; s < this.currentStep; s++) {
       for (const key of allStepFields[s]) {
         const f = this.fields[key];
-        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED) && validSources.has(f.source);
+        const isFilled = f?.value !== undefined && f?.value !== null && f?.value !== '' && (!Array.isArray(f.value) || f.value.length > 0) && (f.status === FIELD_STATE.FILLED || f.status === FIELD_STATE.CONFIRMED);
         if (!isFilled && f?.status !== FIELD_STATE.SKIPPED && f?.status !== FIELD_STATE.MANUAL_FALLBACK) {
           this.currentTargetField = key;
           return;
@@ -1557,7 +1790,7 @@ export class DealerAgentSession {
 
       // Step 4 final affirmative submission
       if (this.stateMachine.currentStep === 4 && this.stateMachine.isStepComplete(4)) {
-        if (/(?:yes|haan|ha|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|सबमिट|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
+        if (isAffirmative(userText) || /(?:chalo|next|aage|proceed|agla|confirm|सबमिट|चलो|आगे|बढ़ो|बढो)/i.test(userText)) {
           this.conversationMode = CONVERSATION_MODE.SUBMITTING;
           return await this.submitRegistration();
         }
@@ -1785,7 +2018,7 @@ export class DealerAgentSession {
       }
 
       // Step Confirmation transitions
-      if (/(?:yes|haan|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
+      if (isAffirmative(userText) || /(?:chalo|next|aage|proceed|agla|confirm|चलो|आगे|बढ़ो|बढो)/i.test(userText)) {
         if (this.stateMachine.currentStep === 1 && this.stateMachine.isStepComplete(1)) {
           this.stateMachine.currentStep = 2;
         } else if (this.stateMachine.currentStep === 2 && this.stateMachine.isStepComplete(2)) {
@@ -1815,7 +2048,10 @@ export class DealerAgentSession {
         }
       } else {
         const currTarget = this.stateMachine.currentTargetField;
-        if (currTarget && !/(?:yes|haan|chalo|next|aage|proceed|sure|ok|theek hai|bilkul|agla|confirm|हाँ|हा|चलो|आगे|बढ़ो|बढो|ठीक है|बिलकुल|ज़रूर|जरूर)/i.test(userText)) {
+        const isBooleanField = currTarget && (currTarget === 'emiAvailable' || currTarget === 'showroomTestDrive' || currTarget === 'homeTestDrive' || currTarget === 'chargingOnSite' || currTarget === 'insuranceAvailable');
+        const isConfirmOrTransition = isAffirmative(userText) || /(?:chalo|next|aage|proceed|agla|confirm|चलो|आगे|बढ़ो|बढो)/i.test(userText);
+
+        if (currTarget && (!isConfirmOrTransition || (this.stateMachine.currentStep === 1 && !this.stateMachine.isStepComplete(1))) && (!isNegative(userText) || !isBooleanField)) {
           turnQuality = TURN_QUALITY.UNCLEAR_SPEECH;
           this.telemetry.retriedTurns++;
           this.stateMachine.recordFailedAttempt(currTarget, turnQuality);
