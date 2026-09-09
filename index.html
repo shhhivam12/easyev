@@ -17018,10 +17018,10 @@
   </script>
 
   <script>
-    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - DRAGGABLE & RESPONSIVE) === */
+    /* === EASYEV TELEMETRY HUD CONTROLLER (v3 - ROCK-SOLID TOGGLE & DRAGGABLE) === */
     (function initTelemetryHud() {
       let activeProvenance = null;
-      let hudMode = "BASIC"; // "BASIC", "DETAILED", "DEBUG", "HIDDEN"
+      let hudMode = "BASIC"; // "BASIC", "DETAILED", "DEBUG"
       let posX = null;
       let posY = null;
       let isDragging = false;
@@ -17029,7 +17029,7 @@
       let dragStartY = 0;
       let elemStartX = 0;
       let elemStartY = 0;
-      let hasMoved = false;
+      let dragDistance = 0;
 
       function createHudRoot() {
         let root = document.getElementById("telemetry-hud-root");
@@ -17044,9 +17044,9 @@
 
       function initDraggable(el) {
         el.addEventListener("pointerdown", (e) => {
-          if (e.target.closest("button") || e.target.closest(".hud-info-icon") || e.target.closest(".hud-mode-btn")) return;
+          if (e.target.closest(".hud-mode-btn") || e.target.closest(".hud-info-icon") || e.target.closest(".hud-close-btn")) return;
           isDragging = true;
-          hasMoved = false;
+          dragDistance = 0;
           dragStartX = e.clientX;
           dragStartY = e.clientY;
 
@@ -17054,41 +17054,48 @@
           elemStartX = rect.left;
           elemStartY = rect.top;
 
-          // Switch to absolute inline positioning on first drag
-          el.style.bottom = "auto";
-          el.style.right = "auto";
-          el.style.left = elemStartX + "px";
-          el.style.top = elemStartY + "px";
-
           el.setPointerCapture(e.pointerId);
-          el.style.cursor = "grabbing";
         });
 
         el.addEventListener("pointermove", (e) => {
           if (!isDragging) return;
           const dx = e.clientX - dragStartX;
           const dy = e.clientY - dragStartY;
-          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
-            hasMoved = true;
+          dragDistance = Math.hypot(dx, dy);
+
+          if (dragDistance > 4) {
+            el.style.bottom = "auto";
+            el.style.right = "auto";
+            let newX = elemStartX + dx;
+            let newY = elemStartY + dy;
+
+            const width = el.offsetWidth || 300;
+            const height = el.offsetHeight || 40;
+            newX = Math.max(8, Math.min(window.innerWidth - width - 8, newX));
+            newY = Math.max(8, Math.min(window.innerHeight - height - 8, newY));
+
+            posX = newX;
+            posY = newY;
+            el.style.left = newX + "px";
+            el.style.top = newY + "px";
+            el.style.cursor = "grabbing";
           }
-          let newX = elemStartX + dx;
-          let newY = elemStartY + dy;
-
-          const width = el.offsetWidth || 300;
-          const height = el.offsetHeight || 40;
-          newX = Math.max(8, Math.min(window.innerWidth - width - 8, newX));
-          newY = Math.max(8, Math.min(window.innerHeight - height - 8, newY));
-
-          posX = newX;
-          posY = newY;
-          el.style.left = newX + "px";
-          el.style.top = newY + "px";
         });
 
         const endDrag = (e) => {
           if (!isDragging) return;
+          const wasClick = dragDistance <= 4;
           isDragging = false;
           el.style.cursor = "grab";
+
+          if (wasClick) {
+            if (e.target.closest(".hud-close-btn")) {
+              window.setTelemetryMode("BASIC");
+            } else if (!e.target.closest(".hud-mode-btn") && !e.target.closest(".hud-info-icon")) {
+              // Clicked on pill -> toggle to Detailed
+              window.setTelemetryMode(hudMode === "DETAILED" ? "BASIC" : "DETAILED");
+            }
+          }
         };
 
         el.addEventListener("pointerup", endDrag);
@@ -17096,7 +17103,6 @@
       }
 
       window.setTelemetryMode = function(mode) {
-        if (hasMoved) { hasMoved = false; return; }
         hudMode = mode;
         if (window.EasyEVTelemetry && window.EasyEVTelemetry.store) {
           window.EasyEVTelemetry.store.setLevel(mode === "DEBUG" ? "DEBUG" : (mode === "DETAILED" ? "DETAILED" : "BASIC"));
@@ -17118,17 +17124,6 @@
           root.style.top = posY + "px";
         }
 
-        if (hudMode === "HIDDEN") {
-          root.innerHTML = `
-            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('BASIC')" title="Click to show Telemetry HUD (Shortcut: T | Drag to reposition)">
-              <span class="hud-drag-handle" title="Drag to move">⠿</span>
-              <span class="hud-live-dot"></span>
-              <span style="color:#94a3b8;font-weight:600;">TELEMETRY [T]</span>
-            </div>
-          `;
-          return;
-        }
-
         const store = window.EasyEVTelemetry && window.EasyEVTelemetry.store;
         const prov = (window.EasyEVTelemetry && window.EasyEVTelemetry.METRIC_PROVENANCE) || {};
         const rtc = (store && store.rtcHealth) || {};
@@ -17144,7 +17139,7 @@
             : (bargeIn ? (bargeIn.state || "active") : "ready");
 
           root.innerHTML = `
-            <div class="hud-card hud-pill" onclick="window.setTelemetryMode('DETAILED')" title="Click to expand (Shortcut: T | Drag to reposition)">
+            <div class="hud-card hud-pill" title="Click anywhere to open Detailed Engineering Panel (Shortcut: T | Drag to move)">
               <span class="hud-drag-handle" title="Drag anywhere on screen">⠿</span>
               <span class="hud-live-dot"></span>
               <span style="color:#38bdf8;font-weight:600;">LIVE TELEMETRY</span>
@@ -17154,7 +17149,7 @@
               <span>Barge: <strong style="color:#34d399;">${bargeText}</strong></span>
               <span style="color:#64748b;">|</span>
               <span>Frame: <strong style="color:#fbbf24;">${frameText}</strong></span>
-              <span style="color:#38bdf8;font-weight:700;margin-left:4px;border:1px solid rgba(56,189,248,0.4);border-radius:4px;padding:1px 5px;font-size:10px;">[T]</span>
+              <span style="color:#38bdf8;font-weight:700;margin-left:4px;border:1px solid rgba(56,189,248,0.4);border-radius:4px;padding:2px 6px;font-size:10px;background:rgba(56,189,248,0.1);">▲ OPEN [T]</span>
             </div>
           `;
           return;
@@ -17268,10 +17263,9 @@
                 <span style="font-weight:700;letter-spacing:0.04em;color:#fff;">EASYEV TELEMETRY</span>
               </div>
               <div class="hud-modes">
-                <button class="hud-mode-btn ${hudMode === "BASIC" ? "active" : ""}" onclick="window.setTelemetryMode('BASIC')">Basic</button>
                 <button class="hud-mode-btn ${hudMode === "DETAILED" ? "active" : ""}" onclick="window.setTelemetryMode('DETAILED')">Detailed</button>
                 <button class="hud-mode-btn ${hudMode === "DEBUG" ? "active" : ""}" onclick="window.setTelemetryMode('DEBUG')">Debug</button>
-                <button class="hud-mode-btn" onclick="window.setTelemetryMode('HIDDEN')" title="Hide HUD">✕</button>
+                <button class="hud-mode-btn hud-close-btn" onclick="window.setTelemetryMode('BASIC')" title="Minimize to Pill (Esc)">—</button>
               </div>
             </div>
             <div class="hud-body">
@@ -17315,7 +17309,8 @@
                   <div class="hud-provenance-box">
                     <strong>${prov.rtt?.name || "Network RTT"}</strong><br/>
                     Boundary: ${prov.rtt?.boundary || "N/A"}<br/>
-                    Source: ${prov.rtt?.source || "N/A"}
+                    Source: ${prov.rtt?.source || "N/A"}<br/>
+                    Sampling: ${prov.rtt?.sampling || "N/A"}
                   </div>` : ""}
                 ${activeProvenance === "jitter" ? `
                   <div class="hud-provenance-box">
@@ -17363,7 +17358,7 @@
           if (e.shiftKey) {
             window.setTelemetryMode(hudMode === "DEBUG" ? "BASIC" : "DEBUG");
           } else {
-            window.setTelemetryMode(hudMode === "BASIC" ? "DETAILED" : (hudMode === "DETAILED" ? "BASIC" : "BASIC"));
+            window.setTelemetryMode(hudMode === "BASIC" ? "DETAILED" : "BASIC");
           }
         } else if (e.key === "Escape" && hudMode !== "BASIC") {
           window.setTelemetryMode("BASIC");
