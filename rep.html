@@ -12,33 +12,36 @@
    COCKPIT VELOCITY — EasyEV Specialist Control Room Design System
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* Surface hierarchy — Balanced Brand Edition (Light & Dark Green) */
-  --surface-base:      #F8FAF7;
-  --surface-cockpit:   #12351B;
+  /* Surface hierarchy — matched to main site palette */
+  --surface-base:      #fbfdfb;
+  --surface-cockpit:   #071c10;
   --surface-panel:     #FFFFFF;
-  --surface-elevated:  #F0F4EF;
-  --border-subtle:     #DDE5DD;
-  --border-active:     #2B402E;
-  --surface-hover:     #EFF5EE;
+  --surface-elevated:  #f3f8f4;
+  --border-subtle:     #dce7df;
+  --border-active:     #16bf53;
+  --surface-hover:     #f3f8f4;
+  --green-deep:        #16bf53;
 
   /* Accent system */
-  --emerald-core:      #12351B;
-  --mint-glow:         #12351B;
-  --cyan-telemetry:    #12351B;
-  --amber-alert:       #FFB300;
-  --crimson-live:      #F43F5E;
-  --indigo-ai:         #12351B;
-  --indigo-bg:         rgba(18,191,83,.15);
+  --emerald-core:      #16bf53;
+  --mint-glow:         #55f27b;
+  --cyan-telemetry:    #16bf53;
+  --amber-alert:       #ffbf47;
+  --amber-deep:        #b45309;
+  --crimson-live:      #ff6b6b;
+  --danger-deep:        #b91c1c;
+  --indigo-ai:         #83ff9d;
+  --indigo-bg:         rgba(22,191,83,.15);
 
   /* Text hierarchy */
-  --text-primary:      #101510;
-  --text-secondary:    #7B8A7E;
-  --text-muted:        #7B8A7E;
+  --text-primary:      #07110b;
+  --text-secondary:    #647067;
+  --text-muted:        #647067;
 
   /* Badge backgrounds */
-  --badge-ai-bg:       rgba(18,191,83,.2);
-  --badge-buyer-bg:    rgba(18,191,83,.2);
-  --badge-rose-bg:     rgba(244,63,94,.12);
+  --badge-ai-bg:       rgba(22,191,83,.2);
+  --badge-buyer-bg:    rgba(22,191,83,.2);
+  --badge-rose-bg:     rgba(255,107,107,.12);
 
   /* Typography stacks */
   --font-headline:     'Space Grotesk', system-ui, sans-serif;
@@ -55,22 +58,22 @@
   --ink-2:       var(--text-secondary);
   --ink-3:       var(--text-muted);
   --accent:      var(--mint-glow);
-  --accent-deep: #172A1A;
+  --accent-deep: #0d351b;
   --warn:        var(--amber-alert);
   --alert:       var(--crimson-live);
   --font:        var(--font-body);
   --mono-legacy: var(--font-mono);
 
   /* Dark cockpit surfaces (header, dark cards, badges) */
-  --cockpit-deep:      #0A110C;
-  --cockpit-panel:     #0E1B11;
-  --cockpit-card:      #122016;
-  --cockpit-card-hover:#172A1A;
-  --cockpit-border:    #2B402E;
-  --cockpit-border-hl: #315A38;
-  --cockpit-text:      #FBFDFB;
-  --cockpit-muted:     #12351B;
-  --brand-glow:        rgba(18,191,83,.25);
+  --cockpit-deep:      #0a150e;
+  --cockpit-panel:     #071c10;
+  --cockpit-card:      #0a2815;
+  --cockpit-card-hover:#0d351b;
+  --cockpit-border:    rgba(255,255,255,.14);
+  --cockpit-border-hl: #1e6d32;
+  --cockpit-text:      #fbfdfb;
+  --cockpit-muted:     rgba(255,255,255,.6);
+  --brand-glow:        rgba(85,242,123,.28);
 }
 
 /* ── Reset ── */
@@ -111,11 +114,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   to   { opacity: 1; transform: none; }
 }
 @keyframes flare {
-  0%, 42% { border-color: var(--amber-alert); box-shadow: 0 0 0 1px var(--amber-alert), 0 0 34px -6px rgba(255,179,0,.4); }
+  0%, 42% { border-color: var(--amber-alert); box-shadow: 0 0 0 1px var(--amber-alert), 0 0 34px -6px rgba(255,191,71,.4); }
   100%    { border-color: var(--border-subtle); box-shadow: none; }
 }
 @keyframes blink { 50% { opacity: .25; } }
-@keyframes driveSent { 0% { background: rgba(18,191,83,.3); } 100% { background: var(--surface-panel); } }
+@keyframes driveSent { 0% { background: rgba(22,191,83,.3); } 100% { background: var(--surface-panel); } }
 @media (prefers-reduced-motion: reduce) {
   .call.is-new, .drive-btn.is-sent, .chip.wait .pulse { animation: none !important; }
 }
@@ -155,6 +158,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   font-weight: 700;
   letter-spacing: -.02em;
   margin-bottom: 6px;
+  color: var(--cockpit-text);
 }
 .gate p { color: var(--text-muted); font-size: 13px; margin-bottom: 24px; }
 .gate input {
@@ -177,14 +181,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   width: 100%;
   padding: 14px;
   background: var(--mint-glow);
-  color: #0A110C;
+  color: #071c10;
   font-family: var(--font-headline);
   font-weight: 700;
   font-size: 14px;
   border-radius: 8px;
   transition: background .15s;
 }
-.gate button[type="submit"]:hover { background: #12351B; }
+.gate button[type="submit"]:hover { background: #071c10; }
 .gate .err { color: var(--crimson-live); font-size: 12.5px; min-height: 18px; margin-top: 12px; }
 .linky {
   background: none;
@@ -243,8 +247,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   font-weight: 650;
   letter-spacing: -.01em;
   margin-bottom: 5px;
+  color: var(--cockpit-text);
 }
-.call .said { color: var(--text-secondary); font-size: 13.5px; max-width: 62ch; margin-bottom: 10px; }
+.call .said { color: rgba(255,255,255,.72); font-size: 13.5px; max-width: 62ch; margin-bottom: 10px; }
 .call .facts { display: flex; flex-wrap: wrap; gap: 6px; }
 .fact {
   font-family: var(--font-mono);
@@ -257,7 +262,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   color: var(--text-secondary);
   background: var(--surface-panel);
 }
-.fact.hot { color: var(--crimson-live); border-color: rgba(244,63,94,.2); }
+.fact.hot { color: var(--danger-deep); border-color: rgba(255,107,107,.3); }
 .fact:empty { display: none; }
 .call .take { display: grid; gap: 8px; justify-items: end; }
 .waited {
@@ -266,19 +271,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   color: var(--amber-alert);
   font-variant-numeric: tabular-nums;
 }
-.call.taken .waited { color: var(--text-muted); font-size: 12px; }
+.call.taken .waited { color: rgba(255,255,255,.6); font-size: 12px; }
 .take button {
   padding: 11px 18px;
   border-radius: 8px;
   background: var(--mint-glow);
-  color: #0A110C;
+  color: #071c10;
   font-family: var(--font-headline);
   font-weight: 700;
   font-size: 13px;
   white-space: nowrap;
   transition: background .15s;
 }
-.take button:hover { background: #12351B; }
+.take button:hover { background: #071c10; }
 .take button[disabled] { background: var(--surface-panel); color: var(--text-muted); cursor: not-allowed; }
 .board-empty { color: var(--text-muted); font-size: 14px; font-style: italic; padding: 34px 0; text-align: center; }
 .call.is-new { animation: land .55s cubic-bezier(.2,.8,.3,1) both, flare 2.4s ease-out .55s both; }
@@ -301,11 +306,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .keyform input {
   width: 100%; padding: 11px 13px; margin-bottom: 10px;
   background: var(--surface-cockpit); border: 1px solid var(--border-active);
-  border-radius: 7px; color: var(--text-primary); font: inherit;
+  border-radius: 7px; color: var(--cockpit-text); font: inherit;
 }
 .keyform button {
   width: 100%; padding: 11px; border-radius: 7px;
-  background: var(--mint-glow); color: #0A110C; font-weight: 650;
+  background: var(--mint-glow); color: #071c10; font-weight: 650;
 }
 
 /* ═══════════════════════════════
@@ -346,7 +351,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  box-shadow: 0 0 12px rgba(18,191,83,.4);
+  box-shadow: 0 0 12px rgba(22,191,83,.4);
   flex-shrink: 0;
 }
 .brand-text {
@@ -354,7 +359,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -.01em;
-  color: var(--text-primary);
+  color: var(--cockpit-text);
 }
 .brand-text small {
   display: inline-flex;
@@ -364,8 +369,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   letter-spacing: .06em;
   text-transform: uppercase;
   color: var(--mint-glow);
-  background: rgba(18,191,83,.15);
-  border: 1px solid rgba(18,191,83,.4);
+  background: rgba(22,191,83,.15);
+  border: 1px solid rgba(22,191,83,.4);
   padding: 2px 6px;
   border-radius: 4px;
   margin-left: 8px;
@@ -373,7 +378,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
 .topbar-sep {
   width: 1px;
   height: 20px;
-  background: var(--border-subtle);
+  background: var(--cockpit-border);
   flex-shrink: 0;
 }
 .chip {
@@ -391,15 +396,17 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   white-space: nowrap;
 }
 .chip b { color: var(--text-primary); font-weight: 600; }
+.topbar .chip { color: var(--cockpit-muted); }
+.topbar .chip b { color: var(--cockpit-text); }
 .chip.live {
   color: var(--mint-glow);
-  border-color: rgba(18,191,83,.4);
-  background: rgba(18,191,83,.15);
+  border-color: rgba(22,191,83,.4);
+  background: rgba(22,191,83,.15);
 }
 .chip.wait {
-  color: var(--amber-alert);
-  border-color: rgba(255,179,0,.3);
-  background: rgba(255,179,0,.1);
+  color: var(--amber-deep);
+  border-color: rgba(255,191,71,.3);
+  background: rgba(255,191,71,.1);
 }
 .pulse {
   width: 8px;
@@ -439,8 +446,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible {
   background: var(--mint-glow);
 }
 .telemetry-group .t-label { color: var(--text-muted); }
-.telemetry-group .t-value { color: var(--mint-glow); font-weight: 600; }
-.telemetry-group .t-sep { color: var(--border-subtle); }
+.telemetry-group .t-value { color: var(--green-deep); font-weight: 600; }
+.telemetry-group .t-sep { color: var(--text-muted); }
 
 /* Mic meter in header */
 .mic-meter-bar {
@@ -475,7 +482,7 @@ h2.k {
   font-weight: 600;
   letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--cockpit-muted);
   margin: 0 0 10px;
   display: flex;
   align-items: center;
@@ -509,10 +516,10 @@ h2.k .k-badge {
 
 /* Paged Alert */
 .brief {
-  border: 1px solid rgba(244,63,94,.2);
+  border: 1px solid rgba(255,107,107,.2);
   border-radius: 10px;
   padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(244,63,94,.06) 0%, var(--surface-panel) 100%);
+  background: linear-gradient(180deg, #fff6f6 0%, var(--surface-panel) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -523,16 +530,16 @@ h2.k .k-badge {
   right: -24px;
   width: 64px;
   height: 64px;
-  background: rgba(244,63,94,.05);
+  background: rgba(255,107,107,.05);
   border-radius: 50%;
   filter: blur(20px);
   pointer-events: none;
 }
 .brief.joined {
-  border-color: rgba(18,191,83,.4);
-  background: linear-gradient(180deg, rgba(18,191,83,.15) 0%, var(--surface-panel) 100%);
+  border-color: rgba(22,191,83,.4);
+  background: linear-gradient(180deg, #dcf5e5 0%, var(--surface-panel) 100%);
 }
-.brief.joined::before { background: rgba(18,191,83,.12); }
+.brief.joined::before { background: rgba(22,191,83,.12); }
 .brief .reason {
   font-family: var(--font-headline);
   font-size: 13px;
@@ -552,9 +559,65 @@ h2.k .k-badge {
   letter-spacing: .04em;
   margin-top: 10px;
   padding-top: 8px;
-  border-top: 1px solid rgba(244,63,94,.12);
+  border-top: 1px solid rgba(255,107,107,.12);
 }
-.brief.joined .waited { border-top-color: rgba(18,191,83,.2); }
+.brief.joined .waited { border-top-color: rgba(22,191,83,.2); }
+
+/* AI Handoff Briefing */
+.briefing {
+  border: 1px solid rgba(22,191,83,.25);
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #ecfaf1 0%, var(--surface-panel) 100%);
+}
+.briefing-state {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.briefing-state.is-loading {
+  position: relative;
+  padding-left: 16px;
+}
+.briefing-state.is-loading::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mint-glow);
+  animation: blink 1.1s ease-in-out infinite;
+}
+.briefing-body { display: grid; gap: 10px; }
+.briefing-row { display: grid; gap: 2px; }
+.briefing-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--surface-cockpit);
+  opacity: .75;
+}
+.briefing-row p {
+  font-size: 12.5px;
+  color: var(--text-primary);
+  line-height: 1.45;
+}
+.briefing-opening {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(22,191,83,.3);
+}
+.briefing-opening p {
+  font-size: 12.5px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--surface-cockpit);
+  line-height: 1.45;
+}
 
 /* Lead & Booking */
 .lb { display: grid; gap: 8px; }
@@ -583,13 +646,13 @@ h2.k .k-badge {
   color: var(--text-muted);
   white-space: nowrap;
 }
-.lb-card.live .lb-src { color: var(--mint-glow); }
-.lb-card.pending .lb-src { color: var(--amber-alert); }
+.lb-card.live .lb-src { color: var(--surface-cockpit); }
+.lb-card.pending .lb-src { color: var(--amber-deep); }
 .lb-row { display: flex; gap: 8px; font-size: 12px; padding: 2px 0; }
 .lb-row span { flex: none; width: 52px; color: var(--text-muted); font-size: 10px; text-transform: uppercase; padding-top: 1px; }
 .lb-row b { font-weight: 600; overflow-wrap: anywhere; }
-.lb-when { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--mint-glow); }
-.lb-card.pending .lb-when { color: var(--amber-alert); }
+.lb-when { font-family: var(--font-mono); font-size: 14px; font-weight: 700; color: var(--surface-cockpit); }
+.lb-card.pending .lb-when { color: var(--amber-deep); }
 .lb-copy {
   background: none;
   border: 1px solid var(--border-active);
@@ -603,7 +666,7 @@ h2.k .k-badge {
   margin-top: 8px;
   cursor: pointer;
 }
-.lb-copy:hover { border-color: var(--mint-glow); color: var(--mint-glow); }
+.lb-copy:hover { border-color: var(--mint-glow); color: var(--surface-cockpit); }
 
 /* Key-Value Profile */
 dl.kv {
@@ -614,13 +677,13 @@ dl.kv {
 }
 dl.kv dt {
   font-family: var(--font-mono);
-  color: var(--text-muted);
+  color: var(--cockpit-muted);
   font-size: 10px;
   letter-spacing: .06em;
   text-transform: uppercase;
   padding-top: 2px;
 }
-dl.kv dd { color: var(--text-primary); font-weight: 500; overflow-wrap: anywhere; }
+dl.kv dd { color: var(--cockpit-text); font-weight: 500; overflow-wrap: anywhere; }
 
 /* Shortlist */
 ul.list { list-style: none; display: grid; gap: 6px; }
@@ -659,8 +722,8 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   letter-spacing: -.01em;
 }
 
-.empty { color: var(--text-muted); font-size: 12px; font-style: italic; }
-.hint { color: var(--text-muted); font-size: 11px; margin-top: 6px; line-height: 1.45; }
+.empty { color: var(--cockpit-muted); font-size: 12px; font-style: italic; }
+.hint { color: var(--cockpit-muted); font-size: 11px; margin-top: 6px; line-height: 1.45; }
 
 /* ── CENTER CANVAS — Live Transcript ── */
 .col-center {
@@ -743,7 +806,7 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
 }
 .voice-meter-bars.buyer .audio-bar { background: var(--cyan-telemetry); }
 .voice-meter-bars.specialist .audio-bar { background: var(--mint-glow); }
-.voice-meters-sep { color: var(--border-subtle); }
+.voice-meters-sep { color: var(--text-muted); }
 
 /* Transcript stream */
 .stream {
@@ -780,14 +843,14 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   color: var(--text-secondary);
 }
 .who.ai {
-  background: rgba(18,191,83,.15);
-  border: 1px solid rgba(18,191,83,.35);
-  color: var(--indigo-ai);
+  background: rgba(22,191,83,.15);
+  border: 1px solid rgba(22,191,83,.35);
+  color: var(--surface-cockpit);
 }
 .who.rep {
-  background: rgba(18,191,83,.15);
-  border: 1px solid rgba(18,191,83,.35);
-  color: var(--mint-glow);
+  background: rgba(22,191,83,.15);
+  border: 1px solid rgba(22,191,83,.35);
+  color: var(--surface-cockpit);
 }
 .line p {
   font-family: var(--font-body);
@@ -804,16 +867,16 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
 }
 .line.ai p {
   background: var(--surface-cockpit);
-  border: 1px solid rgba(18,191,83,.3);
-  color: var(--text-secondary);
+  border: 1px solid rgba(22,191,83,.3);
+  color: rgba(255,255,255,.82);
 }
 .line.rep {
   margin-left: auto;
   flex-direction: row-reverse;
 }
 .line.rep p {
-  background: #E8F5E5;
-  border: 1px solid #12351B;
+  background: #dfffe7;
+  border: 1px solid rgba(22,191,83,.28);
   color: var(--text-primary);
   border-top-left-radius: 14px;
   border-top-right-radius: 4px;
@@ -831,13 +894,13 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   font-weight: 600;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--mint-glow);
+  color: var(--surface-cockpit);
 }
 .divider::before, .divider::after {
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(18,191,83,.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(22,191,83,.4), transparent);
 }
 
 /* AI Co-Pilot Whisper bar */
@@ -860,7 +923,7 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   width: 24px;
   height: 24px;
   border-radius: 6px;
-  background: rgba(18,191,83,.18);
+  background: rgba(22,191,83,.18);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -881,13 +944,13 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--indigo-ai);
+  color: var(--surface-cockpit);
 }
 .copilot-tag {
   font-family: var(--font-mono);
   font-size: 9px;
-  color: var(--indigo-ai);
-  background: rgba(18,191,83,.18);
+  color: var(--surface-cockpit);
+  background: rgba(22,191,83,.18);
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -941,7 +1004,7 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   font-weight: 600;
   letter-spacing: .05em;
   text-transform: uppercase;
-  color: var(--mint-glow);
+  color: #ffffff;
   background: rgba(0,0,0,.55);
   backdrop-filter: blur(6px);
   padding: 2px 8px;
@@ -980,10 +1043,10 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   font-weight: 700;
   font-size: 13px;
   background: var(--mint-glow);
-  color: #0A110C;
+  color: #071c10;
   transition: background .15s, border-color .15s;
 }
-.cta:hover { background: #12351B; }
+.cta:hover { background: #071c10; }
 .cta[disabled] { opacity: .45; cursor: not-allowed; }
 .cta.ghost {
   background: var(--surface-panel);
@@ -994,9 +1057,9 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
 .cta.danger {
   background: transparent;
   color: var(--amber-alert);
-  border: 1px solid rgba(255,179,0,.3);
+  border: 1px solid rgba(255,191,71,.3);
 }
-.cta.danger:hover { border-color: var(--amber-alert); background: rgba(255,179,0,.08); }
+.cta.danger:hover { border-color: var(--amber-alert); background: rgba(255,191,71,.08); }
 
 .stack { display: grid; gap: 9px; }
 
@@ -1031,14 +1094,14 @@ ul.list li span { color: var(--text-muted); font-size: 10px; }
   text-align: left;
 }
 .drive-btn:hover {
-  border-color: rgba(18,191,83,.6);
+  border-color: rgba(22,191,83,.6);
   background: var(--surface-hover);
 }
 .drive-btn:active { background: var(--surface-elevated); }
 .drive-btn[disabled] { opacity: .5; cursor: wait; }
 .drive-btn.is-sent {
   border-color: var(--mint-glow);
-  color: var(--mint-glow);
+  color: var(--surface-cockpit);
   animation: driveSent 1.1s ease-out;
 }
 
@@ -1173,7 +1236,7 @@ input:focus { border-color: var(--mint-glow); }
 
     <div class="telemetry-group">
       <span class="t-dot"></span>
-      <span class="t-value" style="color:var(--mint-glow)">Agora RTC</span>
+      <span class="t-value" style="color:var(--surface-cockpit)">Agora RTC</span>
       <span class="t-sep">•</span>
       <span class="t-value" style="color:var(--text-secondary)">48kHz HD</span>
     </div>
@@ -1200,12 +1263,28 @@ input:focus { border-color: var(--mint-glow); }
       <div class="col-left-section">
         <h2 class="k">
           Paged alert & handoff trigger
-          <span class="k-badge" style="color:var(--crimson-live);border-color:rgba(244,63,94,.3);background:rgba(244,63,94,.1)">URGENT</span>
+          <span class="k-badge" style="color:var(--crimson-live);border-color:rgba(255,107,107,.3);background:rgba(255,107,107,.1)">URGENT</span>
         </h2>
         <div class="brief" id="brief">
           <p class="reason" id="brief-reason">Waiting for the AI to page you</p>
           <p class="summary" id="brief-summary">This call has not been escalated yet. You can still join it.</p>
           <p class="waited" id="brief-waited"></p>
+        </div>
+      </div>
+
+      <div class="col-left-section">
+        <h2 class="k">AI handoff briefing</h2>
+        <div class="briefing" id="briefing">
+          <p class="briefing-state" id="briefing-state">Ask the buyer to escalate to see an AI-generated briefing here.</p>
+          <div class="briefing-body hide" id="briefing-body">
+            <div class="briefing-row"><span class="briefing-label">Wants</span><p id="briefing-wants"></p></div>
+            <div class="briefing-row"><span class="briefing-label">Covered</span><p id="briefing-covered"></p></div>
+            <div class="briefing-row"><span class="briefing-label">Why escalated</span><p id="briefing-why"></p></div>
+          </div>
+          <div class="briefing-opening hide" id="briefing-opening">
+            <span class="briefing-label">Suggested opening</span>
+            <p id="briefing-opening-line"></p>
+          </div>
         </div>
       </div>
 
@@ -1291,7 +1370,7 @@ input:focus { border-color: var(--mint-glow); }
       <div class="col-right-section">
         <h2 class="k">
           Agora live feeds
-          <span class="k-badge" style="color:var(--mint-glow);border-color:rgba(18,191,83,.4);background:rgba(18,191,83,.15)">2-WAY RTC</span>
+          <span class="k-badge" style="color:var(--mint-glow);border-color:rgba(22,191,83,.4);background:rgba(22,191,83,.15)">2-WAY RTC</span>
         </h2>
 
         <div class="stack" id="join-panel">
@@ -1311,7 +1390,7 @@ input:focus { border-color: var(--mint-glow); }
               <span class="video-mount__empty" id="rep-self-video-empty">Camera off</span>
             </div>
             <div class="video-mount" id="rep-buyer-video">
-              <span class="video-mount__label" style="color:var(--text-secondary)">BUYER</span>
+              <span class="video-mount__label" style="color:#ffffff">BUYER</span>
               <span class="video-mount__empty" id="rep-buyer-video-empty">Buyer's camera is off</span>
             </div>
           </div>
@@ -1324,7 +1403,7 @@ input:focus { border-color: var(--mint-glow); }
 
           <h2 class="k" style="margin-top:14px">
             Push to buyer's screen
-            <span class="k-badge" style="color:var(--cyan-telemetry);border-color:rgba(18,191,83,.4);background:rgba(18,191,83,.15)">1-CLICK SYNC</span>
+            <span class="k-badge" style="color:var(--cyan-telemetry);border-color:rgba(22,191,83,.4);background:rgba(22,191,83,.15)">1-CLICK SYNC</span>
           </h2>
           <div class="drive-grid" id="drive-grid">
             <button class="drive-btn" type="button" data-drive-tool="compare_vehicles">📊 Comparison</button>
@@ -1420,6 +1499,31 @@ input:focus { border-color: var(--mint-glow); }
     $('brief-waited').textContent = handoff.requestedAt && handoff.status === 'requested'
       ? `Paged ${relative(handoff.requestedAt)} ago`
       : handoff.joinedAt ? `Joined ${relative(handoff.joinedAt)} ago` : '';
+
+    const briefingState = $('briefing-state');
+    const briefingBody = $('briefing-body');
+    const briefingOpening = $('briefing-opening');
+    const briefingStatus = handoff.briefingStatus || 'unavailable';
+    if (briefingStatus === 'ready' && handoff.briefing) {
+      briefingState.classList.add('hide');
+      briefingState.classList.remove('is-loading');
+      briefingBody.classList.remove('hide');
+      briefingOpening.classList.remove('hide');
+      $('briefing-wants').textContent = handoff.briefing.buyerWants || '—';
+      $('briefing-covered').textContent = handoff.briefing.covered || '—';
+      $('briefing-why').textContent = handoff.briefing.whyEscalated || '—';
+      $('briefing-opening-line').textContent = handoff.briefing.openingLine || '—';
+    } else {
+      briefingBody.classList.add('hide');
+      briefingOpening.classList.add('hide');
+      briefingState.classList.remove('hide');
+      briefingState.classList.toggle('is-loading', briefingStatus === 'pending');
+      briefingState.textContent = briefingStatus === 'pending'
+        ? 'Generating AI briefing…'
+        : briefingStatus === 'failed'
+          ? 'AI briefing unavailable for this call — use the transcript above.'
+          : 'Ask the buyer to escalate to see an AI-generated briefing here.';
+    }
 
     if (handoff.status === 'rep-joined' && !state.joined) {
       $('join-button').disabled = true;

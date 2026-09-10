@@ -320,6 +320,10 @@ const tools = new EasyEVToolEngine({
   onEscalation: (record) => {
     broadcast(record, 'handoff', handoffState(record));
     notifySlack(record);
+    silenceAgentWhileWaiting(record).catch((error) => console.error('Waiting-mode switch failed:', safeMessage(error)));
+  },
+  onBriefingReady: (record) => {
+    broadcast(record, 'handoff', handoffState(record));
   },
   crm: crmCalendar,
   mailer,
@@ -1210,6 +1214,8 @@ function handoffState(record) {
     requestedAt: record.escalation?.requestedAt || null,
     joinedAt: record.escalation?.joinedAt || null,
     resolvedAt: record.escalation?.resolvedAt || null,
+    briefingStatus: record.escalation?.briefingStatus || 'unavailable',
+    briefing: record.escalation?.briefing || null,
     language: record.language,
     category: record.category,
   };
@@ -1289,6 +1295,33 @@ Questions spoken on this call are being asked of the human specialist, not of yo
 Return an empty response for every turn. Do not call any tool.
 Keep listening so the conversation continues to be transcribed and recorded.`;
 
+// You already told the buyer a specialist is being paged. Without this, an idle
+// turn (no new buyer speech) makes the model re-generate a fresh "I can't
+// connect you to a person" apology every cycle, flooding the transcript with
+// the same line. Only new buyer speech should ever produce a new response here.
+const WAITING_FOR_SPECIALIST_MESSAGE = `You just told the buyer a human EasyEV specialist is being paged to join this call. They have not joined yet.
+Do not repeat that you are paging someone, do not apologise again for not being human, and do not offer more help unprompted.
+If the buyer has not said anything new since your last turn, return an empty response and do not call any tool.
+If the buyer asks a genuinely new question while waiting, answer it briefly and normally — do not call escalate_to_human again.`;
+
+async function silenceAgentWhileWaiting(record) {
+  if (!record.session) return;
+  // No interrupt() here, unlike silenceAgentForHandoff: this runs while the
+  // agent's own handoff line ("paging a specialist now...") is still queued to
+  // be spoken, and cutting that off would leave the buyer with silence instead
+  // of an acknowledgement. The system-prompt swap only governs turns after it.
+  try {
+    await record.session.update({
+      llm: {
+        system_messages: [{ role: 'system', content: agentInstructions({ category: record.category, language: record.language }) + '\n\n' + WAITING_FOR_SPECIALIST_MESSAGE }],
+        params: { ...LLM_PARAMS },
+      },
+    });
+  } catch (error) {
+    console.error('Escalation: could not switch agent to waiting mode:', safeMessage(error));
+  }
+}
+
 // Speaks the result of something the buyer did on screen rather than by voice.
 //
 // A tool the browser ran never reaches the agent, so without this the agent
@@ -1340,8 +1373,8 @@ async function silenceAgentForHandoff(record) {
 async function restoreAgentAfterHandoff(record, note) {
   if (!record.session) return;
   const handover = note
-    ? `\n\nA human EasyEV specialist just spoke with this buyer on the call and has handed back to you. What the specialist wants you to know: ${note}. Acknowledge the handover back in one short sentence, then continue from there. Do not repeat questions the buyer has already answered.`
-    : '\n\nA human EasyEV specialist just left the call and handed back to you. Acknowledge the handover back in one short sentence, then continue. Do not repeat questions the buyer has already answered.';
+    ? `\n\nA human EasyEV specialist just spoke with this buyer on the call and has handed back to you. What the specialist wants you to know: ${note}. Say ONE short sentence acknowledging you are back, mentioning that only if it is relevant to what the buyer says next. Then stop talking and wait silently for the buyer to speak. Do not ask a follow-up question, do not offer further help, and do not call any tool until the buyer says something new. Do not repeat questions the buyer has already answered.`
+    : '\n\nA human EasyEV specialist just left the call and handed back to you. Say ONE short sentence acknowledging you are back. Then stop talking and wait silently for the buyer to speak. Do not ask a follow-up question, do not offer further help, and do not call any tool until the buyer says something new. Do not repeat questions the buyer has already answered.';
   try {
     await record.session.update({
       llm: {
