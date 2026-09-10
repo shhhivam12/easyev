@@ -303,6 +303,12 @@ const HANDOFF_LINES = Object.freeze({
   Hinglish: 'Main abhi ek human EasyEV specialist ko isi call par la raha hoon. Unhe hamari poori baat-cheet already dikh rahi hai, toh aapko kuch repeat nahi karna padega. Line par baney rahiye.',
 });
 
+const STILL_WAITING_LINES = Object.freeze({
+  English: 'Still holding the line for a specialist to join us.',
+  Hindi: 'मैं अभी भी एक विशेषज्ञ के जुड़ने का इंतज़ार कर रहा हूँ।',
+  Hinglish: 'Main abhi bhi specialist ke join hone ka wait kar raha hoon.',
+});
+
 export function computeDynamicWeights(passport) {
   const priorities = (passport?.profile?.priorities || []).map((p) => String(p).toLowerCase());
   const joined = `${priorities.join(' ')} ${passport?.profile?.usagePattern || ''}`.toLowerCase();
@@ -563,8 +569,9 @@ export function recordDecisionEvent(record, eventType, data = {}) {
 }
 
 export class EasyEVToolEngine {
-  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-3.6-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null, crm = null, mailer = null } = {}) {
+  constructor({ databaseUrl = '', geminiApiKey = '', geminiModel = 'gemini-3.6-flash', openChargeMapKey = '', publicBaseUrl = '', onEscalation = null, onBriefingReady = null, crm = null, mailer = null } = {}) {
     this.onEscalation = onEscalation;
+    this.onBriefingReady = onBriefingReady;
     this.crm = crm || new CrmCalendar({});
     this.mailer = mailer;
     this.databaseUrl = databaseUrl;
@@ -1619,6 +1626,17 @@ export class EasyEVToolEngine {
         spoken: 'A human specialist is already on this call with us, so I will let them continue.',
       };
     }
+    // A specialist has already been paged and is not on the line yet. Re-running
+    // the whole escalation (Slack ping, broadcast, a fresh Gemini briefing call)
+    // on every repeat invocation would spam the rep and the buyer alike, so this
+    // is a no-op that just restates where things stand.
+    if (record.escalation?.status === 'requested') {
+      return {
+        stage: 'handoff',
+        payload: { ...record.passport.escalation, alreadyRequested: true },
+        spoken: STILL_WAITING_LINES[record.language] || STILL_WAITING_LINES.Hinglish,
+      };
+    }
 
     const escalation = {
       status: 'requested',
@@ -1632,6 +1650,8 @@ export class EasyEVToolEngine {
       joinedAt: null,
       resolvedAt: null,
       repName: '',
+      briefingStatus: this.geminiApiKey ? 'pending' : 'unavailable',
+      briefing: null,
     };
     record.escalation = { ...record.escalation, ...escalation };
     record.passport.escalation = { ...escalation };
@@ -1640,6 +1660,7 @@ export class EasyEVToolEngine {
       `A human EasyEV specialist was paged for: ${REASON_LABELS[reason]}.`,
     ]);
     try { this.onEscalation?.(record); } catch (error) { console.error('Escalation notification failed:', safeError(error)); }
+    this.generateHandoffBriefing(record).catch((error) => console.error('Handoff briefing failed:', safeError(error)));
 
     return {
       stage: 'handoff',
@@ -1650,6 +1671,95 @@ export class EasyEVToolEngine {
       },
       spoken: HANDOFF_LINES[record.language] || HANDOFF_LINES.Hinglish,
     };
+  }
+
+  // Gives the specialist a running start instead of a cold transcript: what the
+  // buyer wants, what has already been covered, why the AI escalated, and a
+  // suggested opening line. Runs after escalateToHuman has already returned to
+  // the buyer, so a slow or failed Gemini call never delays the handoff itself.
+  async generateHandoffBriefing(record) {
+    if (!this.geminiApiKey || !record.escalation) return;
+    const requestedAt = record.escalation.requestedAt;
+    try {
+      const profile = record.passport?.profile || {};
+      const lines = (record.transcript || [])
+        .filter((entry) => entry.final !== false && entry.text)
+        .slice(-24)
+        .map((entry) => `${entry.speaker === 'buyer' ? 'Buyer' : entry.speaker === 'rep' ? 'Specialist' : 'AI'}: ${entry.text}`)
+        .join('\n') || '(No transcript captured yet.)';
+      const shortlist = (record.passport?.shortlist || []).map((item) => item.name).filter(Boolean).join(', ') || 'None yet';
+      const prompt = [
+        'You are briefing a human sales specialist who is about to take over a live voice call from an AI EV-buying assistant.',
+        'Read the conversation and known buyer profile, then return strict JSON only with keys: buyerWants, covered, whyEscalated, openingLine.',
+        'Each value must be a single short sentence (under 140 characters), plain English, specific to this buyer — never generic.',
+        'buyerWants: what vehicle/outcome the buyer is after.',
+        'covered: what has already been discussed or resolved, so the specialist does not repeat it.',
+        'whyEscalated: the real reason a human is needed now, in concrete terms (not just the category label).',
+        'openingLine: a natural first sentence the specialist could say to pick up exactly where the AI left off.',
+        '',
+        `Escalation reason category: ${record.escalation.reasonLabel || record.escalation.reason}`,
+        `Escalation reason given by AI: ${record.escalation.summary || 'Not given'}`,
+        `Buyer category: ${profile.category || 'Not discussed'}`,
+        `Daily travel: ${profile.dailyKm ?? 'Not discussed'} km`,
+        `Budget: ${profile.budgetLakh ? profile.budgetLakh + ' lakh' : 'Not discussed'}`,
+        `Charging access: ${profile.chargingAccess || 'Not discussed'}`,
+        `Shortlisted vehicles: ${shortlist}`,
+        '',
+        'Conversation transcript (most recent last):',
+        lines,
+      ].join('\n');
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(this.geminiModel)}:generateContent?key=${encodeURIComponent(this.geminiApiKey)}`;
+      const body = JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, responseMimeType: 'application/json' },
+      });
+      // gemini-3.6-flash occasionally returns a transient 503 ("overloaded") or 429
+      // under load; a briefing that fails once should not stay stuck on "unavailable"
+      // for the rest of the call, since this runs fully in the background anyway.
+      const retryableStatus = new Set([429, 500, 502, 503, 504]);
+      let response;
+      let lastError;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(15000),
+            body,
+          });
+          if (response.ok) { lastError = null; break; }
+          lastError = new Error(`Gemini briefing returned ${response.status}`);
+          if (!retryableStatus.has(response.status)) break;
+        } catch (error) {
+          lastError = error;
+        }
+        if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, attempt * 1500));
+      }
+      if (lastError) throw lastError;
+      const data = await response.json();
+      const result = this.extractModelJson(data?.candidates?.[0]?.content?.parts?.map((part) => part.text || '').join('') || '');
+      if (record.closed || record.escalation?.requestedAt !== requestedAt) return;
+      const briefing = {
+        buyerWants: cleanText(result.buyerWants, 160) || 'Not enough conversation yet to summarise.',
+        covered: cleanText(result.covered, 160) || 'Nothing substantial covered yet.',
+        whyEscalated: cleanText(result.whyEscalated, 160) || record.escalation.summary || REASON_LABELS[record.escalation.reason] || '',
+        openingLine: cleanText(result.openingLine, 160) || 'Hi, thanks for waiting — I can see what you and our assistant discussed.',
+        generatedAt: new Date().toISOString(),
+        provider: 'Google Gemini',
+      };
+      record.escalation.briefing = briefing;
+      record.escalation.briefingStatus = 'ready';
+      if (record.passport?.escalation) record.passport.escalation = { ...record.escalation };
+    } catch (error) {
+      if (!record.closed && record.escalation?.requestedAt === requestedAt) {
+        record.escalation.briefingStatus = 'failed';
+        record.escalation.briefing = null;
+        if (record.passport?.escalation) record.passport.escalation = { ...record.escalation };
+      }
+      console.error('Handoff briefing generation failed:', safeError(error));
+    } finally {
+      try { this.onBriefingReady?.(record); } catch (error) { console.error('Briefing notification failed:', safeError(error)); }
+    }
   }
 
   // Runs after the buyer has already been told the booking is confirmed. Nothing
