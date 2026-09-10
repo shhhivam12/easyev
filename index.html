@@ -5641,6 +5641,42 @@
       line-height: 1.4;
     }
 
+    .insurance-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .insurance-chip {
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--ink-2);
+      font-size: 9px;
+      font-weight: 650;
+    }
+
+    .insurance-chip.is-risk {
+      border-color: #ead6a5;
+      background: #fff9eb;
+      color: #604b1e;
+    }
+
+    .insurance-list {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.55;
+    }
+
+    .is-selected-plan th, .is-selected-plan td {
+      background: var(--mint);
+      font-weight: 650;
+    }
+
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -14118,7 +14154,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked', 'insurance-plans': 'Contextual EV Insurance & Protection', 'insurance-needs-vehicle-selection': 'Select Vehicle for Insurance', 'insurance-needs-vehicle-confirmation': 'Confirm Vehicle for Insurance', 'insurance-error': 'Insurance Notice' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked', 'insurance-plans': 'Contextual EV Insurance & Protection', 'insurance-needs-vehicle-selection': 'Select Vehicle for Insurance', 'insurance-needs-vehicle': 'Select Vehicle for Insurance', 'insurance-needs-vehicle-confirmation': 'Confirm Vehicle for Insurance', 'insurance-error': 'Insurance Notice' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…', explore_ev_insurance: 'Analyzing EV protection & insurance slabs…' }[tool] || 'Preparing your result…');
       const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive|explore_ev_insurance)';
@@ -14873,6 +14909,41 @@
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Choose a demo type and time. EasyEV prepares useful next steps, but you approve every action.</p></div>${confirmed ? `<div class="booking-confirmed">Action pack ready · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No dealer has been contacted.</div><div class="action-pack"><button type="button" data-agent-action="calendar"><span>▣</span>Add to calendar (.ics)</button><button type="button" data-agent-action="whatsapp"><span>↗</span>Open WhatsApp draft</button><button type="button" data-agent-action="passport"><span>↓</span>Download Decision Passport</button></div><p class="map-disclosure">Calendar and passport files are generated locally. WhatsApp opens a draft only; nothing is sent until you choose a contact and press send.</p>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">Your selection stays local until you confirm. No dealer is contacted.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Prepare my action pack</button></div>`}`;
+        } else if (type === 'insurance-plans') {
+          const summary = payload.decisionSummary || {};
+          const dossier = payload.dossier || {};
+          const plan = dossier.selectedPlan || {};
+          const pricing = dossier.pricingEstimate || {};
+          const vehicle = payload.vehicle || dossier.vehicleSummary || {};
+          const CAPABILITY_LABELS = { zeroDepreciationAvailable: 'Zero Depreciation', highVoltageBatteryProtection: 'Battery & HV Protection', homeWallboxAndPanelProtection: 'Wallbox & Panel Cover', chargingCableProtection: 'Cable Protection', consequentialEVComponentCover: 'EV Component Cover', roadsideAssistanceEV: 'EV Roadside Assistance', returnToInvoiceAvailable: 'Return to Invoice', tyreAndRimCoverAvailable: 'Tyre & Rim Cover' };
+          const capabilityChips = Object.entries(plan.capabilities || {}).filter(([, on]) => on).map(([key]) => `<span class="insurance-chip">${escapeHtml(CAPABILITY_LABELS[key] || key)}</span>`).join('');
+          const whyBullets = (summary.whyThisPlan || []).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+          const riskChips = (payload.riskFlags || []).map((flag) => `<span class="insurance-chip is-risk">${escapeHtml(flag.label || flag.type || 'Flagged')}</span>`).join('');
+          const inr = (value) => `₹${Math.round(Number(value)).toLocaleString('en-IN')}`;
+          const rangeLabel = (range) => range && range.min != null && range.max != null ? `${inr(range.min)} – ${inr(range.max)}` : '—';
+          const comps = pricing.components || {};
+          const priceRows = [
+            ['Statutory third-party', comps.statutoryTpInr != null ? inr(comps.statutoryTpInr) : '—'],
+            ['Own damage', rangeLabel(comps.baseOwnDamageRange)],
+            ['Add-ons', rangeLabel(comps.addOnsRange)],
+            ['GST', rangeLabel(comps.gstRange)],
+          ].map(([label, value]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+          const catalog = Array.isArray(payload.catalog) ? payload.catalog : [];
+          const catalogRows = catalog.map((item) => `<tr class="${item._planId === plan.id ? 'is-selected-plan' : ''}"><th scope="row">${escapeHtml(item.selectedPlan?.insurerName || item.selectedPlan?.displayName || 'Insurer')}</th><td>${escapeHtml(item.pricingEstimate?.formattedBand || '—')}</td><td>${item.suitabilityAnalysis?.protectionMatchScore ?? '—'}/100</td></tr>`).join('');
+          const catalogTable = catalog.length > 1
+            ? `<div class="comparison-matrix" role="region" aria-label="Insurer comparison" tabindex="0"><table><thead><tr><th scope="col">Insurer</th><th scope="col">Estimated premium</th><th scope="col">Protection score</th></tr></thead><tbody>${catalogRows}</tbody></table></div>`
+            : '';
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(vehicle.name || 'Your EV')} · Insurance & Protection</h3><p>${escapeHtml(payload.city ? `Contextual estimate for ${payload.city}.` : 'National baseline estimate — a city sharpens the number.')}</p></div><div class="metric-grid"><div class="metric-card"><span>Protection score</span><strong>${summary.protectionScore ?? '—'}/100</strong></div><div class="metric-card"><span>Estimated premium</span><strong>${escapeHtml(pricing.formattedBand || summary.estimatedProtectionCost || '—')}</strong></div><div class="metric-card"><span>Verdict</span><strong>${escapeHtml(summary.verdict || 'ANALYSIS')}</strong></div></div><div class="consent-card"><h4>${escapeHtml(plan.displayName || plan.insurerName || 'Recommended plan')}</h4><p>${escapeHtml(plan.agentPitchEnglish || plan.positioning || '')}</p>${whyBullets ? `<ul class="insurance-list">${whyBullets}</ul>` : ''}${capabilityChips ? `<div class="insurance-chip-row">${capabilityChips}</div>` : ''}</div><div class="fact-grid">${priceRows}</div>${riskChips ? `<div class="tool-notice"><strong>Flagged for review</strong><div class="insurance-chip-row">${riskChips}</div></div>` : ''}${catalogTable}<div class="comparison-foot"><p class="comparison-foot__note">${escapeHtml(payload.regulatoryDisclaimer?.notice || 'Indicative EasyEV estimate, not an insurer quote — confirm the final price with the insurer.')}</p><button class="stage-action" type="button" data-tool-direct="calculate_ownership">See ownership cost</button></div>`;
+        } else if (type === 'insurance-needs-vehicle-selection' || type === 'insurance-needs-vehicle') {
+          const options = (payload.availableShortlist || []).map((item) => {
+            const name = typeof item === 'string' ? item : item.name;
+            return `<button class="location-preset" type="button" data-insurance-vehicle="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+          }).join('');
+          target.innerHTML = `<div class="stage-content__intro"><h3>Which EV should EasyEV price insurance for?</h3><p>${escapeHtml(payload.message || payload.reason || 'Pick a vehicle for a contextual insurance estimate.')}</p></div><div class="consent-card"><h4>Your shortlist</h4><div class="location-presets">${options || '<p>No shortlisted vehicles yet — ask to compare a model first.</p>'}</div></div>`;
+        } else if (type === 'insurance-needs-vehicle-confirmation') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Confirm the vehicle for this estimate</h3><p>${escapeHtml(payload.message || 'Please confirm the vehicle before EasyEV prices insurance for it.')}</p></div><div class="consent-card"><h4>${escapeHtml(payload.resolvedVehicle || 'Suggested match')}</h4><p>You said “${escapeHtml(payload.requestedVehicle || '')}”.</p><div class="consent-actions"><button class="stage-action" type="button" data-insurance-vehicle="${escapeHtml(payload.resolvedVehicle || '')}">Yes, that's the one</button></div></div>`;
+        } else if (type === 'insurance-error') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Insurance analysis needs another try</h3><p>${escapeHtml(payload.message || 'The insurance estimate could not be completed safely.')}</p></div><div class="consent-card"><h4>No estimate was invented</h4><p>Ask again, or confirm the vehicle and city so EasyEV can retry.</p></div>`;
         } else {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's keep exploring</h3><p>Try one of the suggested views to continue.</p></div>`;
         }
@@ -16428,6 +16499,11 @@
           runDirectTool('calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }, 'Calculate ownership for the leading option.');
           return;
         }
+        if (target.matches('[data-insurance-vehicle]')) {
+          const vehicleName = target.dataset.insuranceVehicle;
+          if (vehicleName) runDirectTool('explore_ev_insurance', { vehicle: vehicleName }, `Show insurance for ${vehicleName}.`);
+          return;
+        }
         if (target.matches('[data-stage-action="confirm-booking"]')) { completeBooking(); return; }
         if (target.matches('[data-agent-action="calendar"]')) { downloadCalendarInvite(); return; }
         if (target.matches('[data-agent-action="email"]')) { openEmailDraft(); return; }
@@ -17473,11 +17549,25 @@
         if (typeof factory === 'function') {
           try {
             activeDebateAdapter = factory();
+            // The local DebatePlaybackManager speaks instantly via the browser's own
+            // speechSynthesis so the buyer never stares at silence while Agora
+            // connects. Once the real agent is actually live, both would otherwise
+            // keep narrating the same debate at once — cancel the stand-in the
+            // moment the real audio takes over, on whichever signal arrives first.
+            const handOffToRealAgent = () => {
+              if (activeDebatePlaybackManager) {
+                activeDebatePlaybackManager.stop();
+                activeDebatePlaybackManager = null;
+              }
+              window.speechSynthesis?.cancel();
+            };
             activeDebateAdapter.__languageUnsubscribe = activeDebateAdapter.onEvent((event) => {
-              if (event.type === 'CALL_STATUS' && event.payload?.status === 'live' && statusText) {
-                statusText.textContent = language + ' · Agora live';
+              if (event.type === 'CALL_STATUS' && event.payload?.status === 'live') {
+                if (statusText) statusText.textContent = language + ' · Agora live';
+                handOffToRealAgent();
               }
               if (event.type === 'TRANSCRIPT_SYNC') {
+                handOffToRealAgent();
                 const latest = [...(event.payload?.entries || [])].reverse().find((entry) => entry.speaker !== 'you' && entry.text);
                 if (latest) {
                   const nextSpeaker = activeDebateSpeakerState === 'agent1' ? 'agent2' : 'agent1';

@@ -1172,6 +1172,8 @@ function sanitizeAgentTranscript(value) {
     .trim();
 }
 
+const ALL_FILLER_PHRASES = new Set(Object.values(FILLER_PHRASES).flat());
+
 function appendTranscript(record, entries) {
   const added = [];
   for (const entry of entries) {
@@ -1181,15 +1183,31 @@ function appendTranscript(record, entries) {
     const rawText = String(entry?.text || '').trim().slice(0, 1000);
     const text = speaker === 'ai' ? sanitizeAgentTranscript(rawText) : rawText;
     if (!text) continue;
+    // Agora's filler-word timer and the LLM's own turn loop cannot be fully
+    // disabled once a human is live on the call (session.update() only touches
+    // the system prompt, not STT/VAD/filler config) — so a stray AI turn can
+    // still fire. Once a specialist has actually joined the AI has no
+    // legitimate reason to speak at all, so drop it here rather than let it
+    // clutter the transcript. During the earlier "paging a specialist" wait,
+    // only the known filler phrases are dropped — the real handoff line and
+    // "still waiting" line in that phase are legitimate and must stay visible.
+    if (speaker === 'ai' && record.escalation?.status === 'rep-joined') continue;
+    if (speaker === 'ai' && record.escalation?.status === 'requested' && ALL_FILLER_PHRASES.has(text)) continue;
     const id = String(entry.id || `${entry.uid || ''}-${entry.timestamp || ''}`);
     const existing = record.transcript.findIndex((item) => item.id === id);
-    const line = {
-      id,
-      speaker,
-      text,
-      timestamp: Number(entry.timestamp) || Date.now(),
-      final: entry.final !== false,
-    };
+    const timestamp = Number(entry.timestamp) || Date.now();
+    // A reconnect — the buyer's browser rejoining after a network blip, or
+    // Agora's own STT session restarting — can redeliver a line already shown
+    // under a brand-new id, which the id check above cannot catch. Treat
+    // back-to-back identical text from the same speaker as the same utterance
+    // rather than rendering it a second time.
+    if (existing < 0) {
+      const recentDuplicate = record.transcript
+        .slice(-6)
+        .some((item) => item.speaker === speaker && item.text === text && Math.abs(timestamp - item.timestamp) < 20000);
+      if (recentDuplicate) continue;
+    }
+    const line = { id, speaker, text, timestamp, final: entry.final !== false };
     if (existing >= 0) record.transcript[existing] = line;
     else record.transcript.push(line);
     added.push(line);
@@ -1756,7 +1774,7 @@ async function handleHandoffApi(req, res, url) {
       return json(res, 409, { error: 'Join the call before driving the buyer’s screen.' });
     }
     const body = await readJson(req);
-    const REP_DRIVABLE_TOOLS = new Set(['compare_vehicles', 'calculate_ownership', 'find_nearby_chargers', 'book_test_drive', 'generate_decision_report']);
+    const REP_DRIVABLE_TOOLS = new Set(['compare_vehicles', 'calculate_ownership', 'find_nearby_chargers', 'book_test_drive', 'generate_decision_report', 'explore_ev_insurance']);
     if (!REP_DRIVABLE_TOOLS.has(body.tool)) {
       return json(res, 400, { error: 'That is not available from the specialist console.' });
     }
