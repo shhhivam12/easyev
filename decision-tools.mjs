@@ -64,7 +64,7 @@ const LOCAL_CATALOG_MEDIA = Object.freeze({
   'mahindra-xuv400': '/assets/vehicles/mahindra-xuv400.jpg',
   'ather-450x': '/assets/vehicles/ather-450x.jpg',
   'tvs-iqube': '/assets/vehicles/tvs-iqube.jpg',
-  'ola-s1-pro': '/assets/vehicles/ola-s1-pro.jpg',
+  'ola-s1-pro': '/assets/vehicles/ola-s1-pro-gen2.jpg',
   'mahindra-treo-plus': '/assets/vehicles/mahindra-treo-plus.jpg',
   'bajaj-re-etec9': '/assets/vehicles/bajaj-re-etec9.jpg',
   'piaggio-ape-ecity': '/assets/vehicles/piaggio-ape-ecity.jpg',

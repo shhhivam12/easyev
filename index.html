@@ -5641,6 +5641,42 @@
       line-height: 1.4;
     }
 
+    .insurance-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .insurance-chip {
+      padding: 4px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--ink-2);
+      font-size: 9px;
+      font-weight: 650;
+    }
+
+    .insurance-chip.is-risk {
+      border-color: #ead6a5;
+      background: #fff9eb;
+      color: #604b1e;
+    }
+
+    .insurance-list {
+      margin: 0;
+      padding-left: 16px;
+      color: var(--muted);
+      font-size: 10.5px;
+      line-height: 1.55;
+    }
+
+    .is-selected-plan th, .is-selected-plan td {
+      background: var(--mint);
+      font-weight: 650;
+    }
+
     .metric-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -8915,8 +8951,71 @@
       color: #0c4a6e;
     }
 
-    .podium-quote-bubble {
+    /* Avatar + speech-bubble row — reuses the SAME idle image / looping talking
+       video pair the showroom guide uses (testing-openworld/static/world.js
+       setGuideSpeaking), just one instance per podium instead of one shared
+       instance, since each podium is a separate advocate with its own uid. */
+    .podium-speech-row {
       margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    /* object-fit mirrors .guide-avatar in testing-openworld/static/world.css so
+       the advocate reads as a full-body figure standing on the card, exactly as
+       the guide does in the showroom. The box takes the talking clip's own
+       384x720 ratio so the figure fills it with no letterboxing and the glow
+       below lands under its feet. */
+    .podium-avatar {
+      position: relative;
+      flex: 0 0 auto;
+      height: min(380px, 42vh);
+      aspect-ratio: 384 / 720;
+    }
+    .podium-avatar-video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center bottom;
+      filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.42));
+    }
+    /* Glowing floor pad under the figure while it talks — a ring around the
+       head stopped making sense once the whole body became visible. */
+    .podium-avatar-ring {
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      width: 58%;
+      height: 18px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse at center, rgba(22, 191, 83, 0.6), rgba(22, 191, 83, 0) 70%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .podium-b .podium-avatar-ring {
+      background: radial-gradient(ellipse at center, rgba(2, 132, 199, 0.6), rgba(2, 132, 199, 0) 70%);
+    }
+    .podium-avatar[data-speaking="true"] .podium-avatar-ring {
+      opacity: 1;
+      animation: podiumAvatarPulse 1.4s ease-in-out infinite;
+    }
+    @keyframes podiumAvatarPulse {
+      0%, 100% { transform: translateX(-50%) scaleX(0.88); opacity: .45; }
+      50% { transform: translateX(-50%) scaleX(1.12); opacity: .9; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .podium-avatar[data-speaking="true"] .podium-avatar-ring { animation: none; opacity: .7; }
+    }
+
+    .podium-quote-bubble {
+      position: relative;
+      flex: 0 0 auto;
+      width: 100%;
       background: #fafcfb;
       border-radius: 16px;
       padding: 12px 14px;
@@ -8925,8 +9024,8 @@
       color: #0f172a;
       border: 1.5px solid #e2e8f0;
       border-left: 4px solid var(--green-deep, #16bf53);
-      min-height: 100px;
-      max-height: 145px;
+      min-height: 76px;
+      max-height: 120px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -8935,10 +9034,29 @@
       font-style: normal;
       box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
     }
+    /* The "cloud" tail: a small square rotated 45deg, half-hidden behind the
+       bubble, pointing down at the head of the avatar standing below it. */
+    .podium-quote-bubble::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: -8px;
+      width: 14px;
+      height: 14px;
+      margin-left: -7px;
+      background: inherit;
+      border-right: 1.5px solid #e2e8f0;
+      border-bottom: 1.5px solid #e2e8f0;
+      border-radius: 0 0 3px 0;
+      transform: rotate(45deg);
+    }
     .podium-b .podium-quote-bubble {
       border-left-color: #0284c7;
       border-color: #bae6fd;
       background: #f0f9ff;
+    }
+    .podium-b .podium-quote-bubble::before {
+      border-color: #bae6fd;
     }
 
     /* Center VS & Spec Battle Deck */
@@ -13281,8 +13399,14 @@
             <span class="podium-spec-pill" id="podium-a-charging">56 min 50kW DC</span>
           </div>
 
-          <div class="podium-quote-bubble" id="podium-a-quote">
-            “10 Lakh ke budget me 5-star NCAP build quality aur 290 km real highway range! City driving ke liye best value!”
+          <div class="podium-speech-row">
+            <div class="podium-quote-bubble" id="podium-a-quote">
+              “10 Lakh ke budget me 5-star NCAP build quality aur 290 km real highway range! City driving ke liye best value!”
+            </div>
+            <div class="podium-avatar" id="podium-a-avatar" data-speaking="false">
+              <video class="podium-avatar-video" id="podium-a-avatar-video" src="/assets/talking-showroom-1-cropped.webm" muted loop playsinline preload="auto" aria-label="Advocate 1 avatar"></video>
+              <span class="podium-avatar-ring" aria-hidden="true"></span>
+            </div>
           </div>
         </div>
 
@@ -13362,8 +13486,14 @@
             <span class="podium-spec-pill" id="podium-b-charging">40 min 60kW DC</span>
           </div>
 
-          <div class="podium-quote-bubble" id="podium-b-quote">
-            “Par highway pe 350+ km highway cruise aur 145 PS instant power ke liye Nexon.ev is the undisputed king!”
+          <div class="podium-speech-row">
+            <div class="podium-quote-bubble" id="podium-b-quote">
+              “Par highway pe 350+ km highway cruise aur 145 PS instant power ke liye Nexon.ev is the undisputed king!”
+            </div>
+            <div class="podium-avatar" id="podium-b-avatar" data-speaking="false">
+              <video class="podium-avatar-video" id="podium-b-avatar-video" src="/assets/talking-showroom-2-cropped.webm" muted loop playsinline preload="auto" aria-label="Advocate 2 avatar"></video>
+              <span class="podium-avatar-ring" aria-hidden="true"></span>
+            </div>
           </div>
         </div>
       </div>
@@ -13937,7 +14067,7 @@
 
   <script src="/client/platform-language.js?v=20260908-1"></script>
   <script src="/showroom-assets/vendor/pannellum.js"></script>
-  <script src="/agora-client.bundle.js?v=debate-sync-v2"></script>
+  <script src="/agora-client.bundle.js?v=debate-audio-v4"></script>
   <script>
     (() => {
       'use strict';
@@ -14118,7 +14248,7 @@
       };
       const formatTimestamp = (timestamp) => new Intl.DateTimeFormat('en-IN', { hour: '2-digit', minute: '2-digit' }).format(new Date(timestamp));
       const money = (value) => `₹${Math.round(Number(value) || 0).toLocaleString('en-IN')}`;
-      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked', 'insurance-plans': 'Contextual EV Insurance & Protection', 'insurance-needs-vehicle-selection': 'Select Vehicle for Insurance', 'insurance-needs-vehicle-confirmation': 'Confirm Vehicle for Insurance', 'insurance-error': 'Insurance Notice' }[type] || 'EasyEV smart stage');
+      const stageTitle = (type) => ({ welcome: "Let's find what fits your life", 'category-map': 'Which path fits your everyday?', comparison: 'Verified vehicle comparison', 'vehicle-visual': 'Interactive vehicle explorer', 'charging-demo': 'Make charging fit your routine', 'location-permission': 'Share location for this search', 'charging-map': 'Charging points near you', 'ownership-cost': 'Ownership scenario', 'snapshot-request': 'Optional visual readiness check', 'snapshot-result': 'Visual readiness findings', 'report-ready': 'Decision report ready', 'tool-loading': 'EasyEV is working', 'tool-error': 'Tool needs attention', booking: 'Choose your next real-world step', handoff: 'Bringing in a human specialist', 'lead-capture': 'Your details, saved once', 'booking-slots': 'Real availability', 'booking-confirmed': 'Your visit is booked', 'insurance-plans': 'Contextual EV Insurance & Protection', 'insurance-needs-vehicle-selection': 'Select Vehicle for Insurance', 'insurance-needs-vehicle': 'Select Vehicle for Insurance', 'insurance-needs-vehicle-confirmation': 'Confirm Vehicle for Insurance', 'insurance-error': 'Insurance Notice' }[type] || 'EasyEV smart stage');
       const agentStateLabel = (mode) => ({ idle: 'Getting ready…', listening: 'Listening to you', thinking: 'Understanding your request…', 'tool-running': 'Preparing the stage…', speaking: 'Speaking', success: 'Result ready', error: 'Needs attention', interrupted: 'Listening to you' }[mode] || 'Listening to you');
       const toolActivityLabel = (tool) => ({ compare_vehicles: 'Preparing vehicle visuals and comparison…', find_nearby_chargers: 'Preparing the charging search…', calculate_ownership: 'Calculating your ownership scenario…', analyze_readiness_snapshot: 'Checking the selected still…', generate_decision_report: 'Building your decision report…', explore_ev_insurance: 'Analyzing EV protection & insurance slabs…' }[tool] || 'Preparing your result…');
       const INTERNAL_TOOL_PATTERN = '(?:compare_vehicles|find_nearby_chargers|calculate_ownership|analyze_readiness_snapshot|generate_decision_report|escalate_to_human|capture_lead|book_test_drive|explore_ev_insurance)';
@@ -14873,6 +15003,41 @@
         } else if (type === 'booking') {
           const confirmed = state.booking.confirmed;
           target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(payload.title || 'Choose your next real-world step')}</h3><p>Choose a demo type and time. EasyEV prepares useful next steps, but you approve every action.</p></div>${confirmed ? `<div class="booking-confirmed">Action pack ready · ${escapeHtml(state.booking.slot)} · ${escapeHtml(state.booking.demoType)} · No dealer has been contacted.</div><div class="action-pack"><button type="button" data-agent-action="calendar"><span>▣</span>Add to calendar (.ics)</button><button type="button" data-agent-action="whatsapp"><span>↗</span>Open WhatsApp draft</button><button type="button" data-agent-action="passport"><span>↓</span>Download Decision Passport</button></div><p class="map-disclosure">Calendar and passport files are generated locally. WhatsApp opens a draft only; nothing is sent until you choose a contact and press send.</p>` : `<div class="booking-layout"><div class="booking-column"><h4>Choose a demo time</h4><div class="slot-list"><button class="slot-button" type="button" data-booking-slot="Tomorrow · 11:00 AM" aria-pressed="false">Tomorrow · 11:00 AM</button><button class="slot-button" type="button" data-booking-slot="Tomorrow · 4:30 PM" aria-pressed="false">Tomorrow · 4:30 PM</button><button class="slot-button" type="button" data-booking-slot="Saturday · 10:30 AM" aria-pressed="false">Saturday · 10:30 AM</button></div></div><div class="booking-column"><h4>Choose a demo type</h4><div class="demo-list"><button class="demo-button" type="button" data-demo-type="At-home demo" aria-pressed="false">At-home demo</button><button class="demo-button" type="button" data-demo-type="Dealership visit" aria-pressed="false">Dealership visit</button><button class="demo-button" type="button" data-demo-type="Video walk-through" aria-pressed="false">Video walk-through</button></div></div></div><div class="comparison-foot"><p class="comparison-foot__note">Your selection stays local until you confirm. No dealer is contacted.</p><button class="stage-action" type="button" data-stage-action="confirm-booking">Prepare my action pack</button></div>`}`;
+        } else if (type === 'insurance-plans') {
+          const summary = payload.decisionSummary || {};
+          const dossier = payload.dossier || {};
+          const plan = dossier.selectedPlan || {};
+          const pricing = dossier.pricingEstimate || {};
+          const vehicle = payload.vehicle || dossier.vehicleSummary || {};
+          const CAPABILITY_LABELS = { zeroDepreciationAvailable: 'Zero Depreciation', highVoltageBatteryProtection: 'Battery & HV Protection', homeWallboxAndPanelProtection: 'Wallbox & Panel Cover', chargingCableProtection: 'Cable Protection', consequentialEVComponentCover: 'EV Component Cover', roadsideAssistanceEV: 'EV Roadside Assistance', returnToInvoiceAvailable: 'Return to Invoice', tyreAndRimCoverAvailable: 'Tyre & Rim Cover' };
+          const capabilityChips = Object.entries(plan.capabilities || {}).filter(([, on]) => on).map(([key]) => `<span class="insurance-chip">${escapeHtml(CAPABILITY_LABELS[key] || key)}</span>`).join('');
+          const whyBullets = (summary.whyThisPlan || []).map((line) => `<li>${escapeHtml(line)}</li>`).join('');
+          const riskChips = (payload.riskFlags || []).map((flag) => `<span class="insurance-chip is-risk">${escapeHtml(flag.label || flag.type || 'Flagged')}</span>`).join('');
+          const inr = (value) => `₹${Math.round(Number(value)).toLocaleString('en-IN')}`;
+          const rangeLabel = (range) => range && range.min != null && range.max != null ? `${inr(range.min)} – ${inr(range.max)}` : '—';
+          const comps = pricing.components || {};
+          const priceRows = [
+            ['Statutory third-party', comps.statutoryTpInr != null ? inr(comps.statutoryTpInr) : '—'],
+            ['Own damage', rangeLabel(comps.baseOwnDamageRange)],
+            ['Add-ons', rangeLabel(comps.addOnsRange)],
+            ['GST', rangeLabel(comps.gstRange)],
+          ].map(([label, value]) => `<div><span>${label}</span><strong>${escapeHtml(value)}</strong></div>`).join('');
+          const catalog = Array.isArray(payload.catalog) ? payload.catalog : [];
+          const catalogRows = catalog.map((item) => `<tr class="${item._planId === plan.id ? 'is-selected-plan' : ''}"><th scope="row">${escapeHtml(item.selectedPlan?.insurerName || item.selectedPlan?.displayName || 'Insurer')}</th><td>${escapeHtml(item.pricingEstimate?.formattedBand || '—')}</td><td>${item.suitabilityAnalysis?.protectionMatchScore ?? '—'}/100</td></tr>`).join('');
+          const catalogTable = catalog.length > 1
+            ? `<div class="comparison-matrix" role="region" aria-label="Insurer comparison" tabindex="0"><table><thead><tr><th scope="col">Insurer</th><th scope="col">Estimated premium</th><th scope="col">Protection score</th></tr></thead><tbody>${catalogRows}</tbody></table></div>`
+            : '';
+          target.innerHTML = `<div class="stage-content__intro"><h3>${escapeHtml(vehicle.name || 'Your EV')} · Insurance & Protection</h3><p>${escapeHtml(payload.city ? `Contextual estimate for ${payload.city}.` : 'National baseline estimate — a city sharpens the number.')}</p></div><div class="metric-grid"><div class="metric-card"><span>Protection score</span><strong>${summary.protectionScore ?? '—'}/100</strong></div><div class="metric-card"><span>Estimated premium</span><strong>${escapeHtml(pricing.formattedBand || summary.estimatedProtectionCost || '—')}</strong></div><div class="metric-card"><span>Verdict</span><strong>${escapeHtml(summary.verdict || 'ANALYSIS')}</strong></div></div><div class="consent-card"><h4>${escapeHtml(plan.displayName || plan.insurerName || 'Recommended plan')}</h4><p>${escapeHtml(plan.agentPitchEnglish || plan.positioning || '')}</p>${whyBullets ? `<ul class="insurance-list">${whyBullets}</ul>` : ''}${capabilityChips ? `<div class="insurance-chip-row">${capabilityChips}</div>` : ''}</div><div class="fact-grid">${priceRows}</div>${riskChips ? `<div class="tool-notice"><strong>Flagged for review</strong><div class="insurance-chip-row">${riskChips}</div></div>` : ''}${catalogTable}<div class="comparison-foot"><p class="comparison-foot__note">${escapeHtml(payload.regulatoryDisclaimer?.notice || 'Indicative EasyEV estimate, not an insurer quote — confirm the final price with the insurer.')}</p><button class="stage-action" type="button" data-tool-direct="calculate_ownership">See ownership cost</button></div>`;
+        } else if (type === 'insurance-needs-vehicle-selection' || type === 'insurance-needs-vehicle') {
+          const options = (payload.availableShortlist || []).map((item) => {
+            const name = typeof item === 'string' ? item : item.name;
+            return `<button class="location-preset" type="button" data-insurance-vehicle="${escapeHtml(name)}">${escapeHtml(name)}</button>`;
+          }).join('');
+          target.innerHTML = `<div class="stage-content__intro"><h3>Which EV should EasyEV price insurance for?</h3><p>${escapeHtml(payload.message || payload.reason || 'Pick a vehicle for a contextual insurance estimate.')}</p></div><div class="consent-card"><h4>Your shortlist</h4><div class="location-presets">${options || '<p>No shortlisted vehicles yet — ask to compare a model first.</p>'}</div></div>`;
+        } else if (type === 'insurance-needs-vehicle-confirmation') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Confirm the vehicle for this estimate</h3><p>${escapeHtml(payload.message || 'Please confirm the vehicle before EasyEV prices insurance for it.')}</p></div><div class="consent-card"><h4>${escapeHtml(payload.resolvedVehicle || 'Suggested match')}</h4><p>You said “${escapeHtml(payload.requestedVehicle || '')}”.</p><div class="consent-actions"><button class="stage-action" type="button" data-insurance-vehicle="${escapeHtml(payload.resolvedVehicle || '')}">Yes, that's the one</button></div></div>`;
+        } else if (type === 'insurance-error') {
+          target.innerHTML = `<div class="stage-content__intro"><h3>Insurance analysis needs another try</h3><p>${escapeHtml(payload.message || 'The insurance estimate could not be completed safely.')}</p></div><div class="consent-card"><h4>No estimate was invented</h4><p>Ask again, or confirm the vehicle and city so EasyEV can retry.</p></div>`;
         } else {
           target.innerHTML = `<div class="stage-content__intro"><h3>Let's keep exploring</h3><p>Try one of the suggested views to continue.</p></div>`;
         }
@@ -16428,6 +16593,11 @@
           runDirectTool('calculate_ownership', { dailyKm: state.costModel.dailyKm, years: state.costModel.years, electricityRate: state.costModel.unitCost, publicChargingRate: state.costModel.publicRate, homeChargingShare: state.costModel.homeShare / 100 }, 'Calculate ownership for the leading option.');
           return;
         }
+        if (target.matches('[data-insurance-vehicle]')) {
+          const vehicleName = target.dataset.insuranceVehicle;
+          if (vehicleName) runDirectTool('explore_ev_insurance', { vehicle: vehicleName }, `Show insurance for ${vehicleName}.`);
+          return;
+        }
         if (target.matches('[data-stage-action="confirm-booking"]')) { completeBooking(); return; }
         if (target.matches('[data-agent-action="calendar"]')) { downloadCalendarInvite(); return; }
         if (target.matches('[data-agent-action="email"]')) { openEmailDraft(); return; }
@@ -16799,7 +16969,9 @@
       let lastTargetSlot = 'slotB';
       let compareSearchQuery = '';
       let activeDebateAdapter = null;
-      let debateIsMuted = false;
+      // Starts muted: an open mic feeds the advocates' own voices back into
+      // their turn detection and makes them talk over each other.
+      let debateIsMuted = true;
 
       function getVehicleImage(vehicle) {
         if (!vehicle) return '/showroom-assets/cars/punch-ev/images/frame-00.jpg';
@@ -16815,7 +16987,7 @@
           'mahindra-xuv400': '/assets/vehicles/mahindra-xuv400.jpg',
           'ather-450x': '/assets/vehicles/ather-450x.jpg',
           'tvs-iqube': '/assets/vehicles/tvs-iqube.jpg',
-          'ola-s1-pro': '/assets/vehicles/ola-s1-pro.jpg',
+          'ola-s1-pro': '/assets/vehicles/ola-s1-pro-gen2.jpg',
           'mahindra-treo-plus': '/assets/vehicles/mahindra-treo-plus.jpg',
           'bajaj-re-etec9': '/assets/vehicles/bajaj-re-etec9.jpg',
           'piaggio-ape-ecity': '/assets/vehicles/piaggio-ape-ecity.jpg',
@@ -17162,6 +17334,7 @@
 
       // Production Audio Playback Lifecycle State Architecture
       let activeDebatePlaybackManager = null;
+      let activeStudioDebate = null;
       let activeDebateSpeakerState = null; // 'agent1' | 'agent2' | null
       let activeDebateUtteranceId = null;
 
@@ -17426,6 +17599,28 @@
         }
       }
 
+      // Drives the same looping talking video the showroom guide uses
+      // (setGuideSpeaking in testing-openworld/static/world.js), one instance
+      // per podium ('a' | 'b') since each advocate has its own agent uid and
+      // speaking state. The showroom swaps in a separate idle portrait, but
+      // that still is a wide 1536x1024 crop against the video's tall 384x720,
+      // so at this size it would show the advocate from the waist up and then
+      // jump to a full body the moment it started talking. Pausing the video
+      // on its first frame keeps the figure full-body and identically framed
+      // in both states.
+      function setAdvocateSpeaking(which, speaking) {
+        const video = $(`#podium-${which}-avatar-video`);
+        const wrap = $(`#podium-${which}-avatar`);
+        if (!video || !wrap) return;
+        wrap.dataset.speaking = String(speaking);
+        if (speaking) {
+          if (video.paused) video.play().catch(() => {});
+        } else {
+          video.pause();
+          video.currentTime = 0;
+        }
+      }
+
       function handleDebateVoiceEvent(event, vehA, vehB) {
         if (event.type === 'SPEECH_START') {
           setActiveDebateSpeaker(event.agentId, event.utteranceId, event.text, vehA, vehB);
@@ -17450,18 +17645,21 @@
           stage.style.display = 'flex';
           stage.style.zIndex = '999999';
         }
-        if (statusText) statusText.textContent = `● Option 1 (${vehicleA.name}) Speaking…`;
+        if (statusText) statusText.textContent = '● Connecting the two advocates…';
+        setAdvocateSpeaking('a', false);
+        setAdvocateSpeaking('b', false);
 
+        // The browser-speechSynthesis stand-in that used to fill this gap is
+        // deliberately not started any more: it read a canned script in whatever
+        // system voice the browser had (almost always English), which neither
+        // matched the chosen language nor the real Madhur/Aarav agent voices,
+        // and it could still be mid-sentence when the real audio arrived.
+        // The two real advocates below are now the only source of debate audio.
         if (activeDebatePlaybackManager) {
           activeDebatePlaybackManager.stop();
           activeDebatePlaybackManager = null;
         }
-
-        // Start local dual-AI speech and transcript battle immediately
-        activeDebatePlaybackManager = new DebatePlaybackManager(vehicleA, vehicleB, language, (event) => {
-          handleDebateVoiceEvent(event, vehicleA, vehicleB);
-        });
-        activeDebatePlaybackManager.start();
+        window.speechSynthesis?.cancel();
 
         if (activeDebateAdapter) {
           activeDebateAdapter.__languageUnsubscribe?.();
@@ -17469,36 +17667,74 @@
           activeDebateAdapter = null;
         }
 
-        const factory = window.EasyEVAgoraBundle?.createCompareDebateAdapter;
-        if (typeof factory === 'function') {
-          try {
-            activeDebateAdapter = factory();
-            activeDebateAdapter.__languageUnsubscribe = activeDebateAdapter.onEvent((event) => {
-              if (event.type === 'CALL_STATUS' && event.payload?.status === 'live' && statusText) {
-                statusText.textContent = language + ' · Agora live';
-              }
-              if (event.type === 'TRANSCRIPT_SYNC') {
-                const latest = [...(event.payload?.entries || [])].reverse().find((entry) => entry.speaker !== 'you' && entry.text);
-                if (latest) {
-                  const nextSpeaker = activeDebateSpeakerState === 'agent1' ? 'agent2' : 'agent1';
-                  setActiveDebateSpeaker(nextSpeaker, latest.id || ('live-' + Date.now()), latest.text, vehicleA, vehicleB);
-                }
-              }
-            });
-            activeDebateAdapter.joinDebate({
-              vehicleIdA: vehicleA.id,
-              vehicleIdB: vehicleB.id,
-              language,
-              voice: 'madhur'
-            }).catch((err) => {
-              console.warn('Agora debate connecting in background:', err?.message || err);
-            });
-          } catch (error) {
-            console.warn('Agora debate initialization:', error);
-          }
-        }
+        startStudioDebate(vehicleA, vehicleB, language, statusText);
       }
+
+      // The whole debate is written and rendered as ONE continuous audio track,
+      // so there is no turn to hand over and nothing to wait for between
+      // speakers — the previous build had to guess how long each advocate would
+      // talk and sleep, which is where the 4-5s gaps came from. The server
+      // returns the exact span of every line, so the podium highlight and the
+      // avatars are driven off playback position instead of off agent events.
+      function startStudioDebate(vehicleA, vehicleB, language, statusText) {
+        stopStudioDebate();
+        if (statusText) statusText.textContent = '● Preparing the debate…';
+        const audio = new Audio();
+        audio.preload = 'auto';
+        activeStudioDebate = { audio, raf: 0, spoken: -1 };
+
+        fetch('/api/debate-session/studio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vehicleIdA: vehicleA.id, vehicleIdB: vehicleB.id, language }),
+        })
+          .then((response) => response.json().then((data) => {
+            if (!response.ok) throw new Error(data.error || 'Could not prepare the debate.');
+            return data;
+          }))
+          .then((data) => {
+            if (!activeStudioDebate || activeStudioDebate.audio !== audio) return;
+            const timeline = Array.isArray(data.timeline) ? data.timeline : [];
+            audio.src = data.audioUrl;
+            const paint = () => {
+              if (!activeStudioDebate || activeStudioDebate.audio !== audio) return;
+              const nowMs = audio.currentTime * 1000;
+              const index = timeline.findIndex((span) => nowMs >= span.startMs && nowMs < span.endMs);
+              if (index !== -1 && index !== activeStudioDebate.spoken) {
+                activeStudioDebate.spoken = index;
+                const span = timeline[index];
+                setActiveDebateSpeaker(span.speaker === 'b' ? 'agent2' : 'agent1', 'studio-' + index, span.text, vehicleA, vehicleB);
+                setAdvocateSpeaking('a', span.speaker === 'a');
+                setAdvocateSpeaking('b', span.speaker === 'b');
+              }
+              activeStudioDebate.raf = requestAnimationFrame(paint);
+            };
+            audio.addEventListener('ended', () => {
+              setAdvocateSpeaking('a', false);
+              setAdvocateSpeaking('b', false);
+              if (statusText) statusText.textContent = language + ' · Debate complete';
+            });
+            return audio.play().then(() => {
+              if (statusText) statusText.textContent = language + ' · Live debate';
+              activeStudioDebate.raf = requestAnimationFrame(paint);
+            });
+          })
+          .catch((error) => {
+            console.warn('Studio debate could not start:', error?.message || error);
+            if (statusText) statusText.textContent = '● Debate audio unavailable — tap to retry';
+          });
+      }
+
+      function stopStudioDebate() {
+        if (!activeStudioDebate) return;
+        cancelAnimationFrame(activeStudioDebate.raf);
+        activeStudioDebate.audio.pause();
+        activeStudioDebate.audio.src = '';
+        activeStudioDebate = null;
+      }
+
       function exitDebateArena() {
+        stopStudioDebate();
         if (activeDebatePlaybackManager) {
           activeDebatePlaybackManager.stop();
           activeDebatePlaybackManager = null;
@@ -17515,6 +17751,8 @@
           activeDebateAdapter.leave();
           activeDebateAdapter = null;
         }
+        setAdvocateSpeaking('a', false);
+        setAdvocateSpeaking('b', false);
       }
 
       // Event Listeners for Compare EV & Debate Arena

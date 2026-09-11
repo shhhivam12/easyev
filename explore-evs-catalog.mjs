@@ -256,7 +256,7 @@ Speak warmly, informatively, and concisely in English, Hindi, or Hinglish.`
     company: 'Ola Electric',
     category: 'Electric scooter',
     badge: 'High Range & Speed',
-    realImage: '/assets/vehicles/ola-s1-pro.jpg',
+    realImage: '/assets/vehicles/ola-s1-pro-gen2.jpg',
     priceMinLakh: 1.16,
     priceMaxLakh: 1.36,
     claimedRangeKm: 242,
