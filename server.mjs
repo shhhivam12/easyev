@@ -18,6 +18,7 @@ import { sendDealerOnboardingEmail } from './dealer-mailer.mjs';
 import {
   AgoraClient,
   Agent,
+  AnamAvatar,
   Area,
   AresSTT,
   DeepgramSTT,
@@ -37,6 +38,11 @@ loadLocalEnv(resolve(ROOT, '.env'));
 
 const PORT = Number(process.env.PORT || 4173);
 const AGENT_UID = '123456';
+// agora-agents does not yet auto-manage the RTC publishing identity for the
+// Anam avatar vendor (only HeyGen/LiveAvatar/Generic/SenseTime/Spatius get an
+// agora_uid + token generated for them) — without an explicit uid/token the
+// avatar has nowhere to publish and the whole call stays silent.
+const AVATAR_UID = '123457';
 const TOKEN_TTL_SECONDS = 3600;
 const TOOL_SAFE_MAX_HISTORY = 80;
 const BOOTSTRAP_TTL_MS = 5 * 60 * 1000;
@@ -160,6 +166,12 @@ const SARVAM_MALE_SPEAKERS = new Set([
 const requestedSarvamSpeaker = process.env.SARVAM_TTS_SPEAKER?.trim().toLowerCase() || 'shubh';
 const SARVAM_TTS_SPEAKER = SARVAM_MALE_SPEAKERS.has(requestedSarvamSpeaker) ? requestedSarvamSpeaker : 'shubh';
 const SARVAM_TTS_READY = Boolean(SARVAM_API_KEY);
+const ANAM_API_KEY = process.env.ANAM_API_KEY?.trim() || '';
+const ANAM_AVATAR_ID = (process.env.avatar_id || process.env.ANAM_AVATAR_ID || process.env.ANAM_PERSONA_ID || '').trim();
+const ANAM_AVATAR_READY = Boolean(ANAM_API_KEY && ANAM_AVATAR_ID);
+if (!ANAM_AVATAR_READY) {
+  console.warn('ANAM_API_KEY / avatar_id missing in .env — the live consultation will fall back to the static AI guide image instead of the live avatar video.');
+}
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
 const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
 const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
@@ -670,7 +682,7 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
       ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
       : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
-  const agent = new Agent({
+  let agent = new Agent({
     client,
     instructions: agentInstructions({ category, language, buyer }),
     greeting,
@@ -723,6 +735,25 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
         },
       },
     });
+
+  // Live avatar video (Anam) for the buyer-facing consultation only — the
+  // specialist handoff and showroom/debate agents keep their existing audio-only setup.
+  if (ANAM_AVATAR_READY) {
+    agent = agent.withAvatar(new AnamAvatar({
+      apiKey: ANAM_API_KEY,
+      avatarId: ANAM_AVATAR_ID,
+      // agora-agents does not auto-generate the RTC publishing identity for
+      // Anam (unlike HeyGen/LiveAvatar/Generic), so it has to be supplied
+      // explicitly or the avatar has no channel/uid to publish into.
+      additionalParams: {
+        agora_uid: AVATAR_UID,
+        agora_token: createToken(channel, AVATAR_UID),
+        sample_rate: 24000,
+        quality: 'low',
+        video_encoding: 'H264',
+      },
+    }));
+  }
 
   return agent.createSession({
     channel,
@@ -1238,7 +1269,7 @@ function createRecord({ key, channel, uid, category, language, voice, buyer }) {
   // The specialist UID is reserved up front so the agent can subscribe to it from
   // the start; that is what lets the agent keep transcribing the human once they join.
   let repUid = String(randomInt(1000, 9_999_000));
-  while (repUid === String(uid) || repUid === AGENT_UID) repUid = String(randomInt(1000, 9_999_000));
+  while (repUid === String(uid) || repUid === AGENT_UID || repUid === AVATAR_UID) repUid = String(randomInt(1000, 9_999_000));
   const normalizedBuyer = normalizeBuyer(buyer);
   const passport = tools.createPassport(category, language);
   passport.lead = {

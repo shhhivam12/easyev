@@ -2345,6 +2345,7 @@
       width: min(1400px, calc(100% - 40px));
       margin: 16px auto 0;
       padding-bottom: 15px;
+      transition: grid-template-columns .22s ease;
     }
 
     .room-main {
@@ -2354,12 +2355,76 @@
       gap: 14px;
     }
 
+    /* Live call row: the AI avatar sits large on the left so it reads as a
+       real video-call participant, with the smart stage taking the rest of
+       the width. Stacks to a vertical layout once the row gets too narrow
+       for a side-by-side split to stay legible. */
+    .stage-row {
+      display: grid;
+      grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+      gap: 14px;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .stage-row > * {
+      min-width: 0;
+    }
+
     .room-side {
+      position: relative;
       display: grid;
       grid-template-rows: minmax(0, 1fr) auto;
       gap: 10px;
       min-width: 0;
       min-height: 0;
+    }
+
+    .sidebar-collapse-toggle {
+      position: absolute;
+      top: 6px;
+      left: -14px;
+      z-index: 40;
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      color: rgba(255, 255, 255, .8);
+      border: 1px solid rgba(255, 255, 255, .18);
+      border-radius: 50%;
+      background: rgba(8, 18, 12, .92);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .3);
+      cursor: pointer;
+      transition: transform .2s ease, color .2s ease, border-color .2s ease;
+    }
+
+    .sidebar-collapse-toggle:hover {
+      color: var(--green-bright);
+      border-color: rgba(85, 242, 123, .5);
+    }
+
+    .sidebar-collapse-toggle svg {
+      width: 15px;
+      height: 15px;
+      transition: transform .22s ease;
+    }
+
+    .room-layout.sidebar-collapsed .sidebar-collapse-toggle svg {
+      transform: rotate(180deg);
+    }
+
+    .room-layout.sidebar-collapsed {
+      grid-template-columns: minmax(0, 1fr) 64px;
+    }
+
+    .room-layout.sidebar-collapsed .context-sidebar {
+      display: none;
+    }
+
+    .room-layout.sidebar-collapsed .room-side > .call-dock {
+      flex-direction: column;
+      width: 100%;
+      border-radius: 18px;
     }
 
     .participant-strip {
@@ -2539,26 +2604,26 @@
       font-weight: 700;
     }
 
-    /* Video during a human handover. The strip stays a fixed 2-column grid for
-       the AI + self tiles the whole call — this only widens it for the short
-       window a specialist is on with their camera on, and never touches the
-       existing layout otherwise. */
-    .participant-strip.has-rep-video {
-      grid-template-columns: 1fr 1fr 1fr;
-    }
-
-    .participant-tile--rep {
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
+    /* The specialist's video takes over the same tile the AI avatar occupies
+       during a human handover, rather than opening a separate box, so the
+       call keeps one clear focal point on the left at all times. */
     .rep-view {
       position: absolute;
       inset: 0;
-      display: grid;
+      display: none;
       place-items: center;
       background: radial-gradient(circle at 52% 34%, rgba(69, 206, 154, .18), transparent 60%), linear-gradient(145deg, #23392c, #0d1712 76%);
+    }
+
+    .participant-tile--ai[data-occupant="rep"] .rep-view {
+      display: grid;
+    }
+
+    .participant-tile--ai[data-occupant="rep"] .agent-clay-shell,
+    .participant-tile--ai[data-occupant="rep"] .agent-avatar-video,
+    .participant-tile--ai[data-occupant="rep"] .ai-wave,
+    .participant-tile--ai[data-occupant="rep"] .ai-state {
+      display: none;
     }
 
     /* AgoraRTC.VideoTrack#play() mounts its own <video> element inside this
@@ -2591,6 +2656,42 @@
       right: 15px;
       bottom: 14px;
       left: 15px;
+    }
+
+    /* Your own camera floats as a small picture-in-picture over the smart
+       stage instead of sitting in the main row, so it never competes with
+       the avatar or with whatever the stage is currently showing. */
+    .smart-stage .participant-tile--self {
+      position: absolute;
+      z-index: 25;
+      right: 14px;
+      bottom: 14px;
+      width: min(168px, 30%);
+      height: 104px;
+      min-height: 0;
+      padding: 0;
+      border-radius: 13px;
+      box-shadow: 0 14px 34px rgba(0, 0, 0, .5);
+    }
+
+    .smart-stage .participant-tile--self .participant-tile__label {
+      right: 8px;
+      bottom: 8px;
+      left: 8px;
+      font-size: 9px;
+    }
+
+    .smart-stage .participant-tile--self .self-view__initials {
+      width: 42px;
+      height: 42px;
+      font-size: 14px;
+    }
+
+    .smart-stage .participant-tile--self .participant-indicators span {
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      font-size: 8px;
     }
 
     .participant-indicators {
@@ -5030,6 +5131,34 @@
     }
 
     .agent-talking-video[hidden] { display: none; }
+
+    /* Anam's live avatar video (real lip-sync) replaces the static clay
+       illustration once the AI's video track publishes; it fills the whole
+       tile the way the specialist's handoff video does. */
+    .agent-avatar-video {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+
+    .agent-avatar-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .participant-tile--ai.has-avatar-video .agent-clay-shell {
+      display: none;
+    }
+
+    .participant-tile--ai.has-avatar-video .agent-avatar-video {
+      display: block;
+    }
+
+    .participant-tile--ai .participant-tile__label,
+    .participant-tile--ai .ai-state {
+      text-shadow: 0 1px 4px rgba(0, 0, 0, .65);
+    }
 
     .participant-tile--ai[data-mode="thinking"] .agent-clay {
       transform: scale(.97) translateY(2px);
@@ -12223,6 +12352,47 @@
         border-bottom: 1px solid #cbd5e1 !important;
       }
     }
+
+    /* Live consultation avatar/stage split — kept last so it wins over the
+       earlier room-view breakpoints above for equal-specificity selectors.
+       Below the point where the transcript sidebar becomes a full-screen
+       overlay (max-width: 939px), the avatar tile and smart stage stack
+       vertically instead of splitting the width, since a 34% column would
+       otherwise squeeze the avatar into an unusably narrow sliver. */
+    @media (max-width: 939px) {
+      .stage-row {
+        grid-template-columns: 1fr;
+        grid-template-rows: 156px minmax(0, 1fr);
+      }
+
+      .participant-tile--ai {
+        min-height: 0;
+      }
+
+      .sidebar-collapse-toggle {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .smart-stage .participant-tile--self {
+        width: min(126px, 38%);
+        height: 82px;
+      }
+
+      .smart-stage .participant-tile--self .self-view__initials {
+        width: 32px;
+        height: 32px;
+        font-size: 11px;
+      }
+
+      .smart-stage .participant-tile--self .participant-tile__label span:not(:last-child) {
+        max-width: 52px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
   </style>
 </head>
 
@@ -12727,27 +12897,53 @@
 
       <div class="room-layout">
         <div class="room-main">
-          <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
-            <header class="stage-header">
-              <div class="stage-header__left">
-                <p class="stage-kicker">Smart stage</p>
-                <h2 id="stage-title">Let's find what fits your life</h2>
+          <div class="stage-row" id="stage-row">
+            <div class="participant-tile participant-tile--ai" id="ai-participant-tile" data-mode="idle" data-occupant="ai">
+              <div class="participant-tile__label"><span id="ai-tile-name">EasyEV AI Guide</span><span id="ai-tile-badge">AI</span></div>
+              <div class="agent-clay-shell"><img class="agent-clay" id="agent-clay-image"
+                  src="/assets/clay-guide-presenting.webp" alt="EasyEV AI clay guide"><video
+                  class="agent-talking-video" id="agent-talking-video" src="/assets/talking-consultation.webm"
+                  muted loop playsinline preload="auto" hidden aria-label="EasyEV AI guide speaking"></video></div>
+              <div class="agent-avatar-video" id="agent-avatar-video" aria-label="EasyEV AI live avatar"></div>
+              <div class="rep-view" id="handoff-rep-video"></div>
+              <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span>
               </div>
-              <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative
-                  visual</span><button class="stage-pin" id="stage-pin-button" type="button"
-                  aria-label="Pin current result" aria-pressed="false">Pin</button><button class="stage-expand"
-                  id="stage-expand-button" type="button" aria-label="Open smart stage fullscreen" aria-expanded="false"
-                  data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="1.8" stroke-linecap="round">
-                    <path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4" />
-                  </svg></button></div>
-            </header>
-            <div class="stage-activity" id="stage-activity" role="status" aria-live="polite" hidden><span
-                class="stage-activity__spinner" aria-hidden="true"></span><strong id="stage-activity-text">Understanding
-                your request…</strong><small>Mic stays live · you can interrupt</small></div>
-            <span class="presented-label">Presented by EasyEV AI</span>
-            <div class="stage-content" id="stage-content" aria-live="polite"></div>
-          </section>
+              <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
+            </div>
+
+            <section class="smart-stage" id="smart-stage" aria-labelledby="stage-title">
+              <header class="stage-header">
+                <div class="stage-header__left">
+                  <p class="stage-kicker">Smart stage</p>
+                  <h2 id="stage-title">Let's find what fits your life</h2>
+                </div>
+                <div class="stage-header__right"><span class="status-badge" id="stage-source">Illustrative
+                    visual</span><button class="stage-pin" id="stage-pin-button" type="button"
+                    aria-label="Pin current result" aria-pressed="false">Pin</button><button class="stage-expand"
+                    id="stage-expand-button" type="button" aria-label="Open smart stage fullscreen" aria-expanded="false"
+                    data-tooltip="Expand stage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.8" stroke-linecap="round">
+                      <path d="M8 4H4v4M16 4h4v4M8 20H4v-4M20 16v4h-4" />
+                    </svg></button></div>
+              </header>
+              <div class="stage-activity" id="stage-activity" role="status" aria-live="polite" hidden><span
+                  class="stage-activity__spinner" aria-hidden="true"></span><strong id="stage-activity-text">Understanding
+                  your request…</strong><small>Mic stays live · you can interrupt</small></div>
+              <span class="presented-label">Presented by EasyEV AI</span>
+              <div class="stage-content" id="stage-content" aria-live="polite"></div>
+
+              <div class="participant-tile participant-tile--self" id="self-participant-tile" data-speaking="false">
+                <div class="self-view" id="room-self-view">
+                  <div class="self-view__initials" id="self-initials">EV</div><video id="room-video" autoplay playsinline
+                    muted hidden aria-label="Your camera preview"></video>
+                </div>
+                <div class="participant-tile__label"><span id="buyer-room-name">You</span><span
+                    class="participant-indicators"><span
+                      id="room-camera-indicator" aria-label="Camera off">Camera off</span><span id="room-mic-indicator"
+                      aria-label="Microphone on">Mic on</span></span></div>
+              </div>
+            </section>
+          </div>
 
           <div class="live-caption" id="live-caption" aria-live="polite">
             <span class="live-caption__speaker" id="live-caption-speaker">EasyEV AI</span>
@@ -12758,35 +12954,15 @@
             <span class="action-rail__label">Agent actions</span>
             <span class="tool-run" data-phase="completed">Ready for your request</span>
           </div>
-
-          <div class="participant-strip">
-            <div class="participant-tile participant-tile--ai" id="ai-participant-tile" data-mode="idle">
-              <div class="participant-tile__label"><span>EasyEV AI Guide</span><span>AI</span></div>              <div class="agent-clay-shell"><img class="agent-clay" id="agent-clay-image"
-                  src="/assets/clay-guide-presenting.webp" alt="EasyEV AI clay guide"><video
-                  class="agent-talking-video" id="agent-talking-video" src="/assets/talking-consultation.webm"
-                  muted loop playsinline preload="auto" hidden aria-label="EasyEV AI guide speaking"></video></div>
-              <div class="ai-wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span>
-              </div>
-              <p class="ai-state" id="ai-state" aria-live="polite">Getting ready…</p>
-            </div>
-            <div class="participant-tile participant-tile--self" id="self-participant-tile" data-speaking="false">
-              <div class="self-view" id="room-self-view">
-                <div class="self-view__initials" id="self-initials">EV</div><video id="room-video" autoplay playsinline
-                  muted hidden aria-label="Your camera preview"></video>
-              </div>
-              <div class="participant-tile__label"><span id="buyer-room-name">You</span><span
-                  class="participant-indicators"><span
-                    id="room-camera-indicator" aria-label="Camera off">Camera off</span><span id="room-mic-indicator"
-                    aria-label="Microphone on">Mic on</span></span></div>
-            </div>
-            <div class="participant-tile participant-tile--rep" id="rep-participant-tile" hidden>
-              <div class="rep-view" id="handoff-rep-video"></div>
-              <div class="participant-tile__label"><span id="rep-room-name">Specialist</span><span class="participant-indicators"><span class="handoff-video-live-dot" aria-hidden="true"></span></span></div>
-            </div>
-          </div>
         </div>
 
         <div class="room-side">
+        <button class="sidebar-collapse-toggle" id="sidebar-collapse-toggle" type="button" aria-expanded="true"
+          aria-controls="consultation-sidebar" aria-label="Collapse transcript panel" data-tooltip="Collapse panel"><svg
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="m14 6-6 6 6 6" />
+          </svg></button>
         <aside class="context-sidebar" id="consultation-sidebar" aria-label="Consultation context">
           <div class="sidebar-tabs" id="sidebar-tabs" role="tablist" aria-label="Consultation context tabs">
             <button class="sidebar-tab" type="button" id="passport-tab" data-tab="passport" role="tab"
@@ -16421,15 +16597,30 @@
           return;
         }
         if (event.type === 'REP_VIDEO') {
-          const tile = document.getElementById('rep-participant-tile');
-          const strip = tile ? tile.closest('.participant-strip') : null;
+          // The specialist's video takes over the same tile the AI avatar
+          // occupies, rather than opening a separate box.
+          const tile = document.getElementById('ai-participant-tile');
+          const tileName = document.getElementById('ai-tile-name');
+          const tileBadge = document.getElementById('ai-tile-badge');
           if (payload.active && payload.track) {
-            if (tile) tile.hidden = false;
-            if (strip) strip.classList.add('has-rep-video');
+            if (tile) tile.dataset.occupant = 'rep';
+            if (tileName) tileName.textContent = 'Specialist';
+            if (tileBadge) tileBadge.innerHTML = '<span class="handoff-video-live-dot" aria-hidden="true"></span> Live';
             try { payload.track.play('handoff-rep-video'); } catch {}
           } else {
-            if (tile) tile.hidden = true;
-            if (strip) strip.classList.remove('has-rep-video');
+            if (tile) tile.dataset.occupant = 'ai';
+            if (tileName) tileName.textContent = 'EasyEV AI Guide';
+            if (tileBadge) tileBadge.textContent = 'AI';
+          }
+          return;
+        }
+        if (event.type === 'AVATAR_VIDEO') {
+          const tile = document.getElementById('ai-participant-tile');
+          if (payload.active && payload.track) {
+            if (tile) tile.classList.add('has-avatar-video');
+            try { payload.track.play('agent-avatar-video'); } catch {}
+          } else if (tile) {
+            tile.classList.remove('has-avatar-video');
           }
           return;
         }
@@ -16525,6 +16716,15 @@
           const open = !sidebar?.classList.contains('is-open');
           sidebar?.classList.toggle('is-open', open);
           target.setAttribute('aria-expanded', String(open));
+          return;
+        }
+        if (target.id === 'sidebar-collapse-toggle') {
+          const layout = document.querySelector('.room-layout');
+          const collapsed = !layout?.classList.contains('sidebar-collapsed');
+          layout?.classList.toggle('sidebar-collapsed', collapsed);
+          target.setAttribute('aria-expanded', String(!collapsed));
+          target.setAttribute('aria-label', collapsed ? 'Expand transcript panel' : 'Collapse transcript panel');
+          target.dataset.tooltip = collapsed ? 'Expand panel' : 'Collapse panel';
           return;
         }
         if (target.matches('[data-book-slot]')) {
