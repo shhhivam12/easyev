@@ -1898,6 +1898,7 @@ async function handleHandoffApi(req, res, url) {
       buyerUid: record.uid,
       repUid: record.repUid,
       agentUid: AGENT_UID,
+      avatarUid: AVATAR_UID,
     });
   }
 
@@ -1959,6 +1960,7 @@ async function handleHandoffApi(req, res, url) {
       uid: record.repUid,
       buyerUid: record.uid,
       agentUid: AGENT_UID,
+      avatarUid: AVATAR_UID,
       handoff: handoffState(record),
     });
   }
@@ -3056,7 +3058,11 @@ const server = http.createServer(async (req, res) => {
       if (serveFile(req, res, 'rep.html')) return;
     }
     if (url.pathname === '/agora-client.bundle.js') {
-      if (serveFile(req, res, 'agora-client.bundle.js', true)) return;
+      // Not far-future cached: this file has no content-hashed filename, so a
+      // long max-age (the old `true` here) lets a stale, already-fixed-on-disk
+      // bundle keep running in a buyer's tab for up to a day after a rebuild.
+      // ETag revalidation on every load is cheap and keeps clients current.
+      if (serveFile(req, res, 'agora-client.bundle.js', false)) return;
     }
     if (url.pathname === '/client/platform-language.js') {
       if (serveFile(req, res, 'client/platform-language.js', true)) return;
