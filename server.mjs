@@ -10,7 +10,7 @@ import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs'
 import { CrmCalendar } from './crm-calendar.mjs';
 import { Mailer } from './mailer.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
-import { generateDebateScript, synthesizeDebate, buildWav } from './debate-studio.mjs';
+import { buildDebateScript } from './debate-studio.mjs';
 import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
 import { dealerDb } from './dealer-db.mjs';
 import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
@@ -149,48 +149,68 @@ const HANDOFF_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const SNAPSHOT_BODY_LIMIT_BYTES = 1.4 * 1024 * 1024;
 const { RtcTokenBuilder, RtcRole } = agoraToken;
 
-const APP_ID = process.env.AGORA_APP_ID?.trim() || '00000000000000000000000000000000';
-const APP_CERTIFICATE = process.env.AGORA_APP_CERTIFICATE?.trim() || '00000000000000000000000000000000';
+// Local .env parsing (loadLocalEnv, above) strips a wrapping quote pair, but a
+// var pasted straight into a host's dashboard (Render, etc.) keeps whatever
+// quotes were copied along with it — process.env never strips them. Reading
+// credentials through this instead of a bare `process.env.X?.trim()` means a
+// key that looks right in the dashboard doesn't silently fail with the
+// literal quote characters baked into the value.
+function envValue(name, fallback = '') {
+  const raw = process.env[name];
+  if (raw === undefined || raw === null) return fallback;
+  let value = raw.trim();
+  if (value.length >= 2) {
+    const first = value[0];
+    const last = value[value.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      value = value.slice(1, -1).trim();
+    }
+  }
+  return value || fallback;
+}
+
+const APP_ID = envValue('AGORA_APP_ID', '00000000000000000000000000000000');
+const APP_CERTIFICATE = envValue('AGORA_APP_CERTIFICATE', '00000000000000000000000000000000');
 if (!process.env.AGORA_APP_ID) {
   console.warn('Agora running in robust local bridge development mode.');
 }
 
-const AZURE_SPEECH_KEY = process.env.AZURE_SPEECH_KEY?.trim();
-const AZURE_SPEECH_REGION = process.env.AZURE_SPEECH_REGION?.trim();
+const AZURE_SPEECH_KEY = envValue('AZURE_SPEECH_KEY');
+const AZURE_SPEECH_REGION = envValue('AZURE_SPEECH_REGION');
 const AZURE_SPEECH_READY = Boolean(AZURE_SPEECH_KEY && AZURE_SPEECH_REGION);
-const SARVAM_API_KEY = process.env.SARVAM_API_KEY?.trim();
+const SARVAM_API_KEY = envValue('SARVAM_API_KEY');
 const SARVAM_MALE_SPEAKERS = new Set([
   'shubh', 'aditya', 'rahul', 'rohan', 'amit', 'dev', 'ratan', 'varun', 'manan', 'sumit', 'kabir', 'aayan',
   'ashutosh', 'advait', 'anand', 'tarun', 'sunny', 'mani', 'gokul', 'vijay', 'mohit', 'rehan', 'soham',
 ]);
-const requestedSarvamSpeaker = process.env.SARVAM_TTS_SPEAKER?.trim().toLowerCase() || 'shubh';
+const requestedSarvamSpeaker = envValue('SARVAM_TTS_SPEAKER', 'shubh').toLowerCase();
 const SARVAM_TTS_SPEAKER = SARVAM_MALE_SPEAKERS.has(requestedSarvamSpeaker) ? requestedSarvamSpeaker : 'shubh';
 const SARVAM_TTS_READY = Boolean(SARVAM_API_KEY);
-const ANAM_API_KEY = process.env.ANAM_API_KEY?.trim() || '';
-const ANAM_AVATAR_ID = (process.env.avatar_id || process.env.ANAM_AVATAR_ID || process.env.ANAM_PERSONA_ID || '').trim();
+const ANAM_API_KEY = envValue('ANAM_API_KEY');
+const ANAM_AVATAR_ID = envValue('avatar_id') || envValue('ANAM_AVATAR_ID') || envValue('ANAM_PERSONA_ID');
 const ANAM_AVATAR_READY = Boolean(ANAM_API_KEY && ANAM_AVATAR_ID);
 if (!ANAM_AVATAR_READY) {
   console.warn('ANAM_API_KEY / avatar_id missing in .env — the live consultation will fall back to the static AI guide image instead of the live avatar video.');
 }
-const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/$/, '');
-const MCP_BASE_URL = (process.env.AGORA_MCP_URL?.trim() || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
+const PUBLIC_BASE_URL = (envValue('PUBLIC_BASE_URL') || envValue('RENDER_EXTERNAL_URL')).replace(/\/$/, '');
+const MCP_BASE_URL = (envValue('AGORA_MCP_URL') || (PUBLIC_BASE_URL ? `${PUBLIC_BASE_URL}/mcp` : '')).replace(/\/$/, '');
 const MCP_PUBLIC = /^https:\/\//i.test(MCP_BASE_URL);
-const MCP_SIGNING_SECRET = process.env.MCP_SIGNING_SECRET?.trim() || randomBytes(32).toString('hex');
+const MCP_SIGNING_SECRET = envValue('MCP_SIGNING_SECRET') || randomBytes(32).toString('hex');
 // Optional shared secret for the specialist desk. When unset the queue is open,
 // which is fine on a laptop but should never be the case on a public deployment.
-const REP_DESK_KEY = process.env.REP_DESK_KEY?.trim() || '';
-const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL?.trim() || '';
+const REP_DESK_KEY = envValue('REP_DESK_KEY');
+const SLACK_WEBHOOK_URL = envValue('SLACK_WEBHOOK_URL');
 
 const crmCalendar = new CrmCalendar({
-  hubspotToken: process.env.HUBSPOT_TOKEN || '',
-  calcomApiKey: process.env.CALCOM_API_KEY || '',
-  calcomEventTypeId: process.env.CALCOM_EVENT_TYPE_ID || '',
-  timezone: process.env.BOOKING_TIMEZONE || 'Asia/Kolkata',
+  hubspotToken: envValue('HUBSPOT_TOKEN'),
+  calcomApiKey: envValue('CALCOM_API_KEY'),
+  calcomEventTypeId: envValue('CALCOM_EVENT_TYPE_ID'),
+  timezone: envValue('BOOKING_TIMEZONE', 'Asia/Kolkata'),
 });
 const mailer = new Mailer({
-  user: process.env.GMAIL_USER || '',
-  appPassword: process.env.GMAIL_APP_PASSWORD || '',
-  fromName: process.env.MAIL_FROM_NAME || 'EasyEV',
+  user: envValue('GMAIL_USER'),
+  appPassword: envValue('GMAIL_APP_PASSWORD'),
+  fromName: envValue('MAIL_FROM_NAME', 'EasyEV'),
 });
 const VOICES = Object.freeze({
   madhur: { id: 'madhur', name: 'Madhur', voiceName: 'hi-IN-MadhurNeural', description: 'Warm, grounded Hindi' },
@@ -282,6 +302,33 @@ async function conversationalTts({ language, voice, speechInstructions, pace = 1
   });
 }
 
+// Renders one debate line through the same Sarvam voice used for the live
+// two-advocate debate (DEBATE_ADVOCATE_VOICES, below) — the studio arena's
+// script is a fixed template (see buildDebateScript in debate-studio.mjs),
+// so this is the only piece still missing to make it sound like the rest of
+// the app instead of falling back to whatever voice the browser has. Sarvam
+// hands back a base64 WAV already, so the client can play it directly.
+async function synthesizeSarvamDebateLine(text, speaker) {
+  const response = await fetch('https://api.sarvam.ai/text-to-speech', {
+    method: 'POST',
+    headers: { 'api-subscription-key': SARVAM_API_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text,
+      language_code: 'hi-IN',
+      speaker,
+      pace: 1.05,
+      speech_sample_rate: 24000,
+      model: 'bulbul:v3',
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`Sarvam TTS failed (${response.status})`);
+  const body = await response.json();
+  const encoded = Array.isArray(body?.audios) ? body.audios[0] : body?.audio;
+  if (!encoded) throw new Error('Sarvam TTS returned no audio.');
+  return encoded;
+}
+
 const bootstraps = new Map();
 const sessions = new Map();
 const completedSessions = new Map();
@@ -325,10 +372,10 @@ async function checkPublicReachability() {
   }
 }
 const tools = new EasyEVToolEngine({
-  databaseUrl: process.env.DATABASE_URL?.trim(),
-  geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
-  geminiModel: process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash',
-  openChargeMapKey: process.env.OPENCHARGEMAP_API_KEY?.trim(),
+  databaseUrl: envValue('DATABASE_URL'),
+  geminiApiKey: envValue('GEMINI_API_KEY'),
+  geminiModel: envValue('GEMINI_MODEL', 'gemini-3.6-flash'),
+  openChargeMapKey: envValue('OPENCHARGEMAP_API_KEY'),
   publicBaseUrl: PUBLIC_BASE_URL,
   onEscalation: (record) => {
     broadcast(record, 'handoff', handoffState(record));
@@ -375,7 +422,7 @@ function json(res, status, payload) {
 
 function safeMessage(error, fallback) {
   const message = error instanceof Error ? error.message : String(error || fallback);
-  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY, SARVAM_API_KEY, process.env.GEMINI_API_KEY, process.env.DATABASE_URL, MCP_SIGNING_SECRET]
+  return [APP_ID, APP_CERTIFICATE, AZURE_SPEECH_KEY, SARVAM_API_KEY, envValue('GEMINI_API_KEY'), envValue('DATABASE_URL'), MCP_SIGNING_SECRET]
     .filter(Boolean)
     .reduce((safe, secret) => safe.replaceAll(secret, '[secret]'), message)
     .slice(0, 600);
@@ -676,7 +723,14 @@ function createAgentSession({ channel, uid, repUid, category, language, voice, m
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
     : new AresSTT({ keywords: ['EasyEV', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बजट', 'स्कूटर', 'थ्री व्हीलर', 'test drive'] });
 
-  const tts = language !== 'English' && SARVAM_TTS_READY
+  // Confirmed by hand: Sarvam paired with the Anam avatar (below) never produces
+  // audio at all — the avatar and transcript both work, the voice just never
+  // speaks — while the exact same Sarvam config works fine everywhere else in
+  // this app that has no avatar (showroom, debate arena). Sarvam's audio
+  // apparently never reaches Anam's Beta lip-sync bridge, so this session
+  // (the only one with an avatar) skips straight to the fallback TTS instead
+  // of silently failing.
+  const tts = language !== 'English' && SARVAM_TTS_READY && !ANAM_AVATAR_READY
     ? sarvamTts(1.08)
     : AZURE_SPEECH_READY
       ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
@@ -1178,74 +1232,6 @@ async function runAdvocateDebate(record, sessionA, sessionB, vehicleA, vehicleB,
   } catch (error) {
     console.error('Advocate debate orchestration failed:', safeMessage(error));
   }
-}
-
-// Both the script model and the TTS model are capped at 3 requests per minute
-// on this key, and a full debate takes 20-35s to render — so a live demo cannot
-// afford to generate on every click. Renders are keyed by matchup and kept on
-// disk, which makes a repeat debate instant and costs no quota at all. Deleting
-// the folder (or passing refresh) is what forces a fresh take.
-const STUDIO_CACHE_DIR = resolve(process.cwd(), '.debate-cache');
-const studioInFlight = new Map();
-
-function studioCacheKey({ vehicleA, vehicleB, language }) {
-  return createHmac('sha256', 'easyev-studio')
-    .update(`${vehicleA.id}|${vehicleB.id}|${language}`)
-    .digest('hex')
-    .slice(0, 24);
-}
-
-function readStudioAudio(id) {
-  if (!/^[a-f0-9]{24}$/.test(id)) return null;
-  const file = resolve(STUDIO_CACHE_DIR, `${id}.wav`);
-  if (!existsSync(file)) return null;
-  return readFileSync(file);
-}
-
-async function getStudioDebate({ vehicleA, vehicleB, language, refresh = false }) {
-  const id = studioCacheKey({ vehicleA, vehicleB, language });
-  const metaFile = resolve(STUDIO_CACHE_DIR, `${id}.json`);
-  const wavFile = resolve(STUDIO_CACHE_DIR, `${id}.wav`);
-
-  if (!refresh && existsSync(metaFile) && existsSync(wavFile)) {
-    return { ...JSON.parse(readFileSync(metaFile, 'utf8')), id, cached: true };
-  }
-  // Two viewers opening the same matchup at once would otherwise both spend a
-  // render, and the second would land on the rate limit.
-  if (studioInFlight.has(id)) return studioInFlight.get(id);
-
-  const work = (async () => {
-    const lines = await generateDebateScript({
-      vehicleA,
-      vehicleB,
-      language,
-      apiKey: process.env.GEMINI_API_KEY?.trim(),
-      model: process.env.GEMINI_DEBATE_MODEL?.trim() || '',
-      exchanges: 5,
-    });
-    const rendered = await synthesizeDebate({
-      lines,
-      language,
-      geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
-      sarvamApiKey: SARVAM_API_KEY,
-    });
-    const meta = {
-      timeline: rendered.timeline,
-      provider: rendered.provider,
-      durationMs: rendered.timeline.length ? rendered.timeline[rendered.timeline.length - 1].endMs : 0,
-      vehicleIdA: vehicleA.id,
-      vehicleIdB: vehicleB.id,
-      language,
-      renderedAt: new Date().toISOString(),
-    };
-    mkdirSync(STUDIO_CACHE_DIR, { recursive: true });
-    writeFileSync(wavFile, buildWav(rendered.pcm));
-    writeFileSync(metaFile, JSON.stringify(meta, null, 2));
-    return { ...meta, id, cached: false };
-  })().finally(() => studioInFlight.delete(id));
-
-  studioInFlight.set(id, work);
-  return work;
 }
 
 function createAgoraMcpServer(endpoint) {
@@ -1898,6 +1884,7 @@ async function handleHandoffApi(req, res, url) {
       buyerUid: record.uid,
       repUid: record.repUid,
       agentUid: AGENT_UID,
+      avatarUid: AVATAR_UID,
     });
   }
 
@@ -1959,6 +1946,7 @@ async function handleHandoffApi(req, res, url) {
       uid: record.repUid,
       buyerUid: record.uid,
       agentUid: AGENT_UID,
+      avatarUid: AVATAR_UID,
       handoff: handoffState(record),
     });
   }
@@ -2033,7 +2021,7 @@ async function handleApi(req, res, url) {
       decisionTools: Object.keys(tools.definitions()),
       database: tools.databaseMode,
       databaseFallback: tools.databaseMode === 'ephemeral',
-      visionConfigured: Boolean(process.env.GEMINI_API_KEY?.trim()),
+      visionConfigured: Boolean(envValue('GEMINI_API_KEY')),
       mail: mailer.status(),
       speech: {
         hindiRecognition: 'Agora ARES hi-IN',
@@ -2206,36 +2194,27 @@ async function handleApi(req, res, url) {
     const body = await readJson(req);
     const vehicleA = getVehicleById(body.vehicleIdA) || TOP_12_EVS[0];
     const vehicleB = getVehicleById(body.vehicleIdB) || TOP_12_EVS[1];
-    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
-    try {
-      const debate = await getStudioDebate({ vehicleA, vehicleB, language, refresh: Boolean(body.refresh) });
-      return json(res, 200, {
-        id: debate.id,
-        audioUrl: `/api/debate-session/audio/${debate.id}`,
-        durationMs: debate.durationMs,
-        timeline: debate.timeline,
-        provider: debate.provider,
-        cached: debate.cached,
-        vehicleA,
-        vehicleB,
-      });
-    } catch (error) {
-      return json(res, 503, { error: safeMessage(error) });
+    // buildDebateScript is a pure, synchronous template — no LLM, no cache,
+    // nothing that can be rate-limited or run out of quota. The script text
+    // is fixed Hinglish regardless of the app's selected language (hence no
+    // language param below), which is also why Sarvam is always asked for
+    // the hi-IN voice here.
+    const lines = buildDebateScript({ vehicleA, vehicleB });
+    const sarvamReady = await canUseSarvamTts();
+    if (sarvamReady) {
+      await Promise.all(lines.map(async (line) => {
+        const speaker = line.speaker === 'b' ? DEBATE_ADVOCATE_VOICES.advocateB.sarvamSpeaker : DEBATE_ADVOCATE_VOICES.advocateA.sarvamSpeaker;
+        try {
+          line.audio = `data:audio/wav;base64,${await synthesizeSarvamDebateLine(line.text, speaker)}`;
+        } catch (error) {
+          // A single line's synthesis failing should not silence the whole
+          // debate — the client falls back to the browser voice for just
+          // that line when `audio` is missing.
+          console.warn('Sarvam debate line synthesis failed, falling back to browser voice for this line:', safeMessage(error));
+        }
+      }));
     }
-  }
-
-  if (req.method === 'GET' && url.pathname.startsWith('/api/debate-session/audio/')) {
-    const id = url.pathname.slice('/api/debate-session/audio/'.length);
-    const wav = readStudioAudio(id);
-    if (!wav) return json(res, 404, { error: 'That debate audio has expired. Start the debate again.' });
-    res.writeHead(200, {
-      'Content-Type': 'audio/wav',
-      'Content-Length': wav.length,
-      'Cache-Control': 'public, max-age=3600',
-      'Accept-Ranges': 'none',
-    });
-    res.end(wav);
-    return true;
+    return json(res, 200, { lines, vehicleA, vehicleB, voiceProvider: sarvamReady ? 'sarvam' : 'browser' });
   }
 
   if (req.method === 'POST' && url.pathname === '/api/debate-session/start') {
@@ -3056,7 +3035,11 @@ const server = http.createServer(async (req, res) => {
       if (serveFile(req, res, 'rep.html')) return;
     }
     if (url.pathname === '/agora-client.bundle.js') {
-      if (serveFile(req, res, 'agora-client.bundle.js', true)) return;
+      // Not far-future cached: this file has no content-hashed filename, so a
+      // long max-age (the old `true` here) lets a stale, already-fixed-on-disk
+      // bundle keep running in a buyer's tab for up to a day after a rebuild.
+      // ETag revalidation on every load is cheap and keeps clients current.
+      if (serveFile(req, res, 'agora-client.bundle.js', false)) return;
     }
     if (url.pathname === '/client/platform-language.js') {
       if (serveFile(req, res, 'client/platform-language.js', true)) return;

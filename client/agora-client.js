@@ -240,7 +240,9 @@ class AgoraAdapter {
           const entries = items
             .filter((item) => typeof item.text === 'string' && item.text.trim())
             .map((item) => ({
-              id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+              // Stable per turn (no _time) so interim STT updates for the same
+              // utterance replace the previous line instead of appending a new one.
+              id: `${item.turn_id ?? item.stream_id ?? ''}-${item.uid || ''}`,
               turnId: String(item.turn_id ?? item.stream_id ?? ''),
               speaker: this.speakerFor(item.uid),
               text: item.text.trim(),
@@ -806,7 +808,7 @@ class VehicleAgoraAdapter extends AgoraAdapter {
           const entries = items
             .filter((item) => typeof item.text === 'string' && item.text.trim())
             .map((item) => ({
-              id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+              id: `${item.turn_id ?? item.stream_id ?? ''}-${item.uid || ''}`,
               turnId: String(item.turn_id ?? item.stream_id ?? ''),
               speaker: String(item.uid) === '0' || String(item.uid) === this.uid ? 'you' : 'ai',
               text: item.text.trim(),
@@ -988,7 +990,7 @@ class CompareDebateAdapter extends AgoraAdapter {
               const isUser = String(item.uid) === '0' || String(item.uid) === this.uid;
               let speaker = isUser ? 'you' : 'ai-debate';
               return {
-                id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
+                id: `${item.turn_id ?? item.stream_id ?? ''}-${item.uid || ''}`,
                 speaker,
                 // Kept so the arena can highlight the advocate actually talking:
                 // the two advocates are separate agents with distinct RTC uids.
@@ -1100,6 +1102,7 @@ class RepAdapter {
     this.tracks = new Map();
     this.buyerVideoTrack = null;
     this.agentUid = '';
+    this.avatarUid = '';
     this.joined = false;
     this.levelTimer = null;
     this.videoEnabled = false;
@@ -1114,9 +1117,11 @@ class RepAdapter {
     this.handlers.forEach((handler) => handler({ id: crypto.randomUUID(), type, timestamp: Date.now(), payload }));
   }
 
-  async join({ appId, token, channel, uid, agentUid }) {
+  async join({ appId, token, channel, uid, agentUid, avatarUid }) {
     if (this.joined) return;
     this.agentUid = String(agentUid || '');
+    this.avatarUid = String(avatarUid || '');
+    const isAi = (publisher) => publisher === this.agentUid || publisher === this.avatarUid;
     this.rtc = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
     this.rtc.on('connection-state-change', (state) => this.emit('CONNECTION_STATE', { state }));
     this.rtc.on('user-published', async (user, mediaType) => {
@@ -1125,9 +1130,10 @@ class RepAdapter {
         await this.rtc.subscribe(user, mediaType);
         const publisher = String(user.uid);
         if (mediaType === 'video') {
-          // Only the buyer is expected to publish video here — the AI is
-          // audio-only. Attachment to a <video> element is the caller's job.
-          if (publisher !== this.agentUid && user.videoTrack) {
+          // Only the buyer is expected to publish video here — the AI's talking
+          // avatar (a separate uid from the audio-only agent) also publishes
+          // video into this channel, but it must never be shown as the buyer.
+          if (!isAi(publisher) && user.videoTrack) {
             this.buyerVideoTrack = user.videoTrack;
             this.emit('BUYER_VIDEO', { active: true, track: user.videoTrack, uid: publisher });
           }
@@ -1135,9 +1141,10 @@ class RepAdapter {
         }
         if (mediaType !== 'audio' || !user.audioTrack) return;
         this.tracks.set(publisher, user.audioTrack);
-        // Never play the AI to the specialist: it is muted for the buyer during a
-        // handover, and hearing it here would only cause them to talk over it.
-        if (publisher !== this.agentUid) user.audioTrack.play();
+        // Never play the AI (agent or avatar) to the specialist: it is muted for
+        // the buyer during a handover, and hearing it here would only cause them
+        // to talk over it.
+        if (!isAi(publisher)) user.audioTrack.play();
         this.emit('PARTICIPANT', { uid: publisher, present: true });
       } catch (error) {
         this.emit('ERROR', { message: `Could not play buyer audio: ${error.message || error}` });
@@ -1147,7 +1154,7 @@ class RepAdapter {
       // Fires when the buyer turns their camera off without leaving the call.
       if (mediaType !== 'video') return;
       const publisher = String(user?.uid);
-      if (publisher !== this.agentUid) {
+      if (!isAi(publisher)) {
         this.buyerVideoTrack = null;
         this.emit('BUYER_VIDEO', { active: false, uid: publisher });
       }
@@ -1155,7 +1162,7 @@ class RepAdapter {
     this.rtc.on('user-left', (user) => {
       const publisher = String(user?.uid);
       this.tracks.delete(publisher);
-      if (publisher !== this.agentUid) {
+      if (!isAi(publisher)) {
         this.buyerVideoTrack = null;
         this.emit('BUYER_VIDEO', { active: false, uid: publisher });
       }
