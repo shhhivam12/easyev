@@ -72,6 +72,11 @@ class AgoraAdapter {
     this.handoffCameraTrack = null;
     this.repVideoTrack = null;
     this.handoffVideoEnabled = false;
+    // The Anam avatar publishes video under a UID AgentKit assigns at session
+    // start (distinct from agentUid, which only carries the agent's audio),
+    // so it is tracked separately and discovered from user-published.
+    this.avatarVideoTrack = null;
+    this.avatarUid = '';
     this.sessionKey = '';
     this.channel = '';
     this.uid = '';
@@ -135,12 +140,19 @@ class AgoraAdapter {
           await this.rtc.subscribe(user, mediaType);
           const publisher = String(user.uid);
           if (mediaType === 'video') {
-            // Only the reserved specialist seat is expected to publish video —
-            // the AI is audio-only and never should. Attachment to a <video>
-            // element is left to the caller; the track goes out on the event.
+            // The reserved specialist seat and the Anam avatar are the only
+            // expected video publishers. Attachment to a <video> element is
+            // left to the caller; the track goes out on the event.
             if (this.repUid && publisher === String(this.repUid) && user.videoTrack) {
               this.repVideoTrack = user.videoTrack;
               this.emit('REP_VIDEO', { active: true, track: user.videoTrack, sessionId: context.sessionId });
+            } else if (user.videoTrack) {
+              // Anam's video UID is assigned by AgentKit at session start and
+              // not known ahead of time, so any other video publisher in the
+              // channel is treated as the AI's live avatar.
+              this.avatarUid = publisher;
+              this.avatarVideoTrack = user.videoTrack;
+              this.emit('AVATAR_VIDEO', { active: true, track: user.videoTrack, sessionId: context.sessionId });
             }
             return;
           }
@@ -172,6 +184,10 @@ class AgoraAdapter {
         if (this.repUid && String(user?.uid) === String(this.repUid)) {
           this.repVideoTrack = null;
           this.emit('REP_VIDEO', { active: false, sessionId: context.sessionId });
+        } else if (this.avatarUid && String(user?.uid) === String(this.avatarUid)) {
+          this.avatarVideoTrack = null;
+          this.avatarUid = '';
+          this.emit('AVATAR_VIDEO', { active: false, sessionId: context.sessionId });
         }
       });
       this.rtc.on('user-left', (user) => {
@@ -181,6 +197,12 @@ class AgoraAdapter {
           this.repVideoTrack = null;
           this.emit('REP_CONNECTED', { connected: false, sessionId: context.sessionId });
           this.emit('REP_VIDEO', { active: false, sessionId: context.sessionId });
+          return;
+        }
+        if (this.avatarUid && String(user?.uid) === String(this.avatarUid)) {
+          this.avatarVideoTrack = null;
+          this.avatarUid = '';
+          this.emit('AVATAR_VIDEO', { active: false, sessionId: context.sessionId });
           return;
         }
         this.emit('AGENT_CONNECTED', { connected: false, sessionId: context.sessionId });
@@ -663,6 +685,8 @@ class AgoraAdapter {
       try { this.handoffCameraTrack?.stop(); this.handoffCameraTrack?.close(); } catch {}
       this.handoffCameraTrack = null;
       this.repVideoTrack = null;
+      this.avatarVideoTrack = null;
+      this.avatarUid = '';
       this.handoffVideoEnabled = false;
       this.repUid = '';
       this.handoffCode = '';
