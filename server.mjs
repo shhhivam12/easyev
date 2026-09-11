@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { readFileSync, statSync, existsSync, createReadStream, openSync, readSync, closeSync } from 'node:fs';
+import { readFileSync, statSync, existsSync, createReadStream, openSync, readSync, closeSync, mkdirSync, writeFileSync } from 'node:fs';
 import { extname, resolve } from 'node:path';
 import { createGzip, createBrotliCompress, brotliCompressSync, gzipSync, constants as zlibConstants } from 'node:zlib';
 import { createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
@@ -10,6 +10,7 @@ import { EasyEVToolEngine, VEHICLES, REASON_LABELS } from './decision-tools.mjs'
 import { CrmCalendar } from './crm-calendar.mjs';
 import { Mailer } from './mailer.mjs';
 import { TOP_12_EVS, getVehicleById } from './explore-evs-catalog.mjs';
+import { generateDebateScript, synthesizeDebate, buildWav } from './debate-studio.mjs';
 import { getShowroomVehicleById } from './showroom/vehicle-catalog.js';
 import { dealerDb } from './dealer-db.mjs';
 import { dealerVoiceAgentManager } from './dealer-voice-agent.mjs';
@@ -197,10 +198,10 @@ class SarvamV3TTS extends SarvamTTS {
   }
 }
 
-function sarvamTts(pace) {
+function sarvamTts(pace, speaker = SARVAM_TTS_SPEAKER) {
   return new SarvamV3TTS({
     key: SARVAM_API_KEY,
-    speaker: SARVAM_TTS_SPEAKER,
+    speaker,
     targetLanguageCode: 'hi-IN',
     pace,
     sampleRate: 24000,
@@ -846,153 +847,85 @@ Keep answers concise, accurate, and conversational. For visual commands use one 
   });
 }
 
-function createDebateAgentSession({ channel, uid, vehicleIdA, vehicleIdB, language, voice }) {
-  const vehicleA = getVehicleById(vehicleIdA) || TOP_12_EVS[0];
-  const vehicleB = getVehicleById(vehicleIdB) || TOP_12_EVS[1];
+// Two independently-reasoning advocates (not one agent reciting both sides of a
+// pre-written script) so each side can actually react to what the other just
+// argued. Each gets its own session, its own voice, and only ever speaks when
+// the server explicitly prompts it via think() — see runAdvocateDebate below,
+// which is what guarantees they never talk over each other.
+const DEBATE_ADVOCATE_VOICES = {
+  advocateA: { azureVoiceName: VOICES.madhur.voiceName, sarvamSpeaker: 'aditya', openaiVoice: 'onyx' },
+  advocateB: { azureVoiceName: VOICES.aarav.voiceName, sarvamSpeaker: 'rahul', openaiVoice: 'echo' },
+};
+
+const DEBATE_ROUND_TOPICS = [
+  'the starting price and overall value for money',
+  'real-world driving range and battery capacity',
+  'fast-charging speed and charger network convenience',
+  'cabin comfort, ride quality and boot space',
+  'long-term running cost, warranty and resale value',
+];
+
+function advocatePersonaPrompt({ vehicle, opponentName, language }) {
+  const languageRule = language === 'Hindi'
+    ? 'Speak natural conversational Hindi in Devanagari. Short, punchy spoken sentences.'
+    : language === 'Hinglish'
+      ? 'Speak natural Hinglish — Devanagari for Hindi words, plain English for EV/spec terms. Short, punchy spoken sentences.'
+      : 'Speak calm, articulate Indian English. Short, punchy spoken sentences, pronounce numbers and units fully.';
+  return `You are a sharp, passionate EV sales advocate in a live two-advocate debate. You are defending the ${vehicle.name} by ${vehicle.company} against a rival advocate defending the ${opponentName}.
+
+Your vehicle's verified facts — use only these, never invent numbers:
+- Price: ₹${vehicle.priceMinLakh}L – ₹${vehicle.priceMaxLakh}L ex-showroom
+- Claimed range: ${vehicle.claimedRangeKm} km (ARAI); Real-world: ${vehicle.realWorldRangeKm}
+- Battery: ${vehicle.battery}
+- Fast charging: ${vehicle.charging}
+- Power/Torque: ${vehicle.power}
+- Acceleration: 0-100 in ${vehicle.acceleration}; Top speed ${vehicle.topSpeed}
+- Boot & space: ${vehicle.bootSpace}
+- Warranty: ${vehicle.warranty}
+- Strengths: ${vehicle.pros.join(', ')}
+- Weak points to defend if raised: ${vehicle.cons.join(', ')}
+
+DEBATE RULES:
+1. Each instruction you receive quotes exactly what the rival advocate just argued. Engage that SPECIFIC point directly — contradict or reframe it using your own vehicle's verified facts; only concede where the facts force you to. Never ignore what was just said and never talk as if starting fresh.
+2. After addressing their point, pivot to one fresh strength of your own vehicle on the given topic.
+3. Keep every turn to exactly 2 short, punchy, spoken sentences, under 18 words total — this is a rapid-fire live exchange, not an essay. Every extra word makes the other advocate wait longer, so be brutally concise while still landing a real point.
+4. Never say "Advocate", "Option 1/2", your own name, or narrate stage directions. Speak only the argument itself, as if talking straight to the audience.
+5. Stay strictly grounded in the facts above. Zero hallucination.
+${languageRule}`;
+}
+
+function createAdvocateAgentSession({ channel, buyerUid, agentUid, vehicle, opponentName, language, ttsVoice }) {
   const client = new AgoraClient({ area: Area.AP, appId: APP_ID, appCertificate: APP_CERTIFICATE });
-  const recognitionLanguage = language === 'English' ? 'en-IN' : language === 'Hindi' ? 'hi-IN' : 'hi-IN';
-
-  const greeting = language === 'Hindi'
-    ? `[${vehicleA.name} Advocate]: "नमस्ते! मैं डिफेंड कर रहा हूँ ${vehicleA.name} को! सिर्फ ₹${vehicleA.priceMinLakh}L की प्राइस में ${vehicleA.claimedRangeKm} km रेंज और 5-Star NCAP सेफ्टी! ${vehicleB.name} इसके वैल्यू के सामने टिक नहीं सकती!"
-[${vehicleB.name} Advocate]: "अरे भाई रुकिए! ऑन-पेपर बात अलग है, लेकिन ${vehicleB.name} में ${vehicleB.realWorldRangeKm} की असली हाईवे रेंज और ${vehicleB.battery} बड़ी बैटरी मिलती है। सिर्फ सिटी में चलने वाली गाड़ी से हाईवे क्रूज़ का मुकाबला कैसे?"
-[${vehicleA.name} Advocate]: "लेकिन ₹${vehicleA.priceMinLakh}L और ₹${vehicleB.priceMinLakh}L के बीच 3 से 5 लाख का भारी अंतर है! शहर में 90% डेली कम्यूट होता है, जहाँ हमारी हल्की गाड़ी ज्यादा बिजली बचाती है!"
-[${vehicleB.name} Advocate]: "लेकिन जब परिवार के साथ लॉन्ग ट्रिप और हाईवे पर निकलेंगे, तब ${vehicleB.power} की दमदार पावर और ओवरटेकिंग कॉन्फिडेंस की जरूरत होगी!"
-[${vehicleA.name} Advocate]: "हमारी गाड़ी में भी 0-100 सिर्फ ${vehicleA.acceleration} में आता है और ट्रैफिक में कॉम्पैक्ट साइज से पार्क करना 10 गुना आसान है!"
-[${vehicleB.name} Advocate]: "पर सामान कहाँ रखेंगे? ${vehicleB.name} में ${vehicleB.bootSpace} का विशाल बूट स्पेस और रियर सीट लेगरूम मिलता है!"
-[${vehicleA.name} Advocate]: "हमारे पास भी ${vehicleA.bootSpace} बूट स्पेस है जो 3 बड़े सूटकेस के लिए काफी है, और हमारी फास्ट चार्जिंग ${vehicleA.charging.split('/')[0]} में 10 से 80% हो जाती है!"
-[${vehicleB.name} Advocate]: "मगर हाई-स्पीड सस्पेंशन स्टेबिलिटी और केबिन का शांत अहसास लॉन्ग ड्राइव में थकान नहीं होने देता, जो बड़ी बैटरी के साथ ही संभव है!"
-[${vehicleA.name} Advocate]: "रनिंग कॉस्ट का क्या? हम हर महीने ₹2500 बिजली बिल में बचाते हैं और 8 साल की बैटरी वारंटी के साथ पूरी मेंटेनेंस फ्री लाइफ देते हैं!"
-[${vehicleB.name} Advocate]: "लेकिन रिसेल वैल्यू और बड़े ईवी सेगमेंट में ${vehicleB.company} का प्रूवन ट्रैक रिकॉर्ड हर समझदार बायर की पहली पसंद बनाता है!"
-[${vehicleA.name} Advocate]: "जो पैसा आप ज्यादा देंगे उसमें तो 5 साल की फ्री चार्जिंग हो जाएगी! स्मार्ट बायर बजट और एफिशिएंसी चुनता है!"
-[${vehicleB.name} Advocate]: "और जो लक्जरी, पावर और नो-कॉम्प्रोमाइज रेंज चाहता है, वो सीधे ${vehicleB.name} चुनता है!"`
-    : language === 'Hinglish'
-      ? `[${vehicleA.name} Advocate]: "Bhai, main open kar raha hoon ${vehicleA.name} ke favor me! Starting price sirf ₹${vehicleA.priceMinLakh}L hai aur ${vehicleA.battery} battery ke saath ${vehicleA.claimedRangeKm} km claimed range! ${vehicleB.name} is price-to-value ko beat nahi kar sakti!"
-[${vehicleB.name} Advocate]: "Arre par real-world highway reality dekho! ${vehicleB.name} me ${vehicleB.realWorldRangeKm} true highway range aur ${vehicleB.battery} battery milti hai! Highway pe range anxiety ka koi chakkar hi nahi!"
-[${vehicleA.name} Advocate]: "Lekin ₹4 se ₹5 Lakh ka extra premium kyun de buyer? 90% daily travel 35-40 km city commute ka hota hai, jahan hamari compact car highest efficiency deti hai!"
-[${vehicleB.name} Advocate]: "Lekin jab family ke saath vacation ya intercity ride pe jaoge, tab ${vehicleB.power} instant power aur effortless high-speed overtake sirf ${vehicleB.name} me hi milega!"
-[${vehicleA.name} Advocate]: "Hamari acceleration bhi ${vehicleA.acceleration} hai jo city flyovers aur quick overtakes ke liye super responsive hai, plus tight parking me easily fit hoti hai!"
-[${vehicleB.name} Advocate]: "Par family luggage ka kya? ${vehicleB.name} me massive ${vehicleB.bootSpace} boot space aur executive rear knee-room milta hai jo long journeys me fatigue-free rakhta hai!"
-[${vehicleA.name} Advocate]: "Humare paas bhi ${vehicleA.bootSpace} boot space practical use ke liye standard hai, aur charging speed ${vehicleA.charging.split('/')[0]} me 10-80% top-up ho jaati hai!"
-[${vehicleB.name} Advocate]: "Lekin ${vehicleB.name} ka suspension setup potholes aur rough roads pe plush ride quality deta hai, body roll control next-level hai!"
-[${vehicleA.name} Advocate]: "Total Cost of Ownership dekho! Lower price point aur light weight ki wajah se monthly electricity bill aur EMI me seedha ₹8,000 to ₹10,000 ki bachat hoti hai!"
-[${vehicleB.name} Advocate]: "Lekin premium road presence, high resale demand, aur solid highway stability me ${vehicleB.name} segment champion hai!"
-[${vehicleA.name} Advocate]: "Jo extra ₹5 Lakh bachega usse 7 saal tak EV free me charge ho jayegi! Value and Smart ROI ke liye ${vehicleA.name} is the clear winner!"
-[${vehicleB.name} Advocate]: "Aur bina kisi compromise ke maximum power, ultimate comfort aur zero-stress long drives ke liye ${vehicleB.name} is the undisputed king!"`
-      : `[Option 1 - ${vehicleA.name}]: "Opening for Option 1! Starting at just ${vehicleA.priceMinLakh} Lakh rupees with ${vehicleA.claimedRangeKm} kilometers of range, our car offers unbeatable everyday value!"
-
-... ... ...
-
-[Option 2 - ${vehicleB.name}]: "Countering for Option 2! Our vehicle delivers real highway range and a much larger battery. True highway freedom requires substantial battery capacity!"
-
-... ... ...
-
-[Option 1 - ${vehicleA.name}]: "Look at the price difference! Why pay five Lakh rupees more when daily city drives are lighter and far more efficient in our car?"
-
-... ... ...
-
-[Option 2 - ${vehicleB.name}]: "Because road trips demand power! With ${vehicleB.power} and high-speed stability, our vehicle makes highway cruising completely effortless and safe!"
-
-... ... ...
-
-[Option 1 - ${vehicleA.name}]: "Our quick acceleration in traffic and compact dimensions make daily city commutes and parking completely effortless for every driver!"
-
-... ... ...
-
-[Option 2 - ${vehicleB.name}]: "What about family space? Our vehicle provides a huge ${vehicleB.bootSpace.replace(/L/i, 'litres')} boot capacity and superior rear cabin comfort for long trips!"
-
-... ... ...
-
-[Option 1 - ${vehicleA.name}]: "Our standard boot space is plenty for luggage, plus our fast charging completes ten to eighty percent in under an hour!"
-
-... ... ...
-
-[Option 2 - ${vehicleB.name}]: "Long-distance refinement and plush suspension damping make our vehicle a true highway cruiser without any passenger fatigue!"
-
-... ... ...
-
-[Option 1 - ${vehicleA.name}]: "On total cost of ownership, lower initial payments and lower electricity consumption save one Lakh rupees every single year!"
-
-... ... ...
-
-[Option 2 - ${vehicleB.name}]: "And for uncompromising road presence, premium comfort, and solid resale value, our vehicle stands as the undisputed champion!"`;
-
-  const speechInstructions = language === 'Hindi'
-    ? 'Speak slowly and calmly. Take clear pauses between sentences. Pronounce all vehicle specifications clearly.'
-    : language === 'Hinglish'
-      ? 'Speak slowly and calmly. Take clear pauses between sentences. Pronounce all vehicle specifications clearly.'
-      : 'Speak in calm, articulate English at a relaxed pace. Pronounce all words fully without abbreviations like km or L. Take clear, distinct pauses between arguments.';
+  const recognitionLanguage = language === 'English' ? 'en-IN' : 'hi-IN';
 
   const stt = language === 'English'
     ? new DeepgramSTT({ model: 'nova-3', language: 'en-IN' })
-    : new AresSTT({ keywords: [vehicleA.name, vehicleB.name, vehicleA.company, vehicleB.company, 'EasyEV', 'डिबेट', 'Debate', 'ईवी', 'EV', 'चार्जिंग', 'रेंज', 'बैटरी', 'माइलेज', 'ऑन रोड प्राइस', 'Punch', 'Nexon', 'Windsor', 'Ather', 'Rizta', 'TVS'] });
+    : new AresSTT({ keywords: [vehicle.name, vehicle.company, opponentName, 'EasyEV', 'डिबेट', 'Debate'] });
 
+  const speechInstructions = 'Speak in a calm, articulate, energetic tone at a natural conversational pace.';
   const tts = language !== 'English' && SARVAM_TTS_READY
-    ? sarvamTts(1.08)
+    ? sarvamTts(1.08, ttsVoice.sarvamSpeaker)
     : AZURE_SPEECH_READY
-      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: selectedVoice(voice).voiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
-      : new OpenAITTS({ model: 'tts-1', voice: 'onyx', instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
-
-  const debatePrompt = `You are staging a full, multi-turn, high-energy live EV debate between two AI automotive advocates defending their vehicles:
-1. ADVOCATE A (Defending ${vehicleA.name} by ${vehicleA.company}):
-- Price: ₹${vehicleA.priceMinLakh}L – ₹${vehicleA.priceMaxLakh}L ex-showroom
-- Claimed Range: ${vehicleA.claimedRangeKm} km (ARAI)
-- Real-World Range: ${vehicleA.realWorldRangeKm}
-- Battery: ${vehicleA.battery}
-- Fast Charging: ${vehicleA.charging}
-- Power/Torque: ${vehicleA.power}
-- Acceleration & Speed: 0-100/40 in ${vehicleA.acceleration}, Top Speed ${vehicleA.topSpeed}
-- Boot & Space: ${vehicleA.bootSpace}
-- Warranty: ${vehicleA.warranty}
-- Standout Strengths: ${vehicleA.pros.join(', ')}
-- Weaknesses to defend: ${vehicleA.cons.join(', ')}
-
-2. ADVOCATE B (Defending ${vehicleB.name} by ${vehicleB.company}):
-- Price: ₹${vehicleB.priceMinLakh}L – ₹${vehicleB.priceMaxLakh}L ex-showroom
-- Claimed Range: ${vehicleB.claimedRangeKm} km (ARAI)
-- Real-World Range: ${vehicleB.realWorldRangeKm}
-- Battery: ${vehicleB.battery}
-- Fast Charging: ${vehicleB.charging}
-- Power/Torque: ${vehicleB.power}
-- Acceleration & Speed: 0-100/40 in ${vehicleB.acceleration}, Top Speed ${vehicleB.topSpeed}
-- Boot & Space: ${vehicleB.bootSpace}
-- Warranty: ${vehicleB.warranty}
-- Standout Strengths: ${vehicleB.pros.join(', ')}
-- Weaknesses to defend: ${vehicleB.cons.join(', ')}
-
-REAL DEBATE RULES:
-1. FULL EXTENSIVE MULTI-ROUND DEBATE (12 to 20 CONTINUOUS STATEMENTS):
-   Write out a comprehensive back-and-forth dialogue where each advocate directly hears the opponent's specific point, dismantles their weak spot, and promotes their own strength.
-2. SYSTEMATIC DEBATE PHASES:
-   - Round 1: Price, Subsidies & Value for Money vs Premium Features
-   - Round 2: Real Highway Range & Battery Pack vs Daily City Efficiency
-   - Round 3: Fast Charging Times & Public Network Convenience
-   - Round 4: Cabin Comfort, Suspension Quality & Boot Storage
-   - Round 5: Long-term Total Cost of Ownership (TCO), Warranty & Resale
-3. EXACT SPEAKER PREFIXES ON EVERY LINE:
-   [Option 1 - ${vehicleA.name}]: "..."
-   [Option 2 - ${vehicleB.name}]: "..."
-4. ZERO HALLUCINATIONS: Ground 100% of arguments in the verified specs provided above.
-5. FAST, SNAPPY & ENTERTAINING: Each turn must be 1-2 punchy, grounded sentences.
-6. NO MID-SENTENCE OPTION WORDS: Never say the words 'option', 'option 1', or 'option 2' inside the spoken argument body. Only refer to 'our vehicle', 'this car', or 'the opponent'.`;
+      ? new MicrosoftTTS({ key: AZURE_SPEECH_KEY, region: AZURE_SPEECH_REGION, voiceName: ttsVoice.azureVoiceName, sampleRate: 24000, speed: language === 'English' ? 1.12 : 1.08 })
+      : new OpenAITTS({ model: 'tts-1', voice: ttsVoice.openaiVoice, instructions: speechInstructions, speed: language === 'English' ? 1.15 : 1.1 });
 
   const agent = new Agent({
     client,
-    instructions: debatePrompt,
+    instructions: advocatePersonaPrompt({ vehicle, opponentName, language }),
     greeting: '',
-    failureMessage: 'I had trouble answering that. Please ask once more.',
+    failureMessage: 'I had trouble with that point. Let me continue.',
     maxHistory: TOOL_SAFE_MAX_HISTORY,
+    // Deliberately hard to trigger. Both advocates subscribe to the same
+    // listener uid, so anything their detection accepts as speech makes BOTH
+    // of them answer at once, outside the orchestrated turn order. These
+    // thresholds mean only a sustained, deliberate interjection counts —
+    // stray room noise or the other advocate echoing off the speakers cannot.
     turnDetection: {
       language: recognitionLanguage,
       config: {
-        speech_threshold: 0.5,
-        start_of_speech: {
-          mode: 'vad',
-          vad_config: { interrupt_duration_ms: 120, prefix_padding_ms: 240 },
-        },
-        end_of_speech: {
-          mode: 'vad',
-          vad_config: { silence_duration_ms: 360 },
-        },
+        speech_threshold: 0.9,
+        start_of_speech: { mode: 'vad', vad_config: { interrupt_duration_ms: 1200, prefix_padding_ms: 300 } },
+        end_of_speech: { mode: 'vad', vad_config: { silence_duration_ms: 900 } },
       },
     },
     advancedFeatures: { enable_rtm: true },
@@ -1006,21 +939,282 @@ REAL DEBATE RULES:
     .withStt(stt)
     .withLlm(new OpenAI({
       model: 'gpt-4o-mini',
-      greetingMessage: greeting,
-      failureMessage: 'I had trouble answering that. Please ask once more.',
+      greetingMessage: '',
+      failureMessage: 'I had trouble with that point.',
       maxHistory: TOOL_SAFE_MAX_HISTORY,
-      params: { max_tokens: 2000, temperature: 0.35, top_p: 0.9 },
+      // Backstop for the "2 sentences, under 18 words" instruction above: the
+      // model doesn't always obey a word-count instruction exactly, and a
+      // longer-than-asked reply directly means a longer wait for the other
+      // advocate — and more room for the timing estimate below to be wrong
+      // by a large absolute amount. Shorter replies help both at once: less
+      // to wait for, and less room for that wait to be miscalculated. 70
+      // tokens comfortably covers ~18 English words with room for
+      // Hindi/Hinglish, which tokenizes less efficiently.
+      params: { max_tokens: 70, temperature: 0.5, top_p: 0.9 },
     }))
     .withTts(tts);
 
   return agent.createSession({
+    name: `debate-advocate-${agentUid}-${Date.now()}`,
     channel,
-    agentUid: AGENT_UID,
-    remoteUids: [String(uid)],
-    idleTimeout: 180,
+    agentUid,
+    remoteUids: [String(buyerUid)],
+    // A full five-round debate runs several minutes and each advocate sits
+    // silent while the other talks, so a short idle timeout used to end the
+    // session mid-debate and every later turn failed with TaskNotFound.
+    idleTimeout: 900,
     expiresIn: ExpiresIn.hours(1),
     debug: false,
   });
+}
+
+// How long to hold the floor before prompting the other advocate. This is the
+// only thing preventing the two agents from talking over each other, and it
+// is a pure guess: Agora's own "did this turn finish" signal (getTurns())
+// 404s on this project, and there is no other way for the server to observe
+// real TTS playback. Word-count-based rates went through two iterations —
+// 2.0 words/sec (too slow, 15-20s of dead air) and 3.0 words/sec (too fast,
+// audible overlap on a majority of turns) — which brackets the real rate
+// somewhere between them. This sits deliberately closer to the slow end:
+// finishing late only costs a beat of silence, finishing early costs two
+// voices colliding, so ties go to caution until there is a real signal to
+// replace this estimate with (agora-rtm exists in this project and reports
+// genuine speaking-state changes, but it is documented browser-only and
+// wiring it into the server is a bigger change than is safe to make right
+// before a demo).
+// 2.5 wps traded away too much margin — overlap was reported again at that
+// rate. Rather than keep sliding this one number back and forth, the reply
+// length itself was cut hard (18 words vs the 30 this was tuned against),
+// since the estimate's error is an absolute number of seconds: the same %
+// misjudgment matters far less on a short reply than a long one. So this
+// rate moves back down for real margin, and the shorter replies above are
+// what actually keep total delay down, not an aggressive rate.
+const TTS_LEAD_IN_MS = 900;
+
+// Counting whitespace tokens badly undercounts how long a line takes to SAY,
+// because numbers and units expand enormously out loud: "₹1.16L" is one token
+// but nine spoken words ("one point one six lakh rupees"), and "0-100 in 2.6s"
+// is three tokens but ~11. That is why collisions only showed up a couple of
+// minutes in rather than from the start — the debate rounds run price →
+// range/battery → charging → boot space → running cost, so digit density
+// climbs steadily as it goes, and advocates start quoting each other's figures
+// back. The estimate silently got shorter than reality exactly as the content
+// got more numeric. So duration is measured in SPOKEN words, not written ones.
+function spokenWordCount(text) {
+  const value = String(text || '').trim();
+  if (!value) return 0;
+  const plainWords = value.split(/\s+/).filter(Boolean).length;
+  const digits = (value.match(/\d/g) || []).length;
+  const symbols = (value.match(/[₹$%°\/+\-–—]/g) || []).length;
+  const units = (value.match(/\b(?:kwh|kw|wh|km|kmph|nm|bhp|ncap|rs|lakh|hrs?|litres?|kg)\b/gi) || []).length;
+  return plainWords + (digits * 0.8) + (symbols * 0.8) + (units * 0.8);
+}
+
+function estimateSpeechMs(text) {
+  const value = String(text || '').trim();
+  const byWords = (spokenWordCount(value) / 2.2) * 1000; // ~132 spoken wpm
+  const byChars = (value.length / 13) * 1000; // fallback for scripts word-splitting undercounts
+  const ms = Math.max(byWords, byChars) + TTS_LEAD_IN_MS + 500;
+  return Math.max(2200, Math.min(ms, 40000));
+}
+
+// The dead air between turns was never the hold itself — it was what happens
+// after it. Prompting the next advocate is not the same as it starting to
+// speak: its LLM call plus TTS synthesis runs ~1.2-2.5s, and every bit of that
+// is silence. Handing over this much earlier means that warm-up overlaps the
+// tail of the current advocate's audio instead of following it, so the next
+// voice lands as the previous one finishes. Set at the low end of the measured
+// startup range on purpose — overshooting here would cut the previous advocate
+// off mid-word.
+const NEXT_TURN_STARTUP_MS = 1200;
+
+function debateReactionPrompt(otherStatement, topic, language) {
+  const quoted = String(otherStatement || '').slice(0, 400);
+  return language === 'Hindi'
+    ? `दूसरे advocate ने अभी कहा: "${quoted}". इस specific बात का सीधा जवाब दो — जहाँ गलत लगे वहाँ काटो, फिर ${topic} पर अपनी गाड़ी की एक नई मजबूत बात रखो।`
+    : language === 'Hinglish'
+      ? `Dusre advocate ne abhi kaha: "${quoted}". Is specific baat ka seedha jawab do — jahan galat lage wahan counter karo, phir ${topic} pe apni gaadi ki ek nayi strong baat rakho.`
+      : `The rival advocate just said: "${quoted}". Respond directly to that specific point — contradict it where you disagree, then make one fresh strong point about ${topic} for your own vehicle.`;
+}
+
+function debateOpenerPrompt(topic, language) {
+  return language === 'Hindi'
+    ? `डिबेट शुरू करो! सबसे पहले ${topic} पर अपना पहला पॉइंट रखो।`
+    : language === 'Hinglish'
+      ? `Debate shuru karo! Sabse pehle ${topic} pe apna pehla point rakho.`
+      : `Open the debate! Make your first point about ${topic}.`;
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Deliberately does NOT use getTurns(): that endpoint 404s on this project, and
+// polling it meant every turn ran to its full timeout, which idled the agent
+// sessions out mid-debate and made the next think() fail with TaskNotFound —
+// the arena would go quiet after a single exchange. History is the reliable
+// signal, so the reply text is read from there and the floor is then held for
+// as long as that reply takes to speak.
+//
+// think() feeds text into the agent's normal pipeline "as user input", so the
+// LLM generates a fresh, reactive reply and speaks it through its own TTS —
+// no separate say() needed.
+async function askAdvocate(session, promptText) {
+  let priorHistory = 0;
+  try { priorHistory = (await session.getHistory())?.contents?.length || 0; } catch {}
+
+  await session.think(promptText, {
+    on_listening_action: 'ignore',
+    on_thinking_action: 'ignore',
+    on_speaking_action: 'ignore',
+    interruptable: false,
+  });
+
+  // A two-poll stability check used to live here (only trust the reply once
+  // the same text came back twice in a row), built on a theory that
+  // getHistory() exposes a reply while it's still being written. Direct
+  // testing disproved that: watched a real reply for 40s after it first
+  // appeared and it never changed. So that check bought nothing but a wasted
+  // ~600ms of poll latency on every single turn — removed. Trust the first
+  // non-empty read.
+  let text = null;
+  const deadline = Date.now() + 25000;
+  while (Date.now() < deadline) {
+    await sleep(500);
+    try {
+      const contents = (await session.getHistory())?.contents || [];
+      if (contents.length > priorHistory) {
+        for (let i = contents.length - 1; i >= 0; i -= 1) {
+          if (contents[i]?.role === 'assistant' && contents[i]?.content) { text = contents[i].content; break; }
+        }
+        if (text) break;
+      }
+    } catch (error) {
+      console.warn('Debate history poll failed:', safeMessage(error));
+    }
+  }
+
+  // Hold the floor until this reply has finished being spoken, less the next
+  // advocate's warm-up, so their audio begins as this one ends rather than
+  // after a silent gap. Floored so a very short reply still holds briefly.
+  const hold = Math.max(1000, estimateSpeechMs(text || '') - NEXT_TURN_STARTUP_MS);
+  await sleep(hold);
+  return { text, finished: Boolean(text) };
+}
+
+// The turn-taking guarantee: strictly sequential awaits, one advocate at a
+// time, and each askAdvocate only returns once that advocate's turn has
+// actually ended. Nothing here can run both sessions concurrently.
+// A single failed turn no longer ends the debate — one slow reply used to
+// break the loop and leave the arena silent after a single exchange.
+// This gap is purely a breathing pause after the floor is already confirmed
+// held long enough — askAdvocate's own wait is what carries the actual
+// anti-overlap safety margin, so this one is fine to keep short.
+const DEBATE_TURN_GAP_MS = 150;
+async function runAdvocateDebate(record, sessionA, sessionB, vehicleA, vehicleB, language) {
+  let lastFromA = null;
+  let lastFromB = null;
+  let consecutiveFailures = 0;
+
+  const takeTurn = async (session, prompt) => {
+    if (record.closed) return null;
+    const result = await askAdvocate(session, prompt);
+    if (result?.text) {
+      consecutiveFailures = 0;
+    } else {
+      consecutiveFailures += 1;
+    }
+    await sleep(DEBATE_TURN_GAP_MS);
+    return result?.text || null;
+  };
+
+  try {
+    for (let round = 0; round < DEBATE_ROUND_TOPICS.length; round += 1) {
+      if (record.closed || consecutiveFailures >= 3) return;
+      const topic = DEBATE_ROUND_TOPICS[round];
+
+      const promptA = lastFromB
+        ? debateReactionPrompt(lastFromB, topic, language)
+        : debateOpenerPrompt(topic, language);
+      const textA = await takeTurn(sessionA, promptA);
+      if (textA) lastFromA = textA;
+      if (record.closed || consecutiveFailures >= 3) return;
+
+      const promptB = lastFromA
+        ? debateReactionPrompt(lastFromA, topic, language)
+        : debateOpenerPrompt(topic, language);
+      const textB = await takeTurn(sessionB, promptB);
+      if (textB) lastFromB = textB;
+    }
+  } catch (error) {
+    console.error('Advocate debate orchestration failed:', safeMessage(error));
+  }
+}
+
+// Both the script model and the TTS model are capped at 3 requests per minute
+// on this key, and a full debate takes 20-35s to render — so a live demo cannot
+// afford to generate on every click. Renders are keyed by matchup and kept on
+// disk, which makes a repeat debate instant and costs no quota at all. Deleting
+// the folder (or passing refresh) is what forces a fresh take.
+const STUDIO_CACHE_DIR = resolve(process.cwd(), '.debate-cache');
+const studioInFlight = new Map();
+
+function studioCacheKey({ vehicleA, vehicleB, language }) {
+  return createHmac('sha256', 'easyev-studio')
+    .update(`${vehicleA.id}|${vehicleB.id}|${language}`)
+    .digest('hex')
+    .slice(0, 24);
+}
+
+function readStudioAudio(id) {
+  if (!/^[a-f0-9]{24}$/.test(id)) return null;
+  const file = resolve(STUDIO_CACHE_DIR, `${id}.wav`);
+  if (!existsSync(file)) return null;
+  return readFileSync(file);
+}
+
+async function getStudioDebate({ vehicleA, vehicleB, language, refresh = false }) {
+  const id = studioCacheKey({ vehicleA, vehicleB, language });
+  const metaFile = resolve(STUDIO_CACHE_DIR, `${id}.json`);
+  const wavFile = resolve(STUDIO_CACHE_DIR, `${id}.wav`);
+
+  if (!refresh && existsSync(metaFile) && existsSync(wavFile)) {
+    return { ...JSON.parse(readFileSync(metaFile, 'utf8')), id, cached: true };
+  }
+  // Two viewers opening the same matchup at once would otherwise both spend a
+  // render, and the second would land on the rate limit.
+  if (studioInFlight.has(id)) return studioInFlight.get(id);
+
+  const work = (async () => {
+    const lines = await generateDebateScript({
+      vehicleA,
+      vehicleB,
+      language,
+      apiKey: process.env.GEMINI_API_KEY?.trim(),
+      model: process.env.GEMINI_DEBATE_MODEL?.trim() || '',
+      exchanges: 5,
+    });
+    const rendered = await synthesizeDebate({
+      lines,
+      language,
+      geminiApiKey: process.env.GEMINI_API_KEY?.trim(),
+      sarvamApiKey: SARVAM_API_KEY,
+    });
+    const meta = {
+      timeline: rendered.timeline,
+      provider: rendered.provider,
+      durationMs: rendered.timeline.length ? rendered.timeline[rendered.timeline.length - 1].endMs : 0,
+      vehicleIdA: vehicleA.id,
+      vehicleIdB: vehicleB.id,
+      language,
+      renderedAt: new Date().toISOString(),
+    };
+    mkdirSync(STUDIO_CACHE_DIR, { recursive: true });
+    writeFileSync(wavFile, buildWav(rendered.pcm));
+    writeFileSync(metaFile, JSON.stringify(meta, null, 2));
+    return { ...meta, id, cached: false };
+  })().finally(() => studioInFlight.delete(id));
+
+  studioInFlight.set(id, work);
+  return work;
 }
 
 function createAgoraMcpServer(endpoint) {
@@ -1109,6 +1303,7 @@ async function stopRecord(record) {
   record.sseClients.clear();
   try {
     if (record.session) await record.session.stop();
+    if (record.sessionB) await record.sessionB.stop();
   } catch (error) {
     console.warn('Session remote stop notice:', safeMessage(error, 'Unable to stop session'));
   } finally {
@@ -1976,6 +2171,42 @@ async function handleApi(req, res, url) {
     return json(res, 200, { appId: APP_ID, token, uid, channel, agentUid: AGENT_UID, bootstrapKey, vehicleIdA, vehicleIdB, expiresIn: TOKEN_TTL_SECONDS });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/debate-session/studio') {
+    const body = await readJson(req);
+    const vehicleA = getVehicleById(body.vehicleIdA) || TOP_12_EVS[0];
+    const vehicleB = getVehicleById(body.vehicleIdB) || TOP_12_EVS[1];
+    const language = normalizeChoice(body.language, ['Hinglish', 'English', 'Hindi'], 'Hinglish');
+    try {
+      const debate = await getStudioDebate({ vehicleA, vehicleB, language, refresh: Boolean(body.refresh) });
+      return json(res, 200, {
+        id: debate.id,
+        audioUrl: `/api/debate-session/audio/${debate.id}`,
+        durationMs: debate.durationMs,
+        timeline: debate.timeline,
+        provider: debate.provider,
+        cached: debate.cached,
+        vehicleA,
+        vehicleB,
+      });
+    } catch (error) {
+      return json(res, 503, { error: safeMessage(error) });
+    }
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/api/debate-session/audio/')) {
+    const id = url.pathname.slice('/api/debate-session/audio/'.length);
+    const wav = readStudioAudio(id);
+    if (!wav) return json(res, 404, { error: 'That debate audio has expired. Start the debate again.' });
+    res.writeHead(200, {
+      'Content-Type': 'audio/wav',
+      'Content-Length': wav.length,
+      'Cache-Control': 'public, max-age=3600',
+      'Accept-Ranges': 'none',
+    });
+    res.end(wav);
+    return true;
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/debate-session/start') {
     const body = await readJson(req);
     const pending = bootstraps.get(body.bootstrapKey);
@@ -1993,11 +2224,27 @@ async function handleApi(req, res, url) {
     const record = createRecord({ key, channel: pending.channel, uid: pending.uid, category: vehicleA.category, language, voice });
     sessions.set(key, record);
     try {
-      record.session = createDebateAgentSession({ channel: pending.channel, uid: pending.uid, vehicleIdA, vehicleIdB, language, voice });
-      record.agentId = await record.session.start();
+      const agentUidA = String(randomInt(1000, 9_999_000));
+      let agentUidB = String(randomInt(1000, 9_999_000));
+      while (agentUidB === agentUidA) agentUidB = String(randomInt(1000, 9_999_000));
+
+      record.session = createAdvocateAgentSession({ channel: pending.channel, buyerUid: pending.uid, agentUid: agentUidA, vehicle: vehicleA, opponentName: vehicleB.name, language, ttsVoice: DEBATE_ADVOCATE_VOICES.advocateA });
+      record.sessionB = createAdvocateAgentSession({ channel: pending.channel, buyerUid: pending.uid, agentUid: agentUidB, vehicle: vehicleB, opponentName: vehicleA.name, language, ttsVoice: DEBATE_ADVOCATE_VOICES.advocateB });
+
+      const [agentIdA, agentIdB] = await Promise.all([record.session.start(), record.sessionB.start()]);
+      record.agentId = agentIdA;
+
+      runAdvocateDebate(record, record.session, record.sessionB, vehicleA, vehicleB, language)
+        .catch((error) => console.error('Debate orchestration crashed:', safeMessage(error)));
+
       return json(res, 200, {
         sessionKey: key,
-        agentId: record.agentId,
+        agentId: agentIdA,
+        agentIdB,
+        // The arena highlights whoever is mid-sentence, so it needs to tell the
+        // two advocates apart by RTC uid rather than guessing by alternation.
+        agentUidA,
+        agentUidB,
         state: 'RUNNING',
         vehicleA,
         vehicleB,

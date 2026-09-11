@@ -838,6 +838,19 @@ class CompareDebateAdapter extends AgoraAdapter {
   async joinDebate(context) {
     await this.leave({ skipStop: false });
     const generation = ++this.generation;
+    this.debateAudioTracks = [];
+    // Chrome refuses to start playback in a tab with no user activation, and
+    // the SDK reports that as its own 'autoplay-failed' event rather than a
+    // rejected play() — so nothing here would otherwise notice, and the whole
+    // debate stays silent for its entire run. Watch for it and restart every
+    // advocate's audio on the next interaction the listener makes.
+    this.watchAudioAutoplay();
+    this.debateAudioRecovery = () => {
+      if (!this.audioAutoplayBlocked) return;
+      this.resumeDebateAudio();
+    };
+    document.addEventListener('pointerdown', this.debateAudioRecovery, true);
+    document.addEventListener('keydown', this.debateAudioRecovery, true);
     this.context = context;
     this.emit('CALL_STATUS', { status: 'connecting', vehicleIdA: context.vehicleIdA, vehicleIdB: context.vehicleIdB });
 
@@ -865,6 +878,13 @@ class CompareDebateAdapter extends AgoraAdapter {
           await this.rtc.subscribe(user, mediaType);
           if (mediaType === 'audio' && user.audioTrack) {
             this.remoteAudioTrack = user.audioTrack;
+            // Both advocates publish audio here, so keep every track: the
+            // autoplay recovery below has to restart all of them, and
+            // this.remoteAudioTrack only ever holds whichever one arrived last.
+            if (!this.debateAudioTracks.includes(user.audioTrack)) {
+              this.debateAudioTracks.push(user.audioTrack);
+            }
+            user.audioTrack.setVolume?.(100);
             user.audioTrack.play();
             this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now() });
             this.emit('AGENT_CONNECTED', { connected: true });
@@ -902,7 +922,19 @@ class CompareDebateAdapter extends AgoraAdapter {
       ]);
       if (generation !== this.generation) return;
       if (this.micTrack) {
+        // Published but muted at the source. Both advocates subscribe to this
+        // uid, so a live mic lets their own voices echo back off the listener's
+        // speakers and trip each agent's voice-activity detection — which makes
+        // them answer on their own, outside the server's turn orchestration,
+        // and start talking over each other. Staying published (rather than
+        // unpublished) keeps the "Speak to Agents" toggle working: it just
+        // flips this back on when the listener actually wants to interject.
+        // The SDK rejects publishing an already-disabled track outright
+        // (AgoraRTCError TRACK_IS_DISABLED), which used to abort the whole
+        // join before it ever reached the debate-start API call. Publish
+        // while still enabled, then mute at the source once it's live.
         await this.rtc.publish([this.micTrack]);
+        try { await this.micTrack.setEnabled(false); } catch {}
       }
       this.levelTimer = window.setInterval(() => {
         if (generation !== this.generation) return;
@@ -934,6 +966,9 @@ class CompareDebateAdapter extends AgoraAdapter {
               return {
                 id: `${item.turn_id || ''}-${item.uid || ''}-${item._time || ''}`,
                 speaker,
+                // Kept so the arena can highlight the advocate actually talking:
+                // the two advocates are separate agents with distinct RTC uids.
+                uid: String(item.uid ?? ''),
                 text,
                 timestamp: timestampMs(item._time),
                 status: String(item.status ?? ''),
@@ -941,10 +976,15 @@ class CompareDebateAdapter extends AgoraAdapter {
             });
           this.emit('TRANSCRIPT_SYNC', { entries });
         });
-        this.ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (_agentUid, event) => {
+        this.ai.on(AgoraVoiceAIEvents.AGENT_STATE_CHANGED, (agentUid, event) => {
           if (generation !== this.generation) return;
           const mode = agentMode(event?.state);
-          this.emit('AGENT_STATE', { mode });
+          // Unlike the single-agent adapters, there are two agents publishing
+          // into this channel — the uid this event fired for is what lets the
+          // arena know WHICH advocate's state just changed, so each podium's
+          // avatar can react only to its own agent instead of both flipping
+          // together on either agent's turn.
+          this.emit('AGENT_STATE', { mode, agentUid: String(agentUid ?? '') });
           this.emit('INTERRUPTION_READY', { ready: mode === 'speaking' });
         });
         this.ai.on(AgoraVoiceAIEvents.MESSAGE_ERROR, (_agentUid, error) => {
@@ -972,13 +1012,47 @@ class CompareDebateAdapter extends AgoraAdapter {
         return;
       }
       this.sessionKey = session.sessionKey;
-      this.emit('CALL_STATUS', { status: 'live', vehicleA: session.vehicleA, vehicleB: session.vehicleB });
+      this.emit('CALL_STATUS', {
+        status: 'live',
+        vehicleA: session.vehicleA,
+        vehicleB: session.vehicleB,
+        agentUidA: String(session.agentUidA ?? ''),
+        agentUidB: String(session.agentUidB ?? ''),
+      });
       this.emit('AGENT_STATE', { mode: 'listening' });
     } catch (error) {
       this.emit('ERROR', { message: error.message || 'Could not start EV debate arena.', recoverable: false });
       await this.leave({ skipStop: false });
       throw error;
     }
+  }
+
+  resumeDebateAudio() {
+    AgoraRTC.resumeAudioContext?.();
+    for (const track of this.debateAudioTracks) {
+      try {
+        track.setVolume?.(100);
+        track.play();
+      } catch {}
+    }
+    this.audioAutoplayBlocked = false;
+    this.emit('AUDIO_PLAYBACK_STARTED', { timestamp: Date.now() });
+  }
+
+  async leave(options = {}) {
+    if (this.debateAudioRecovery) {
+      document.removeEventListener('pointerdown', this.debateAudioRecovery, true);
+      document.removeEventListener('keydown', this.debateAudioRecovery, true);
+      this.debateAudioRecovery = null;
+    }
+    if (this.autoplayHandler) {
+      // AgoraRTC is a module singleton, so a listener left behind here would
+      // keep firing into an adapter the arena has already discarded.
+      try { AgoraRTC.off?.('autoplay-failed', this.autoplayHandler); } catch {}
+      this.autoplayHandler = null;
+    }
+    this.debateAudioTracks = [];
+    return super.leave(options);
   }
 
   async sendUserDebateIntervention(text) {
