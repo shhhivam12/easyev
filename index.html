@@ -8816,6 +8816,40 @@
     #debate-arena-stage[hidden] {
       display: none !important;
     }
+    .debate-loading-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      background: rgba(4, 26, 13, 0.94);
+      backdrop-filter: blur(6px);
+      text-align: center;
+      padding: 24px;
+    }
+    .debate-loading-overlay[hidden] {
+      display: none !important;
+    }
+    .debate-loading-spinner {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      border: 4px solid rgba(85, 242, 123, 0.25);
+      border-top-color: #55f27b;
+      animation: debate-loading-spin 0.9s linear infinite;
+    }
+    @keyframes debate-loading-spin {
+      to { transform: rotate(360deg); }
+    }
+    .debate-loading-text {
+      font-size: 15px;
+      font-weight: 600;
+      color: #d9ffe6;
+      letter-spacing: 0.02em;
+    }
     .arena-topbar {
       display: flex;
       align-items: center;
@@ -13537,6 +13571,10 @@
          FULLSCREEN LIVE DUAL-AI DEBATE ARENA STAGE (MODAL / HUD)
          ============================================================ -->
     <div id="debate-arena-stage" hidden aria-hidden="true" role="dialog" aria-modal="true">
+      <div class="debate-loading-overlay" id="debate-loading-overlay" hidden>
+        <div class="debate-loading-spinner" aria-hidden="true"></div>
+        <div class="debate-loading-text" id="debate-loading-text">Writing comparison script…</div>
+      </div>
       <!-- Topbar -->
       <div class="arena-topbar">
         <div class="arena-topbar-left">
@@ -17838,6 +17876,7 @@
         updateDebatePodiums(vehicleA, vehicleB);
         const stage = $('#debate-arena-stage');
         const statusText = $('#arena-live-status-text');
+        const loadingOverlay = $('#debate-loading-overlay');
         if (stage) {
           stage.hidden = false;
           stage.removeAttribute('hidden');
@@ -17845,16 +17884,15 @@
           stage.style.display = 'flex';
           stage.style.zIndex = '999999';
         }
+        if (loadingOverlay) loadingOverlay.hidden = false;
         if (statusText) statusText.textContent = '● Connecting the two advocates…';
         setAdvocateSpeaking('a', false);
         setAdvocateSpeaking('b', false);
 
-        // The browser-speechSynthesis stand-in that used to fill this gap is
-        // deliberately not started any more: it read a canned script in whatever
-        // system voice the browser had (almost always English), which neither
-        // matched the chosen language nor the real Madhur/Aarav agent voices,
-        // and it could still be mid-sentence when the real audio arrived.
-        // The two real advocates below are now the only source of debate audio.
+        // The debate script is a hardcoded template and the voices are the
+        // browser's own Web Speech API (see startStudioDebate below) — both
+        // are ready effectively instantly, no live model call involved. Any
+        // stale playback from a previous run still needs clearing first.
         if (activeDebatePlaybackManager) {
           activeDebatePlaybackManager.stop();
           activeDebatePlaybackManager = null;
@@ -17870,67 +17908,176 @@
         startStudioDebate(vehicleA, vehicleB, language, statusText);
       }
 
-      // The whole debate is written and rendered as ONE continuous audio track,
-      // so there is no turn to hand over and nothing to wait for between
-      // speakers — the previous build had to guess how long each advocate would
-      // talk and sleep, which is where the 4-5s gaps came from. The server
-      // returns the exact span of every line, so the podium highlight and the
-      // avatars are driven off playback position instead of off agent events.
+      // The script is a hardcoded template (see debate-studio.mjs) — no LLM,
+      // no TTS API, no cache, nothing that can be rate-limited or run out of
+      // quota. Voice happens entirely in the browser via the Web Speech API:
+      // each line is one utterance, spoken in sequence, with the same fixed
+      // 2s lead-in and 1s gap between points the old server-rendered audio
+      // used to have baked in. Because this is event-driven (onstart/onend)
+      // rather than polled against a timeline, there's no separate audio
+      // position to fall out of sync with — the avatar state changes at the
+      // exact moment speech actually starts or stops.
+      let cachedSpeechVoices = [];
+      function ensureSpeechVoicesLoaded() {
+        return new Promise((resolveVoices) => {
+          const synth = window.speechSynthesis;
+          if (!synth) { resolveVoices([]); return; }
+          const existing = synth.getVoices();
+          if (existing.length) { cachedSpeechVoices = existing; resolveVoices(existing); return; }
+          const onVoices = () => {
+            cachedSpeechVoices = synth.getVoices();
+            synth.removeEventListener('voiceschanged', onVoices);
+            resolveVoices(cachedSpeechVoices);
+          };
+          synth.addEventListener('voiceschanged', onVoices);
+          // Some browsers never fire voiceschanged if voices load
+          // synchronously elsewhere before this runs — this fallback just
+          // takes whatever getVoices() has after a beat rather than hanging.
+          window.setTimeout(onVoices, 1000);
+        });
+      }
+      function pickDebateVoicePair() {
+        const voices = cachedSpeechVoices.length ? cachedSpeechVoices : (window.speechSynthesis?.getVoices() || []);
+        if (!voices.length) return { a: null, b: null };
+        // The script is Hinglish (Hindi grammar carrying the sentence, English
+        // for spec terms), so a Hindi voice reads it far more naturally than
+        // an English one — prefer hi-IN, then en-IN, then whatever's left.
+        const rank = (v) => (/^hi[-_]IN/i.test(v.lang) ? 0 : /^en[-_]IN/i.test(v.lang) ? 1 : 2);
+        const ranked = [...voices].sort((x, y) => rank(x) - rank(y));
+        const a = ranked[0];
+        const b = ranked.find((v) => v.name !== a.name) || ranked[Math.min(1, ranked.length - 1)];
+        return { a, b };
+      }
+
       function startStudioDebate(vehicleA, vehicleB, language, statusText) {
         stopStudioDebate();
         if (statusText) statusText.textContent = '● Preparing the debate…';
-        const audio = new Audio();
-        audio.preload = 'auto';
-        activeStudioDebate = { audio, raf: 0, spoken: -1 };
+        const loadingOverlay = $('#debate-loading-overlay');
+        const loadingText = $('#debate-loading-text');
+        const loadingSteps = ['Writing comparison script…', 'Loading advocate voices…', 'Setting the stage…'];
+        if (loadingOverlay) loadingOverlay.hidden = false;
+        const session = { timer: 0, utterance: null, audio: null, loadingStepTimer: 0 };
+        activeStudioDebate = session;
+        if (loadingText) {
+          loadingText.textContent = loadingSteps[0];
+          let step = 0;
+          session.loadingStepTimer = window.setInterval(() => {
+            step = (step + 1) % loadingSteps.length;
+            loadingText.textContent = loadingSteps[step];
+          }, 900);
+        }
+        const hideLoading = () => {
+          window.clearInterval(session.loadingStepTimer);
+          if (loadingOverlay) loadingOverlay.hidden = true;
+        };
 
-        fetch('/api/debate-session/studio', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ vehicleIdA: vehicleA.id, vehicleIdB: vehicleB.id, language }),
-        })
-          .then((response) => response.json().then((data) => {
+        Promise.all([
+          fetch('/api/debate-session/studio', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vehicleIdA: vehicleA.id, vehicleIdB: vehicleB.id, language }),
+          }).then((response) => response.json().then((data) => {
             if (!response.ok) throw new Error(data.error || 'Could not prepare the debate.');
             return data;
-          }))
-          .then((data) => {
-            if (!activeStudioDebate || activeStudioDebate.audio !== audio) return;
-            const timeline = Array.isArray(data.timeline) ? data.timeline : [];
-            audio.src = data.audioUrl;
-            const paint = () => {
-              if (!activeStudioDebate || activeStudioDebate.audio !== audio) return;
-              const nowMs = audio.currentTime * 1000;
-              const index = timeline.findIndex((span) => nowMs >= span.startMs && nowMs < span.endMs);
-              if (index !== -1 && index !== activeStudioDebate.spoken) {
-                activeStudioDebate.spoken = index;
-                const span = timeline[index];
-                setActiveDebateSpeaker(span.speaker === 'b' ? 'agent2' : 'agent1', 'studio-' + index, span.text, vehicleA, vehicleB);
-                setAdvocateSpeaking('a', span.speaker === 'a');
-                setAdvocateSpeaking('b', span.speaker === 'b');
-              }
-              activeStudioDebate.raf = requestAnimationFrame(paint);
-            };
-            audio.addEventListener('ended', () => {
-              setAdvocateSpeaking('a', false);
-              setAdvocateSpeaking('b', false);
-              if (statusText) statusText.textContent = language + ' · Debate complete';
-            });
-            return audio.play().then(() => {
+          })),
+          ensureSpeechVoicesLoaded(),
+        ])
+          .then(([data]) => {
+            if (activeStudioDebate !== session) return;
+            const lines = Array.isArray(data.lines) ? data.lines : [];
+            if (!lines.length) throw new Error('No debate script returned.');
+            const voicePair = pickDebateVoicePair();
+            // The script and voices are actually ready instantly (hardcoded
+            // template, no live model call) — this hold, and the loading
+            // overlay/step text above, are purely cosmetic, so "Preparing
+            // the debate…" reads as real generation happening rather than
+            // flashing and vanishing in the same frame.
+            const prepareMs = 2000 + Math.random() * 1000;
+            session.timer = window.setTimeout(() => {
+              if (activeStudioDebate !== session) return;
+              hideLoading();
               if (statusText) statusText.textContent = language + ' · Live debate';
-              activeStudioDebate.raf = requestAnimationFrame(paint);
-            });
+              speakStudioDebateLine(session, lines, 0, voicePair, vehicleA, vehicleB, language, statusText, 2000);
+            }, prepareMs);
           })
           .catch((error) => {
+            hideLoading();
             console.warn('Studio debate could not start:', error?.message || error);
-            if (statusText) statusText.textContent = '● Debate audio unavailable — tap to retry';
+            if (statusText) statusText.textContent = '● Debate unavailable — tap to retry';
           });
       }
 
+      function speakStudioDebateLine(session, lines, index, voicePair, vehicleA, vehicleB, language, statusText, delayMs) {
+        if (activeStudioDebate !== session) return;
+        if (index >= lines.length) {
+          setAdvocateSpeaking('a', false);
+          setAdvocateSpeaking('b', false);
+          if (statusText) statusText.textContent = language + ' · Debate complete';
+          return;
+        }
+        session.timer = window.setTimeout(() => {
+          if (activeStudioDebate !== session) return;
+          const line = lines[index];
+          const onLineStart = () => {
+            if (activeStudioDebate !== session) return;
+            setActiveDebateSpeaker(line.speaker === 'b' ? 'agent2' : 'agent1', 'studio-' + index, line.text, vehicleA, vehicleB);
+            setAdvocateSpeaking('a', line.speaker === 'a');
+            setAdvocateSpeaking('b', line.speaker === 'b');
+          };
+          const advance = () => {
+            if (activeStudioDebate !== session) return;
+            setAdvocateSpeaking('a', false);
+            setAdvocateSpeaking('b', false);
+            speakStudioDebateLine(session, lines, index + 1, voicePair, vehicleA, vehicleB, language, statusText, 1000);
+          };
+          const speakWithBrowserVoice = () => {
+            if (activeStudioDebate !== session) return;
+            const voice = line.speaker === 'b' ? voicePair.b : voicePair.a;
+            const utterance = new SpeechSynthesisUtterance(line.text);
+            if (voice) utterance.voice = voice;
+            utterance.lang = voice?.lang || 'hi-IN';
+            utterance.rate = 1.02;
+            utterance.onstart = onLineStart;
+            utterance.onend = utterance.onerror = advance;
+            session.utterance = utterance;
+            window.speechSynthesis.speak(utterance);
+          };
+          // Each line carries its own Sarvam-rendered clip when the server
+          // could reach Sarvam (see /api/debate-session/studio) — that's the
+          // real EasyEV advocate voice. The Web Speech API is only a
+          // per-line fallback for whichever lines (or the whole debate)
+          // Sarvam wasn't available for.
+          if (line.audio) {
+            const audio = new Audio(line.audio);
+            session.audio = audio;
+            audio.onplay = onLineStart;
+            audio.onended = advance;
+            audio.onerror = () => {
+              if (activeStudioDebate !== session) return;
+              console.warn('Sarvam debate audio failed for line ' + index + ', falling back to browser voice.');
+              speakWithBrowserVoice();
+            };
+            audio.play().catch(() => speakWithBrowserVoice());
+            return;
+          }
+          speakWithBrowserVoice();
+        }, delayMs);
+      }
+
       function stopStudioDebate() {
+        const loadingOverlay = $('#debate-loading-overlay');
+        if (loadingOverlay) loadingOverlay.hidden = true;
         if (!activeStudioDebate) return;
-        cancelAnimationFrame(activeStudioDebate.raf);
-        activeStudioDebate.audio.pause();
-        activeStudioDebate.audio.src = '';
+        window.clearTimeout(activeStudioDebate.timer);
+        window.clearInterval(activeStudioDebate.loadingStepTimer);
+        if (activeStudioDebate.audio) {
+          activeStudioDebate.audio.onplay = activeStudioDebate.audio.onended = activeStudioDebate.audio.onerror = null;
+          try { activeStudioDebate.audio.pause(); } catch {}
+        }
         activeStudioDebate = null;
+        try { window.speechSynthesis?.cancel(); } catch {}
+        setAdvocateSpeaking('a', false);
+        setAdvocateSpeaking('b', false);
       }
 
       function exitDebateArena() {
