@@ -37,6 +37,11 @@ app.innerHTML = `
     </div>
   </div>
   <div class="nav-area">
+    <aside class="platform-status-notice" aria-label="Platform status notice">
+      <span class="platform-status-notice__label">Platform status</span>
+      <strong>API keys were revoked after the event.</strong>
+      <span>Some live features may not perform as expected.</span>
+    </aside>
     <header class="site-nav" id="showroom-site-nav">
       <a class="brand" href="/" aria-label="EasyEV AI home">
         <span class="brand__symbol" aria-hidden="true"><img src="/assets/icon.png" alt="" /></span>

@@ -3003,6 +3003,9 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'Not found' });
     }
     if (req.method !== 'GET' && req.method !== 'HEAD') return json(res, 405, { error: 'Method not allowed' });
+    if (url.pathname === '/platform' || url.pathname === '/platform/' || url.pathname === '/platform.html') {
+      if (serveFile(req, res, 'platform.html')) return;
+    }
     if (url.pathname === '/' || url.pathname === '/index.html') {
       if (serveFile(req, res, 'index.html')) return;
     }

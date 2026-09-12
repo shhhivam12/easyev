@@ -1167,6 +1167,20 @@ input:focus { border-color: var(--mint-glow); }
   .topbar { height: auto; min-height: 52px; flex-wrap: wrap; padding: 8px 16px; gap: 8px; }
   .telemetry-group { display: none; }
 }
+
+.platform-status-notice-
+
+<div class="platform-status-notice--rep" role="status" aria-label="Platform status notice">
+  <span class="platform-status-notice__label">Platform status</span>
+  <strong>API keys were revoked after the event.</strong>
+  <span>Some live features may not perform as expected.</span>
+</div>
+-rep { position:sticky; top:0; z-index:100; display:flex; align-items:center; justify-content:center; gap:10px; min-height:38px; padding:8px 16px; color:#5d3b00; border-bottom:1px solid rgba(180,115,0,.25); background:#fff8e7; font-size:11px; line-height:1.35; }
+.platform-status-notice--rep strong { color:#4e3000; font-weight:850; }
+.platform-status-notice--rep span { color:#765a25; }
+.platform-status-notice--rep .platform-status-notice__label { padding:4px 7px; color:#5d3b00; border-radius:999px; background:#ffd978; font-size:8px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; white-space:nowrap; }
+@media(max-width:620px) { .platform-status-notice--rep { align-items:flex-start; flex-wrap:wrap; justify-content:flex-start; } }
+
 </style>
 </head>
 <body>
